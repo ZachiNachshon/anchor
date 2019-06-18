@@ -19,12 +19,12 @@ type ListCmd struct {
 }
 
 type ListCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewListCmd(opts *common.CmdRootOptions) *ListCmd {
+func NewListCmd(opts *types.CmdRootOptions) *ListCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List all available docker images",
@@ -75,8 +75,7 @@ func listDockerfilesDirs(verbose bool) ([]string, error) {
 		logger.PrintHeadline("Listing all Docker images")
 	}
 
-	//var dirNames []string
-	var dirNames = make([]string, 0) // optimistic of 10 docker files
+	var dirNames = make([]string, 0)
 	err := filepath.Walk(DOCKER_FILES_REPO_PATH,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -115,7 +114,7 @@ func listDockerfilesDirs(verbose bool) ([]string, error) {
 }
 
 func extractDockerfileDirName(path string) string {
-	dirName := strings.TrimPrefix(path, path+"/")
+	dirName := strings.TrimPrefix(path, DOCKER_FILES_REPO_PATH+"/")
 	dirName = strings.TrimSuffix(dirName, DOCKER_FILE_NAME)
 	return dirName
 }

@@ -1,4 +1,4 @@
-package common
+package types
 
 type CmdRootOptions struct {
 	ConfigFile string

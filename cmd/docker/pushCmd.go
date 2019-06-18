@@ -13,12 +13,12 @@ type PushCmd struct {
 }
 
 type PushCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewPushCmd(opts *common.CmdRootOptions) *PushCmd {
+func NewPushCmd(opts *types.CmdRootOptions) *PushCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "push",
 		Short: "Push a docker image to remote/local repository",

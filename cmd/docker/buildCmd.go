@@ -1,15 +1,16 @@
 package docker
 
 import (
-	"fmt"
+	"github.com/kit/cmd"
 	"github.com/kit/cmd/logger"
 	"github.com/kit/cmd/types"
 	"github.com/kit/cmd/utils"
 	"github.com/spf13/cobra"
 	"path/filepath"
+	"strings"
 )
 
-var suite = "latest"
+var tag = "latest"
 
 type BuildCmd struct {
 	cobraCmd *cobra.Command
@@ -17,12 +18,12 @@ type BuildCmd struct {
 }
 
 type BuildCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewBuildCmd(opts *common.CmdRootOptions) *BuildCmd {
+func NewBuildCmd(opts *types.CmdRootOptions) *BuildCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "build",
 		Short: "Builds a Dockerfile",
@@ -55,24 +56,27 @@ func buildDockerfile(dirname string) error {
 		buildDir := filepath.Dir(dockerfilePath)
 		imageIdentifier := composeDockerImageIdentifier(dirname)
 		logger.Infof("Building %v...", imageIdentifier)
-		buildCmd := fmt.Sprintf("docker build -f %v -t %v %v", dockerfilePath, imageIdentifier, buildDir)
-		utils.ExecShell(buildCmd)
+
+		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {
+			return err
+		} else {
+			// Replace "." context to Dockerfile build directory
+			buildCmd = strings.Replace(buildCmd, ".", buildDir, 1)
+			if cmd.Verbose {
+				logger.Info(buildCmd)
+			}
+			utils.ExecShell(buildCmd)
+		}
 	}
 
 	return nil
 }
-
-//func extractDockerBuildCmd(path string) {
-//	if content, err := os.Open(path); err != nil {
-//
-//	}
-//}
 
 func (cmd *BuildCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
 func (cmd *BuildCmd) initFlags() error {
-	cmd.cobraCmd.Flags().StringVarP(&suite, "suite", "s", "latest", "docker image suite")
+	cmd.cobraCmd.Flags().StringVarP(&tag, "tag", "s", "latest", "docker image tag")
 	return nil
 }

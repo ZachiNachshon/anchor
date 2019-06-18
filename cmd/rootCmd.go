@@ -13,7 +13,7 @@ var Source string
 
 type CmdRoot struct {
 	cobraCmd *cobra.Command
-	opts     common.CmdRootOptions
+	opts     types.CmdRootOptions
 }
 
 func NewCmdRoot() *CmdRoot {

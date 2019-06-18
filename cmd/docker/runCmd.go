@@ -1,10 +1,11 @@
 package docker
 
 import (
+	"github.com/kit/cmd"
 	"github.com/kit/cmd/logger"
 	"github.com/kit/cmd/types"
+	"github.com/kit/cmd/utils"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
 type RunCmd struct {
@@ -13,12 +14,12 @@ type RunCmd struct {
 }
 
 type RunCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewRunCmd(opts *common.CmdRootOptions) *RunCmd {
+func NewRunCmd(opts *types.CmdRootOptions) *RunCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "run",
 		Short: "Run a Dockerfile",
@@ -45,24 +46,21 @@ func NewRunCmd(opts *common.CmdRootOptions) *RunCmd {
 }
 
 func runContainer(dirname string) error {
-	//imageIdentifier := composeDockerImageIdentifierNoSuite(dirname)
+	//imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
 
 	if dockerfilePath, err := getDockerfileContextPath(dirname); err != nil {
 		return err
 	} else {
-		_ = extractDockerRunCmd(dockerfilePath)
+		if runCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {
+			return err
+		} else {
+			if cmd.Verbose {
+				logger.Info(runCmd)
+			}
+			utils.ExecShell(runCmd)
+		}
 	}
 
-	return nil
-}
-
-func extractDockerRunCmd(path string) error {
-	if contentByte, err := ioutil.ReadFile(path); err != nil {
-		return err
-	} else {
-		contentStr := string(contentByte)
-		logger.Info(contentStr)
-	}
 	return nil
 }
 

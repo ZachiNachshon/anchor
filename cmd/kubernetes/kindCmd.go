@@ -14,12 +14,12 @@ type KindCmd struct {
 }
 
 type KindCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewKindCmd(opts *common.CmdRootOptions) *KindCmd {
+func NewKindCmd(opts *types.CmdRootOptions) *KindCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "build",
 		Short: "Builds a Dockerfile",

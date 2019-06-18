@@ -15,12 +15,12 @@ type StopCmd struct {
 }
 
 type StopCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewStopCmd(opts *common.CmdRootOptions) *StopCmd {
+func NewStopCmd(opts *types.CmdRootOptions) *StopCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "stop",
 		Short: "Stop containers",
@@ -51,7 +51,7 @@ func NewStopCmd(opts *common.CmdRootOptions) *StopCmd {
 
 func stopContainers(dirname string) error {
 	stopContainerFmt := "docker stop %v"
-	imageIdentifier := composeDockerImageIdentifierNoSuite(dirname)
+	imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
 
 	runningContainerCmd := fmt.Sprintf("docker ps | grep '%v' | awk {'print $1'}", imageIdentifier)
 	if runningContainer, err := utils.ExecShellWithOutput(runningContainerCmd); err != nil {
@@ -69,7 +69,7 @@ func stopContainers(dirname string) error {
 
 func removeContainers(dirname string) error {
 	removeContainerFmt := "docker rm -f %v"
-	imageIdentifier := composeDockerImageIdentifierNoSuite(dirname)
+	imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
 
 	runningContainerCmd := fmt.Sprintf("docker ps | grep '%v' | awk {'print $1'}", imageIdentifier)
 	if existingContainer, err := utils.ExecShellWithOutput(runningContainerCmd); err != nil {

@@ -4,7 +4,7 @@ GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 default: build
 
 build: fmtcheck
-	go install
+	go build
 
 fmt:
 	gofmt -w $(GOFMT_FILES)

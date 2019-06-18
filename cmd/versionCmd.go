@@ -12,12 +12,12 @@ type VersionCmd struct {
 }
 
 type VersionCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
+func NewVersionCmd(opts *types.CmdRootOptions) *VersionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number",

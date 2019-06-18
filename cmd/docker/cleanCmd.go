@@ -14,12 +14,12 @@ type CleanCmd struct {
 }
 
 type CleanCmdOptions struct {
-	*common.CmdRootOptions
+	*types.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewCleanCmd(opts *common.CmdRootOptions) *CleanCmd {
+func NewCleanCmd(opts *types.CmdRootOptions) *CleanCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "clean",
 		Short: "Clean docker containers and images",
@@ -65,7 +65,7 @@ func removeImages(dirname string) error {
 		logger.Info("No images can be found for name: <none>")
 	}
 
-	imageIdentifier := composeDockerImageIdentifierNoSuite(dirname)
+	imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
 	containerImagesCmd := fmt.Sprintf("docker images | grep '%v' | awk {'print $3'}", imageIdentifier)
 	if containerImages, err := utils.ExecShellWithOutput(containerImagesCmd); err != nil {
 		return err

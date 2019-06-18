@@ -3,15 +3,24 @@ package docker
 import (
 	"fmt"
 	"github.com/kit/cmd/logger"
-	"github.com/kit/cmd/types"
+	. "github.com/kit/cmd/types"
 	"github.com/kit/cmd/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"os"
+	"strings"
 )
 
 var DOCKER_IMAGE_PREFIX = "znkit"
 var DOCKER_FILES_REPO_PATH string
+
+type DockerCommand string
+
+const (
+	DockerCommandRun   DockerCommand = "run"
+	DockerCommandBuild DockerCommand = "build"
+)
 
 func init() {
 	if prefix := os.Getenv("DOCKER_IMAGE_PREFIX"); len(prefix) > 0 {
@@ -25,12 +34,12 @@ type DockerCmd struct {
 }
 
 type DockerCmdOptions struct {
-	*common.CmdRootOptions
+	*CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewDockerCmd(opts *common.CmdRootOptions) *DockerCmd {
+func NewDockerCmd(opts *CmdRootOptions) *DockerCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "docker",
 		Short: "Docker related commands",
@@ -96,11 +105,29 @@ func (docker *DockerCmd) initDockerCommands() {
 }
 
 func composeDockerImageIdentifier(dirname string) string {
-	imageIdentifier := fmt.Sprintf("%v/%v:%v", DOCKER_IMAGE_PREFIX, dirname, suite)
+	imageIdentifier := fmt.Sprintf("%v/%v:%v", DOCKER_IMAGE_PREFIX, dirname, tag)
 	return imageIdentifier
 }
 
-func composeDockerImageIdentifierNoSuite(dirname string) string {
+func composeDockerImageIdentifierNoTag(dirname string) string {
 	imageIdentifier := fmt.Sprintf("%v/%v", DOCKER_IMAGE_PREFIX, dirname)
 	return imageIdentifier
+}
+
+func extractDockerCmd(dockerfilePath string, dockerCommand DockerCommand) (string, error) {
+	var contentStr = ""
+	if contentByte, err := ioutil.ReadFile(dockerfilePath); err != nil {
+		return "", err
+	} else {
+		contentStr := string(contentByte)
+
+		startIdx := strings.Index(contentStr, "docker "+string(dockerCommand))
+		contentStr = contentStr[startIdx:]
+
+		lastIdx := strings.Index(contentStr, "#\n#")
+		contentStr = contentStr[:lastIdx]
+
+		contentStr = strings.ReplaceAll(contentStr, "#", "")
+	}
+	return contentStr, nil
 }
