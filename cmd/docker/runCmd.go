@@ -1,25 +1,23 @@
 package docker
 
 import (
-	"github.com/kit/cmd"
-	"github.com/kit/cmd/logger"
-	"github.com/kit/cmd/types"
-	"github.com/kit/cmd/utils"
+	"github.com/kit/pkg/common"
+	"github.com/kit/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
-type RunCmd struct {
+type runCmd struct {
 	cobraCmd *cobra.Command
 	opts     RunCmdOptions
 }
 
 type RunCmdOptions struct {
-	*types.CmdRootOptions
+	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewRunCmd(opts *types.CmdRootOptions) *RunCmd {
+func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "run",
 		Short: "Run a Dockerfile",
@@ -34,7 +32,7 @@ func NewRunCmd(opts *types.CmdRootOptions) *RunCmd {
 		},
 	}
 
-	var runCmd = new(RunCmd)
+	var runCmd = new(runCmd)
 	runCmd.cobraCmd = cobraCmd
 	runCmd.opts.CmdRootOptions = opts
 
@@ -54,21 +52,23 @@ func runContainer(dirname string) error {
 		if runCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {
 			return err
 		} else {
-			if cmd.Verbose {
-				logger.Info(runCmd)
+			//runCmd = strings.TrimSpace(runCmd)
+			if common.GlobalOptions.Verbose {
+				logger.Info("\n" + runCmd)
 			}
-			utils.ExecShell(runCmd)
+
+			shellExec.ExecShell(runCmd)
 		}
 	}
 
 	return nil
 }
 
-func (cmd *RunCmd) GetCobraCmd() *cobra.Command {
+func (cmd *runCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *RunCmd) initFlags() error {
+func (cmd *runCmd) initFlags() error {
 	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }

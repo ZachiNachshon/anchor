@@ -2,23 +2,23 @@ package docker
 
 import (
 	"fmt"
-	"github.com/kit/cmd/types"
 
+	"github.com/kit/pkg/common"
 	"github.com/spf13/cobra"
 )
 
-type PushCmd struct {
+type pushCmd struct {
 	cobraCmd *cobra.Command
 	opts     PushCmdOptions
 }
 
 type PushCmdOptions struct {
-	*types.CmdRootOptions
+	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewPushCmd(opts *types.CmdRootOptions) *PushCmd {
+func NewPushCmd(opts *common.CmdRootOptions) *pushCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "push",
 		Short: "Push a docker image to remote/local repository",
@@ -28,7 +28,7 @@ func NewPushCmd(opts *types.CmdRootOptions) *PushCmd {
 		},
 	}
 
-	var pushCmd = new(PushCmd)
+	var pushCmd = new(pushCmd)
 	pushCmd.cobraCmd = cobraCmd
 	pushCmd.opts.CmdRootOptions = opts
 
@@ -39,11 +39,11 @@ func NewPushCmd(opts *types.CmdRootOptions) *PushCmd {
 	return pushCmd
 }
 
-func (cmd *PushCmd) GetCobraCmd() *cobra.Command {
+func (cmd *pushCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *PushCmd) initFlags() error {
+func (cmd *pushCmd) initFlags() error {
 	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }

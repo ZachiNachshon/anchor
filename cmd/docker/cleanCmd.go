@@ -2,24 +2,24 @@ package docker
 
 import (
 	"fmt"
-	"github.com/kit/cmd/logger"
-	"github.com/kit/cmd/types"
-	"github.com/kit/cmd/utils"
+
+	"github.com/kit/pkg/common"
+	"github.com/kit/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
-type CleanCmd struct {
+type cleanCmd struct {
 	cobraCmd *cobra.Command
 	opts     CleanCmdOptions
 }
 
 type CleanCmdOptions struct {
-	*types.CmdRootOptions
+	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewCleanCmd(opts *types.CmdRootOptions) *CleanCmd {
+func NewCleanCmd(opts *common.CmdRootOptions) *cleanCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "clean",
 		Short: "Clean docker containers and images",
@@ -40,7 +40,7 @@ func NewCleanCmd(opts *types.CmdRootOptions) *CleanCmd {
 		},
 	}
 
-	var cleanCmd = new(CleanCmd)
+	var cleanCmd = new(cleanCmd)
 	cleanCmd.cobraCmd = cobraCmd
 	cleanCmd.opts.CmdRootOptions = opts
 
@@ -55,24 +55,24 @@ func removeImages(dirname string) error {
 	removeImagesFmt := "docker rmi -f %v"
 
 	unknownImagesCmd := "docker images | grep '<none>' | awk {'print $3'}"
-	if unknownImages, err := utils.ExecShellWithOutput(unknownImagesCmd); err != nil {
+	if unknownImages, err := shellExec.ExecShellWithOutput(unknownImagesCmd); err != nil {
 		return err
 	} else if len(unknownImages) > 0 {
 		logger.Info("Removing docker images for name: <none>")
 		imageIds := fmt.Sprintf(removeImagesFmt, unknownImages)
-		utils.ExecShell(imageIds)
+		shellExec.ExecShell(imageIds)
 	} else {
 		logger.Info("No images can be found for name: <none>")
 	}
 
 	imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
 	containerImagesCmd := fmt.Sprintf("docker images | grep '%v' | awk {'print $3'}", imageIdentifier)
-	if containerImages, err := utils.ExecShellWithOutput(containerImagesCmd); err != nil {
+	if containerImages, err := shellExec.ExecShellWithOutput(containerImagesCmd); err != nil {
 		return err
 	} else if len(containerImages) > 0 {
 		logger.Infof("Removing docker images for name: %v", imageIdentifier)
 		imageIds := fmt.Sprintf(removeImagesFmt, containerImages)
-		utils.ExecShell(imageIds)
+		shellExec.ExecShell(imageIds)
 	} else {
 		logger.Infof("No images can be found for name: %v", imageIdentifier)
 	}
@@ -80,11 +80,11 @@ func removeImages(dirname string) error {
 	return nil
 }
 
-func (cmd *CleanCmd) GetCobraCmd() *cobra.Command {
+func (cmd *cleanCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *CleanCmd) initFlags() error {
+func (cmd *cleanCmd) initFlags() error {
 	//cmd.cobraCmd.Flags().BoolVarP(&cleanAll, "all", "a", false, "stop container(s) and clean image")
 	return nil
 }

@@ -1,29 +1,23 @@
 package docker
 
 import (
-	"github.com/kit/cmd"
-	"github.com/kit/cmd/logger"
-	"github.com/kit/cmd/types"
-	"github.com/kit/cmd/utils"
+	"github.com/kit/pkg/common"
+	"github.com/kit/pkg/logger"
 	"github.com/spf13/cobra"
-	"path/filepath"
-	"strings"
 )
 
-var tag = "latest"
-
-type BuildCmd struct {
+type buildCmd struct {
 	cobraCmd *cobra.Command
 	opts     BuildCmdOptions
 }
 
 type BuildCmdOptions struct {
-	*types.CmdRootOptions
+	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewBuildCmd(opts *types.CmdRootOptions) *BuildCmd {
+func NewBuildCmd(opts *common.CmdRootOptions) *buildCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "build",
 		Short: "Builds a Dockerfile",
@@ -38,7 +32,7 @@ func NewBuildCmd(opts *types.CmdRootOptions) *BuildCmd {
 		},
 	}
 
-	var buildCmd = new(BuildCmd)
+	var buildCmd = new(buildCmd)
 	buildCmd.cobraCmd = cobraCmd
 	buildCmd.opts.CmdRootOptions = opts
 
@@ -53,30 +47,29 @@ func buildDockerfile(dirname string) error {
 	if dockerfilePath, err := getDockerfileContextPath(dirname); err != nil {
 		return err
 	} else {
-		buildDir := filepath.Dir(dockerfilePath)
+		//buildDir := filepath.Dir(dockerfilePath)
 		imageIdentifier := composeDockerImageIdentifier(dirname)
 		logger.Infof("Building %v...", imageIdentifier)
 
-		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {
+		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandBuild); err != nil {
 			return err
 		} else {
-			// Replace "." context to Dockerfile build directory
-			buildCmd = strings.Replace(buildCmd, ".", buildDir, 1)
-			if cmd.Verbose {
-				logger.Info(buildCmd)
+
+			if common.GlobalOptions.Verbose {
+				logger.Info("\n" + buildCmd)
 			}
-			utils.ExecShell(buildCmd)
+			shellExec.ExecShell(buildCmd)
 		}
 	}
 
 	return nil
 }
 
-func (cmd *BuildCmd) GetCobraCmd() *cobra.Command {
+func (cmd *buildCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *BuildCmd) initFlags() error {
-	cmd.cobraCmd.Flags().StringVarP(&tag, "tag", "s", "latest", "docker image tag")
+func (cmd *buildCmd) initFlags() error {
+	cmd.cobraCmd.Flags().StringVarP(&DOCKER_IMAGE_TAG, "DOCKER_IMAGE_TAG", "s", "latest", "docker image DOCKER_IMAGE_TAG")
 	return nil
 }

@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/kit/cmd/types"
+
+	"github.com/kit/pkg/common"
 	"github.com/spf13/cobra"
 )
 
@@ -12,12 +13,12 @@ type VersionCmd struct {
 }
 
 type VersionCmdOptions struct {
-	*types.CmdRootOptions
+	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewVersionCmd(opts *types.CmdRootOptions) *VersionCmd {
+func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number",

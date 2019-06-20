@@ -2,18 +2,16 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/kit/cmd/docker"
-	"github.com/kit/cmd/logger"
-	"github.com/kit/cmd/types"
+	"github.com/kit/pkg/common"
+	"github.com/kit/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
-var Verbose bool
-var Source string
-
 type CmdRoot struct {
 	cobraCmd *cobra.Command
-	opts     types.CmdRootOptions
+	opts     common.CmdRootOptions
 }
 
 func NewCmdRoot() *CmdRoot {
@@ -32,7 +30,7 @@ func NewCmdRoot() *CmdRoot {
 }
 
 func (root *CmdRoot) initFlags() error {
-	root.cobraCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
+	root.cobraCmd.PersistentFlags().BoolVarP(&common.GlobalOptions.Verbose, "verbose", "v", common.GlobalOptions.Verbose, "verbose output")
 	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }

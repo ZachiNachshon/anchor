@@ -2,9 +2,9 @@ package kubernetes
 
 import (
 	"fmt"
-	"github.com/kit/cmd/docker"
-	"github.com/kit/cmd/types"
 
+	"github.com/kit/cmd/docker"
+	"github.com/kit/pkg/common"
 	"github.com/spf13/cobra"
 )
 
@@ -14,12 +14,12 @@ type KindCmd struct {
 }
 
 type KindCmdOptions struct {
-	*types.CmdRootOptions
+	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewKindCmd(opts *types.CmdRootOptions) *KindCmd {
+func NewKindCmd(opts *common.CmdRootOptions) *KindCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "build",
 		Short: "Builds a Dockerfile",

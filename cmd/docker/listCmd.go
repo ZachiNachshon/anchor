@@ -2,29 +2,30 @@ package docker
 
 import (
 	"fmt"
-	"github.com/kit/cmd/logger"
-	"github.com/kit/cmd/types"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/kit/pkg/common"
+	"github.com/kit/pkg/logger"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 var DOCKER_FILE_NAME = "/Dockerfile"
 
-type ListCmd struct {
+type listCmd struct {
 	cobraCmd *cobra.Command
 	opts     ListCmdOptions
 }
 
 type ListCmdOptions struct {
-	*types.CmdRootOptions
+	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewListCmd(opts *types.CmdRootOptions) *ListCmd {
+func NewListCmd(opts *common.CmdRootOptions) *listCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List all available docker images",
@@ -37,7 +38,7 @@ func NewListCmd(opts *types.CmdRootOptions) *ListCmd {
 		},
 	}
 
-	var listCmd = new(ListCmd)
+	var listCmd = new(listCmd)
 	listCmd.cobraCmd = cobraCmd
 	listCmd.opts.CmdRootOptions = opts
 
@@ -48,11 +49,11 @@ func NewListCmd(opts *types.CmdRootOptions) *ListCmd {
 	return listCmd
 }
 
-func (cmd *ListCmd) GetCobraCmd() *cobra.Command {
+func (cmd *listCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *ListCmd) initFlags() error {
+func (cmd *listCmd) initFlags() error {
 	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }

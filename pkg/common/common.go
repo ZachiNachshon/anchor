@@ -1,4 +1,8 @@
-package types
+package common
+
+var GlobalOptions = CmdRootOptions{
+	Verbose: false,
+}
 
 type CmdRootOptions struct {
 	ConfigFile string
