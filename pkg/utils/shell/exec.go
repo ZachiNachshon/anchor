@@ -1,10 +1,10 @@
 package shell
 
 import (
-	"bufio"
+	"bytes"
+	"io"
+	"os"
 	"os/exec"
-
-	"github.com/kit/pkg/logger"
 )
 
 type ShellType string
@@ -34,27 +34,21 @@ func (s *shellExecutor) ExecShellWithOutput(command string) (string, error) {
 	return output, nil
 }
 
-func (s *shellExecutor) ExecShell(command string) {
+func (s *shellExecutor) ExecShell(command string) error {
 	cmd := exec.Command(string(s.shellType), "-c", command)
 
-	logger.Info("\n")
+	var stdBuffer bytes.Buffer
+	mw := io.MultiWriter(os.Stdout, &stdBuffer)
 
-	stdout, _ := cmd.StdoutPipe()
-	_ = cmd.Start()
-	oneByte := make([]byte, 100)
-	for {
-		_, err := stdout.Read(oneByte)
-		if err != nil {
-			// Do nothing, no need to print EOF
-			break
-		}
-		r := bufio.NewReader(stdout)
-		line, _, _ := r.ReadLine()
-		logger.Info(string(line))
+	cmd.Stdout = mw
+	cmd.Stderr = mw
+
+	// Execute the command
+	if err := cmd.Run(); err != nil {
+		return err
+		//logger.Fatalf("Failure occurred: %v", err.Error())
 	}
 
-	err := cmd.Wait()
-	if err != nil {
-		logger.Fatalf("Failure occurred: %v", err.Error())
-	}
+	//log.Println(stdBuffer.String())
+	return nil
 }

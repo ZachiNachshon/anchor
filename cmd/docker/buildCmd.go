@@ -47,18 +47,16 @@ func buildDockerfile(dirname string) error {
 	if dockerfilePath, err := getDockerfileContextPath(dirname); err != nil {
 		return err
 	} else {
-		//buildDir := filepath.Dir(dockerfilePath)
-		imageIdentifier := composeDockerImageIdentifier(dirname)
-		logger.Infof("Building %v...", imageIdentifier)
-
 		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandBuild); err != nil {
 			return err
 		} else {
-
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + buildCmd)
 			}
-			shellExec.ExecShell(buildCmd)
+
+			if err = shellExec.ExecShell(buildCmd); err != nil {
+				return err
+			}
 		}
 	}
 

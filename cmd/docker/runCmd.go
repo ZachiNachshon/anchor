@@ -44,20 +44,19 @@ func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 }
 
 func runContainer(dirname string) error {
-	//imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
-
 	if dockerfilePath, err := getDockerfileContextPath(dirname); err != nil {
 		return err
 	} else {
 		if runCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {
 			return err
 		} else {
-			//runCmd = strings.TrimSpace(runCmd)
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + runCmd)
 			}
 
-			shellExec.ExecShell(runCmd)
+			if err = shellExec.ExecShell(runCmd); err != nil {
+				return err
+			}
 		}
 	}
 
