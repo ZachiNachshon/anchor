@@ -6,12 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kit/pkg/utils/shell"
-
-	"github.com/kit/pkg/utils/parser"
-
 	"github.com/kit/pkg/common"
 	"github.com/kit/pkg/logger"
+	"github.com/kit/pkg/utils/parser"
+	"github.com/kit/pkg/utils/shell"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -82,8 +80,8 @@ func checkPrerequisites() error {
 		return errors.Errorf("DOCKER_FILES environment variable is missing, must contain path to the 'dockerfiles' git repository.")
 	}
 
-	if _, err := shellExec.ExecShellWithOutput("which docker"); err != nil {
-		return errors.Errorf("docker is missing, must be installed, cannot proceed.")
+	if err := shell.NewDockerInstaller().Check(); err != nil {
+		return err
 	}
 
 	return nil

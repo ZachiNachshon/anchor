@@ -24,9 +24,9 @@ func NewShellExecutor(sType ShellType) Shell {
 	}
 }
 
-func (s *shellExecutor) ExecShellWithOutput(command string) (string, error) {
+func (s *shellExecutor) ExecShellWithOutput(script string) (string, error) {
 	var output string
-	if out, err := exec.Command(string(s.shellType), "-c", command).Output(); err != nil {
+	if out, err := exec.Command(string(s.shellType), "-c", script).Output(); err != nil {
 		return "", err
 	} else {
 		output = string(out)
@@ -34,8 +34,8 @@ func (s *shellExecutor) ExecShellWithOutput(command string) (string, error) {
 	return output, nil
 }
 
-func (s *shellExecutor) ExecShell(command string) error {
-	cmd := exec.Command(string(s.shellType), "-c", command)
+func (s *shellExecutor) ExecShell(script string) error {
+	cmd := exec.Command(string(s.shellType), "-c", script)
 
 	var stdBuffer bytes.Buffer
 	mw := io.MultiWriter(os.Stdout, &stdBuffer)

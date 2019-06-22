@@ -25,6 +25,12 @@ func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Deploying Docker Container on LOCAL Machine")
+			if err := stopContainers(args[0]); err != nil {
+				logger.Fatal(err.Error())
+			}
+			if err := removeContainers(args[0]); err != nil {
+				logger.Fatal(err.Error())
+			}
 			if err := runContainer(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}

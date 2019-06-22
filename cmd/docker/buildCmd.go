@@ -1,6 +1,9 @@
 package docker
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/kit/pkg/common"
 	"github.com/kit/pkg/logger"
 	"github.com/spf13/cobra"
@@ -50,10 +53,13 @@ func buildDockerfile(dirname string) error {
 		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandBuild); err != nil {
 			return err
 		} else {
+			dirPath := filepath.Dir(dockerfilePath)
+			ctxIdx := strings.LastIndex(buildCmd, ".")
+			buildCmd = buildCmd[:ctxIdx]
+			buildCmd += dirPath
 			if common.GlobalOptions.Verbose {
-				logger.Info("\n" + buildCmd)
+				logger.Info("\n" + buildCmd + "\n")
 			}
-
 			if err = shellExec.ExecShell(buildCmd); err != nil {
 				return err
 			}
