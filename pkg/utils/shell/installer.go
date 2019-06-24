@@ -8,7 +8,6 @@ import (
 )
 
 type baseInstaller struct {
-	// TODO: resolve shell type from configuration
 	shellExec Shell
 }
 
@@ -18,7 +17,7 @@ type brewInstaller struct {
 }
 
 func (d *brewInstaller) verify() error {
-	if _, err := d.shellExec.ExecShellWithOutput("which brew"); err != nil {
+	if _, err := d.shellExec.ExecuteWithOutput("which brew"); err != nil {
 		return err
 	}
 	return nil
@@ -26,7 +25,7 @@ func (d *brewInstaller) verify() error {
 
 func (d *brewInstaller) install() error {
 	installCmd := "/usr/bin/ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""
-	if err := d.shellExec.ExecShell(installCmd); err != nil {
+	if err := d.shellExec.Execute(installCmd); err != nil {
 		return err
 	}
 	return nil
@@ -35,7 +34,7 @@ func (d *brewInstaller) install() error {
 func (d *brewInstaller) installCask(cask string) error {
 	caskInstallFormat := "brew update && brew tap caskroom/cask && brew search %v && brew cask info %v && brew cask install %v && brew cleanup"
 	installCmd := fmt.Sprintf(caskInstallFormat, cask, cask, cask)
-	if err := d.shellExec.ExecShell(installCmd); err != nil {
+	if err := d.shellExec.Execute(installCmd); err != nil {
 		return err
 	}
 	return nil
@@ -44,7 +43,7 @@ func (d *brewInstaller) installCask(cask string) error {
 func (d *brewInstaller) installPackage(pkg string) error {
 	pkgInstallFormat := "brew update && brew search %v && brew install %v && brew cleanup"
 	installCmd := fmt.Sprintf(pkgInstallFormat, pkg, pkg)
-	if err := d.shellExec.ExecShell(installCmd); err != nil {
+	if err := d.shellExec.Execute(installCmd); err != nil {
 		return err
 	}
 	return nil
@@ -78,7 +77,7 @@ type dockerInstaller struct {
 }
 
 func (d *dockerInstaller) verify() error {
-	if _, err := d.shellExec.ExecShellWithOutput("which docker"); err != nil {
+	if _, err := d.shellExec.ExecuteWithOutput("which docker"); err != nil {
 		return err
 	}
 	return nil
@@ -120,14 +119,14 @@ type kindInstaller struct {
 }
 
 func (d *kindInstaller) verify() error {
-	if _, err := d.shellExec.ExecShellWithOutput("which kind"); err != nil {
+	if _, err := d.shellExec.ExecuteWithOutput("which kind"); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (d *kindInstaller) install() error {
-	if err := d.shellExec.ExecShell("install kind"); err != nil {
+	if err := d.shellExec.Execute("install kind"); err != nil {
 		return err
 	}
 	return nil

@@ -20,7 +20,7 @@ type RunCmdOptions struct {
 func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "run",
-		Short: "Run a Dockerfile",
+		Short: "Run a docker container based on Dockerfile instructions",
 		Long:  `Run a Dockerfile from the list of available docker image directories (ex. DIR=alpine).`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -60,7 +60,7 @@ func runContainer(dirname string) error {
 				logger.Info("\n" + runCmd)
 			}
 
-			if err = shellExec.ExecShell(runCmd); err != nil {
+			if err = common.ShellExec.Execute(runCmd); err != nil {
 				return err
 			}
 		}

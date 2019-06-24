@@ -3,8 +3,10 @@ package docker
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/kit/config"
 
 	"github.com/kit/pkg/common"
 	"github.com/kit/pkg/logger"
@@ -14,26 +16,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var DOCKER_IMAGE_NAMESPACE = "znkit"
-var DOCKER_FILES_REPO_PATH string
-var DOCKER_IMAGE_TAG = "latest"
-
 type DockerCommand string
-
-var shellExec shell.Shell
 
 const (
 	DockerCommandRun   DockerCommand = "docker run"
 	DockerCommandBuild DockerCommand = "docker build"
 )
-
-func init() {
-	if prefix := os.Getenv("DOCKER_IMAGE_NAMESPACE"); len(prefix) > 0 {
-		DOCKER_IMAGE_NAMESPACE = prefix
-	}
-
-	shellExec = shell.NewShellExecutor(shell.BASH)
-}
 
 type dockerCmd struct {
 	cobraCmd *cobra.Command
@@ -76,10 +64,6 @@ func (cmd *dockerCmd) GetCobraCmd() *cobra.Command {
 }
 
 func checkPrerequisites() error {
-	if DOCKER_FILES_REPO_PATH = os.Getenv("DOCKER_FILES"); len(DOCKER_FILES_REPO_PATH) <= 0 {
-		return errors.Errorf("DOCKER_FILES environment variable is missing, must contain path to the 'dockerfiles' git repository.")
-	}
-
 	if err := shell.NewDockerInstaller().Check(); err != nil {
 		return err
 	}
@@ -92,32 +76,32 @@ func (cmd *dockerCmd) initFlags() error {
 	return nil
 }
 
-func (root *dockerCmd) initSubCommands() error {
+func (d *dockerCmd) initSubCommands() error {
 
 	// Docker Commands
-	root.initDockerCommands()
+	d.initDockerCommands()
 
 	return nil
 }
 
-func (docker *dockerCmd) initDockerCommands() {
-	opts := docker.opts.CmdRootOptions
+func (d *dockerCmd) initDockerCommands() {
+	opts := d.opts.CmdRootOptions
 
-	docker.cobraCmd.AddCommand(NewBuildCmd(opts).GetCobraCmd())
-	docker.cobraCmd.AddCommand(NewCleanCmd(opts).GetCobraCmd())
-	docker.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
-	docker.cobraCmd.AddCommand(NewPushCmd(opts).GetCobraCmd())
-	docker.cobraCmd.AddCommand(NewRunCmd(opts).GetCobraCmd())
-	docker.cobraCmd.AddCommand(NewStopCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewBuildCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewCleanCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewPushCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewRunCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewStopCmd(opts).GetCobraCmd())
 }
 
 func composeDockerImageIdentifier(dirname string) string {
-	imageIdentifier := fmt.Sprintf("%v/%v:%v", DOCKER_IMAGE_NAMESPACE, dirname, DOCKER_IMAGE_TAG)
+	imageIdentifier := fmt.Sprintf("%v/%v:%v", common.GlobalOptions.DockerImageNamespace, dirname, common.GlobalOptions.DockerImageTag)
 	return imageIdentifier
 }
 
 func composeDockerImageIdentifierNoTag(dirname string) string {
-	imageIdentifier := fmt.Sprintf("%v/%v", DOCKER_IMAGE_NAMESPACE, dirname)
+	imageIdentifier := fmt.Sprintf("%v/%v", common.GlobalOptions.DockerImageNamespace, dirname)
 	return imageIdentifier
 }
 
@@ -126,11 +110,15 @@ func extractDockerCmd(dockerfilePath string, dockerCommand DockerCommand) (strin
 	if contentByte, err := ioutil.ReadFile(dockerfilePath); err != nil {
 		return "", err
 	} else {
+
+		dirPath := filepath.Dir(dockerfilePath)
+		config.LoadEnvVars(dirPath)
+
 		dockerfileContent = string(contentByte)
 
 		p := parser.NewHashtagParser()
 		if err := p.Parse(dockerfileContent); err != nil {
-			logger.Fatalf("Failed to parse: %v, err: %v", dockerfilePath, err.Error())
+			return "", errors.Errorf("Failed to parse: %v, err: %v", dockerfilePath, err.Error())
 		}
 
 		if cmd := p.Find(string(dockerCommand)); cmd != "" {
@@ -141,8 +129,6 @@ func extractDockerCmd(dockerfilePath string, dockerCommand DockerCommand) (strin
 }
 
 func replaceDockerCommandPlaceholders(content string, path string) string {
-	content = strings.ReplaceAll(content, "NAMESPACE", DOCKER_IMAGE_NAMESPACE)
-	content = strings.ReplaceAll(content, "TAG", DOCKER_IMAGE_TAG)
-	content = strings.ReplaceAll(content, "DOCKERFILE", path)
+	content = strings.ReplaceAll(content, "Dockerfile", path)
 	return content
 }

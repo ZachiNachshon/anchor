@@ -1,8 +1,8 @@
 package shell
 
 type Shell interface {
-	ExecShellWithOutput(script string) (string, error)
-	ExecShell(script string) error
+	ExecuteWithOutput(script string) (string, error)
+	Execute(script string) error
 }
 
 type Installer interface {

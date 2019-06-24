@@ -23,8 +23,8 @@ type BuildCmdOptions struct {
 func NewBuildCmd(opts *common.CmdRootOptions) *buildCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "build",
-		Short: "Builds a Dockerfile",
-		Long:  `Builds a docker image from the DOCKER_FILES repository.`,
+		Short: "Builds a docker image based on Dockerfile instructions",
+		Long:  `Builds a docker image based on Dockerfile instructions from the DOCKER_FILES repository.`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Building Docker Image")
@@ -53,14 +53,14 @@ func buildDockerfile(dirname string) error {
 		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandBuild); err != nil {
 			return err
 		} else {
-			dirPath := filepath.Dir(dockerfilePath)
+			contextPath := filepath.Dir(dockerfilePath)
 			ctxIdx := strings.LastIndex(buildCmd, ".")
 			buildCmd = buildCmd[:ctxIdx]
-			buildCmd += dirPath
+			buildCmd += contextPath
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + buildCmd + "\n")
 			}
-			if err = shellExec.ExecShell(buildCmd); err != nil {
+			if err = common.ShellExec.Execute(buildCmd); err != nil {
 				return err
 			}
 		}
@@ -74,6 +74,6 @@ func (cmd *buildCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *buildCmd) initFlags() error {
-	cmd.cobraCmd.Flags().StringVarP(&DOCKER_IMAGE_TAG, "DOCKER_IMAGE_TAG", "s", "latest", "docker image DOCKER_IMAGE_TAG")
+	cmd.cobraCmd.Flags().StringVarP(&common.GlobalOptions.DockerImageTag, "docker image tag", "t", "latest", "kit docker build <name> -tag my_tag")
 	return nil
 }

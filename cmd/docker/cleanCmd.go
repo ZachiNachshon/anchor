@@ -55,24 +55,24 @@ func removeImages(dirname string) error {
 	removeImagesFmt := "docker rmi -f %v"
 
 	unknownImagesCmd := "docker images | grep '<none>' | awk {'print $3'}"
-	if unknownImages, err := shellExec.ExecShellWithOutput(unknownImagesCmd); err != nil {
+	if unknownImages, err := common.ShellExec.ExecuteWithOutput(unknownImagesCmd); err != nil {
 		return err
 	} else if len(unknownImages) > 0 {
 		logger.Info("Removing docker images for name: <none>")
 		imageIds := fmt.Sprintf(removeImagesFmt, unknownImages)
-		shellExec.ExecShell(imageIds)
+		_ = common.ShellExec.Execute(imageIds)
 	} else {
 		logger.Info("No images can be found for name: <none>")
 	}
 
 	imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
 	containerImagesCmd := fmt.Sprintf("docker images | grep '%v' | awk {'print $3'}", imageIdentifier)
-	if containerImages, err := shellExec.ExecShellWithOutput(containerImagesCmd); err != nil {
+	if containerImages, err := common.ShellExec.ExecuteWithOutput(containerImagesCmd); err != nil {
 		return err
 	} else if len(containerImages) > 0 {
 		logger.Infof("Removing docker images for name: %v", imageIdentifier)
 		imageIds := fmt.Sprintf(removeImagesFmt, containerImages)
-		shellExec.ExecShell(imageIds)
+		_ = common.ShellExec.Execute(imageIds)
 	} else {
 		logger.Infof("No images can be found for name: %v", imageIdentifier)
 	}

@@ -1,7 +1,14 @@
 package common
 
+import "github.com/kit/pkg/utils/shell"
+
+var ShellExec shell.Shell
+
 var GlobalOptions = CmdRootOptions{
-	Verbose: false,
+	Verbose:              false,
+	DockerImageNamespace: "znkit",
+	DockerImageTag:       "latest",
+	DockerRepositoryPath: "",
 }
 
 type CmdRootOptions struct {
@@ -11,4 +18,7 @@ type CmdRootOptions struct {
 	Verbose bool
 
 	// Additional Params
+	DockerImageNamespace string
+	DockerRepositoryPath string
+	DockerImageTag       string
 }

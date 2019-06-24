@@ -59,7 +59,7 @@ func (cmd *listCmd) initFlags() error {
 }
 
 func getDockerfileContextPath(dirname string) (string, error) {
-	expected := fmt.Sprintf("%v/%v/Dockerfile", DOCKER_FILES_REPO_PATH, dirname)
+	expected := fmt.Sprintf("%v/%v/Dockerfile", common.GlobalOptions.DockerRepositoryPath, dirname)
 	dirNames, _ := listDockerfilesDirs(false)
 
 	for _, e := range dirNames {
@@ -77,7 +77,7 @@ func listDockerfilesDirs(verbose bool) ([]string, error) {
 	}
 
 	var dirNames = make([]string, 0)
-	err := filepath.Walk(DOCKER_FILES_REPO_PATH,
+	err := filepath.Walk(common.GlobalOptions.DockerRepositoryPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -115,7 +115,7 @@ func listDockerfilesDirs(verbose bool) ([]string, error) {
 }
 
 func extractDockerfileDirName(path string) string {
-	dirName := strings.TrimPrefix(path, DOCKER_FILES_REPO_PATH+"/")
+	dirName := strings.TrimPrefix(path, common.GlobalOptions.DockerRepositoryPath+"/")
 	dirName = strings.TrimSuffix(dirName, DOCKER_FILE_NAME)
 	return dirName
 }

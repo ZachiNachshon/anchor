@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/kit/cmd/docker"
+	"github.com/kit/cmd/kubernetes"
+	"github.com/kit/config"
 	"github.com/kit/pkg/common"
 	"github.com/kit/pkg/logger"
 	"github.com/spf13/cobra"
@@ -17,11 +17,12 @@ type CmdRoot struct {
 func NewCmdRoot() *CmdRoot {
 	var rootCmd = &cobra.Command{
 		Use:   "kit",
-		Short: "Short message",
-		Long:  `Long multi line message`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Print("I'm here at root")
-		},
+		Short: "Kit for local Docker/Kubernetes development environment",
+		Long:  `Kit for local Docker/Kubernetes development environment`,
+	}
+
+	if err := config.CheckPrerequisites(); err != nil {
+		logger.Fatal(err.Error())
 	}
 
 	return &CmdRoot{
@@ -41,7 +42,7 @@ func (root *CmdRoot) initSubCommands() error {
 	root.cobraCmd.AddCommand(docker.NewDockerCmd(&root.opts).GetCobraCmd())
 
 	// Kubernetes Commands
-	//root.cobraCmd.AddCommand(kubernetes.NewKindCmd(&root.opts).GetCobraCmd())
+	root.cobraCmd.AddCommand(kubernetes.NewKindCmd(&root.opts).GetCobraCmd())
 
 	// Admin
 	root.cobraCmd.AddCommand(NewVersionCmd(&root.opts).GetCobraCmd())
@@ -63,10 +64,6 @@ func (root *CmdRoot) Execute() {
 		logger.Fatal(err.Error())
 	}
 }
-
-//func init() {
-//	rootCmd.AddCommand(VersionCmd)
-//}
 
 //func init() {
 //	cobra.OnInitialize(initConfig)
