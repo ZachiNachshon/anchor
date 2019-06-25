@@ -64,7 +64,7 @@ func (cmd *dockerCmd) GetCobraCmd() *cobra.Command {
 }
 
 func checkPrerequisites() error {
-	if err := shell.NewDockerInstaller().Check(); err != nil {
+	if err := shell.NewDockerInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
 
@@ -72,7 +72,6 @@ func checkPrerequisites() error {
 }
 
 func (cmd *dockerCmd) initFlags() error {
-	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }
 

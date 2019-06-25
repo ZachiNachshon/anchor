@@ -1,28 +1,11 @@
 package kubernetes
 
 import (
-	"os"
-
 	"github.com/kit/pkg/common"
 	"github.com/kit/pkg/logger"
 	"github.com/kit/pkg/utils/shell"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
-
-var DOCKER_IMAGE_NAMESPACE = "znkit"
-var DOCKER_FILES_REPO_PATH string
-var DOCKER_IMAGE_TAG = "latest"
-
-var shellExec shell.Shell
-
-func init() {
-	if prefix := os.Getenv("DOCKER_IMAGE_NAMESPACE"); len(prefix) > 0 {
-		DOCKER_IMAGE_NAMESPACE = prefix
-	}
-
-	shellExec = shell.NewShellExecutor(shell.BASH)
-}
 
 type kindCmd struct {
 	cobraCmd *cobra.Command
@@ -65,25 +48,25 @@ func (cmd *kindCmd) GetCobraCmd() *cobra.Command {
 }
 
 func checkPrerequisites() error {
-	if DOCKER_FILES_REPO_PATH = os.Getenv("DOCKER_FILES"); len(DOCKER_FILES_REPO_PATH) <= 0 {
-		return errors.Errorf("DOCKER_FILES environment variable is missing, must contain path to the 'dockerfiles' git repository.")
-	}
-
-	if err := shell.NewKindInstaller().Check(); err != nil {
+	if err := shell.NewKindInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
-
+	if err := shell.NewKubectlInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
+	//if err := shell.NewHelmlInstaller(common.ShellExec).Check(); err != nil {
+	//	return err
+	//}
 	return nil
 }
 
 func (k *kindCmd) initFlags() error {
-	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }
 
 func (k *kindCmd) initSubCommands() error {
 
-	// Docker Commands
+	// Kind Commands
 	k.initKindCommands()
 
 	return nil

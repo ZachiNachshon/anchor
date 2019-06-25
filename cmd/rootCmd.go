@@ -31,8 +31,12 @@ func NewCmdRoot() *CmdRoot {
 }
 
 func (root *CmdRoot) initFlags() error {
-	root.cobraCmd.PersistentFlags().BoolVarP(&common.GlobalOptions.Verbose, "verbose", "v", common.GlobalOptions.Verbose, "verbose output")
-	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
+	root.cobraCmd.PersistentFlags().BoolVarP(
+		&common.GlobalOptions.Verbose,
+		"verbose",
+		"v",
+		common.GlobalOptions.Verbose,
+		"kit <command> -v")
 	return nil
 }
 

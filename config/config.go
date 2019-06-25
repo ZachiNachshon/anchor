@@ -10,12 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-func init() {
-	if prefix := os.Getenv("DOCKER_IMAGE_NAMESPACE"); len(prefix) > 0 {
-		common.GlobalOptions.DockerImageTag = prefix
-	}
-}
-
 func CheckPrerequisites() error {
 	var repoPath = ""
 	if repoPath = os.Getenv("DOCKER_FILES"); len(repoPath) <= 0 {
@@ -33,8 +27,12 @@ func CheckPrerequisites() error {
 }
 
 func setDefaultEnvVar() {
+	// Docker
 	_ = os.Setenv("NAMESPACE", common.GlobalOptions.DockerImageNamespace)
 	_ = os.Setenv("TAG", common.GlobalOptions.DockerImageTag)
+
+	// Kind
+	_ = os.Setenv("CLUSTER_NAME", common.GlobalOptions.KindClusterName)
 }
 
 func LoadEnvVars(path string) {

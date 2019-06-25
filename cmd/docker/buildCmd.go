@@ -74,6 +74,11 @@ func (cmd *buildCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *buildCmd) initFlags() error {
-	cmd.cobraCmd.Flags().StringVarP(&common.GlobalOptions.DockerImageTag, "docker image tag", "t", "latest", "kit docker build <name> -tag my_tag")
+	cmd.cobraCmd.Flags().StringVarP(
+		&common.GlobalOptions.DockerImageTag,
+		"Docker image tag",
+		"t",
+		common.GlobalOptions.DockerImageTag,
+		"kit docker build <name> -t my_tag")
 	return nil
 }

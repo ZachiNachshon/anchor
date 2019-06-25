@@ -1,6 +1,8 @@
 package docker
 
 import (
+	"fmt"
+
 	"github.com/kit/pkg/common"
 	"github.com/kit/pkg/logger"
 	"github.com/spf13/cobra"
@@ -60,8 +62,13 @@ func runContainer(dirname string) error {
 				logger.Info("\n" + runCmd)
 			}
 
-			if err = common.ShellExec.Execute(runCmd); err != nil {
+			if containerId, err := common.ShellExec.ExecuteWithOutput(runCmd); err != nil {
 				return err
+			} else {
+				tailCmd := fmt.Sprintf("docker logs -f %v", containerId)
+				if err := common.ShellExec.Execute(tailCmd); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -74,6 +81,5 @@ func (cmd *runCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *runCmd) initFlags() error {
-	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }

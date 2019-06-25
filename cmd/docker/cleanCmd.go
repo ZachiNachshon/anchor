@@ -85,6 +85,5 @@ func (cmd *cleanCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *cleanCmd) initFlags() error {
-	//cmd.cobraCmd.Flags().BoolVarP(&cleanAll, "all", "a", false, "stop container(s) and clean image")
 	return nil
 }

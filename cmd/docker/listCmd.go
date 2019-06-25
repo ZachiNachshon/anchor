@@ -54,7 +54,6 @@ func (cmd *listCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *listCmd) initFlags() error {
-	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }
 

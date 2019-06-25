@@ -16,55 +16,63 @@ type brewInstaller struct {
 	baseInstaller
 }
 
-func (d *brewInstaller) verify() error {
-	if _, err := d.shellExec.ExecuteWithOutput("which brew"); err != nil {
+func (b *brewInstaller) verify() error {
+	if _, err := b.shellExec.ExecuteWithOutput("which brew"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *brewInstaller) install() error {
+func (b *brewInstaller) install() error {
 	installCmd := "/usr/bin/ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""
-	if err := d.shellExec.Execute(installCmd); err != nil {
+	if err := b.shellExec.Execute(installCmd); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *brewInstaller) installCask(cask string) error {
-	caskInstallFormat := "brew update && brew tap caskroom/cask && brew search %v && brew cask info %v && brew cask install %v && brew cleanup"
-	installCmd := fmt.Sprintf(caskInstallFormat, cask, cask, cask)
-	if err := d.shellExec.Execute(installCmd); err != nil {
+func (b *brewInstaller) installCask(cask string) error {
+	if err := b.Check(); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (d *brewInstaller) installPackage(pkg string) error {
-	pkgInstallFormat := "brew update && brew search %v && brew install %v && brew cleanup"
-	installCmd := fmt.Sprintf(pkgInstallFormat, pkg, pkg)
-	if err := d.shellExec.Execute(installCmd); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (d *brewInstaller) Check() error {
-	if err := d.verify(); err != nil {
-		in := input.NewYesNoInput()
-		if result, err := in.WaitForInput("Homebrew is not installed, install?"); err != nil || !result {
-			return errors.Errorf("brew is missing, must be installed, cannot proceed.")
-		} else {
-			return d.install()
+	} else {
+		caskInstallFormat := "brew update && brew tap caskroom/cask && brew search %v && brew cask info %v && brew cask install %v && brew cleanup"
+		installCmd := fmt.Sprintf(caskInstallFormat, cask, cask, cask)
+		if err := b.shellExec.Execute(installCmd); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func NewBrewInstaller() *brewInstaller {
+func (b *brewInstaller) installPackage(pkg string) error {
+	if err := b.Check(); err != nil {
+		return err
+	} else {
+		pkgInstallFormat := "brew update && brew search %v && brew install %v && brew cleanup"
+		installCmd := fmt.Sprintf(pkgInstallFormat, pkg, pkg)
+		if err := b.shellExec.Execute(installCmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (b *brewInstaller) Check() error {
+	if err := b.verify(); err != nil {
+		in := input.NewYesNoInput()
+		if result, err := in.WaitForInput("Homebrew is not installed, install?"); err != nil || !result {
+			return errors.Errorf("brew is missing, must be installed, cannot proceed.")
+		} else {
+			return b.install()
+		}
+	}
+	return nil
+}
+
+func NewBrewInstaller(shellExec Shell) *brewInstaller {
 	return &brewInstaller{
 		baseInstaller: baseInstaller{
-			shellExec: NewShellExecutor(BASH),
+			shellExec: shellExec,
 		},
 	}
 }
@@ -84,7 +92,7 @@ func (d *dockerInstaller) verify() error {
 }
 
 func (d *dockerInstaller) install() error {
-	brew := NewBrewInstaller()
+	brew := NewBrewInstaller(d.shellExec)
 	if err := brew.installCask("docker"); err != nil {
 		return err
 	}
@@ -103,10 +111,10 @@ func (d *dockerInstaller) Check() error {
 	return nil
 }
 
-func NewDockerInstaller() Installer {
+func NewDockerInstaller(shellExec Shell) Installer {
 	return &dockerInstaller{
 		baseInstaller: baseInstaller{
-			shellExec: NewShellExecutor(BASH),
+			shellExec: shellExec,
 		},
 	}
 }
@@ -126,7 +134,7 @@ func (d *kindInstaller) verify() error {
 }
 
 func (d *kindInstaller) install() error {
-	if err := d.shellExec.Execute("install kind"); err != nil {
+	if err := d.shellExec.Execute("export GO111MODULE=\"on\" && go get sigs.k8s.io/kind@v0.3.0"); err != nil {
 		return err
 	}
 	return nil
@@ -144,10 +152,94 @@ func (d *kindInstaller) Check() error {
 	return nil
 }
 
-func NewKindInstaller() Installer {
+func NewKindInstaller(shellExec Shell) Installer {
 	return &kindInstaller{
 		baseInstaller: baseInstaller{
-			shellExec: NewShellExecutor(BASH),
+			shellExec: shellExec,
+		},
+	}
+}
+
+// endregion
+
+// region Kubectl Installer
+type kubectlInstaller struct {
+	baseInstaller
+}
+
+func (k *kubectlInstaller) verify() error {
+	if _, err := k.shellExec.ExecuteWithOutput("which kubectl"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k *kubectlInstaller) install() error {
+	brew := NewBrewInstaller(k.shellExec)
+	if err := brew.installCask("kubernetes-cli"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k *kubectlInstaller) Check() error {
+	if err := k.verify(); err != nil {
+		in := input.NewYesNoInput()
+		if result, err := in.WaitForInput("Kubectl is not installed, install?"); err != nil || !result {
+			return errors.Errorf("kubectl is missing, must be installed, cannot proceed.")
+		} else {
+			return k.install()
+		}
+	}
+	return nil
+}
+
+func NewKubectlInstaller(shellExec Shell) Installer {
+	return &kubectlInstaller{
+		baseInstaller: baseInstaller{
+			shellExec: shellExec,
+		},
+	}
+}
+
+// endregion
+
+// region Helm Installer
+type helmInstaller struct {
+	baseInstaller
+}
+
+func (h *helmInstaller) verify() error {
+	if _, err := h.shellExec.ExecuteWithOutput("which helm"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *helmInstaller) install() error {
+	brew := NewBrewInstaller(h.shellExec)
+	if err := brew.installCask("kubernetes-helm"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *helmInstaller) Check() error {
+	if err := h.verify(); err != nil {
+		in := input.NewYesNoInput()
+		if result, err := in.WaitForInput("Helm is not installed, install?"); err != nil || !result {
+			return errors.Errorf("helm is missing, must be installed, cannot proceed.")
+		} else {
+			return h.install()
+		}
+	}
+	return nil
+}
+
+func NewHelmlInstaller(shellExec Shell) Installer {
+	return &helmInstaller{
+		baseInstaller: baseInstaller{
+			shellExec: shellExec,
 		},
 	}
 }
