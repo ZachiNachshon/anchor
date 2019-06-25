@@ -1,2 +1,2 @@
-# kit
-Kit for managing a local development environment.
+# Anchor
+Utility for managing a local Docker / Kubernetes development environment..
