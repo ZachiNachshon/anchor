@@ -1,4 +1,4 @@
-![anchor-side](assets/anchor-logo-side-700px.png)
+![anchor-side](assets/anchor-logo-side-600px.png)
 
 Anchor is a utility intended for managing a local Docker / Kubernetes development environment.
 
