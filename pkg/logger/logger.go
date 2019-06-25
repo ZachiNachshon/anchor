@@ -5,16 +5,16 @@ import (
 	"os"
 )
 
-type KitLogger struct {
+type AnchorLogger struct {
 	//logImpl *logrus.Logger
 	//logImpl *fmt.
 }
 
-var logger *KitLogger
+var logger *AnchorLogger
 
 func init() {
 	//logrusInstance := logrus.New()
-	logger = &KitLogger{
+	logger = &AnchorLogger{
 		//logImpl: logrusInstance,
 	}
 }

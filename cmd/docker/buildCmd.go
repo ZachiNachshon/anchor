@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kit/pkg/common"
-	"github.com/kit/pkg/logger"
+	"github.com/anchor/pkg/common"
+	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -79,6 +79,6 @@ func (cmd *buildCmd) initFlags() error {
 		"Docker image tag",
 		"t",
 		common.GlobalOptions.DockerImageTag,
-		"kit docker build <name> -t my_tag")
+		"anchor docker build <name> -t my_tag")
 	return nil
 }

@@ -6,12 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kit/config"
-
-	"github.com/kit/pkg/common"
-	"github.com/kit/pkg/logger"
-	"github.com/kit/pkg/utils/parser"
-	"github.com/kit/pkg/utils/shell"
+	"github.com/anchor/config"
+	"github.com/anchor/pkg/common"
+	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/parser"
+	"github.com/anchor/pkg/utils/shell"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

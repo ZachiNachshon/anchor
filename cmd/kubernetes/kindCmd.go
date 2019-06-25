@@ -1,9 +1,9 @@
 package kubernetes
 
 import (
-	"github.com/kit/pkg/common"
-	"github.com/kit/pkg/logger"
-	"github.com/kit/pkg/utils/shell"
+	"github.com/anchor/pkg/common"
+	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/shell"
 	"github.com/spf13/cobra"
 )
 

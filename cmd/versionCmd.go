@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/kit/pkg/common"
+	"github.com/anchor/pkg/common"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
 		Short: "Print the version number",
 		Long:  `Print the version number`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Print kit version...")
+			fmt.Println("Print anchor version...")
 		},
 	}
 

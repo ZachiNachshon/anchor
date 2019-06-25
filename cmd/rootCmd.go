@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"github.com/kit/cmd/docker"
-	"github.com/kit/cmd/kubernetes"
-	"github.com/kit/config"
-	"github.com/kit/pkg/common"
-	"github.com/kit/pkg/logger"
+	"github.com/anchor/cmd/docker"
+	"github.com/anchor/cmd/kubernetes"
+	"github.com/anchor/config"
+	"github.com/anchor/pkg/common"
+	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -16,9 +16,9 @@ type CmdRoot struct {
 
 func NewCmdRoot() *CmdRoot {
 	var rootCmd = &cobra.Command{
-		Use:   "kit",
-		Short: "Kit for local Docker/Kubernetes development environment",
-		Long:  `Kit for local Docker/Kubernetes development environment`,
+		Use:   "anchor",
+		Short: "Utility for local Docker/Kubernetes development environment",
+		Long:  `Utility for local Docker/Kubernetes development environment`,
 	}
 
 	if err := config.CheckPrerequisites(); err != nil {
@@ -36,7 +36,7 @@ func (root *CmdRoot) initFlags() error {
 		"verbose",
 		"v",
 		common.GlobalOptions.Verbose,
-		"kit <command> -v")
+		"anchor <command> -v")
 	return nil
 }
 

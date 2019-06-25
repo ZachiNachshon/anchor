@@ -3,7 +3,7 @@ package docker
 import (
 	"fmt"
 
-	"github.com/kit/pkg/common"
+	"github.com/anchor/pkg/common"
 	"github.com/spf13/cobra"
 )
 

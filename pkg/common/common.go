@@ -1,6 +1,6 @@
 package common
 
-import "github.com/kit/pkg/utils/shell"
+import "github.com/anchor/pkg/utils/shell"
 
 var ShellExec shell.Shell
 
@@ -8,12 +8,12 @@ var GlobalOptions = CmdRootOptions{
 	Verbose: false,
 
 	// Docker
-	DockerImageNamespace: "znkit",
+	DockerImageNamespace: "anchor",
 	DockerImageTag:       "latest",
 	DockerRepositoryPath: "",
 
 	// Kind
-	KindClusterName: "znkit",
+	KindClusterName: "anchor",
 }
 
 type CmdRootOptions struct {

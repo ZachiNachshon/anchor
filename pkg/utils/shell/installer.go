@@ -3,7 +3,7 @@ package shell
 import (
 	"fmt"
 
-	"github.com/kit/pkg/utils/input"
+	"github.com/anchor/pkg/utils/input"
 	"github.com/pkg/errors"
 )
 

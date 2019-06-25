@@ -3,8 +3,8 @@ package docker
 import (
 	"fmt"
 
-	"github.com/kit/pkg/common"
-	"github.com/kit/pkg/logger"
+	"github.com/anchor/pkg/common"
+	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
 )
 

@@ -1,4 +1,4 @@
-module github.com/kit
+module github.com/anchor
 
 go 1.12
 

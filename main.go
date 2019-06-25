@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/kit/cmd"
+	"github.com/anchor/cmd"
 	"github.com/sirupsen/logrus"
 	"os"
 )
