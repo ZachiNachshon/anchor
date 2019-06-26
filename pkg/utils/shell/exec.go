@@ -52,10 +52,8 @@ func (s *shellExecutor) Execute(script string) error {
 	// Execute the command
 	if err := cmd.Run(); err != nil {
 		return err
-		//logger.Fatalf("Failure occurred: %v", err.Error())
 	}
 
-	//log.Println(stdBuffer.String())
 	return nil
 }
 

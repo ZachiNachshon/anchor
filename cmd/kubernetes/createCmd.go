@@ -1,8 +1,6 @@
 package kubernetes
 
 import (
-	"strings"
-
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
@@ -71,14 +69,4 @@ func createKubernetesCluster(name string) error {
 		logger.Infof("Cluster %v already exists, skipping creation", name)
 	}
 	return nil
-}
-
-func checkForActiveCluster(name string) (bool, error) {
-	getClustersCmd := "kind get clusters"
-	if out, err := common.ShellExec.ExecuteWithOutput(getClustersCmd); err != nil {
-		return false, err
-	} else {
-		contains := strings.Contains(out, name)
-		return contains, nil
-	}
 }

@@ -79,10 +79,7 @@ func (k *clusterCmd) initClusterCommands() {
 
 	k.cobraCmd.AddCommand(NewCreateCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewDashboardCmd(opts).GetCobraCmd())
-	//k.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
-	//k.cobraCmd.AddCommand(NewPushCmd(opts).GetCobraCmd())
-	//k.cobraCmd.AddCommand(NewRunCmd(opts).GetCobraCmd())
-	//k.cobraCmd.AddCommand(NewStopCmd(opts).GetCobraCmd())
+	k.cobraCmd.AddCommand(NewDeleteCmd(opts).GetCobraCmd())
 }
 
 func loadKubeConfig() error {
@@ -93,5 +90,15 @@ func loadKubeConfig() error {
 	} else {
 		out = strings.TrimSuffix(out, "\n")
 		return os.Setenv("KUBECONFIG", out)
+	}
+}
+
+func checkForActiveCluster(name string) (bool, error) {
+	getClustersCmd := "kind get clusters"
+	if out, err := common.ShellExec.ExecuteWithOutput(getClustersCmd); err != nil {
+		return false, err
+	} else {
+		contains := strings.Contains(out, name)
+		return contains, nil
 	}
 }

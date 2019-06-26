@@ -47,6 +47,6 @@ func PrintHeadline(headline string) {
 }
 
 func PrintCompletion() {
-	format := "\n\n    Done.\n"
+	format := "\n    Done.\n"
 	Info(format)
 }
