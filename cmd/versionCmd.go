@@ -24,7 +24,8 @@ func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
 		Short: "Print the version number",
 		Long:  `Print the version number`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Print anchor version...")
+			// TODO: take from config
+			fmt.Println("v1.0.0")
 		},
 	}
 
