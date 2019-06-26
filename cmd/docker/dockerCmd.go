@@ -35,8 +35,9 @@ type DockerCmdOptions struct {
 
 func NewDockerCmd(opts *common.CmdRootOptions) *dockerCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "docker",
-		Short: "Docker related commands",
+		Use:     "docker",
+		Short:   "Docker related commands",
+		Aliases: []string{"d"},
 	}
 
 	var dockerCmd = new(dockerCmd)

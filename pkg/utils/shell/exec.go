@@ -2,6 +2,7 @@ package shell
 
 import (
 	"bytes"
+	"github.com/anchor/pkg/logger"
 	"io"
 	"os"
 	"os/exec"
@@ -25,9 +26,14 @@ func NewShellExecutor(sType ShellType) Shell {
 }
 
 func (s *shellExecutor) ExecuteWithOutput(script string) (string, error) {
+	cmd := exec.Command(string(s.shellType), "-c", script)
+
 	var output string
-	if out, err := exec.Command(string(s.shellType), "-c", script).Output(); err != nil {
-		return "", err
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if out, err := cmd.Output(); err != nil {
+		return stderr.String(), err
 	} else {
 		output = string(out)
 	}
@@ -50,5 +56,18 @@ func (s *shellExecutor) Execute(script string) error {
 	}
 
 	//log.Println(stdBuffer.String())
+	return nil
+}
+
+func (s *shellExecutor) ExecuteInBackground(script string) error {
+	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Stdout = os.Stdout
+	err := cmd.Start()
+	if err != nil {
+		// TODO: Change to warn once implemented
+		logger.Info(err.Error())
+		return err
+	}
+	logger.Infof("Starting background process, PID: %d", cmd.Process.Pid)
 	return nil
 }

@@ -5,45 +5,47 @@ import (
 	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/shell"
 	"github.com/spf13/cobra"
+	"os"
+	"strings"
 )
 
-type kindCmd struct {
+type clusterCmd struct {
 	cobraCmd *cobra.Command
-	opts     KindCmdOptions
+	opts     ClusterCmdOptions
 }
 
-type KindCmdOptions struct {
+type ClusterCmdOptions struct {
 	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewKindCmd(opts *common.CmdRootOptions) *kindCmd {
+func NewKindCmd(opts *common.CmdRootOptions) *clusterCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "kind",
-		Short: "Kind (k8s cluster) related commands",
+		Use:   "cluster",
+		Short: "Cluster related commands (based on kind k8s cluster)",
 	}
 
-	var kindCmd = new(kindCmd)
-	kindCmd.cobraCmd = cobraCmd
-	kindCmd.opts.CmdRootOptions = opts
+	var clusterCmd = new(clusterCmd)
+	clusterCmd.cobraCmd = cobraCmd
+	clusterCmd.opts.CmdRootOptions = opts
 
 	if err := checkPrerequisites(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	if err := kindCmd.initFlags(); err != nil {
+	if err := clusterCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	if err := kindCmd.initSubCommands(); err != nil {
+	if err := clusterCmd.initSubCommands(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	return kindCmd
+	return clusterCmd
 }
 
-func (cmd *kindCmd) GetCobraCmd() *cobra.Command {
+func (cmd *clusterCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
@@ -60,25 +62,36 @@ func checkPrerequisites() error {
 	return nil
 }
 
-func (k *kindCmd) initFlags() error {
+func (k *clusterCmd) initFlags() error {
 	return nil
 }
 
-func (k *kindCmd) initSubCommands() error {
+func (k *clusterCmd) initSubCommands() error {
 
 	// Kind Commands
-	k.initKindCommands()
+	k.initClusterCommands()
 
 	return nil
 }
 
-func (k *kindCmd) initKindCommands() {
+func (k *clusterCmd) initClusterCommands() {
 	opts := k.opts.CmdRootOptions
 
 	k.cobraCmd.AddCommand(NewCreateCmd(opts).GetCobraCmd())
-	//k.cobraCmd.AddCommand(NewCleanCmd(opts).GetCobraCmd())
+	k.cobraCmd.AddCommand(NewDashboardCmd(opts).GetCobraCmd())
 	//k.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
 	//k.cobraCmd.AddCommand(NewPushCmd(opts).GetCobraCmd())
 	//k.cobraCmd.AddCommand(NewRunCmd(opts).GetCobraCmd())
 	//k.cobraCmd.AddCommand(NewStopCmd(opts).GetCobraCmd())
+}
+
+func loadKubeConfig() error {
+	// Export k8s configuration
+	loadCmd := "kind get kubeconfig-path --name=" + common.GlobalOptions.KindClusterName
+	if out, err := common.ShellExec.ExecuteWithOutput(loadCmd); err != nil {
+		return err
+	} else {
+		out = strings.TrimSuffix(out, "\n")
+		return os.Setenv("KUBECONFIG", out)
+	}
 }

@@ -134,7 +134,7 @@ func (d *kindInstaller) verify() error {
 }
 
 func (d *kindInstaller) install() error {
-	if err := d.shellExec.Execute("export GO111MODULE=\"on\" && go get sigs.k8s.io/kind@v0.3.0"); err != nil {
+	if err := d.shellExec.Execute("export GO111MODULE=\"on\" && go get sigs.k8s.io/kind@v0.4.0"); err != nil {
 		return err
 	}
 	return nil

@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"os"
 	"strings"
 
 	"github.com/anchor/pkg/common"
@@ -24,11 +23,12 @@ func NewCreateCmd(opts *common.CmdRootOptions) *createCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "create",
 		Short: "Create a local Kubernetes cluster",
-		Long:  `Create a local Kubernetes cluster based on Kind.`,
+		Long:  `Create a local Kubernetes cluster`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			name := common.GlobalOptions.KindClusterName
 			logger.PrintHeadline("Creating Kubernetes Cluster")
-			if err := createKubernetesCluster(); err != nil {
+			if err := createKubernetesCluster(name); err != nil {
 				logger.Fatal(err.Error())
 			}
 			logger.PrintCompletion()
@@ -51,40 +51,34 @@ func (cmd *createCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *createCmd) initFlags() error {
-	cmd.cobraCmd.Flags().StringVarP(
-		&common.GlobalOptions.KindClusterName,
-		"Kind cluster name",
-		"n",
-		common.GlobalOptions.KindClusterName,
-		"docker image DOCKER_IMAGE_TAG")
 	return nil
 }
 
-func createKubernetesCluster() error {
-	if exists, err := checkForActiveCluster(); err != nil {
+func createKubernetesCluster(name string) error {
+	if exists, err := checkForActiveCluster(name); err != nil {
 		return err
 	} else if !exists {
-		createCmd := "kind create cluster --name ${CLUSTER_NAME}"
+		createCmd := "kind create cluster --name " + name
 		if err := common.ShellExec.Execute(createCmd); err != nil {
 			return err
 		}
 
-		// TODO: install dashboard
+		_ = loadKubeConfig()
+
+		return deployKubernetesDashboard()
 
 	} else {
-		clusterName := os.Getenv("CLUSTER_NAME")
-		logger.Infof("Cluster %v already exists, skipping creation", clusterName)
+		logger.Infof("Cluster %v already exists, skipping creation", name)
 	}
 	return nil
 }
 
-func checkForActiveCluster() (bool, error) {
-	createCmd := "kind get clusters"
-	if out, err := common.ShellExec.ExecuteWithOutput(createCmd); err != nil {
+func checkForActiveCluster(name string) (bool, error) {
+	getClustersCmd := "kind get clusters"
+	if out, err := common.ShellExec.ExecuteWithOutput(getClustersCmd); err != nil {
 		return false, err
 	} else {
-		clusterName := os.Getenv("CLUSTER_NAME")
-		contains := strings.Contains(out, clusterName)
+		contains := strings.Contains(out, name)
 		return contains, nil
 	}
 }

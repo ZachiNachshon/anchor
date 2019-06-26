@@ -37,10 +37,14 @@ func (root *CmdRoot) initFlags() error {
 		"v",
 		common.GlobalOptions.Verbose,
 		"anchor <command> -v")
+
+	root.cobraCmd.PersistentFlags().SortFlags = false
 	return nil
 }
 
 func (root *CmdRoot) initSubCommands() error {
+
+	//cobra.EnableCommandSorting = false
 
 	// Docker Commands
 	root.cobraCmd.AddCommand(docker.NewDockerCmd(&root.opts).GetCobraCmd())

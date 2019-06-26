@@ -30,9 +30,6 @@ func setDefaultEnvVar() {
 	// Docker
 	_ = os.Setenv("NAMESPACE", common.GlobalOptions.DockerImageNamespace)
 	_ = os.Setenv("TAG", common.GlobalOptions.DockerImageTag)
-
-	// Kind
-	_ = os.Setenv("CLUSTER_NAME", common.GlobalOptions.KindClusterName)
 }
 
 func LoadEnvVars(path string) {
