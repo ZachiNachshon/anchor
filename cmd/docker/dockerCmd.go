@@ -92,6 +92,7 @@ func (d *dockerCmd) initDockerCommands() {
 	d.cobraCmd.AddCommand(NewPushCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewRunCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewStopCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewPurgeCmd(opts).GetCobraCmd())
 }
 
 func composeDockerImageIdentifier(dirname string) string {
