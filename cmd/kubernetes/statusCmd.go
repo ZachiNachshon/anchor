@@ -61,6 +61,7 @@ func printClusterStatus(name string) error {
 		logger.Info("No active cluster.")
 	} else {
 		logger.Infof("Found active %v cluster !", common.GlobalOptions.KindClusterName)
+		logger.Infof("\nDashboard available at:\n  %s", dashboardUrl)
 
 		getConfigCmd := "kind get kubeconfig-path"
 		//logger.Info("\nConfiguration:\n")

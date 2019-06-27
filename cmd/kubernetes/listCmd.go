@@ -1,39 +1,38 @@
-package docker
+package kubernetes
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
-var DOCKER_FILE_NAME = "/Dockerfile"
+var RESOURCES_DIR_NAME = "k8s"
 
 type listCmd struct {
 	cobraCmd *cobra.Command
-	opts     ListCmdOptions
+	opts     CreateCmdOptions
 }
 
 type ListCmdOptions struct {
 	*common.CmdRootOptions
 
-	// Additional Build Params
+	// Additional Params
 }
 
 func NewListCmd(opts *common.CmdRootOptions) *listCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List all available docker images",
-		Long:  `List all available docker images to be built from a DOCKER_FILES repository`,
+		Short: "List all available container kubernetes resources",
+		Long:  `List all available container kubernetes resources`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.PrintHeadline("Listing all Docker images")
-			if _, err := listDockerfilesDirs(true); err != nil {
+			logger.PrintHeadline("Listing Containers Kubernetes Resources")
+			if _, err := listContainersResourceDirs(true); err != nil {
 				logger.Fatal(err.Error())
 			}
 			logger.PrintCompletion()
@@ -59,9 +58,9 @@ func (cmd *listCmd) initFlags() error {
 	return nil
 }
 
-func getDockerfileContextPath(dirname string) (string, error) {
-	expected := fmt.Sprintf("%v/%v/Dockerfile", common.GlobalOptions.DockerRepositoryPath, dirname)
-	dirNames, _ := listDockerfilesDirs(false)
+func getContainerResourceDir(dirname string) (string, error) {
+	expected := fmt.Sprintf("%v/%v/%v", common.GlobalOptions.DockerRepositoryPath, dirname, RESOURCES_DIR_NAME)
+	dirNames, _ := listContainersResourceDirs(false)
 
 	for _, e := range dirNames {
 		if strings.EqualFold(expected, e) {
@@ -69,10 +68,10 @@ func getDockerfileContextPath(dirname string) (string, error) {
 		}
 	}
 
-	return "", errors.Errorf("Cannot find Dockerfile for %v", dirname)
+	return "", errors.Errorf("Cannot find container resource(s) for %v", dirname)
 }
 
-func listDockerfilesDirs(verbose bool) ([]string, error) {
+func listContainersResourceDirs(verbose bool) ([]string, error) {
 	var dirNames = make([]string, 0)
 	err := filepath.Walk(common.GlobalOptions.DockerRepositoryPath,
 		func(path string, info os.FileInfo, err error) error {
@@ -81,20 +80,20 @@ func listDockerfilesDirs(verbose bool) ([]string, error) {
 			}
 
 			// Continue to the next path
-			if !strings.Contains(path, DOCKER_FILE_NAME) {
+			if !info.IsDir() || !strings.Contains(path, RESOURCES_DIR_NAME) {
 				return nil
 			}
 
-			if dockerfilePath, err := filepath.Abs(path); err != nil {
+			if resourcePath, err := filepath.Abs(path); err != nil {
 				return err
 			} else {
-				dirName := extractDockerfileDirName(dockerfilePath)
+				dirName := extractResourceDirName(resourcePath)
 
 				if verbose {
 					logger.Info("  " + dirName)
 				}
 
-				dirNames = append(dirNames, dockerfilePath)
+				dirNames = append(dirNames, resourcePath)
 			}
 
 			return nil
@@ -107,8 +106,8 @@ func listDockerfilesDirs(verbose bool) ([]string, error) {
 	return dirNames, nil
 }
 
-func extractDockerfileDirName(path string) string {
-	dirName := strings.TrimPrefix(path, common.GlobalOptions.DockerRepositoryPath+"/")
-	dirName = strings.TrimSuffix(dirName, DOCKER_FILE_NAME)
+func extractResourceDirName(path string) string {
+	dirName := filepath.Dir(path)
+	dirName = strings.TrimPrefix(dirName, common.GlobalOptions.DockerRepositoryPath+"/")
 	return dirName
 }
