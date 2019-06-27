@@ -25,7 +25,12 @@ func NewDeleteCmd(opts *common.CmdRootOptions) *deleteCmd {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Delete Kubernetes Cluster")
+
 			_ = loadKubeConfig()
+
+			// Kill possible running kubectl proxy
+			_ = killKubectlProxy()
+
 			name := common.GlobalOptions.KindClusterName
 			if err := deleteKubernetesCluster(name); err != nil {
 				logger.Fatal(err.Error())

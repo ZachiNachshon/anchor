@@ -80,6 +80,7 @@ func (k *clusterCmd) initClusterCommands() {
 	k.cobraCmd.AddCommand(NewCreateCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewDashboardCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewDeleteCmd(opts).GetCobraCmd())
+	k.cobraCmd.AddCommand(NewStatusCmd(opts).GetCobraCmd())
 }
 
 func loadKubeConfig() error {

@@ -4,9 +4,10 @@ import (
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
-	"os"
 	"strings"
 )
+
+var dashboardUrl = "http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy"
 
 type dashboardCmd struct {
 	cobraCmd *cobra.Command
@@ -27,7 +28,12 @@ func NewDashboardCmd(opts *common.CmdRootOptions) *dashboardCmd {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Deploy Kubernetes Dashboard")
+
 			_ = loadKubeConfig()
+
+			// Kill possible running kubectl proxy
+			_ = killKubectlProxy()
+
 			if err := deployKubernetesDashboard(); err != nil {
 				logger.Fatal(err.Error())
 			}
@@ -74,7 +80,6 @@ func deployKubernetesDashboard() error {
 }
 
 func checkForActiveDashboard() (bool, error) {
-	logger.Info(os.Getenv("KUBECONFIG"))
 	getDashboardCmd := "kubectl get deployments kubernetes-dashboard"
 	if out, err := common.ShellExec.ExecuteWithOutput(getDashboardCmd); err != nil {
 		if strings.Contains(out, "NotFound") {
@@ -109,11 +114,23 @@ kubectl -n kube-system describe secret $(
 ) | awk '$1=="token:"{print $2}'
 echo 
 `
+	// Print token to be used for Dashboard authentication
 	_ = common.ShellExec.Execute(printSecretCmd)
 
-	startProxyCmd := `open "http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy"
-kubectl proxy
-`
+	// Start new kubectl proxy
+	_ = startKubectlProxy()
 
-	return common.ShellExec.ExecuteInBackground(startProxyCmd)
+	// Open browser and start kubectl proxy
+	startProxyCmd := `sleep 2 && open "` + dashboardUrl + `"`
+	logger.Info("==> Dashboard available at:\n\n  " + dashboardUrl + "\n")
+
+	return common.ShellExec.Execute(startProxyCmd)
+}
+
+func killKubectlProxy() error {
+	return common.ShellExec.Execute(`ps -ef | grep "kubectl proxy" | grep -v grep | awk '{print $2}' | xargs kill -9`)
+}
+
+func startKubectlProxy() error {
+	return common.ShellExec.ExecuteInBackground("kubectl proxy")
 }

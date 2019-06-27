@@ -5,6 +5,7 @@ default: build
 
 build: fmtcheck
 	go build
+	go install
 
 fmt:
 	gofmt -w $(GOFMT_FILES)
