@@ -5,11 +5,12 @@ import (
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 type statusCmd struct {
 	cobraCmd *cobra.Command
-	opts     CreateCmdOptions
+	opts     StatusCmdOptions
 }
 
 type StatusCmdOptions struct {
@@ -55,41 +56,88 @@ func (cmd *statusCmd) initFlags() error {
 }
 
 func printClusterStatus(name string) error {
+	var clusterName = common.GlobalOptions.KindClusterName
 	if exists, err := checkForActiveCluster(name); err != nil {
 		return err
 	} else if !exists {
 		logger.Info("No active cluster.")
 	} else {
-		logger.Infof("Found active %v cluster !", common.GlobalOptions.KindClusterName)
+		logger.Infof("Found active %v cluster !", clusterName)
 		logger.Infof("\nDashboard available at:\n  %s", dashboardUrl)
 
-		getConfigCmd := "kind get kubeconfig-path"
-		//logger.Info("\nConfiguration:\n")
-		logger.Info(`
-Configuration:
---------------`)
-		_ = common.ShellExec.Execute(getConfigCmd)
+		_ = printConfiguration(clusterName)
+		_ = printNamespaces()
+		_ = printIngress()
+		_ = printServices()
+		_ = printDeployments()
+		_ = printNodes()
+		_ = printPods()
 
-		getNodesCmd := fmt.Sprintf("kind get nodes --name %s", common.GlobalOptions.KindClusterName)
-		//logger.Info("\nNodes:\n")
-		logger.Info(`
-Nodes:
-------`)
-		_ = common.ShellExec.Execute(getNodesCmd)
-
-		getPodsCmd := "kubectl get pods -o wide"
-		//logger.Info("\nPods:\n")
-		logger.Info(`
-Pods:
------`)
-		_ = common.ShellExec.Execute(getPodsCmd)
-
-		getServicesCmd := "kubectl get services"
-		//logger.Info("\nServices:\n")
-		logger.Info(`
-Services:
----------`)
-		_ = common.ShellExec.Execute(getServicesCmd)
 	}
 	return nil
+}
+
+func printConfiguration(clusterName string) error {
+	logger.Info(`
+Configuration:
+--------------`)
+	getConfigCmd := "kind get kubeconfig-path"
+	if out, err := common.ShellExec.ExecuteWithOutput(getConfigCmd); err != nil {
+		// TODO: Change to warn
+		logger.Infof("Something went wrong, error: %v", err.Error())
+		return err
+	} else {
+		logger.Info(fmt.Sprintf(`Path:...: %s
+Usage...: export KUBECONFIG="$(kind get kubeconfig-path --name=%s)"`, strings.Trim(out, "\n"), clusterName))
+	}
+	return nil
+}
+
+func printNamespaces() error {
+	logger.Info(`
+Namespaces:
+-----------`)
+	getNamespacesCmd := "kubectl get namespaces"
+	return common.ShellExec.Execute(getNamespacesCmd)
+}
+
+func printIngress() error {
+	logger.Info(`
+Ingress:
+--------`)
+	getIngressCmd := "kubectl get ingress"
+	return common.ShellExec.Execute(getIngressCmd)
+}
+
+func printServices() error {
+	logger.Info(`
+Services:
+---------`)
+	getServicesCmd := "kubectl get services"
+	return common.ShellExec.Execute(getServicesCmd)
+}
+
+func printDeployments() error {
+	logger.Info(`
+Services:
+---------`)
+	getDeploymentsCmd := "kubectl get deployments"
+	return common.ShellExec.Execute(getDeploymentsCmd)
+}
+
+func printNodes() error {
+	logger.Info(`
+Nodes:
+------`)
+	getNodesCmd := "kubectl get nodes"
+	return common.ShellExec.Execute(getNodesCmd)
+}
+
+func printPods() error {
+	logger.Info(`
+Pods:
+-----`)
+	//getPodsCmd := "kubectl get pods -o wide"
+	getPodsCmd := "kubectl get pods"
+	return common.ShellExec.Execute(getPodsCmd)
 }

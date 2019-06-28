@@ -131,6 +131,7 @@ func killKubectlProxy() error {
 	return common.ShellExec.Execute(`ps -ef | grep "kubectl proxy" | grep -v grep | awk '{print $2}' | xargs kill -9`)
 }
 
+// Creates a proxy server or application-level gateway between localhost and the Kubernetes API Server.
 func startKubectlProxy() error {
 	return common.ShellExec.ExecuteInBackground("kubectl proxy")
 }

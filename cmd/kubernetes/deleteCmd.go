@@ -8,7 +8,7 @@ import (
 
 type deleteCmd struct {
 	cobraCmd *cobra.Command
-	opts     CreateCmdOptions
+	opts     DeleteCmdOptions
 }
 
 type DeleteCmdOptions struct {

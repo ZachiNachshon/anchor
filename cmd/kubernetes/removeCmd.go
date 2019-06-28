@@ -6,61 +6,61 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type deployCmd struct {
+type removeCmd struct {
 	cobraCmd *cobra.Command
-	opts     DeployCmdOptions
+	opts     RemoveCmdOptions
 }
 
-type DeployCmdOptions struct {
+type RemoveCmdOptions struct {
 	*common.CmdRootOptions
 
 	// Additional Params
 }
 
-func NewDeployCmd(opts *common.CmdRootOptions) *deployCmd {
+func NewRemoveCmd(opts *common.CmdRootOptions) *removeCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "deploy",
-		Short: "Deploy container resource",
-		Long:  `Deploy container resource from a directory`,
+		Use:   "remove",
+		Short: "Removed a previously deployed container resource",
+		Long:  `Removed a previously deployed container resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := common.GlobalOptions.KindClusterName
-			logger.PrintHeadline("Deploy Container Resource")
+			logger.PrintHeadline("Remove Container Resource")
 			_ = loadKubeConfig()
-			if err := deployContainerResource(name, args[0]); err != nil {
+			if err := RemoveContainerResource(name, args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
 			logger.PrintCompletion()
 		},
 	}
 
-	var deployCmd = new(deployCmd)
-	deployCmd.cobraCmd = cobraCmd
-	deployCmd.opts.CmdRootOptions = opts
+	var removeCmd = new(removeCmd)
+	removeCmd.cobraCmd = cobraCmd
+	removeCmd.opts.CmdRootOptions = opts
 
-	if err := deployCmd.initFlags(); err != nil {
+	if err := removeCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	return deployCmd
+	return removeCmd
 }
 
-func (cmd *deployCmd) GetCobraCmd() *cobra.Command {
+func (cmd *removeCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *deployCmd) initFlags() error {
+func (cmd *removeCmd) initFlags() error {
 	return nil
 }
 
-func deployContainerResource(clusterName string, dirname string) error {
+func RemoveContainerResource(clusterName string, dirname string) error {
 	if exists, err := checkForActiveCluster(clusterName); err != nil {
 		return err
 	} else if exists {
 		if resfilePath, err := getContainerResourceDir(dirname); err != nil {
 			return err
 		} else {
-			deployCmd := "kubectl apply -f " + resfilePath
+			deployCmd := "kubectl delete -f " + resfilePath
 			if err := common.ShellExec.Execute(deployCmd); err != nil {
 				return err
 			}

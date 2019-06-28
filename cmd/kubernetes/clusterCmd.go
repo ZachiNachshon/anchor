@@ -82,6 +82,7 @@ func (k *clusterCmd) initClusterCommands() {
 	k.cobraCmd.AddCommand(NewDeleteCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewStatusCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewDeployCmd(opts).GetCobraCmd())
+	k.cobraCmd.AddCommand(NewRemoveCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
 }
 

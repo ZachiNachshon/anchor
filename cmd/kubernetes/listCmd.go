@@ -15,7 +15,7 @@ var RESOURCES_DIR_NAME = "k8s"
 
 type listCmd struct {
 	cobraCmd *cobra.Command
-	opts     CreateCmdOptions
+	opts     ListCmdOptions
 }
 
 type ListCmdOptions struct {
