@@ -1,14 +1,15 @@
-package shell
+package installer
 
 import (
 	"fmt"
+	"github.com/anchor/pkg/utils/shell"
 
 	"github.com/anchor/pkg/utils/input"
 	"github.com/pkg/errors"
 )
 
 type baseInstaller struct {
-	shellExec Shell
+	shellExec shell.Shell
 }
 
 // region HomeBrew Installer
@@ -69,7 +70,7 @@ func (b *brewInstaller) Check() error {
 	return nil
 }
 
-func NewBrewInstaller(shellExec Shell) *brewInstaller {
+func NewBrewInstaller(shellExec shell.Shell) *brewInstaller {
 	return &brewInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,
@@ -111,7 +112,7 @@ func (d *dockerInstaller) Check() error {
 	return nil
 }
 
-func NewDockerInstaller(shellExec Shell) Installer {
+func NewDockerInstaller(shellExec shell.Shell) Installer {
 	return &dockerInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,
@@ -152,7 +153,7 @@ func (d *kindInstaller) Check() error {
 	return nil
 }
 
-func NewKindInstaller(shellExec Shell) Installer {
+func NewKindInstaller(shellExec shell.Shell) Installer {
 	return &kindInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,
@@ -194,7 +195,7 @@ func (k *kubectlInstaller) Check() error {
 	return nil
 }
 
-func NewKubectlInstaller(shellExec Shell) Installer {
+func NewKubectlInstaller(shellExec shell.Shell) Installer {
 	return &kubectlInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,
@@ -236,7 +237,7 @@ func (h *helmInstaller) Check() error {
 	return nil
 }
 
-func NewHelmlInstaller(shellExec Shell) Installer {
+func NewHelmlInstaller(shellExec shell.Shell) Installer {
 	return &helmInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,

@@ -5,9 +5,3 @@ type Shell interface {
 	Execute(script string) error
 	ExecuteInBackground(script string) error
 }
-
-type Installer interface {
-	install() error
-	verify() error
-	Check() error
-}

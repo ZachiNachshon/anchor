@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"github.com/anchor/pkg/utils/installer"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/parser"
-	"github.com/anchor/pkg/utils/shell"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -64,7 +64,7 @@ func (cmd *dockerCmd) GetCobraCmd() *cobra.Command {
 }
 
 func checkPrerequisites() error {
-	if err := shell.NewDockerInstaller(common.ShellExec).Check(); err != nil {
+	if err := installer.NewDockerInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
 

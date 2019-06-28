@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
-	"github.com/anchor/pkg/utils/shell"
+	"github.com/anchor/pkg/utils/installer"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -50,10 +50,10 @@ func (cmd *clusterCmd) GetCobraCmd() *cobra.Command {
 }
 
 func checkPrerequisites() error {
-	if err := shell.NewKindInstaller(common.ShellExec).Check(); err != nil {
+	if err := installer.NewKindInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
-	if err := shell.NewKubectlInstaller(common.ShellExec).Check(); err != nil {
+	if err := installer.NewKubectlInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
 	//if err := shell.NewHelmlInstaller(common.ShellExec).Check(); err != nil {
