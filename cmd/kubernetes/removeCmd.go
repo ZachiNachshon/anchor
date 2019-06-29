@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"fmt"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
@@ -20,14 +21,14 @@ type RemoveCmdOptions struct {
 func NewRemoveCmd(opts *common.CmdRootOptions) *removeCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "remove",
-		Short: "Removed a previously deployed container resource",
-		Long:  `Removed a previously deployed container resource`,
+		Short: "Removed a previously deployed container manifest",
+		Long:  `Removed a previously deployed container manifest`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := common.GlobalOptions.KindClusterName
-			logger.PrintHeadline("Remove Container Resource")
+			logger.PrintHeadline("Remove Container Manifest")
 			_ = loadKubeConfig()
-			if err := RemoveContainerResource(name, args[0]); err != nil {
+			if err := RemoveManifest(name, args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
 			logger.PrintCompletion()
@@ -53,15 +54,15 @@ func (cmd *removeCmd) initFlags() error {
 	return nil
 }
 
-func RemoveContainerResource(clusterName string, dirname string) error {
+func RemoveManifest(clusterName string, dirname string) error {
 	if exists, err := checkForActiveCluster(clusterName); err != nil {
 		return err
 	} else if exists {
-		if resfilePath, err := getContainerResourceDir(dirname); err != nil {
+		if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
 			return err
 		} else {
-			deployCmd := "kubectl delete -f " + resfilePath
-			if err := common.ShellExec.Execute(deployCmd); err != nil {
+			removeCmd := fmt.Sprintf("envsubst < %v | kubectl delete -f -", manifestPath)
+			if err := common.ShellExec.Execute(removeCmd); err != nil {
 				return err
 			}
 		}

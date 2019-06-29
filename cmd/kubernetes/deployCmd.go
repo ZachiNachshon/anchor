@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"fmt"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
@@ -20,14 +21,14 @@ type DeployCmdOptions struct {
 func NewDeployCmd(opts *common.CmdRootOptions) *deployCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "deploy",
-		Short: "Deploy container resource",
-		Long:  `Deploy container resource from a directory`,
+		Short: "Deploy container manifest",
+		Long:  `Deploy container manifest from a directory`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			name := common.GlobalOptions.KindClusterName
-			logger.PrintHeadline("Deploy Container Resource")
+			logger.PrintHeadline("Deploy Container Manifest")
 			_ = loadKubeConfig()
-			if err := deployContainerResource(name, args[0]); err != nil {
+			if err := deployManifest(name, args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
 			logger.PrintCompletion()
@@ -53,18 +54,20 @@ func (cmd *deployCmd) initFlags() error {
 	return nil
 }
 
-func deployContainerResource(clusterName string, dirname string) error {
+func deployManifest(clusterName string, dirname string) error {
 	if exists, err := checkForActiveCluster(clusterName); err != nil {
 		return err
 	} else if exists {
-		if resfilePath, err := getContainerResourceDir(dirname); err != nil {
+		if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
 			return err
 		} else {
-			deployCmd := "kubectl apply -f " + resfilePath
+			deployCmd := fmt.Sprintf("envsubst < %v | kubectl apply -f -", manifestPath)
 			if err := common.ShellExec.Execute(deployCmd); err != nil {
 				return err
 			}
 		}
+	} else {
+		logger.Infof("Cluster %v does not exist, skipping deployment", clusterName)
 	}
 	return nil
 }

@@ -28,6 +28,7 @@ func CheckPrerequisites() error {
 
 func setDefaultEnvVar() {
 	// Docker
+	_ = os.Setenv("REGISTRY", common.GlobalOptions.DockerRegistryDns)
 	_ = os.Setenv("NAMESPACE", common.GlobalOptions.DockerImageNamespace)
 	_ = os.Setenv("TAG", common.GlobalOptions.DockerImageTag)
 }

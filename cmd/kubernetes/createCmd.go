@@ -61,9 +61,13 @@ func createKubernetesCluster(name string) error {
 			return err
 		}
 
-		//_ = loadKubeConfig()
+		_ = loadKubeConfig()
 
-		//return deployKubernetesDashboard()
+		//_ = deployKubernetesDashboard()
+
+		//_ = deployDockerRegistry()
+
+		_ = printClusterStatus(name)
 
 	} else {
 		logger.Infof("Cluster %v already exists, skipping creation", name)

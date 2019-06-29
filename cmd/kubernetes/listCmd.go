@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var RESOURCES_DIR_NAME = "k8s"
+var MANIFESTS_PATH = "k8s/manifest.yaml"
 
 type listCmd struct {
 	cobraCmd *cobra.Command
@@ -27,12 +27,12 @@ type ListCmdOptions struct {
 func NewListCmd(opts *common.CmdRootOptions) *listCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List all available container kubernetes resources",
-		Long:  `List all available container kubernetes resources`,
+		Short: "List all containers with kubernetes manifests",
+		Long:  `List all containers with kubernetes manifests`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.PrintHeadline("Listing Containers Kubernetes Resources")
-			if _, err := listContainersResourceDirs(true); err != nil {
+			logger.PrintHeadline("Listing Containers With K8S Manifests")
+			if _, err := listContainersManifestsDirs(true); err != nil {
 				logger.Fatal(err.Error())
 			}
 			logger.PrintCompletion()
@@ -58,9 +58,9 @@ func (cmd *listCmd) initFlags() error {
 	return nil
 }
 
-func getContainerResourceDir(dirname string) (string, error) {
-	expected := fmt.Sprintf("%v/%v/%v", common.GlobalOptions.DockerRepositoryPath, dirname, RESOURCES_DIR_NAME)
-	dirNames, _ := listContainersResourceDirs(false)
+func getContainerManifestsDir(dirname string) (string, error) {
+	expected := fmt.Sprintf("%v/%v/%v", common.GlobalOptions.DockerRepositoryPath, dirname, MANIFESTS_PATH)
+	dirNames, _ := listContainersManifestsDirs(false)
 
 	for _, e := range dirNames {
 		if strings.EqualFold(expected, e) {
@@ -68,10 +68,10 @@ func getContainerResourceDir(dirname string) (string, error) {
 		}
 	}
 
-	return "", errors.Errorf("Cannot find container resource(s) for %v", dirname)
+	return "", errors.Errorf("Cannot find container manifests(s) for %v", dirname)
 }
 
-func listContainersResourceDirs(verbose bool) ([]string, error) {
+func listContainersManifestsDirs(verbose bool) ([]string, error) {
 	var dirNames = make([]string, 0)
 	err := filepath.Walk(common.GlobalOptions.DockerRepositoryPath,
 		func(path string, info os.FileInfo, err error) error {
@@ -80,20 +80,20 @@ func listContainersResourceDirs(verbose bool) ([]string, error) {
 			}
 
 			// Continue to the next path
-			if !info.IsDir() || !strings.Contains(path, RESOURCES_DIR_NAME) {
+			if !strings.Contains(path, MANIFESTS_PATH) {
 				return nil
 			}
 
-			if resourcePath, err := filepath.Abs(path); err != nil {
+			if manifestPath, err := filepath.Abs(path); err != nil {
 				return err
 			} else {
-				dirName := extractResourceDirName(resourcePath)
+				dirName := extractManifestDirName(manifestPath)
 
 				if verbose {
 					logger.Info("  " + dirName)
 				}
 
-				dirNames = append(dirNames, resourcePath)
+				dirNames = append(dirNames, manifestPath)
 			}
 
 			return nil
@@ -106,8 +106,11 @@ func listContainersResourceDirs(verbose bool) ([]string, error) {
 	return dirNames, nil
 }
 
-func extractResourceDirName(path string) string {
+func extractManifestDirName(path string) string {
+	// Dirname to k8s
 	dirName := filepath.Dir(path)
+	// Dirname to container dir name
+	dirName = filepath.Dir(dirName)
 	dirName = strings.TrimPrefix(dirName, common.GlobalOptions.DockerRepositoryPath+"/")
 	return dirName
 }

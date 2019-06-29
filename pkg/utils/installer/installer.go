@@ -2,6 +2,7 @@ package installer
 
 import (
 	"fmt"
+	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/shell"
 
 	"github.com/anchor/pkg/utils/input"
@@ -51,6 +52,19 @@ func (b *brewInstaller) installPackage(pkg string) error {
 	} else {
 		pkgInstallFormat := "brew update && brew search %v && brew install %v && brew cleanup"
 		installCmd := fmt.Sprintf(pkgInstallFormat, pkg, pkg)
+		if err := b.shellExec.Execute(installCmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (b *brewInstaller) linkPackageFiles(pkg string) error {
+	if err := b.Check(); err != nil {
+		return err
+	} else {
+		linkPkgFilesFormat := "brew link --force %v"
+		installCmd := fmt.Sprintf(linkPkgFilesFormat, pkg)
 		if err := b.shellExec.Execute(installCmd); err != nil {
 			return err
 		}
@@ -239,6 +253,47 @@ func (h *helmInstaller) Check() error {
 
 func NewHelmlInstaller(shellExec shell.Shell) Installer {
 	return &helmInstaller{
+		baseInstaller: baseInstaller{
+			shellExec: shellExec,
+		},
+	}
+}
+
+// endregion
+
+// region Env Substituter Installer
+type envsubstInstaller struct {
+	baseInstaller
+}
+
+func (e *envsubstInstaller) verify() error {
+	if _, err := e.shellExec.ExecuteWithOutput("which envsubst"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *envsubstInstaller) install() error {
+	brew := NewBrewInstaller(e.shellExec)
+	if err := brew.installPackage("gettext"); err != nil {
+		return err
+	}
+	if err := brew.linkPackageFiles("gettext"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *envsubstInstaller) Check() error {
+	if err := e.verify(); err != nil {
+		logger.Info("envsubst is mandatory for ENV vars substitution on Kubernetes manifests, installing...")
+		return e.install()
+	}
+	return nil
+}
+
+func NewEnvsubstInstaller(shellExec shell.Shell) Installer {
+	return &envsubstInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,
 		},

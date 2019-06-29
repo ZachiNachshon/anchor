@@ -62,9 +62,10 @@ func printClusterStatus(name string) error {
 	} else if !exists {
 		logger.Info("No active cluster.")
 	} else {
-		logger.Infof("Found active %v cluster !", clusterName)
-		logger.Infof("\nDashboard available at:\n  %s", dashboardUrl)
-
+		logger.Infof("Found active %v cluster !\n", clusterName)
+		_ = printClusterInfo()
+		_ = printDashboardInfo()
+		_ = printRegistryInfo()
 		_ = printConfiguration(clusterName)
 		_ = printNamespaces()
 		_ = printIngress()
@@ -75,6 +76,10 @@ func printClusterStatus(name string) error {
 
 	}
 	return nil
+}
+
+func printClusterInfo() error {
+	return common.ShellExec.Execute("kubectl cluster-info")
 }
 
 func printConfiguration(clusterName string) error {
@@ -113,7 +118,7 @@ func printServices() error {
 	logger.Info(`
 Services:
 ---------`)
-	getServicesCmd := "kubectl get services"
+	getServicesCmd := "kubectl get services --all-namespaces=true"
 	return common.ShellExec.Execute(getServicesCmd)
 }
 
@@ -121,7 +126,7 @@ func printDeployments() error {
 	logger.Info(`
 Services:
 ---------`)
-	getDeploymentsCmd := "kubectl get deployments"
+	getDeploymentsCmd := "kubectl get deployments --all-namespaces=true"
 	return common.ShellExec.Execute(getDeploymentsCmd)
 }
 
@@ -129,7 +134,7 @@ func printNodes() error {
 	logger.Info(`
 Nodes:
 ------`)
-	getNodesCmd := "kubectl get nodes"
+	getNodesCmd := "kubectl get nodes --all-namespaces=true"
 	return common.ShellExec.Execute(getNodesCmd)
 }
 
@@ -138,6 +143,6 @@ func printPods() error {
 Pods:
 -----`)
 	//getPodsCmd := "kubectl get pods -o wide"
-	getPodsCmd := "kubectl get pods"
+	getPodsCmd := "kubectl get pods --all-namespaces=true"
 	return common.ShellExec.Execute(getPodsCmd)
 }

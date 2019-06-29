@@ -1,8 +1,10 @@
 package kubernetes
 
 import (
+	"fmt"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/input"
 	"github.com/spf13/cobra"
 )
 
@@ -62,9 +64,15 @@ func deleteKubernetesCluster(name string) error {
 	if exists, err := checkForActiveCluster(name); err != nil {
 		return err
 	} else if exists {
-		deleteCmd := "kind delete cluster --name " + name
-		if err := common.ShellExec.Execute(deleteCmd); err != nil {
-			return err
+		in := input.NewYesNoInput()
+		deleteInputFormat := fmt.Sprintf("Are you sure you want to delete Kubernetes cluster [%v]?", name)
+		if result, err := in.WaitForInput(deleteInputFormat); err != nil || !result {
+			logger.Info("skipping.")
+		} else {
+			deleteCmd := fmt.Sprintf("kind delete cluster --name %v", name)
+			if err := common.ShellExec.Execute(deleteCmd); err != nil {
+				return err
+			}
 		}
 	} else {
 		logger.Infof("Cluster %v does not exist, skipping deletion", name)

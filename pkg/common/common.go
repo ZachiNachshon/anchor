@@ -8,6 +8,7 @@ var GlobalOptions = CmdRootOptions{
 	Verbose: false,
 
 	// Docker
+	DockerRegistryDns:    "registry.anchor:32001",
 	DockerImageNamespace: "anchor",
 	DockerImageTag:       "latest",
 	DockerRepositoryPath: "",
@@ -23,6 +24,7 @@ type CmdRootOptions struct {
 	Verbose bool
 
 	// Docker
+	DockerRegistryDns    string
 	DockerImageNamespace string
 	DockerRepositoryPath string
 	DockerImageTag       string

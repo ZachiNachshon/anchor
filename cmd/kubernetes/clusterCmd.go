@@ -56,6 +56,9 @@ func checkPrerequisites() error {
 	if err := installer.NewKubectlInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
+	if err := installer.NewEnvsubstInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
 	//if err := shell.NewHelmlInstaller(common.ShellExec).Check(); err != nil {
 	//	return err
 	//}
@@ -84,6 +87,7 @@ func (k *clusterCmd) initClusterCommands() {
 	k.cobraCmd.AddCommand(NewDeployCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewRemoveCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
+	k.cobraCmd.AddCommand(NewRegistryCmd(opts).GetCobraCmd())
 }
 
 func loadKubeConfig() error {
