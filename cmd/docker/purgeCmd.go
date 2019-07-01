@@ -26,9 +26,11 @@ func NewPurgeCmd(opts *common.CmdRootOptions) *purgeCmd {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Purge: Containers & Images")
+
 			if err := purgeAll(); err != nil {
 				logger.Fatal(err.Error())
 			}
+
 			logger.PrintCompletion()
 		},
 	}

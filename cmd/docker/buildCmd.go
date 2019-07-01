@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"github.com/pkg/errors"
 	"path/filepath"
 	"strings"
 
@@ -23,14 +24,16 @@ type BuildCmdOptions struct {
 func NewBuildCmd(opts *common.CmdRootOptions) *buildCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "build",
-		Short: "Builds a docker image based on Dockerfile instructions",
-		Long:  `Builds a docker image based on Dockerfile instructions from the DOCKER_FILES repository.`,
+		Short: "Builds a docker image",
+		Long:  `Builds a docker image`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.PrintHeadline("Building Docker Image")
+			logger.PrintHeadline("Build: Docker Image")
+
 			if err := buildDockerfile(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
+
 			logger.PrintCompletion()
 		},
 	}
@@ -52,6 +55,8 @@ func buildDockerfile(dirname string) error {
 	} else {
 		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandBuild); err != nil {
 			return err
+		} else if len(buildCmd) == 0 {
+			return errors.Errorf(missingDockerCmdMsg(DockerCommandBuild, dirname))
 		} else {
 			contextPath := filepath.Dir(dockerfilePath)
 			ctxIdx := strings.LastIndex(buildCmd, ".")

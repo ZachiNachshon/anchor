@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
@@ -22,11 +23,12 @@ type RunCmdOptions struct {
 func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "run",
-		Short: "Run a docker container based on Dockerfile instructions",
-		Long:  `Run a Dockerfile from the list of available docker image directories (ex. DIR=alpine).`,
+		Short: "Run a docker container",
+		Long:  `Run a docker container`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.PrintHeadline("Deploying Docker Container on LOCAL Machine")
+			logger.PrintHeadline("Run: Docker Container on LOCAL Machine")
+
 			if err := stopContainers(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
@@ -36,6 +38,7 @@ func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 			if err := runContainer(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
+
 			logger.PrintCompletion()
 		},
 	}
@@ -57,6 +60,8 @@ func runContainer(dirname string) error {
 	} else {
 		if runCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {
 			return err
+		} else if len(runCmd) == 0 {
+			return errors.Errorf(missingDockerCmdMsg(DockerCommandRun, dirname))
 		} else {
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + runCmd)

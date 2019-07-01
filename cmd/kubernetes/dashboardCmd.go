@@ -32,19 +32,23 @@ func NewDashboardCmd(opts *common.CmdRootOptions) *dashboardCmd {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Deploy Kubernetes Dashboard")
+			name := common.GlobalOptions.KindClusterName
 
-			_ = loadKubeConfig()
-
-			// Kill possible running kubectl proxy
-			_ = killKubectlProxy()
-
-			if shouldDeleteDashboard {
-				if err := uninstallDashboard(); err != nil {
-					logger.Fatal(err.Error())
-				}
+			if exists, err := checkForActiveCluster(name); err != nil {
+				logger.Fatal(err.Error())
+			} else if !exists {
+				logger.Info("No active cluster.")
 			} else {
-				if err := deployKubernetesDashboard(); err != nil {
-					logger.Fatal(err.Error())
+				_ = loadKubeConfig()
+
+				if shouldDeleteDashboard {
+					if err := uninstallDashboard(); err != nil {
+						logger.Fatal(err.Error())
+					}
+				} else {
+					if err := deployKubernetesDashboard(); err != nil {
+						logger.Fatal(err.Error())
+					}
 				}
 			}
 
@@ -83,6 +87,9 @@ func deployKubernetesDashboard() error {
 		return err
 	} else if !exists {
 
+		// Kill possible running kubectl proxy
+		_ = killKubectlProxy()
+
 		if err := installDashboard(); err != nil {
 			return err
 		}
@@ -114,6 +121,10 @@ func uninstallDashboard() error {
 		return err
 	} else if exists {
 		logger.Info("\n==> Uninstalling dashboard...\n")
+
+		// Kill possible running kubectl proxy
+		_ = killKubectlProxy()
+
 		if path, err := filepath.Rel(".", "../../deployments/dashboard/dashboard.yaml"); err != nil {
 			return err
 		} else {
@@ -130,21 +141,18 @@ func uninstallDashboard() error {
 
 func installDashboard() error {
 	logger.Info("\n==> Installing dashboard...\n")
-	if path, err := filepath.Rel(".", "../../deployments/dashboard/dashboard.yaml"); err != nil {
-		return err
-	} else {
-		deployCmd := fmt.Sprintf("kubectl apply -f %v", path)
-		createCmd := "kubectl create serviceaccount -n kube-system kubernetes-dashboard"
-		createRoleCmd := `kubectl create clusterrolebinding -n kube-system kubernetes-dashboard \
+	deployCmd := fmt.Sprintf("kubectl apply -f %v", common.GlobalOptions.DashboardManifest)
+	createCmd := "kubectl create serviceaccount -n kube-system kubernetes-dashboard"
+	createRoleCmd := `kubectl create clusterrolebinding -n kube-system kubernetes-dashboard \
 			--clusterrole cluster-admin \
 			--serviceaccount kube-system:kubernetes-dashboard
 		`
-		if err := common.ShellExec.Execute(deployCmd); err != nil {
-			return err
-		}
-		_ = common.ShellExec.Execute(createCmd)
-		_ = common.ShellExec.Execute(createRoleCmd)
+	if err := common.ShellExec.Execute(deployCmd); err != nil {
+		return err
 	}
+	_ = common.ShellExec.Execute(createCmd)
+	_ = common.ShellExec.Execute(createRoleCmd)
+
 	return nil
 }
 
@@ -201,7 +209,7 @@ func printDashboardInfo() error {
 		logger.Info(`
 Dashboard:
 ----------`)
-		logger.Info("Copy the following token and paste as the dashboard TOKEN - \n")
+		logger.Info("Copy the following and paste as the dashboard TOKEN - \n")
 		_ = getSecret()
 		logger.Info("==> Dashboard available at:\n\n  " + dashboardUrl + "\n")
 	}

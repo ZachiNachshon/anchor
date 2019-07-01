@@ -20,6 +20,8 @@ type DockerCommand string
 const (
 	DockerCommandRun   DockerCommand = "docker run"
 	DockerCommandBuild DockerCommand = "docker build"
+	DockerCommandPush  DockerCommand = "docker push"
+	DockerCommandTag   DockerCommand = "docker tag"
 )
 
 type dockerCmd struct {
@@ -36,7 +38,7 @@ type DockerCmdOptions struct {
 func NewDockerCmd(opts *common.CmdRootOptions) *dockerCmd {
 	var cobraCmd = &cobra.Command{
 		Use:     "docker",
-		Short:   "Docker related commands",
+		Short:   "Docker commands",
 		Aliases: []string{"d"},
 	}
 
@@ -101,34 +103,42 @@ func composeDockerImageIdentifier(dirname string) string {
 }
 
 func composeDockerImageIdentifierNoTag(dirname string) string {
-	imageIdentifier := fmt.Sprintf("%v/%v", common.GlobalOptions.DockerImageNamespace, dirname)
+	imageIdentifier := fmt.Sprintf("%v-%v", common.GlobalOptions.DockerImageNamespace, dirname)
 	return imageIdentifier
 }
 
 func extractDockerCmd(dockerfilePath string, dockerCommand DockerCommand) (string, error) {
-	var dockerfileContent = ""
+	var result = ""
 	if contentByte, err := ioutil.ReadFile(dockerfilePath); err != nil {
 		return "", err
 	} else {
 
 		dirPath := filepath.Dir(dockerfilePath)
+
+		// Load .env files from DOCKER_FILES location at root directory and then override from child
 		config.LoadEnvVars(dirPath)
 
-		dockerfileContent = string(contentByte)
+		var dockerfileContent = string(contentByte)
 
 		p := parser.NewHashtagParser()
 		if err := p.Parse(dockerfileContent); err != nil {
 			return "", errors.Errorf("Failed to parse: %v, err: %v", dockerfilePath, err.Error())
 		}
 
-		if cmd := p.Find(string(dockerCommand)); cmd != "" {
-			dockerfileContent = replaceDockerCommandPlaceholders(cmd, dockerfilePath)
+		if result = p.Find(string(dockerCommand)); result != "" {
+			if dockerCommand == DockerCommandBuild {
+				result = replaceDockerCommandPlaceholders(result, dockerfilePath)
+			}
 		}
 	}
-	return dockerfileContent, nil
+	return result, nil
 }
 
 func replaceDockerCommandPlaceholders(content string, path string) string {
 	content = strings.ReplaceAll(content, "Dockerfile", path)
 	return content
+}
+
+func missingDockerCmdMsg(command DockerCommand, dirname string) string {
+	return fmt.Sprintf("Missing '%v' on %v Dockerfile instructions\n", command, dirname)
 }

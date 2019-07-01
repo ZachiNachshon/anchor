@@ -27,6 +27,7 @@ func NewCleanCmd(opts *common.CmdRootOptions) *cleanCmd {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Cleanup: Containers & Images")
+
 			if err := stopContainers(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
@@ -36,6 +37,7 @@ func NewCleanCmd(opts *common.CmdRootOptions) *cleanCmd {
 			if err := removeImages(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
+
 			logger.PrintCompletion()
 		},
 	}

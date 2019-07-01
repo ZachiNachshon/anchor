@@ -22,16 +22,25 @@ type StatusCmdOptions struct {
 func NewStatusCmd(opts *common.CmdRootOptions) *statusCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "status",
-		Short: "Get active cluster status",
-		Long:  `Get active cluster status`,
+		Short: fmt.Sprintf("Print cluster [%v] status", common.GlobalOptions.DockerRegistryDns),
+		Long:  fmt.Sprintf(`Print cluster [%v] status`, common.GlobalOptions.DockerRegistryDns),
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			name := common.GlobalOptions.KindClusterName
 			logger.PrintHeadline("Retrieve Cluster Status")
-			_ = loadKubeConfig()
-			if err := printClusterStatus(name); err != nil {
+			name := common.GlobalOptions.KindClusterName
+
+			if exists, err := checkForActiveCluster(name); err != nil {
 				logger.Fatal(err.Error())
+			} else if !exists {
+				logger.Info("No active cluster.")
+			} else {
+				_ = loadKubeConfig()
+
+				if err := printClusterStatus(name); err != nil {
+					logger.Fatal(err.Error())
+				}
 			}
+
 			logger.PrintCompletion()
 		},
 	}
@@ -57,12 +66,15 @@ func (cmd *statusCmd) initFlags() error {
 
 func printClusterStatus(name string) error {
 	var clusterName = common.GlobalOptions.KindClusterName
+
+	// Double check since other command might call directly to this method
 	if exists, err := checkForActiveCluster(name); err != nil {
 		return err
 	} else if !exists {
 		logger.Info("No active cluster.")
 	} else {
 		logger.Infof("Found active %v cluster !\n", clusterName)
+
 		_ = printClusterInfo()
 		_ = printDashboardInfo()
 		_ = printRegistryInfo()

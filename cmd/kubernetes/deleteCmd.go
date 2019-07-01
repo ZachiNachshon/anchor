@@ -27,16 +27,20 @@ func NewDeleteCmd(opts *common.CmdRootOptions) *deleteCmd {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Delete Kubernetes Cluster")
-
-			_ = loadKubeConfig()
-
-			// Kill possible running kubectl proxy
-			_ = killKubectlProxy()
-
 			name := common.GlobalOptions.KindClusterName
-			if err := deleteKubernetesCluster(name); err != nil {
+
+			if exists, err := checkForActiveCluster(name); err != nil {
 				logger.Fatal(err.Error())
+			} else if !exists {
+				logger.Info("No active cluster.")
+			} else {
+				_ = loadKubeConfig()
+
+				if err := deleteKubernetesCluster(name); err != nil {
+					logger.Fatal(err.Error())
+				}
 			}
+
 			logger.PrintCompletion()
 		},
 	}
@@ -61,21 +65,20 @@ func (cmd *deleteCmd) initFlags() error {
 }
 
 func deleteKubernetesCluster(name string) error {
-	if exists, err := checkForActiveCluster(name); err != nil {
-		return err
-	} else if exists {
-		in := input.NewYesNoInput()
-		deleteInputFormat := fmt.Sprintf("Are you sure you want to delete Kubernetes cluster [%v]?", name)
-		if result, err := in.WaitForInput(deleteInputFormat); err != nil || !result {
-			logger.Info("skipping.")
-		} else {
-			deleteCmd := fmt.Sprintf("kind delete cluster --name %v", name)
-			if err := common.ShellExec.Execute(deleteCmd); err != nil {
-				return err
-			}
-		}
+	in := input.NewYesNoInput()
+	deleteInputFormat := fmt.Sprintf("Are you sure you want to delete Kubernetes cluster [%v]?", name)
+
+	if result, err := in.WaitForInput(deleteInputFormat); err != nil || !result {
+		logger.Info("skipping.")
 	} else {
-		logger.Infof("Cluster %v does not exist, skipping deletion", name)
+
+		// Kill possible running kubectl proxy
+		_ = killKubectlProxy()
+
+		deleteCmd := fmt.Sprintf("kind delete cluster --name %v", name)
+		if err := common.ShellExec.Execute(deleteCmd); err != nil {
+			return err
+		}
 	}
 	return nil
 }

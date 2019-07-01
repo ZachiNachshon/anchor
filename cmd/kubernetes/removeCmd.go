@@ -25,12 +25,21 @@ func NewRemoveCmd(opts *common.CmdRootOptions) *removeCmd {
 		Long:  `Removed a previously deployed container manifest`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			name := common.GlobalOptions.KindClusterName
 			logger.PrintHeadline("Remove Container Manifest")
-			_ = loadKubeConfig()
-			if err := RemoveManifest(name, args[0]); err != nil {
+			name := common.GlobalOptions.KindClusterName
+
+			if exists, err := checkForActiveCluster(name); err != nil {
 				logger.Fatal(err.Error())
+			} else if !exists {
+				logger.Info("No active cluster.")
+			} else {
+				_ = loadKubeConfig()
+
+				if err := removeManifest(args[0]); err != nil {
+					logger.Fatal(err.Error())
+				}
 			}
+
 			logger.PrintCompletion()
 		},
 	}
@@ -54,17 +63,13 @@ func (cmd *removeCmd) initFlags() error {
 	return nil
 }
 
-func RemoveManifest(clusterName string, dirname string) error {
-	if exists, err := checkForActiveCluster(clusterName); err != nil {
+func removeManifest(dirname string) error {
+	if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
 		return err
-	} else if exists {
-		if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
+	} else {
+		removeCmd := fmt.Sprintf("envsubst < %v | kubectl delete -f -", manifestPath)
+		if err := common.ShellExec.Execute(removeCmd); err != nil {
 			return err
-		} else {
-			removeCmd := fmt.Sprintf("envsubst < %v | kubectl delete -f -", manifestPath)
-			if err := common.ShellExec.Execute(removeCmd); err != nil {
-				return err
-			}
 		}
 	}
 	return nil

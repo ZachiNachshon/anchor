@@ -21,16 +21,25 @@ type DeployCmdOptions struct {
 func NewDeployCmd(opts *common.CmdRootOptions) *deployCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "deploy",
-		Short: "Deploy container manifest",
-		Long:  `Deploy container manifest from a directory`,
+		Short: "Deploy a container Kubernetes manifest",
+		Long:  `Deploy a container Kubernetes manifest`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			name := common.GlobalOptions.KindClusterName
 			logger.PrintHeadline("Deploy Container Manifest")
-			_ = loadKubeConfig()
-			if err := deployManifest(name, args[0]); err != nil {
+			name := common.GlobalOptions.KindClusterName
+
+			if exists, err := checkForActiveCluster(name); err != nil {
 				logger.Fatal(err.Error())
+			} else if !exists {
+				logger.Info("No active cluster.")
+			} else {
+				_ = loadKubeConfig()
+
+				if err := deployManifest(args[0]); err != nil {
+					logger.Fatal(err.Error())
+				}
 			}
+
 			logger.PrintCompletion()
 		},
 	}
@@ -54,20 +63,14 @@ func (cmd *deployCmd) initFlags() error {
 	return nil
 }
 
-func deployManifest(clusterName string, dirname string) error {
-	if exists, err := checkForActiveCluster(clusterName); err != nil {
+func deployManifest(dirname string) error {
+	if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
 		return err
-	} else if exists {
-		if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
-			return err
-		} else {
-			deployCmd := fmt.Sprintf("envsubst < %v | kubectl apply -f -", manifestPath)
-			if err := common.ShellExec.Execute(deployCmd); err != nil {
-				return err
-			}
-		}
 	} else {
-		logger.Infof("Cluster %v does not exist, skipping deployment", clusterName)
+		deployCmd := fmt.Sprintf("envsubst < %v | kubectl apply -f -", manifestPath)
+		if err := common.ShellExec.Execute(deployCmd); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -21,8 +21,8 @@ type VersionCmdOptions struct {
 func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Print the version number",
-		Long:  `Print the version number`,
+		Short: "Print anchor version",
+		Long:  `Print anchor version`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// TODO: take from config
 			fmt.Println("v1.0.0")

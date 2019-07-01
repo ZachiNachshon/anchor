@@ -27,14 +27,16 @@ type ListCmdOptions struct {
 func NewListCmd(opts *common.CmdRootOptions) *listCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List all containers with kubernetes manifests",
-		Long:  `List all containers with kubernetes manifests`,
+		Short: "List all containers with Kubernetes manifests from DOCKER_FILES repository",
+		Long:  `List all containers with Kubernetes manifests from DOCKER_FILES repository`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Listing Containers With K8S Manifests")
+
 			if _, err := listContainersManifestsDirs(true); err != nil {
 				logger.Fatal(err.Error())
 			}
+
 			logger.PrintCompletion()
 		},
 	}

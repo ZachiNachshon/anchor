@@ -24,11 +24,19 @@ func NewCreateCmd(opts *common.CmdRootOptions) *createCmd {
 		Long:  `Create a local Kubernetes cluster`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			name := common.GlobalOptions.KindClusterName
 			logger.PrintHeadline("Creating Kubernetes Cluster")
-			if err := createKubernetesCluster(name); err != nil {
+			name := common.GlobalOptions.KindClusterName
+
+			if exists, err := checkForActiveCluster(name); err != nil {
 				logger.Fatal(err.Error())
+			} else if exists {
+				logger.Infof("Cluster %v already exists, skipping creation", name)
+			} else {
+				if err := createKubernetesCluster(name); err != nil {
+					logger.Fatal(err.Error())
+				}
 			}
+
 			logger.PrintCompletion()
 		},
 	}
@@ -53,24 +61,15 @@ func (cmd *createCmd) initFlags() error {
 }
 
 func createKubernetesCluster(name string) error {
-	if exists, err := checkForActiveCluster(name); err != nil {
+	createCmd := "kind create cluster --name " + name
+	if err := common.ShellExec.Execute(createCmd); err != nil {
 		return err
-	} else if !exists {
-		createCmd := "kind create cluster --name " + name
-		if err := common.ShellExec.Execute(createCmd); err != nil {
-			return err
-		}
-
-		_ = loadKubeConfig()
-
-		//_ = deployKubernetesDashboard()
-
-		//_ = deployDockerRegistry()
-
-		_ = printClusterStatus(name)
-
-	} else {
-		logger.Infof("Cluster %v already exists, skipping creation", name)
 	}
+
+	_ = loadKubeConfig()
+	_ = deployKubernetesDashboard()
+	_ = deployDockerRegistry()
+	_ = printClusterStatus(name)
+
 	return nil
 }

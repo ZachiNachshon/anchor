@@ -16,7 +16,7 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 
 ## How does it work?
 #### Directory Structure
-Anchor act as one stop shop for all Dockerfiles & Kubernetes manifests that comprise your development environment.
+Anchor act as one stop shop for all Dockerfiles & Kubernetes manifests that comprise your development environment.<br>
 It relies on a `DOCKER_FILES` ENV variable that points to a local directory path containing the following structure:
 
     .
@@ -25,14 +25,14 @@ It relies on a `DOCKER_FILES` ENV variable that points to a local directory path
     │   └── k8s                 # Kubernetes content
     │       └── manifest.yaml   # Kubernetes manifest
     │   ├── Dockerfile          # Docker build/run/tag/push instructions
-    │   ├── .env                # Optional: Override root `NAMESPACE` & `TAG` environment vars <br>
-    │   └── ...                 # Optional: files for docker build <br>
+    │   ├── .env                # Optional: Override root `NAMESPACE` & `TAG` environment vars
+    │   └── ...                 # Optional: files for docker build
     ├── ... 
     └── .env                    # Optional: Override default `NAMESPACE` & `TAG` environment vars at root level                 
     
 > It is recommended to back the `DOCKER_FILES` directory by a git repository
 
-Anchor allow flexibility for changing the namespace and tag of all or specific container image/deployment.<br>
+Anchor allow flexibility for changing the namespace and tag of every resource.<br>
 The following environment variables can be set on one of the `.env` files:
 - `export NAMESPACE="my-namespace`
 - `export TAG="v1.1.0`
@@ -40,7 +40,7 @@ The following environment variables can be set on one of the `.env` files:
 > Default values are `anchor` namespace and `latest` tag
 
 #### Dockerfile Instructions
-Every Dockerfile must contain the following heading in order to integrate properly with `anchor`
+Every Dockerfile must contain the following header in order to integrate properly with `anchor`
 ```dockerfile
 # OVERVIEW
 # --------
@@ -80,8 +80,8 @@ Every Dockerfile must contain the following heading in order to integrate proper
 ```
 
 #### Kubernetes Manifest
-Standard kubernetes manifests.
-Anchor support ENV vars substitution within manifests using `envsubst`.
+Anchor is using a standard kubernetes manifest.<br>
+It supports ENV vars substitution within manifests using `envsubst`.
 
 ## Requirements
 - Go 1.12.x
@@ -97,26 +97,21 @@ Anchor support ENV vars substitution within manifests using `envsubst`.
 
 Clone and build Anchor repository
 ```bash
-~$ git clone git@github.com:ZachiNachshon/anchor.git ~/anchor-example/
-~$ ~/anchor-example/make build 
+~$ git clone git@github.com:ZachiNachshon/anchor.git ~/anchor-example/anchor
+~$ cd ~/anchor-example/anchor
+~$ make build
 ```
 
 Clone an example dockerfiles git repository
 ```bash
-~$ git clone git@github.com:ZachiNachshon/anchor-dockerfiles.git ~/anchor-example/
+~$ git clone git@github.com:ZachiNachshon/anchor-dockerfiles.git ~/anchor-example/anchor-dockerfiles
 ```
 
 Define required environment variable (append to `$PATH` via `.bash_profile` / `.bash_rc`)
 ```bash
-~$ export DOCKER_FILES="~/anchor-example/anchor-dockerfiles"
-```
-
-Let's create a cluster
-```bash
-~$ anchor cluster create
-```
-
-> Follow on-screen dashboard instructions to gain Kubernetes visibility 
+~$ cd ~/anchor-example/anchor-dockerfiles
+~$ export DOCKER_FILES="$(PWD)"
+``` 
 
 List all available docker supported images/manifests
 ```bash
@@ -138,6 +133,13 @@ List all available docker supported images/manifests
 
     Done.
 ```
+
+Let's create a cluster (patience since the first creation pulls image `kindest/node:v1.15.0`)
+```bash
+~$ anchor cluster create
+```
+
+> Follow on-screen dashboard instructions to gain Kubernetes visibility
 
 Build an `nginx` docker image
 ```bash

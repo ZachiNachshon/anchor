@@ -28,14 +28,16 @@ type ListCmdOptions struct {
 func NewListCmd(opts *common.CmdRootOptions) *listCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List all available docker images",
-		Long:  `List all available docker images to be built from a DOCKER_FILES repository`,
+		Short: "List all available docker supported images from DOCKER_FILES repository",
+		Long:  `List all available docker supported images from DOCKER_FILES repository`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Listing all Docker images")
+
 			if _, err := listDockerfilesDirs(true); err != nil {
 				logger.Fatal(err.Error())
 			}
+
 			logger.PrintCompletion()
 		},
 	}

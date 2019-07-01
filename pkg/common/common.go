@@ -15,6 +15,11 @@ var GlobalOptions = CmdRootOptions{
 
 	// Kind
 	KindClusterName: "anchor",
+
+	// Remote Files
+	DashboardManifest:        "https://raw.githubusercontent.com/ZachiNachshon/anchor-files/master/v1/dashboard/dashboard.yaml",
+	RegistryManifest:         "https://raw.githubusercontent.com/ZachiNachshon/anchor-files/master/v1/docker-registry/registry.yaml",
+	RegistryContainerdConfig: "https://raw.githubusercontent.com/ZachiNachshon/anchor-files/master/v1/docker-registry/config_template.toml",
 }
 
 type CmdRootOptions struct {
@@ -31,4 +36,9 @@ type CmdRootOptions struct {
 
 	// Kind
 	KindClusterName string
+
+	// Remote Files
+	DashboardManifest        string
+	RegistryManifest         string
+	RegistryContainerdConfig string
 }

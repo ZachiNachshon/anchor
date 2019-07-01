@@ -1,11 +1,15 @@
 package kubernetes
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
-	"path/filepath"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -25,24 +29,32 @@ type RegistryCmdOptions struct {
 func NewRegistryCmd(opts *common.CmdRootOptions) *registryCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "registry",
-		Short: "Create a docker registry as a pod",
-		Long:  `Create a docker registry as a pod`,
+		Short: fmt.Sprintf("Create a private docker registry [%v]", common.GlobalOptions.DockerRegistryDns),
+		Long:  fmt.Sprintf("Create a private docker registry [%v]", common.GlobalOptions.DockerRegistryDns),
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Deploying Docker Registry")
+			name := common.GlobalOptions.KindClusterName
 
-			_ = loadKubeConfig()
-
-			// Kill possible running kubectl registry port forwarding
-			_ = killRegistryPortForwarding()
-
-			if shouldDeleteRegistry {
-				if err := uninstallRegistry(); err != nil {
-					logger.Fatal(err.Error())
-				}
+			if exists, err := checkForActiveCluster(name); err != nil {
+				logger.Fatal(err.Error())
+			} else if !exists {
+				logger.Info("No active cluster.")
 			} else {
-				if err := deployDockerRegistry(); err != nil {
-					logger.Fatal(err.Error())
+				_ = loadKubeConfig()
+
+				if shouldDeleteRegistry {
+
+					// Remove registry
+					if err := uninstallRegistry(); err != nil {
+						logger.Fatal(err.Error())
+					}
+				} else {
+
+					// Deploy registry
+					if err := deployDockerRegistry(); err != nil {
+						logger.Fatal(err.Error())
+					}
 				}
 			}
 
@@ -80,6 +92,10 @@ func deployDockerRegistry() error {
 	if exists, err := checkForActiveRegistry(); err != nil {
 		return err
 	} else if !exists {
+
+		// Kill possible running kubectl registry port forwarding
+		_ = killRegistryPortForwarding()
+
 		nodes, _ := getAllNodes()
 
 		for _, node := range nodes {
@@ -146,11 +162,20 @@ func getAllNodes() ([]string, error) {
 
 func overrideContainerdConfig(nodeName string) error {
 	logger.Info("Overwriting control plane containerd config.toml...")
-	if path, err := filepath.Rel(".", "../..deployments/docker-registry/config_template.toml"); err != nil {
+	if file, err := ioutil.TempFile(os.TempDir(), "anchor-containerd-config-template"); err != nil {
 		return err
 	} else {
-		replaceConfigCmd := fmt.Sprintf("envsubst < %v > config.toml; docker cp config.toml - %v:/etc/containerd/config.toml", path, nodeName)
-		return common.ShellExec.Execute(replaceConfigCmd)
+		// Remove after finished
+		defer os.Remove(file.Name())
+
+		// Temporary do not allow overriding the docker registry name via ENV var on the config.toml string content
+		if _, err := file.WriteString(config.RegistryContainerdConfigTemplate); err != nil {
+			return err
+		} else {
+			replaceConfigCmd := fmt.Sprintf("envsubst < %v > config.toml; docker cp config.toml %v:/etc/containerd/config.toml",
+				file.Name(), nodeName)
+			return common.ShellExec.Execute(replaceConfigCmd)
+		}
 	}
 }
 
@@ -168,12 +193,8 @@ func restartKubeletService(nodeName string) error {
 
 func deployDockerRegistryPod() error {
 	logger.Info("Deploying docker registry as a pod...")
-	if path, err := filepath.Rel(".", "../../deployments/docker-registry/registry.yaml"); err != nil {
-		return err
-	} else {
-		deployRegistryCmd := fmt.Sprintf("kubectl apply -f %v", path)
-		return common.ShellExec.Execute(deployRegistryCmd)
-	}
+	deployRegistryCmd := fmt.Sprintf("kubectl apply -f %v", common.GlobalOptions.RegistryManifest)
+	return common.ShellExec.Execute(deployRegistryCmd)
 }
 
 func waitForDockerRegistryPod() error {
@@ -201,6 +222,24 @@ func printRegistryInfo() error {
 Registry:
 ---------`)
 		logger.Infof("Registry is available at: %s", "registry.anchor:32001")
+
+		getCatalogCmd := fmt.Sprintf(`docker exec -t anchor-control-plane /bin/sh -c "curl -X GET http://%v/v2/_catalog"`, common.GlobalOptions.DockerRegistryDns)
+		if out, err := common.ShellExec.ExecuteWithOutput(getCatalogCmd); err != nil {
+			// TODO: Change to warn/error ?
+			logger.Info(out)
+			return err
+		} else {
+			logger.Info("\nCatalog:")
+			src := []byte(out)
+
+			var prettyJSON bytes.Buffer
+			if err := json.Indent(&prettyJSON, src, "", "  "); err != nil {
+				// Do noting
+				logger.Info(out)
+			} else {
+				logger.Info(prettyJSON.String())
+			}
+		}
 	}
 	return nil
 }
@@ -210,13 +249,9 @@ func uninstallRegistry() error {
 		return err
 	} else if exists {
 		logger.Info("\n==> Uninstalling registry...\n")
-		if path, err := filepath.Rel(".", "../../deployments/docker-registry/registry.yaml"); err != nil {
+		uninstallCmd := fmt.Sprintf("kubectl delete -f %v", common.GlobalOptions.RegistryManifest)
+		if err := common.ShellExec.Execute(uninstallCmd); err != nil {
 			return err
-		} else {
-			uninstallCmd := fmt.Sprintf("kubectl delete -f %v", path)
-			if err := common.ShellExec.Execute(uninstallCmd); err != nil {
-				return err
-			}
 		}
 	} else {
 		logger.Info("Docker Registry does not exists, nothing to delete.")

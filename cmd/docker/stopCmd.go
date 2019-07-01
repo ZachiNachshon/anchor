@@ -23,17 +23,18 @@ type StopCmdOptions struct {
 func NewStopCmd(opts *common.CmdRootOptions) *stopCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "stop",
-		Short: "Stop containers",
-		Long:  `Stop containers`,
+		Short: "Stop a docker container",
+		Long:  `Stop a docker container`,
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.PrintHeadline("Cleanup: Containers")
+			logger.PrintHeadline("Stop: Docker Container")
+
 			if err := stopContainers(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
-
 			if err := removeContainers(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			}
+
 			logger.PrintCompletion()
 		},
 	}
