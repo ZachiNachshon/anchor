@@ -15,82 +15,181 @@ Anchor is a utility intended for managing a volatile local Docker / Kubernetes d
 4. Utilize simple commands that encapsulate your repetitive docker and kubernetes cli commands
 
 ## How does it work?
+Anchor allow flexibility for changing the namespace and tag of all or specific container image/deployment.
+Thw following environment variables can be set on one of the `.env` files:
+- `export NAMESPACE="my-namespace`
+- `export TAG="v1.1.0`
+
+> Default values are `anchor` namespace and `latest` tag
+
+#### Directory Structure
 Anchor act as one stop shop for all Dockerfiles & Kubernetes manifests that comprise your development environment.
 It relies on a `DOCKER_FILES` ENV variable that points to a local directory path containing the following structure:
-. <br>
-├── ... <br>
-├── nginx                   # Name of the docker image/container <br> 
-│   ├── k8s                 # Kubernetes content <br>
-│   │   ├── manifest.yaml   # Kubernetes manifest <br>
-│   ├── Dockerfile          # Docker build/run/tag/push instructions <br>
-│   ├── .env                # Optional: Override root `NAMESPACE` & `TAG` environment vars <br> 
-│   └── ...                 # Optional: files for docker build <br>
-└── ... <br>
-├── .env                    # Optional: Override default `NAMESPACE` & `TAG` environment vars at root level 
 
+    .
+    ├── ...
+    ├── nginx                   # Name of the docker image/container
+    │   └── k8s                 # Kubernetes content
+    │       └── manifest.yaml   # Kubernetes manifest
+    │   ├── Dockerfile          # Docker build/run/tag/push instructions
+    │   ├── .env                # Optional: Override root `NAMESPACE` & `TAG` environment vars <br>
+    │   └── ...                 # Optional: files for docker build <br>
+    ├── ... 
+    └── .env                    # Optional: Override default `NAMESPACE` & `TAG` environment vars at root level                 
+    
 > It is recommended to back the `DOCKER_FILES` directory by a git repository
+
+#### Dockerfile instructions
+Every Docker file must contain the following heading in order to integrate properly with `anchor`
+```dockerfile
+# OVERVIEW
+# --------
+# This is the Dockerfile for nginx
+#
+# REQUIRED BASE IMAGE TO BUILD THIS IMAGE
+# ---------------------------------------
+# None.
+#
+# REQUIRED FILES TO BUILD THIS IMAGE
+# ----------------------------------
+# (1) None.
+#
+# HOW TO BUILD THIS IMAGE
+# -----------------------
+# docker build -f Dockerfile \
+#              -t ${NAMESPACE}/nginx:${TAG} \
+#              .
+#
+# HOW TO RUN THIS CONTAINER
+# -------------------------
+# docker run -t -d \
+#            -v ${HOME}/.nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+#            --name=${NAMESPACE}-nginx \
+#            -p 8080:80 \
+#            ${NAMESPACE}/alpine:${TAG}
+#
+# HOW TO TAG THIS IMAGE
+# ---------------------
+# docker tag ${NAMESPACE}/nginx:${TAG} \
+#            ${REGISTRY}/${NAMESPACE}/nginx:${TAG}
+#
+# HOW TO PUSH THIS IMAGE
+# ----------------------
+# docker push ${REGISTRY}/${NAMESPACE}/nginx:${TAG}
+# 
+```
 
 ## Requirements
 - Go 1.12.x
 
 ## Getting Started
 
-List of available `anchor docker` commands:
+Clone and build Anchor repository
+```bash
+~$ git clone git@github.com:ZachiNachshon/anchor.git ~/anchor-example/
+~$ ~/anchor-example/make build 
+```
 
-1. `list`  - List all available images
-2. `build` - Builds an image by name
-3. `clean` - Cleaning unknown and previous container images by name
-4. `push`  - Push dockerfile image to repository by name
-5. `run`   - Run a Dockerfile by name
-6. `stop`  - Stop container by name
+Clone an example dockerfiles git repository
+```bash
+~$ git clone git@github.com:ZachiNachshon/anchor-dockerfiles.git ~/anchor-example/
+```
 
-List of available `anchor kind` commands:
+Define required environment variable (append to `$PATH` via `.bash_profile` / `.bash_rc`)
+```bash
+~$ export DOCKER_FILES="~/anchor-example/anchor-dockerfiles"
+```
 
-1. `create`    - Create a Kubernetes cluster 
-2. `dashboard` - Deploy a Kubernetes dashboard pod to allow Web UI 
+Let's create a cluster
+```bash
+~$ anchor cluster create
+```
 
-#### Examples:
+> Follow on-screen dashboard instructions to gain Kubernetes visibility 
 
-List and run a container for mysql:
-
+List all available docker supported images/manifests
 ```bash
 ~$ anchor docker list
+
 ----------------------- Listing all Docker images ------------------------
   alpine
-  automation
-  centos
-  grafana
-  jenkins
-  jfrog-artifactory
-  kafka
-  mysql-percona-client
-  mysql
-  percona-server
-  postgresql-percona-client
-  postgresql-pgwatch2
-  postgresql
-  zookeeper
+  nginx
 
     Done.
-
-~$ anchor docker build mysql && anchor docker run mysql
 ```
----
-
-Retrieve built container images:
 
 ```bash
-~$ docker images
+~$ anchor cluster list
 
-REPOSITORY                                TAG                 IMAGE ID            CREATED             SIZE
-anchor/centos                             latest              1aaabbbcccdd        4 weeks ago         202MB
-anchor/mysql                              latest              2aaabbbcccdd        4 weeks ago         477MB
-anchor/mysql-percona-client               latest              3aaabbbcccdd        4 weeks ago         396MB
-anchor/postgresql-percona-client          latest              4aaabbbcccdd        4 weeks ago         396MB
-anchor/postgresql                         latest              5aaabbbcccdd        4 weeks ago         312MB
-anchor/percona-server                     latest              6aaabbbcccdd        4 weeks ago         1.08GB
-anchor/pgwatch2                           latest              7aaabbbcccdd        4 weeks ago         1.06GB
-anchor/grafana                            latest              8aaabbbcccdd        5 weeks ago         244MB
-anchor/automation                         latest              9aaabbbcccdd        6 weeks ago         1.97GB
+----------------------- Listing Containers With K8S Manifests -----------------------
+  alpine
+  nginx
+
+    Done.
 ```
+
+Build an `nginx` docker image
+```bash
+~$ anchor docker build nginx
+```
+
+Push to private docker registry
+```bash
+~$ anchor docker push nginx
+```
+
+Deploy nginx kubernetes manifest
+```bash
+~$ anchor cluster deploy nginx
+```
+
+Interact with `nginx` service
+```bash
+~$ curl -X GET http://localhost:1234
+```
+
+Remove `nginx` kubernetes manifest
+```bash
+~$ anchor cluster remove nginx
+```
+
+Delete kubernetes cluster
+```bash
+~$ anchor cluster delete
+```
+
+List of available `anchor docker` commands:
+```bash
+Usage:
+  anchor docker [command]
+
+Aliases:
+  docker, d
+
+Available Commands:
+  build       Builds a docker image
+  clean       Clean docker containers and images
+  list        List all available docker supported images from DOCKER_FILES repository
+  purge       Purge all docker images and containers
+  push        Push a docker image to repository [registry.anchor:32001]
+  run         Run a docker container
+  stop        Stop a docker container
+```
+
+List of available `anchor cluster` commands:
+```bash
+Usage:
+  anchor cluster [command]
+
+Available Commands:
+  create      Create a local Kubernetes cluster
+  dashboard   Deploy a Kubernetes dashboard
+  delete      Delete local Kubernetes cluster
+  deploy      Deploy a container Kubernetes manifest
+  list        List all containers with Kubernetes manifests from DOCKER_FILES repository
+  registry    Create a private docker registry [registry.anchor:32001]
+  remove      Removed a previously deployed container manifest
+  status      Print cluster [registry.anchor:32001] status
+```
+---
 
