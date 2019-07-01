@@ -13,6 +13,9 @@ fmt:
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
-.PHONY: build fmt fmtcheck
+release: fmtcheck
+	@sh -c "'$(CURDIR)/scripts/gorelease.sh'"
+
+.PHONY: build fmt fmtcheck release
 
 

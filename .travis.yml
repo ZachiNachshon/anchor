@@ -12,7 +12,7 @@ env:
 # You don't need to test on very old versions of the Go compiler. It's the user's
 # responsibility to keep their compiler up to date.
 go:
-  - 1.12.x
+  - 1.12.5
 
 # Only clone the most recent commit.
 git:

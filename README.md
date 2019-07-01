@@ -8,6 +8,8 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 - [HomeBrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages
 - [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
 
+[![Build Status](https://travis-ci.com/ZachiNachshon/anchor.svg "Travis CI status")](https://travis-ci.com/ZachiNachshon/anchor)
+
 ## Why
 1. Development environment should strive to be the same as production
 2. Avoid clutter by consolidate into a single folder all the docker build/run/tag/push commands and kubernetes manifests   
@@ -92,15 +94,20 @@ It supports ENV vars substitution within manifests using `envsubst`.
 >
 > _Issue should be automated using [go-dnsmasq](https://github.com/janeczku/go-dnsmasq) later on._
 
+## Download
 
-## Quick Start Guide
+##### I don't have GO environment 
+Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin`.
 
-Clone and build Anchor repository
+##### I do have GO environment
+Clone anchor repository and build as follows:
 ```bash
 ~$ git clone git@github.com:ZachiNachshon/anchor.git ~/anchor-example/anchor
 ~$ cd ~/anchor-example/anchor
 ~$ make build
 ```
+
+## Quick Start Guide
 
 Clone an example dockerfiles git repository
 ```bash
@@ -134,12 +141,12 @@ List all available docker supported images/manifests
     Done.
 ```
 
-Let's create a cluster (patience since the first creation pulls image `kindest/node:v1.15.0`)
+Let's create a cluster (patience needed since the first creation pulls image `kindest/node:v1.15.0`)
 ```bash
 ~$ anchor cluster create
 ```
 
-> Follow on-screen dashboard instructions to gain Kubernetes visibility
+> Follow on-screen dashboard instructions to enter the Kubernetes Web-UI
 
 Build an `nginx` docker image
 ```bash
