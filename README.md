@@ -1,12 +1,12 @@
 ![anchor-side](assets/anchor-logo-side-600px.png)
 
 ## Overview
-Anchor is a utility intended for managing a volatile local Docker / Kubernetes development environment with ease.
+Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes development environment with ease.
 <br> It is based on:
-- [Docker](https://github.com/docker) for running containerized applications.
-- [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container.
-- [HomeBrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages.
-- [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters. 
+- [Docker](https://github.com/docker) for running containerized applications
+- [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container
+- [HomeBrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages
+- [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
 
 ## Why
 1. Development environment should strive to be the same as production
@@ -15,13 +15,6 @@ Anchor is a utility intended for managing a volatile local Docker / Kubernetes d
 4. Utilize simple commands that encapsulate your repetitive docker and kubernetes cli commands
 
 ## How does it work?
-Anchor allow flexibility for changing the namespace and tag of all or specific container image/deployment.
-Thw following environment variables can be set on one of the `.env` files:
-- `export NAMESPACE="my-namespace`
-- `export TAG="v1.1.0`
-
-> Default values are `anchor` namespace and `latest` tag
-
 #### Directory Structure
 Anchor act as one stop shop for all Dockerfiles & Kubernetes manifests that comprise your development environment.
 It relies on a `DOCKER_FILES` ENV variable that points to a local directory path containing the following structure:
@@ -39,8 +32,15 @@ It relies on a `DOCKER_FILES` ENV variable that points to a local directory path
     
 > It is recommended to back the `DOCKER_FILES` directory by a git repository
 
-#### Dockerfile instructions
-Every Docker file must contain the following heading in order to integrate properly with `anchor`
+Anchor allow flexibility for changing the namespace and tag of all or specific container image/deployment.<br>
+The following environment variables can be set on one of the `.env` files:
+- `export NAMESPACE="my-namespace`
+- `export TAG="v1.1.0`
+
+> Default values are `anchor` namespace and `latest` tag
+
+#### Dockerfile Instructions
+Every Dockerfile must contain the following heading in order to integrate properly with `anchor`
 ```dockerfile
 # OVERVIEW
 # --------
@@ -79,10 +79,21 @@ Every Docker file must contain the following heading in order to integrate prope
 # 
 ```
 
+#### Kubernetes Manifest
+Standard kubernetes manifests.
+Anchor support ENV vars substitution within manifests using `envsubst`.
+
 ## Requirements
 - Go 1.12.x
 
-## Getting Started
+> **Important !**<br>
+> Temporary add the following line to `/etc/hosts`:<br>
+> `127.0.0.1	localhost registry.anchor`<br>
+>
+> _Issue should be automated using [go-dnsmasq](https://github.com/janeczku/go-dnsmasq) later on._
+
+
+## Quick Start Guide
 
 Clone and build Anchor repository
 ```bash
