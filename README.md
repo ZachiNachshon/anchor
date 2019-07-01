@@ -1,11 +1,34 @@
 ![anchor-side](assets/anchor-logo-side-600px.png)
 
-Anchor is a utility intended for managing a local Docker / Kubernetes development environment.
-
 ## Overview
-Anchor rely on `DOCKER_FILES` ENV variable to contain local path to a `dockerfiles` repository.<br/>
-Every directory in the `dockerfiles` repository is identified as a container name and must contain a single `Dockerfile` inside.<br/>
-It is optional to include a `.env` file in the `dockerfiles` root directory or in each of the sub directories, it'll get exported before image/container creation.
+Anchor is a utility intended for managing a volatile local Docker / Kubernetes development environment with ease.
+<br> It is based on:
+- [Docker](https://github.com/docker) for running containerized applications.
+- [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container.
+- [HomeBrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages.
+- [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters. 
+
+## Why
+1. Development environment should strive to be the same as production
+2. Avoid clutter by consolidate into a single folder all the docker build/run/tag/push commands and kubernetes manifests   
+3. Easily manage and expand your kubernetes supported resources 
+4. Utilize simple commands that encapsulate your repetitive docker and kubernetes cli commands
+
+## How does it work?
+Anchor act as one stop shop for all Dockerfiles & Kubernetes manifests that comprise your development environment.
+It relies on a `DOCKER_FILES` ENV variable that points to a local directory path containing the following structure:
+. <br>
+├── ... <br>
+├── nginx                   # Name of the docker image/container <br> 
+│   ├── k8s                 # Kubernetes content <br>
+│   │   ├── manifest.yaml   # Kubernetes manifest <br>
+│   ├── Dockerfile          # Docker build/run/tag/push instructions <br>
+│   ├── .env                # Optional: Override root `NAMESPACE` & `TAG` environment vars <br> 
+│   └── ...                 # Optional: files for docker build <br>
+└── ... <br>
+├── .env                    # Optional: Override default `NAMESPACE` & `TAG` environment vars at root level 
+
+> It is recommended to back the `DOCKER_FILES` directory by a git repository
 
 ## Requirements
 - Go 1.12.x
