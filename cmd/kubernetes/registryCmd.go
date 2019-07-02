@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 )
 
 var shouldDeleteRegistry = false
@@ -122,6 +123,9 @@ func deployDockerRegistry() error {
 				return err
 			}
 
+			// Sleep for 3 secs to allow registry pod deployment
+			time.Sleep(3 * time.Second)
+
 			// Wait for the registry pod to be ready with 2 minutes timeout
 			if err := waitForDockerRegistryPod(); err != nil {
 				return err
@@ -198,14 +202,13 @@ func deployDockerRegistryPod() error {
 }
 
 func waitForDockerRegistryPod() error {
-	logger.Info("Waiting for docker registry pod to be ready (2m timeout)...")
-	waitContainerCmd := fmt.Sprintf("kubectl wait -n container-registry -l app=registry --timeout=2m --for=condition=Ready pod")
+	logger.Info("Waiting for docker registry pod to become ready (5m timeout)...")
+	waitContainerCmd := fmt.Sprintf("kubectl wait -n container-registry -l app=registry --timeout=5m --for=condition=Ready pod")
 	return common.ShellExec.Execute(waitContainerCmd)
 }
 
 func forwardDockerRegistryPort() error {
 	logger.Info("Port forwarding container registry 32001 --> 5000...")
-	_ = killRegistryPortForwarding()
 	portFwdCmd := fmt.Sprintf("kubectl port-forward -n container-registry service/registry 32001:5000")
 	return common.ShellExec.ExecuteInBackground(portFwdCmd)
 }

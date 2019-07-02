@@ -1,8 +1,8 @@
 package docker
 
 import (
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/pkg/errors"
-	"path/filepath"
 	"strings"
 
 	"github.com/anchor/pkg/common"
@@ -50,7 +50,8 @@ func NewBuildCmd(opts *common.CmdRootOptions) *buildCmd {
 }
 
 func buildDockerfile(dirname string) error {
-	if dockerfilePath, err := getDockerfileContextPath(dirname); err != nil {
+	l := locator.NewLocator()
+	if dockerfilePath, err := l.Dockerfile(dirname); err != nil {
 		return err
 	} else {
 		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandBuild); err != nil {
@@ -58,13 +59,15 @@ func buildDockerfile(dirname string) error {
 		} else if len(buildCmd) == 0 {
 			return errors.Errorf(missingDockerCmdMsg(DockerCommandBuild, dirname))
 		} else {
-			contextPath := filepath.Dir(dockerfilePath)
+			contextPath := l.GetRootFromDockerfile(dockerfilePath)
 			ctxIdx := strings.LastIndex(buildCmd, ".")
 			buildCmd = buildCmd[:ctxIdx]
 			buildCmd += contextPath
+
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + buildCmd + "\n")
 			}
+
 			if err = common.ShellExec.Execute(buildCmd); err != nil {
 				return err
 			}

@@ -1,12 +1,24 @@
 package kubernetes
 
 import (
+	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/installer"
+	"github.com/anchor/pkg/utils/locator"
+	"github.com/anchor/pkg/utils/parser"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"os"
 	"strings"
+)
+
+type ManifestCommand string
+
+const (
+	ManifestCommandPortForward ManifestCommand = "kubectl port-forward"
+	ManifestCommandWait        ManifestCommand = "kubectl wait"
 )
 
 type clusterCmd struct {
@@ -88,6 +100,7 @@ func (k *clusterCmd) initClusterCommands() {
 	k.cobraCmd.AddCommand(NewRemoveCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewRegistryCmd(opts).GetCobraCmd())
+	k.cobraCmd.AddCommand(NewExposeCmd(opts).GetCobraCmd())
 }
 
 func loadKubeConfig() error {
@@ -109,4 +122,32 @@ func checkForActiveCluster(name string) (bool, error) {
 		contains := strings.Contains(out, name)
 		return contains, nil
 	}
+}
+
+func extractManifestCmd(manifestFilePath string, manifestCommand ManifestCommand) (string, error) {
+	var result = ""
+	if contentByte, err := ioutil.ReadFile(manifestFilePath); err != nil {
+		return "", err
+	} else {
+
+		l := locator.NewLocator()
+		dirPath := l.GetRootFromManifestFile(manifestFilePath)
+
+		// Load .env files from DOCKER_FILES location at root directory and then override from child
+		config.LoadEnvVars(dirPath)
+
+		var dockerfileContent = string(contentByte)
+
+		p := parser.NewHashtagParser()
+		if err := p.Parse(dockerfileContent); err != nil {
+			return "", errors.Errorf("Failed to parse: %v, err: %v", manifestFilePath, err.Error())
+		}
+
+		if result = p.Find(string(manifestCommand)); result != "" {
+			// In the future might manually substitute arguments
+			result = strings.TrimSuffix(result, "\n")
+		}
+	}
+
+	return result, nil
 }

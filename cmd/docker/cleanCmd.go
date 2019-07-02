@@ -67,7 +67,7 @@ func removeImages(dirname string) error {
 		logger.Info("No images can be found for name: <none>")
 	}
 
-	imageIdentifier := composeDockerImageIdentifierNoTag(dirname)
+	imageIdentifier := ComposeDockerImageIdentifierNoTag(dirname)
 	containerImagesCmd := fmt.Sprintf("docker images | grep '%v' | awk {'print $3'}", imageIdentifier)
 	if containerImages, err := common.ShellExec.ExecuteWithOutput(containerImagesCmd); err != nil {
 		return err

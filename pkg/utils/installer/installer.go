@@ -26,6 +26,7 @@ func (b *brewInstaller) verify() error {
 }
 
 func (b *brewInstaller) install() error {
+	logger.Info("==> Installing Homebrew...")
 	installCmd := "/usr/bin/ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""
 	if err := b.shellExec.Execute(installCmd); err != nil {
 		return err
@@ -37,6 +38,7 @@ func (b *brewInstaller) installCask(cask string) error {
 	if err := b.Check(); err != nil {
 		return err
 	} else {
+		logger.Infof("  ==> Installing Homebrew cask %v...", cask)
 		caskInstallFormat := "brew update && brew tap caskroom/cask && brew search %v && brew cask info %v && brew cask install %v && brew cleanup"
 		installCmd := fmt.Sprintf(caskInstallFormat, cask, cask, cask)
 		if err := b.shellExec.Execute(installCmd); err != nil {
@@ -50,6 +52,7 @@ func (b *brewInstaller) installPackage(pkg string) error {
 	if err := b.Check(); err != nil {
 		return err
 	} else {
+		logger.Infof("  ==> Installing Homebrew package %v...", pkg)
 		pkgInstallFormat := "brew update && brew search %v && brew install %v && brew cleanup"
 		installCmd := fmt.Sprintf(pkgInstallFormat, pkg, pkg)
 		if err := b.shellExec.Execute(installCmd); err != nil {
@@ -107,6 +110,7 @@ func (d *dockerInstaller) verify() error {
 }
 
 func (d *dockerInstaller) install() error {
+	logger.Info("==> Installing Docker...")
 	brew := NewBrewInstaller(d.shellExec)
 	if err := brew.installCask("docker"); err != nil {
 		return err
@@ -149,6 +153,7 @@ func (d *kindInstaller) verify() error {
 }
 
 func (d *kindInstaller) install() error {
+	logger.Info("==> Installing Kind...")
 	if err := d.shellExec.Execute("export GO111MODULE=\"on\" && go get sigs.k8s.io/kind@v0.4.0"); err != nil {
 		return err
 	}
@@ -191,6 +196,7 @@ func (k *kubectlInstaller) verify() error {
 
 func (k *kubectlInstaller) install() error {
 	brew := NewBrewInstaller(k.shellExec)
+	logger.Info("==> Installing kubectl...")
 	if err := brew.installCask("kubernetes-cli"); err != nil {
 		return err
 	}
@@ -233,6 +239,7 @@ func (h *helmInstaller) verify() error {
 
 func (h *helmInstaller) install() error {
 	brew := NewBrewInstaller(h.shellExec)
+	logger.Info("==> Installing Helm...")
 	if err := brew.installCask("kubernetes-helm"); err != nil {
 		return err
 	}
@@ -275,6 +282,7 @@ func (e *envsubstInstaller) verify() error {
 
 func (e *envsubstInstaller) install() error {
 	brew := NewBrewInstaller(e.shellExec)
+	logger.Info("==> Installing envsubst...")
 	if err := brew.installPackage("gettext"); err != nil {
 		return err
 	}

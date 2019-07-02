@@ -83,7 +83,14 @@ Every Dockerfile must contain the following header in order to integrate properl
 
 #### Kubernetes Manifest
 Anchor is using a standard kubernetes manifest.<br>
-It supports ENV vars substitution within manifests using `envsubst`.
+It supports ENV vars substitution within manifests using `envsubst`.<br>
+In order to properly expose the deployed manifest to the host, a `port-forward` declaration is needed on the manifest:<br>
+```dockerfile
+# HOW TO EXPOSE THIS MANIFEST
+# ---------------------------
+# kubectl port-forward -n default deployment/${NAMESPACE}-nginx 1234:80
+#
+``` 
 
 ## Requirements
 - Go 1.12.x
@@ -96,10 +103,10 @@ It supports ENV vars substitution within manifests using `envsubst`.
 
 ## Download
 
-##### I don't have GO environment 
+#### I don't have GO environment 
 Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin`.
 
-##### I do have GO environment
+#### I do have GO environment
 Clone anchor repository and build as follows:
 ```bash
 ~$ git clone git@github.com:ZachiNachshon/anchor.git ~/anchor-example/anchor
@@ -148,6 +155,11 @@ Let's create a cluster (patience needed since the first creation pulls image `ki
 
 > Follow on-screen dashboard instructions to enter the Kubernetes Web-UI
 
+Make sure all pods are running as expected
+```bash
+~$ anchor cluster status
+```
+
 Build an `nginx` docker image
 ```bash
 ~$ anchor docker build nginx
@@ -158,9 +170,19 @@ Push to private docker registry
 ~$ anchor docker push nginx
 ```
 
-Deploy `nginx` kubernetes manifest
+Verify `nginx` image exists on registry catalog
+```bash
+~$ anchor cluster registry
+```
+
+Deploy `nginx` kubernetes manifest and check status on K8s dashboard
 ```bash
 ~$ anchor cluster deploy nginx
+```
+
+Expose `nginx` port forwarding to the host instance
+```bash
+~$ anchor cluster expose nginx
 ```
 
 Interact with `nginx` service

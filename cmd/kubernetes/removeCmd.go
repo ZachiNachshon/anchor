@@ -2,8 +2,11 @@ package kubernetes
 
 import (
 	"fmt"
+	"github.com/anchor/cmd/docker"
+	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/spf13/cobra"
 )
 
@@ -35,9 +38,13 @@ func NewRemoveCmd(opts *common.CmdRootOptions) *removeCmd {
 			} else {
 				_ = loadKubeConfig()
 
-				if err := removeManifest(args[0]); err != nil {
+				if _, err := removeManifest(args[0]); err != nil {
 					logger.Fatal(err.Error())
 				}
+				if err := disablePortForwarding(args[0]); err != nil {
+					logger.Fatal(err.Error())
+				}
+
 			}
 
 			logger.PrintCompletion()
@@ -63,14 +70,36 @@ func (cmd *removeCmd) initFlags() error {
 	return nil
 }
 
-func removeManifest(dirname string) error {
-	if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
-		return err
+func removeManifest(dirname string) (string, error) {
+	l := locator.NewLocator()
+	if manifestFilePath, err := l.Manifest(dirname); err != nil {
+		return "", err
 	} else {
-		removeCmd := fmt.Sprintf("envsubst < %v | kubectl delete -f -", manifestPath)
-		if err := common.ShellExec.Execute(removeCmd); err != nil {
-			return err
+		manDir := l.GetRootFromManifestFile(manifestFilePath)
+		config.LoadEnvVars(manDir)
+
+		if common.GlobalOptions.Verbose {
+			logManifestCmd := fmt.Sprintf("cat %v | envsubst", manifestFilePath)
+			_ = common.ShellExec.Execute(logManifestCmd)
 		}
+
+		removeCmd := fmt.Sprintf("envsubst < %v | kubectl delete -f -", manifestFilePath)
+		if err := common.ShellExec.Execute(removeCmd); err != nil {
+			// Do noting
+		}
+		return manifestFilePath, nil
 	}
+}
+
+func disablePortForwarding(dirname string) error {
+	identifier := docker.ComposeDockerImageIdentifierNoTag(dirname)
+	killPortFwdCmd := fmt.Sprintf(`ps -ef | grep "%v" | grep -v grep | awk '{print $2}' | xargs kill -9`, identifier)
+	if common.GlobalOptions.Verbose {
+		logger.Info("\n" + killPortFwdCmd + "\n")
+	}
+	if err := common.ShellExec.Execute(killPortFwdCmd); err != nil {
+		// Do nothing
+	}
+
 	return nil
 }

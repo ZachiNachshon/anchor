@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/pkg/errors"
 
 	"github.com/anchor/pkg/common"
@@ -55,7 +56,8 @@ func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 }
 
 func runContainer(dirname string) error {
-	if dockerfilePath, err := getDockerfileContextPath(dirname); err != nil {
+	l := locator.NewLocator()
+	if dockerfilePath, err := l.Dockerfile(dirname); err != nil {
 		return err
 	} else {
 		if runCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {

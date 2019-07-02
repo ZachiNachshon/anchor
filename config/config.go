@@ -99,7 +99,7 @@ oom_score = 0
       [plugins.cri.registry.mirrors]
         [plugins.cri.registry.mirrors."local.insecure-registry.io"]
           endpoint = ["http://127.0.0.1:32001"]
-        [plugins.cri.registry.mirrors."registry.anchor"]
+        [plugins.cri.registry.mirrors."registry.anchor:32001"]
           endpoint = ["http://127.0.0.1:32001"]
         [plugins.cri.registry.mirrors."docker.io"]
           endpoint = ["https://registry-1.docker.io"]

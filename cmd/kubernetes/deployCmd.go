@@ -2,8 +2,10 @@ package kubernetes
 
 import (
 	"fmt"
+	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/spf13/cobra"
 )
 
@@ -33,9 +35,10 @@ func NewDeployCmd(opts *common.CmdRootOptions) *deployCmd {
 			} else if !exists {
 				logger.Info("No active cluster.")
 			} else {
+
 				_ = loadKubeConfig()
 
-				if err := deployManifest(args[0]); err != nil {
+				if _, err := deployManifest(args[0]); err != nil {
 					logger.Fatal(err.Error())
 				}
 			}
@@ -63,14 +66,23 @@ func (cmd *deployCmd) initFlags() error {
 	return nil
 }
 
-func deployManifest(dirname string) error {
-	if manifestPath, err := getContainerManifestsDir(dirname); err != nil {
-		return err
+func deployManifest(dirname string) (string, error) {
+	l := locator.NewLocator()
+	if manifestFilePath, err := l.Manifest(dirname); err != nil {
+		return "", err
 	} else {
-		deployCmd := fmt.Sprintf("envsubst < %v | kubectl apply -f -", manifestPath)
-		if err := common.ShellExec.Execute(deployCmd); err != nil {
-			return err
+		manDir := l.GetRootFromManifestFile(manifestFilePath)
+		config.LoadEnvVars(manDir)
+
+		if common.GlobalOptions.Verbose {
+			logManifestCmd := fmt.Sprintf("cat %v | envsubst", manifestFilePath)
+			_ = common.ShellExec.Execute(logManifestCmd)
 		}
+
+		deployCmd := fmt.Sprintf("envsubst < %v | kubectl apply -f -", manifestFilePath)
+		if err := common.ShellExec.Execute(deployCmd); err != nil {
+			return "", err
+		}
+		return manifestFilePath, nil
 	}
-	return nil
 }

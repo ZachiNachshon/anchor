@@ -5,8 +5,8 @@ import (
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
-	"path/filepath"
 	"strings"
+	"time"
 )
 
 var dashboardUrl = "http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy"
@@ -72,7 +72,7 @@ func (cmd *dashboardCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *dashboardCmd) initFlags() error {
-	// TODO: Allow force creation by flag even if dashboard exists
+	// TODO: Allow force creation by flag even if dashboard exists ?
 	cmd.cobraCmd.Flags().BoolVarP(
 		&shouldDeleteDashboard,
 		"Delete Kubernetes dashboard",
@@ -125,13 +125,9 @@ func uninstallDashboard() error {
 		// Kill possible running kubectl proxy
 		_ = killKubectlProxy()
 
-		if path, err := filepath.Rel(".", "../../deployments/dashboard/dashboard.yaml"); err != nil {
+		uninstallCmd := fmt.Sprintf("kubectl delete -f %v", common.GlobalOptions.DashboardManifest)
+		if err := common.ShellExec.Execute(uninstallCmd); err != nil {
 			return err
-		} else {
-			uninstallCmd := fmt.Sprintf("kubectl delete -f %v", path)
-			if err := common.ShellExec.Execute(uninstallCmd); err != nil {
-				return err
-			}
 		}
 	} else {
 		logger.Info("Dashboard does not exists, nothing to delete.")
@@ -162,9 +158,13 @@ func startDashboard() error {
 	// Start new kubectl proxy
 	_ = startKubectlProxy()
 
+	// Sleep for 3 secs to allow kubectl proxy to start
+	time.Sleep(5 * time.Second)
+
 	// Wait until dashboard pod is ready
 	if err := waitForDashboardPod(); err != nil {
-		return err
+		// TODO: handle error gracefully
+		//return err
 	}
 
 	_ = printDashboardInfo()

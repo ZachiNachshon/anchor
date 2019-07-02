@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"strings"
@@ -53,7 +54,8 @@ func NewPushCmd(opts *common.CmdRootOptions) *pushCmd {
 }
 
 func tagDockerImage(dirname string) (string, error) {
-	if dockerfilePath, err := getDockerfileContextPath(dirname); err != nil {
+	l := locator.NewLocator()
+	if dockerfilePath, err := l.Dockerfile(dirname); err != nil {
 		return "", err
 	} else {
 		logger.Info("\n==> Tagging image...\n")

@@ -1,18 +1,11 @@
 package docker
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
-	"github.com/pkg/errors"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/spf13/cobra"
 )
-
-var DOCKER_FILE_NAME = "/Dockerfile"
 
 type listCmd struct {
 	cobraCmd *cobra.Command
@@ -34,7 +27,7 @@ func NewListCmd(opts *common.CmdRootOptions) *listCmd {
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Listing all Docker images")
 
-			if _, err := listDockerfilesDirs(true); err != nil {
+			if _, err := locator.GetDirNamesNoPath(true, locator.DOCKER_FILE_IDENTIFIER); err != nil {
 				logger.Fatal(err.Error())
 			}
 
@@ -59,58 +52,4 @@ func (cmd *listCmd) GetCobraCmd() *cobra.Command {
 
 func (cmd *listCmd) initFlags() error {
 	return nil
-}
-
-func getDockerfileContextPath(dirname string) (string, error) {
-	expected := fmt.Sprintf("%v/%v/Dockerfile", common.GlobalOptions.DockerRepositoryPath, dirname)
-	dirNames, _ := listDockerfilesDirs(false)
-
-	for _, e := range dirNames {
-		if strings.EqualFold(expected, e) {
-			return e, nil
-		}
-	}
-
-	return "", errors.Errorf("Cannot find Dockerfile for %v", dirname)
-}
-
-func listDockerfilesDirs(verbose bool) ([]string, error) {
-	var dirNames = make([]string, 0)
-	err := filepath.Walk(common.GlobalOptions.DockerRepositoryPath,
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			// Continue to the next path
-			if !strings.Contains(path, DOCKER_FILE_NAME) {
-				return nil
-			}
-
-			if dockerfilePath, err := filepath.Abs(path); err != nil {
-				return err
-			} else {
-				dirName := extractDockerfileDirName(dockerfilePath)
-
-				if verbose {
-					logger.Info("  " + dirName)
-				}
-
-				dirNames = append(dirNames, dockerfilePath)
-			}
-
-			return nil
-		})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return dirNames, nil
-}
-
-func extractDockerfileDirName(path string) string {
-	dirName := strings.TrimPrefix(path, common.GlobalOptions.DockerRepositoryPath+"/")
-	dirName = strings.TrimSuffix(dirName, DOCKER_FILE_NAME)
-	return dirName
 }
