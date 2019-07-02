@@ -5,8 +5,8 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 <br> It is based on:
 - [Docker](https://github.com/docker) for running containerized applications
 - [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container
-- [HomeBrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages
 - [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
+- [HomeBrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages
 
 [![Build Status](https://travis-ci.com/ZachiNachshon/anchor.svg "Travis CI status")](https://travis-ci.com/ZachiNachshon/anchor)
 
@@ -114,7 +114,7 @@ Clone an example dockerfiles git repository
 ~$ git clone git@github.com:ZachiNachshon/anchor-dockerfiles.git ~/anchor-example/anchor-dockerfiles
 ```
 
-Define required environment variable (append to `$PATH` via `.bash_profile` / `.bash_rc`)
+Define required environment variable (append to `$PATH` via `~/.bash_profile` / `~/.bashrc`)
 ```bash
 ~$ cd ~/anchor-example/anchor-dockerfiles
 ~$ export DOCKER_FILES="$(PWD)"
@@ -158,7 +158,7 @@ Push to private docker registry
 ~$ anchor docker push nginx
 ```
 
-Deploy nginx kubernetes manifest
+Deploy `nginx` kubernetes manifest
 ```bash
 ~$ anchor cluster deploy nginx
 ```
@@ -177,7 +177,7 @@ Delete kubernetes cluster
 ```bash
 ~$ anchor cluster delete
 ```
-
+---
 List of available `anchor docker` commands:
 ```bash
 Usage:
