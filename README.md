@@ -228,6 +228,7 @@ Available Commands:
   dashboard   Deploy a Kubernetes dashboard
   delete      Delete local Kubernetes cluster
   deploy      Deploy a container Kubernetes manifest
+  expose      Expose a container port to the host instance
   list        List all containers with Kubernetes manifests from DOCKER_FILES repository
   registry    Create a private docker registry [registry.anchor:32001]
   remove      Removed a previously deployed container manifest
