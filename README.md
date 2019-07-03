@@ -113,7 +113,7 @@ Download your OS and ARCH relevant binary from [releases](https://github.com/Zac
 #### I do have GO environment
 Clone anchor repository and build as follows:
 ```bash
-~$ git clone git@github.com:ZachiNachshon/anchor.git ~/anchor-example/anchor
+~$ git clone https://github.com/ZachiNachshon/anchor.git ~/anchor-example/anchor
 ~$ cd ~/anchor-example/anchor
 ~$ make build
 ```
