@@ -6,7 +6,7 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 - [Docker](https://github.com/docker) for running containerized applications
 - [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container
 - [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
-- [Homebrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages
+- [Homebrew](https://github.com/Homebrew/brew) for managing macOS/Linux packages
 
 [![Build Status](https://travis-ci.com/ZachiNachshon/anchor.svg "Travis CI status")](https://travis-ci.com/ZachiNachshon/anchor)
 
