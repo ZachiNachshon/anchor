@@ -6,9 +6,13 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 - [Docker](https://github.com/docker) for running containerized applications
 - [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container
 - [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
-- [HomeBrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages
+- [Homebrew](https://github.com/Homebrew/brew) for managing maxOS/Linux packages
 
 [![Build Status](https://travis-ci.com/ZachiNachshon/anchor.svg "Travis CI status")](https://travis-ci.com/ZachiNachshon/anchor)
+
+> Note:<br>
+> Anchor is utilizing the following components: `docker`, `kind`, `kubectl`, `envsubst`.<br>
+> If they can't be found on your machine, `Homebrew` is being installed and fetches them for you.
 
 ## Why
 1. Development environment should strive to be the same as production
@@ -118,7 +122,7 @@ Clone anchor repository and build as follows:
 
 Clone an example dockerfiles git repository
 ```bash
-~$ git clone git@github.com:ZachiNachshon/anchor-dockerfiles.git ~/anchor-example/anchor-dockerfiles
+~$ git clone https://github.com/ZachiNachshon/anchor-dockerfiles.git ~/anchor-example/anchor-dockerfiles
 ```
 
 Define required environment variable (append to `$PATH` via `~/.bash_profile` / `~/.bashrc`)
