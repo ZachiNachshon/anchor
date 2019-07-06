@@ -92,7 +92,7 @@ func removeManifest(dirname string) (string, error) {
 }
 
 func disablePortForwarding(dirname string) error {
-	identifier := docker.ComposeDockerImageIdentifierNoTag(dirname)
+	identifier := docker.ComposeDockerContainerIdentifierNoTag(dirname)
 	killPortFwdCmd := fmt.Sprintf(`ps -ef | grep "%v" | grep -v grep | awk '{print $2}' | xargs kill -9`, identifier)
 	if common.GlobalOptions.Verbose {
 		logger.Info("\n" + killPortFwdCmd + "\n")

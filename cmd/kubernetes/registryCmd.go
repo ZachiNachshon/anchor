@@ -42,6 +42,7 @@ func NewRegistryCmd(opts *common.CmdRootOptions) *registryCmd {
 			} else if !exists {
 				logger.Info("No active cluster.")
 			} else {
+
 				_ = loadKubeConfig()
 
 				if shouldDeleteRegistry {
@@ -232,16 +233,7 @@ Registry:
 			logger.Info(out)
 			return err
 		} else {
-			logger.Info("\nCatalog:")
-			src := []byte(out)
-
-			var prettyJSON bytes.Buffer
-			if err := json.Indent(&prettyJSON, src, "", "  "); err != nil {
-				// Do noting
-				logger.Info(out)
-			} else {
-				logger.Info(prettyJSON.String())
-			}
+			_ = printCatalogContent(out)
 		}
 	}
 	return nil
@@ -260,4 +252,54 @@ func uninstallRegistry() error {
 		logger.Info("Docker Registry does not exists, nothing to delete.")
 	}
 	return nil
+}
+
+func printCatalogContent(catalog string) error {
+	c := RegistryCatalog{}
+	if err := json.Unmarshal([]byte(catalog), &c); err != nil {
+		return err
+	}
+
+	getTagsFormat := `docker exec -t anchor-control-plane /bin/sh -c "curl -X GET http://registry.anchor:32001/v2/%v/tags/list"`
+
+	result := ExportedCatalog{}
+	for _, image := range c.Repositories {
+
+		info := ImageInfo{}
+		getTagsCmd := fmt.Sprintf(getTagsFormat, image)
+		if tags, err := common.ShellExec.ExecuteWithOutput(getTagsCmd); err != nil {
+			logger.Infof("Could not identify tags list for %v", image)
+		} else {
+			if err := json.Unmarshal([]byte(tags), &info); err == nil {
+				result.Images = append(result.Images, info)
+			}
+		}
+	}
+
+	if catalogJson, err := json.Marshal(result); err == nil {
+		logger.Info("\nCatalog:")
+		src := []byte(catalogJson)
+		var prettyJSON bytes.Buffer
+		if err := json.Indent(&prettyJSON, src, "", "  "); err != nil {
+			// Do noting
+			logger.Info(catalog)
+			return err
+		} else {
+			logger.Info(prettyJSON.String())
+		}
+	}
+	return nil
+}
+
+type RegistryCatalog struct {
+	Repositories []string `json:"repositories,omitempty"`
+}
+
+type ExportedCatalog struct {
+	Images []ImageInfo
+}
+
+type ImageInfo struct {
+	Name string
+	Tags []string
 }

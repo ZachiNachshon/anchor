@@ -34,8 +34,9 @@ type ClusterCmdOptions struct {
 
 func NewKindCmd(opts *common.CmdRootOptions) *clusterCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "cluster",
-		Short: "Cluster commands",
+		Use:     "cluster",
+		Short:   "Cluster commands",
+		Aliases: []string{"c"},
 	}
 
 	var clusterCmd = new(clusterCmd)

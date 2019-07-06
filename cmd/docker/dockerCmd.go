@@ -97,13 +97,18 @@ func (d *dockerCmd) initDockerCommands() {
 	d.cobraCmd.AddCommand(NewPurgeCmd(opts).GetCobraCmd())
 }
 
-func ComposeDockerImageIdentifier(dirname string) string {
+func ComposeDockerContainerIdentifier(dirname string) string {
 	imageIdentifier := fmt.Sprintf("%v/%v:%v", common.GlobalOptions.DockerImageNamespace, dirname, common.GlobalOptions.DockerImageTag)
 	return imageIdentifier
 }
 
-func ComposeDockerImageIdentifierNoTag(dirname string) string {
+func ComposeDockerContainerIdentifierNoTag(dirname string) string {
 	imageIdentifier := fmt.Sprintf("%v-%v", common.GlobalOptions.DockerImageNamespace, dirname)
+	return imageIdentifier
+}
+
+func ComposeDockerImageIdentifierNoTag(dirname string) string {
+	imageIdentifier := fmt.Sprintf("%v/%v", common.GlobalOptions.DockerImageNamespace, dirname)
 	return imageIdentifier
 }
 

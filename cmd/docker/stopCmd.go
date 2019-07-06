@@ -52,7 +52,7 @@ func NewStopCmd(opts *common.CmdRootOptions) *stopCmd {
 
 func stopContainers(dirname string) error {
 	stopContainerFmt := "docker stop %v"
-	imageIdentifier := ComposeDockerImageIdentifierNoTag(dirname)
+	imageIdentifier := ComposeDockerContainerIdentifierNoTag(dirname)
 
 	runningContainerCmd := fmt.Sprintf("docker ps | grep '%v' | awk {'print $1'}", imageIdentifier)
 	if runningContainer, err := common.ShellExec.ExecuteWithOutput(runningContainerCmd); err != nil {
@@ -70,7 +70,7 @@ func stopContainers(dirname string) error {
 
 func removeContainers(dirname string) error {
 	removeContainerFmt := "docker rm -f %v"
-	imageIdentifier := ComposeDockerImageIdentifierNoTag(dirname)
+	imageIdentifier := ComposeDockerContainerIdentifierNoTag(dirname)
 
 	runningContainerCmd := fmt.Sprintf("docker ps | grep '%v' | awk {'print $1'}", imageIdentifier)
 	if existingContainer, err := common.ShellExec.ExecuteWithOutput(runningContainerCmd); err != nil {
