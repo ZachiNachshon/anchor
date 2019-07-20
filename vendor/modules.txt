@@ -4,6 +4,10 @@ github.com/inconshreveable/mousetrap
 github.com/joho/godotenv
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/mattn/go-isatty v0.0.8
+github.com/mattn/go-isatty
+# github.com/mattn/go-tty v0.0.0-20190424173100-523744f04859
+github.com/mattn/go-tty
 # github.com/pkg/errors v0.8.0
 github.com/pkg/errors
 # github.com/sirupsen/logrus v1.4.2

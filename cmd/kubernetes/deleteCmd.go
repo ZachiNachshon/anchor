@@ -8,25 +8,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type deleteCmd struct {
+type destroyCmd struct {
 	cobraCmd *cobra.Command
-	opts     DeleteCmdOptions
+	opts     DestroyCmdOptions
 }
 
-type DeleteCmdOptions struct {
+type DestroyCmdOptions struct {
 	*common.CmdRootOptions
 
 	// Additional Params
 }
 
-func NewDeleteCmd(opts *common.CmdRootOptions) *deleteCmd {
+func NewDestroyCmd(opts *common.CmdRootOptions) *destroyCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "delete",
-		Short: "Delete local Kubernetes cluster",
-		Long:  `Delete local Kubernetes cluster`,
+		Use:   "destroy",
+		Short: "Destroy local Kubernetes cluster",
+		Long:  `Destroy local Kubernetes cluster`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.PrintHeadline("Delete Kubernetes Cluster")
+			logger.PrintHeadline("Destroy Kubernetes Cluster")
 			name := common.GlobalOptions.KindClusterName
 
 			if exists, err := checkForActiveCluster(name); err != nil {
@@ -36,7 +36,7 @@ func NewDeleteCmd(opts *common.CmdRootOptions) *deleteCmd {
 			} else {
 				_ = loadKubeConfig()
 
-				if err := deleteKubernetesCluster(name); err != nil {
+				if err := destroyKubernetesCluster(name); err != nil {
 					logger.Fatal(err.Error())
 				}
 			}
@@ -45,38 +45,38 @@ func NewDeleteCmd(opts *common.CmdRootOptions) *deleteCmd {
 		},
 	}
 
-	var deleteCmd = new(deleteCmd)
-	deleteCmd.cobraCmd = cobraCmd
-	deleteCmd.opts.CmdRootOptions = opts
+	var destroyCmd = new(destroyCmd)
+	destroyCmd.cobraCmd = cobraCmd
+	destroyCmd.opts.CmdRootOptions = opts
 
-	if err := deleteCmd.initFlags(); err != nil {
+	if err := destroyCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	return deleteCmd
+	return destroyCmd
 }
 
-func (cmd *deleteCmd) GetCobraCmd() *cobra.Command {
+func (cmd *destroyCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *deleteCmd) initFlags() error {
+func (cmd *destroyCmd) initFlags() error {
 	return nil
 }
 
-func deleteKubernetesCluster(name string) error {
+func destroyKubernetesCluster(name string) error {
 	in := input.NewYesNoInput()
-	deleteInputFormat := fmt.Sprintf("Are you sure you want to delete Kubernetes cluster [%v]?", name)
+	destroyInputFormat := fmt.Sprintf("Are you sure you want to destroy Kubernetes cluster [%v]?", name)
 
-	if result, err := in.WaitForInput(deleteInputFormat); err != nil || !result {
+	if result, err := in.WaitForInput(destroyInputFormat); err != nil || !result {
 		logger.Info("skipping.")
 	} else {
 
 		// Kill possible running kubectl proxy
 		_ = killKubectlProxy()
 
-		deleteCmd := fmt.Sprintf("kind delete cluster --name %v", name)
-		if err := common.ShellExec.Execute(deleteCmd); err != nil {
+		destroyCmd := fmt.Sprintf("kind delete cluster --name %v", name)
+		if err := common.ShellExec.Execute(destroyCmd); err != nil {
 			return err
 		}
 	}

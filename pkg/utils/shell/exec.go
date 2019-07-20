@@ -3,9 +3,12 @@ package shell
 import (
 	"bytes"
 	"github.com/anchor/pkg/logger"
+	gotty "github.com/mattn/go-tty"
 	"io"
+	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type ShellType string
@@ -23,6 +26,29 @@ func NewShellExecutor(sType ShellType) Shell {
 	return &shellExecutor{
 		shellType: sType,
 	}
+}
+
+func (s *shellExecutor) ExecuteTTY(script string) error {
+	tty, err := gotty.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tty.Close()
+
+	args := strings.Fields(script)
+	cmd := exec.Command(args[0], args[1:]...)
+
+	// Setup the command's standard input/output/error
+	cmd.Stdin = tty.Input()
+	cmd.Stdout = tty.Output()
+	cmd.Stderr = tty.Output()
+
+	// Execute
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *shellExecutor) ExecuteWithOutput(script string) (string, error) {

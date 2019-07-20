@@ -194,6 +194,11 @@ Interact with `nginx` service
 ~$ curl -X GET http://localhost:1234
 ```
 
+Connect to an `nginx` pod
+```bash
+~$ anchor cluster connect nginx
+```
+
 Remove `nginx` kubernetes manifest
 ```bash
 ~$ anchor cluster remove nginx
@@ -227,11 +232,15 @@ List of available `anchor cluster` commands:
 Usage:
   anchor cluster [command]
 
+Aliases:
+  cluster, c
+
 Available Commands:
+  connect     Connect to a kubernetes pod by name
   create      Create a local Kubernetes cluster
   dashboard   Deploy a Kubernetes dashboard
-  delete      Delete local Kubernetes cluster
   deploy      Deploy a container Kubernetes manifest
+  destroy     Destroy local Kubernetes cluster
   expose      Expose a container port to the host instance
   list        List all containers with Kubernetes manifests from DOCKER_FILES repository
   registry    Create a private docker registry [registry.anchor:32001]
