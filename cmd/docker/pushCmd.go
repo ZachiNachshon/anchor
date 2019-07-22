@@ -65,7 +65,7 @@ func tagDockerImage(dirname string) (string, error) {
 			return "", errors.Errorf(missingDockerCmdMsg(DockerCommandTag, dirname))
 		} else {
 			if common.GlobalOptions.Verbose {
-				logger.Info("\n" + tagCmd)
+				logger.Info("\n" + tagCmd + "\n")
 			}
 			if err = common.ShellExec.Execute(tagCmd); err != nil {
 				return "", err
@@ -84,7 +84,7 @@ func pushDockerImage(dirname string, dockerfilePath string) error {
 		return errors.Errorf(missingDockerCmdMsg(DockerCommandPush, dirname))
 	} else {
 		if common.GlobalOptions.Verbose {
-			logger.Info("\n" + pushCmd)
+			logger.Info("\n" + pushCmd + "\n")
 		}
 		if err = common.ShellExec.Execute(pushCmd); err != nil {
 			return err

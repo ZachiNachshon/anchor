@@ -141,8 +141,13 @@ func extractDockerCmd(dockerfilePath string, dockerCommand DockerCommand) (strin
 }
 
 func replaceDockerCommandPlaceholders(content string, path string) string {
-	content = strings.ReplaceAll(content, "Dockerfile", path)
-	return content
+	// In case the Dockerfile is referenced by a custom path
+	if strings.Contains(content, "/Dockerfile") {
+		return content
+	} else {
+		content = strings.ReplaceAll(content, "Dockerfile", path)
+		return content
+	}
 }
 
 func missingDockerCmdMsg(command DockerCommand, dirname string) string {

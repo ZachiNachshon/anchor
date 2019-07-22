@@ -66,7 +66,7 @@ func runContainer(dirname string) error {
 			return errors.Errorf(missingDockerCmdMsg(DockerCommandRun, dirname))
 		} else {
 			if common.GlobalOptions.Verbose {
-				logger.Info("\n" + runCmd)
+				logger.Info("\n" + runCmd + "\n")
 			}
 
 			if containerId, err := common.ShellExec.ExecuteWithOutput(runCmd); err != nil {

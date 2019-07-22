@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
@@ -61,8 +62,14 @@ func removeImages(dirname string) error {
 		return err
 	} else if len(unknownImages) > 0 {
 		logger.Info("Removing docker images for name: <none>")
-		imageIds := fmt.Sprintf(removeImagesFmt, unknownImages)
-		_ = common.ShellExec.Execute(imageIds)
+		removeUnknownCmd := fmt.Sprintf(removeImagesFmt, unknownImages)
+		removeUnknownCmd = strings.Replace(removeUnknownCmd, "\n", " ", -1)
+
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + removeUnknownCmd + "\n")
+		}
+		_ = common.ShellExec.Execute(removeUnknownCmd)
+
 	} else {
 		logger.Info("No images can be found for name: <none>")
 	}
@@ -73,8 +80,14 @@ func removeImages(dirname string) error {
 		return err
 	} else if len(containerImages) > 0 {
 		logger.Infof("Removing docker images for name: %v", imageIdentifier)
-		imageIds := fmt.Sprintf(removeImagesFmt, containerImages)
-		_ = common.ShellExec.Execute(imageIds)
+		removeImageCmd := fmt.Sprintf(removeImagesFmt, containerImages)
+		removeImageCmd = strings.Replace(removeImageCmd, "\n", " ", -1)
+
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + removeImageCmd + "\n")
+		}
+		_ = common.ShellExec.Execute(removeImageCmd)
+
 	} else {
 		logger.Infof("No images can be found for name: %v", imageIdentifier)
 	}
