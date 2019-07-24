@@ -41,7 +41,22 @@ func LoadEnvVars(path string) {
 			logger.Info(err.Error())
 		}
 	}
+
+	if v := os.Getenv("NAMESPACE"); len(v) > 0 {
+		common.GlobalOptions.DockerImageNamespace = v
+	}
+
+	if v := os.Getenv("TAG"); len(v) > 0 {
+		common.GlobalOptions.DockerImageTag = v
+	}
 }
+
+var KubernetesNamespaceManifest = `
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: NAMESPACE-TO-REPLACE
+`
 
 var RegistryContainerdConfigTemplate = `disabled_plugins = ["aufs", "btrfs", "zfs"]
 root = "/var/lib/containerd"

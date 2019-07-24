@@ -77,7 +77,7 @@ func enablePortForwarding(dirname string) error {
 		if exposeCmd, err := extractManifestCmd(manifestFilePath, ManifestCommandPortForward); err != nil {
 			return err
 		} else if len(exposeCmd) > 0 {
-			logger.Info("==> Enabling port forwarding for resource...")
+			logger.Infof("==> Enabling port forwarding for resource %v...", dirname)
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + exposeCmd + "\n")
 			}

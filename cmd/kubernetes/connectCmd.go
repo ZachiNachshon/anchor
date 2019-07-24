@@ -26,7 +26,7 @@ func NewConnectCmd(opts *common.CmdRootOptions) *connectCmd {
 		Use:   "connect",
 		Short: "Connect to a kubernetes pod by name",
 		Long:  `Connect to a kubernetes pod by name`,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Connect to Kubernetes Pod")
 			name := common.GlobalOptions.KindClusterName
@@ -39,7 +39,11 @@ func NewConnectCmd(opts *common.CmdRootOptions) *connectCmd {
 
 				_ = loadKubeConfig()
 
-				if err := connectToPod(args[0], "default"); err != nil {
+				var namespace = "anchor"
+				if len(args) == 2 {
+					namespace = args[1]
+				}
+				if err := connectToPod(args[0], namespace); err != nil {
 					logger.Fatal(err.Error())
 				}
 			}

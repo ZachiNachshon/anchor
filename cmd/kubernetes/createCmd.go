@@ -1,9 +1,14 @@
 package kubernetes
 
 import (
+	"fmt"
+	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os"
+	"strings"
 )
 
 type createCmd struct {
@@ -67,9 +72,32 @@ func createKubernetesCluster(name string) error {
 	}
 
 	_ = loadKubeConfig()
+	_ = createNamespace()
 	_ = deployKubernetesDashboard()
 	_ = deployDockerRegistry()
 	_ = printClusterStatus(name)
 
 	return nil
+}
+
+func createNamespace() error {
+	var namespace = common.GlobalOptions.DockerImageNamespace
+	logger.Infof("\nCreating %v namespace...", namespace)
+
+	namespaceManifest := strings.Replace(config.KubernetesNamespaceManifest, "NAMESPACE-TO-REPLACE", namespace, 1)
+
+	if file, err := ioutil.TempFile(os.TempDir(), "anchor-namespace-manifest.yaml"); err != nil {
+		return err
+	} else {
+		// Remove after finished
+		defer os.Remove(file.Name())
+
+		if _, err := file.WriteString(namespaceManifest); err != nil {
+			return err
+		} else {
+			replaceConfigCmd := fmt.Sprintf("cat %v | kubectl apply -f -",
+				file.Name())
+			return common.ShellExec.Execute(replaceConfigCmd)
+		}
+	}
 }

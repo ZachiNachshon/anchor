@@ -59,8 +59,11 @@ func stopContainers(dirname string) error {
 		return err
 	} else if len(runningContainer) > 0 {
 		logger.Infof("Stopping docker container for name: %v", imageIdentifier)
-		containerIds := fmt.Sprintf(stopContainerFmt, runningContainer)
-		_ = common.ShellExec.Execute(containerIds)
+		stopRunningContainersCmd := fmt.Sprintf(stopContainerFmt, runningContainer)
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + stopRunningContainersCmd + "\n")
+		}
+		_ = common.ShellExec.Execute(stopRunningContainersCmd)
 	} else {
 		logger.Infof("No containers are running for name: %v", imageIdentifier)
 	}
@@ -77,8 +80,11 @@ func removeContainers(dirname string) error {
 		return err
 	} else if len(existingContainer) > 0 {
 		logger.Infof("Removing existing container for name: %v", imageIdentifier)
-		containerIds := fmt.Sprintf(removeContainerFmt, existingContainer)
-		_ = common.ShellExec.Execute(containerIds)
+		removeExistingContainersCmd := fmt.Sprintf(removeContainerFmt, existingContainer)
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + removeExistingContainersCmd + "\n")
+		}
+		_ = common.ShellExec.Execute(removeExistingContainersCmd)
 	} else {
 		logger.Infof("No existing containers identified for name: %v", imageIdentifier)
 	}
@@ -88,8 +94,11 @@ func removeContainers(dirname string) error {
 		return err
 	} else if len(pastContainer) > 0 {
 		logger.Infof("Removing past container for name: %v", imageIdentifier)
-		containerIds := fmt.Sprintf(removeContainerFmt, pastContainer)
-		_ = common.ShellExec.Execute(containerIds)
+		removePastContainersCmd := fmt.Sprintf(removeContainerFmt, pastContainer)
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + removePastContainersCmd + "\n")
+		}
+		_ = common.ShellExec.Execute(removePastContainersCmd)
 	} else {
 		logger.Infof("No past containers identified for name: %v", imageIdentifier)
 	}
