@@ -66,13 +66,12 @@ func (cmd *deployCmd) initFlags() error {
 	return nil
 }
 
-func deployManifest(dirname string) (string, error) {
-	l := locator.NewLocator()
-	if manifestFilePath, err := l.Manifest(dirname); err != nil {
+func deployManifest(identifier string) (string, error) {
+	if manifestFilePath, err := locator.DirLocator.Manifest(identifier); err != nil {
 		return "", err
 	} else {
-		manDir := l.GetRootFromManifestFile(manifestFilePath)
-		config.LoadEnvVars(manDir)
+		// Load .env file
+		config.LoadEnvVars(identifier)
 
 		if common.GlobalOptions.Verbose {
 			logManifestCmd := fmt.Sprintf("cat %v | envsubst", manifestFilePath)

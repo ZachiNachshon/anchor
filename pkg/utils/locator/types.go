@@ -1,11 +1,10 @@
 package locator
 
 type Locator interface {
-	Dockerfile(name string) (string, error)
-	DockerfileDir(name string) (string, error)
-	Manifest(name string) (string, error)
-	ManifestDir(name string) (string, error)
-
-	GetRootFromManifestFile(path string) string
-	GetRootFromDockerfile(path string) string
+	Scan() error
+	Print(opts *ListOpts)
+	Name(identifier string) (string, error)
+	Dockerfile(identifier string) (string, error)
+	DockerContext(identifier string) (string, error)
+	Manifest(identifier string) (string, error)
 }

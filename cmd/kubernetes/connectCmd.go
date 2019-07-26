@@ -147,7 +147,7 @@ func (p *podsSelector) SelectPod(name string, namespace string) error {
 	}
 
 	podInfo := p.podsInfo[rowNum]
-	execPodCmd := fmt.Sprintf("kubectl exec -it %v /bin/bash", podInfo.Name)
+	execPodCmd := fmt.Sprintf("kubectl exec -it %v /bin/bash -n %v", podInfo.Name, common.GlobalOptions.KindClusterName)
 
 	if common.GlobalOptions.Verbose {
 		logger.Info("\n" + execPodCmd + "\n")

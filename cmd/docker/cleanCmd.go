@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"github.com/anchor/pkg/utils/locator"
 	"strings"
 
 	"github.com/anchor/pkg/common"
@@ -54,7 +55,13 @@ func NewCleanCmd(opts *common.CmdRootOptions) *cleanCmd {
 	return cleanCmd
 }
 
-func removeImages(dirname string) error {
+func removeImages(identifier string) error {
+	var dirname = ""
+	var err error
+	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
+		return err
+	}
+
 	removeImagesFmt := "docker rmi -f %v"
 
 	unknownImagesCmd := "docker images | grep '<none>' | awk {'print $3'}"

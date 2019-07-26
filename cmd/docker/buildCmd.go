@@ -1,8 +1,8 @@
 package docker
 
 import (
+	"github.com/anchor/pkg/utils/extractor"
 	"github.com/anchor/pkg/utils/locator"
-	"github.com/pkg/errors"
 	"strings"
 
 	"github.com/anchor/pkg/common"
@@ -49,28 +49,24 @@ func NewBuildCmd(opts *common.CmdRootOptions) *buildCmd {
 	return buildCmd
 }
 
-func buildDockerfile(dirname string) error {
-	l := locator.NewLocator()
-	if dockerfilePath, err := l.Dockerfile(dirname); err != nil {
+func buildDockerfile(identifier string) error {
+	logger.Info("\n==> Building image...\n")
+	if buildCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandBuild); err != nil {
 		return err
 	} else {
-		if buildCmd, err := extractDockerCmd(dockerfilePath, DockerCommandBuild); err != nil {
+		contextPath, _ := locator.DirLocator.DockerContext(identifier)
+
+		// Replace docker build "." with directory absolute path
+		ctxIdx := strings.LastIndex(buildCmd, ".")
+		buildCmd = buildCmd[:ctxIdx]
+		buildCmd += contextPath
+
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + buildCmd + "\n")
+		}
+
+		if err = common.ShellExec.Execute(buildCmd); err != nil {
 			return err
-		} else if len(buildCmd) == 0 {
-			return errors.Errorf(missingDockerCmdMsg(DockerCommandBuild, dirname))
-		} else {
-			contextPath := l.GetRootFromDockerfile(dockerfilePath)
-			ctxIdx := strings.LastIndex(buildCmd, ".")
-			buildCmd = buildCmd[:ctxIdx]
-			buildCmd += contextPath
-
-			if common.GlobalOptions.Verbose {
-				logger.Info("\n" + buildCmd + "\n")
-			}
-
-			if err = common.ShellExec.Execute(buildCmd); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -84,7 +80,7 @@ func (cmd *buildCmd) GetCobraCmd() *cobra.Command {
 func (cmd *buildCmd) initFlags() error {
 	cmd.cobraCmd.Flags().StringVarP(
 		&common.GlobalOptions.DockerImageTag,
-		"Docker image tag",
+		"tag",
 		"t",
 		common.GlobalOptions.DockerImageTag,
 		"anchor docker build <name> -t my_tag")

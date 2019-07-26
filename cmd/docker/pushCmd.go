@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
-	"github.com/anchor/pkg/utils/locator"
-	"github.com/pkg/errors"
+	"github.com/anchor/pkg/utils/extractor"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -30,10 +29,10 @@ func NewPushCmd(opts *common.CmdRootOptions) *pushCmd {
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Push: Docker Image")
 
-			if dockerfilePath, err := tagDockerImage(args[0]); err != nil {
+			if err := tagDockerImage(args[0]); err != nil {
 				logger.Fatal(err.Error())
 			} else {
-				if err := pushDockerImage(args[0], dockerfilePath); err != nil {
+				if err := pushDockerImage(args[0]); err != nil {
 					logger.Fatal(err.Error())
 				}
 			}
@@ -53,35 +52,26 @@ func NewPushCmd(opts *common.CmdRootOptions) *pushCmd {
 	return pushCmd
 }
 
-func tagDockerImage(dirname string) (string, error) {
-	l := locator.NewLocator()
-	if dockerfilePath, err := l.Dockerfile(dirname); err != nil {
-		return "", err
+func tagDockerImage(identifier string) error {
+	logger.Info("\n==> Tagging image...\n")
+	if tagCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandTag); err != nil {
+		return err
 	} else {
-		logger.Info("\n==> Tagging image...\n")
-		if tagCmd, err := extractDockerCmd(dockerfilePath, DockerCommandTag); err != nil {
-			return "", err
-		} else if len(tagCmd) == 0 {
-			return "", errors.Errorf(missingDockerCmdMsg(DockerCommandTag, dirname))
-		} else {
-			if common.GlobalOptions.Verbose {
-				logger.Info("\n" + tagCmd + "\n")
-			}
-			if err = common.ShellExec.Execute(tagCmd); err != nil {
-				return "", err
-			}
-			logger.Info(" Successfully tagged.")
-			return dockerfilePath, nil
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + tagCmd + "\n")
 		}
+		if err = common.ShellExec.Execute(tagCmd); err != nil {
+			return err
+		}
+		logger.Info(" Successfully tagged.")
+		return nil
 	}
 }
 
-func pushDockerImage(dirname string, dockerfilePath string) error {
+func pushDockerImage(identifier string) error {
 	logger.Info("\n==> Pushing image...\n")
-	if pushCmd, err := extractDockerCmd(dockerfilePath, DockerCommandPush); err != nil {
+	if pushCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandPush); err != nil {
 		return err
-	} else if len(pushCmd) == 0 {
-		return errors.Errorf(missingDockerCmdMsg(DockerCommandPush, dirname))
 	} else {
 		if common.GlobalOptions.Verbose {
 			logger.Info("\n" + pushCmd + "\n")
@@ -94,7 +84,6 @@ func pushDockerImage(dirname string, dockerfilePath string) error {
 
 		logger.Info(" Successfully pushed to registry.")
 	}
-
 	return nil
 }
 

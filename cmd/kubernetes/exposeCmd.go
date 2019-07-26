@@ -1,11 +1,9 @@
 package kubernetes
 
 import (
-	"fmt"
-	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
-	"github.com/anchor/pkg/utils/locator"
+	"github.com/anchor/pkg/utils/extractor"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +52,6 @@ func NewExposeCmd(opts *common.CmdRootOptions) *exposeCmd {
 	if err := exposeCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
-
 	return exposeCmd
 }
 
@@ -66,48 +63,19 @@ func (cmd *exposeCmd) initFlags() error {
 	return nil
 }
 
-func enablePortForwarding(dirname string) error {
-	l := locator.NewLocator()
-	if manifestFilePath, err := l.Manifest(dirname); err != nil {
+func enablePortForwarding(identifier string) error {
+	if exposeCmd, err := extractor.CmdExtractor.ManifestCmd(identifier, extractor.ManifestCommandPortForward); err != nil {
 		return err
 	} else {
-		manDir := l.GetRootFromManifestFile(manifestFilePath)
-		config.LoadEnvVars(manDir)
+		logger.Infof("==> Enabling port forwarding for resource %v...", identifier)
 
-		if exposeCmd, err := extractManifestCmd(manifestFilePath, ManifestCommandPortForward); err != nil {
-			return err
-		} else if len(exposeCmd) > 0 {
-			logger.Infof("==> Enabling port forwarding for resource %v...", dirname)
-			if common.GlobalOptions.Verbose {
-				logger.Info("\n" + exposeCmd + "\n")
-			}
-			if err := common.ShellExec.ExecuteInBackground(exposeCmd); err != nil {
-				return err
-			}
-		} else {
-			warnMsg := fmt.Sprintf("Cannot find [%v] declaration, resource won't get exposed on host.\n  ==>  %v ", ManifestCommandPortForward, manifestFilePath)
-			logger.Info(warnMsg)
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + exposeCmd + "\n")
 		}
 
-		return nil
+		if err := common.ShellExec.ExecuteInBackground(exposeCmd); err != nil {
+			return err
+		}
 	}
+	return nil
 }
-
-//func waitForDeployedManifest(manifestFilePath string) error {
-//	if waitCmd, err := extractManifestCmd(manifestFilePath, ManifestCommandWait); err != nil {
-//		return err
-//	} else if len(waitCmd) > 0 {
-//		logger.Info("==> Waiting for resource to become ready...")
-//		if common.GlobalOptions.Verbose {
-//			logger.Info("\n" + waitCmd + "\n")
-//		}
-//		if err := common.ShellExec.Execute(waitCmd); err != nil {
-//			return err
-//		}
-//	} else {
-//		warnMsg := fmt.Sprintf("Cannot find [%v] declaration, won't wait for resource to become ready.\n  ==>  %v ", ManifestCommandWait, manifestFilePath)
-//		logger.Info(warnMsg)
-//	}
-//
-//	return nil
-//}

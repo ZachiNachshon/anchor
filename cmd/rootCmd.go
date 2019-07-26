@@ -6,31 +6,44 @@ import (
 	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/extractor"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/spf13/cobra"
 )
 
-type CmdRoot struct {
+type RootCmd struct {
 	cobraCmd *cobra.Command
 	opts     common.CmdRootOptions
 }
 
-func NewCmdRoot() *CmdRoot {
+var validArgs = []string{"docker", "kubernetes", "list"}
+
+func NewCmdRoot() *RootCmd {
 	var rootCmd = &cobra.Command{
-		Use:   "anchor",
-		Short: "Utility for local Docker/Kubernetes development environment",
-		Long:  `Utility for local Docker/Kubernetes development environment`,
+		Use:                    "anchor",
+		Short:                  "Utility for local Docker/Kubernetes development environment",
+		Long:                   `Utility for local Docker/Kubernetes development environment`,
+		BashCompletionFunction: config.BashCompletionFunc,
+		ValidArgs:              validArgs,
 	}
 
 	if err := config.CheckPrerequisites(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	return &CmdRoot{
+	locator.DirLocator = locator.New()
+	if err := locator.DirLocator.Scan(); err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	extractor.CmdExtractor = extractor.New()
+
+	return &RootCmd{
 		cobraCmd: rootCmd,
 	}
 }
 
-func (root *CmdRoot) initFlags() error {
+func (root *RootCmd) initFlags() error {
 	root.cobraCmd.PersistentFlags().BoolVarP(
 		&common.GlobalOptions.Verbose,
 		"verbose",
@@ -42,23 +55,29 @@ func (root *CmdRoot) initFlags() error {
 	return nil
 }
 
-func (root *CmdRoot) initSubCommands() error {
+func (root *RootCmd) initSubCommands() error {
 
 	//cobra.EnableCommandSorting = false
+
+	// List Commands
+	root.cobraCmd.AddCommand(NewListCmd(&root.opts).GetCobraCmd())
 
 	// Docker Commands
 	root.cobraCmd.AddCommand(docker.NewDockerCmd(&root.opts).GetCobraCmd())
 
 	// Kubernetes Commands
-	root.cobraCmd.AddCommand(kubernetes.NewKindCmd(&root.opts).GetCobraCmd())
+	root.cobraCmd.AddCommand(kubernetes.NewKubernetesCmd(&root.opts).GetCobraCmd())
 
 	// Admin
 	root.cobraCmd.AddCommand(NewVersionCmd(&root.opts).GetCobraCmd())
 
+	// Auto completion
+	//root.cobraCmd.AddCommand(NewCompletionCmd(root.cobraCmd, &root.opts).GetCobraCmd())
+
 	return nil
 }
 
-func (root *CmdRoot) Execute() {
+func (root *RootCmd) Execute() {
 
 	if err := root.initFlags(); err != nil {
 		logger.Fatal(err.Error())
@@ -71,6 +90,10 @@ func (root *CmdRoot) Execute() {
 	if err := root.cobraCmd.Execute(); err != nil {
 		logger.Fatal(err.Error())
 	}
+
+	// Use for generating auto-complete script for updating config.BashCompletionFunc
+	//_ = root.cobraCmd.GenZshCompletion(os.Stdout)
+	//_ = root.cobraCmd.GenBashCompletionFile("out.sh")
 }
 
 //func init() {

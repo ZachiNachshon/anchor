@@ -2,11 +2,9 @@ package docker
 
 import (
 	"fmt"
-	"github.com/anchor/pkg/utils/locator"
-	"github.com/pkg/errors"
-
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/extractor"
 	"github.com/spf13/cobra"
 )
 
@@ -55,31 +53,23 @@ func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 	return runCmd
 }
 
-func runContainer(dirname string) error {
-	l := locator.NewLocator()
-	if dockerfilePath, err := l.Dockerfile(dirname); err != nil {
+func runContainer(identifier string) error {
+	if runCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandRun); err != nil {
 		return err
 	} else {
-		if runCmd, err := extractDockerCmd(dockerfilePath, DockerCommandRun); err != nil {
-			return err
-		} else if len(runCmd) == 0 {
-			return errors.Errorf(missingDockerCmdMsg(DockerCommandRun, dirname))
-		} else {
-			if common.GlobalOptions.Verbose {
-				logger.Info("\n" + runCmd + "\n")
-			}
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + runCmd + "\n")
+		}
 
-			if containerId, err := common.ShellExec.ExecuteWithOutput(runCmd); err != nil {
+		if containerId, err := common.ShellExec.ExecuteWithOutput(runCmd); err != nil {
+			return err
+		} else {
+			tailCmd := fmt.Sprintf("docker logs -f %v", containerId)
+			if err := common.ShellExec.Execute(tailCmd); err != nil {
 				return err
-			} else {
-				tailCmd := fmt.Sprintf("docker logs -f %v", containerId)
-				if err := common.ShellExec.Execute(tailCmd); err != nil {
-					return err
-				}
 			}
 		}
 	}
-
 	return nil
 }
 

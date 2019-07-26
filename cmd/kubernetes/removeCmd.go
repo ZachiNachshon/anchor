@@ -70,13 +70,12 @@ func (cmd *removeCmd) initFlags() error {
 	return nil
 }
 
-func removeManifest(dirname string) (string, error) {
-	l := locator.NewLocator()
-	if manifestFilePath, err := l.Manifest(dirname); err != nil {
+func removeManifest(identifier string) (string, error) {
+	if manifestFilePath, err := locator.DirLocator.Manifest(identifier); err != nil {
 		return "", err
 	} else {
-		manDir := l.GetRootFromManifestFile(manifestFilePath)
-		config.LoadEnvVars(manDir)
+		// Load .env file
+		config.LoadEnvVars(identifier)
 
 		if common.GlobalOptions.Verbose {
 			logManifestCmd := fmt.Sprintf("cat %v | envsubst", manifestFilePath)

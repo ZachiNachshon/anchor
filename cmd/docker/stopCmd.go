@@ -2,9 +2,9 @@ package docker
 
 import (
 	"fmt"
-
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/locator"
 
 	"github.com/spf13/cobra"
 )
@@ -50,7 +50,13 @@ func NewStopCmd(opts *common.CmdRootOptions) *stopCmd {
 	return stopCmd
 }
 
-func stopContainers(dirname string) error {
+func stopContainers(identifier string) error {
+	var dirname = ""
+	var err error
+	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
+		return err
+	}
+
 	stopContainerFmt := "docker stop %v"
 	imageIdentifier := ComposeDockerContainerIdentifierNoTag(dirname)
 
@@ -71,7 +77,13 @@ func stopContainers(dirname string) error {
 	return nil
 }
 
-func removeContainers(dirname string) error {
+func removeContainers(identifier string) error {
+	var dirname = ""
+	var err error
+	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
+		return err
+	}
+
 	removeContainerFmt := "docker rm -f %v"
 	imageIdentifier := ComposeDockerContainerIdentifierNoTag(dirname)
 

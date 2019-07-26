@@ -2,26 +2,10 @@ package docker
 
 import (
 	"fmt"
-	"github.com/anchor/pkg/utils/installer"
-	"io/ioutil"
-	"path/filepath"
-	"strings"
-
-	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
-	"github.com/anchor/pkg/utils/parser"
-	"github.com/pkg/errors"
+	"github.com/anchor/pkg/utils/installer"
 	"github.com/spf13/cobra"
-)
-
-type DockerCommand string
-
-const (
-	DockerCommandRun   DockerCommand = "docker run"
-	DockerCommandBuild DockerCommand = "docker build"
-	DockerCommandPush  DockerCommand = "docker push"
-	DockerCommandTag   DockerCommand = "docker tag"
 )
 
 type dockerCmd struct {
@@ -35,11 +19,14 @@ type DockerCmdOptions struct {
 	// Additional Build Params
 }
 
+var validArgs = []string{"build", "clean", "list", "purge", "push", "run", "stop"}
+
 func NewDockerCmd(opts *common.CmdRootOptions) *dockerCmd {
 	var cobraCmd = &cobra.Command{
-		Use:     "docker",
-		Short:   "Docker commands",
-		Aliases: []string{"d"},
+		Use:       "docker",
+		Short:     "Docker commands",
+		Aliases:   []string{"d"},
+		ValidArgs: validArgs,
 	}
 
 	var dockerCmd = new(dockerCmd)
@@ -90,7 +77,6 @@ func (d *dockerCmd) initDockerCommands() {
 
 	d.cobraCmd.AddCommand(NewBuildCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewCleanCmd(opts).GetCobraCmd())
-	d.cobraCmd.AddCommand(NewListCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewPushCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewRunCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewStopCmd(opts).GetCobraCmd())
@@ -110,46 +96,4 @@ func ComposeDockerContainerIdentifierNoTag(dirname string) string {
 func ComposeDockerImageIdentifierNoTag(dirname string) string {
 	imageIdentifier := fmt.Sprintf("%v/%v", common.GlobalOptions.DockerImageNamespace, dirname)
 	return imageIdentifier
-}
-
-func extractDockerCmd(dockerfilePath string, dockerCommand DockerCommand) (string, error) {
-	var result = ""
-	if contentByte, err := ioutil.ReadFile(dockerfilePath); err != nil {
-		return "", err
-	} else {
-
-		dirPath := filepath.Dir(dockerfilePath)
-
-		// Load .env files from DOCKER_FILES location at root directory and then override from child
-		config.LoadEnvVars(dirPath)
-
-		var dockerfileContent = string(contentByte)
-
-		p := parser.NewHashtagParser()
-		if err := p.Parse(dockerfileContent); err != nil {
-			return "", errors.Errorf("Failed to parse: %v, err: %v", dockerfilePath, err.Error())
-		}
-
-		if result = p.Find(string(dockerCommand)); result != "" {
-			result = strings.TrimSuffix(result, "\n")
-			if dockerCommand == DockerCommandBuild {
-				result = replaceDockerCommandPlaceholders(result, dockerfilePath)
-			}
-		}
-	}
-	return result, nil
-}
-
-func replaceDockerCommandPlaceholders(content string, path string) string {
-	// In case the Dockerfile is referenced by a custom path
-	if strings.Contains(content, "/Dockerfile") {
-		return content
-	} else {
-		content = strings.ReplaceAll(content, "Dockerfile", path)
-		return content
-	}
-}
-
-func missingDockerCmdMsg(command DockerCommand, dirname string) string {
-	return fmt.Sprintf("Missing '%v' on %v Dockerfile instructions\n", command, dirname)
 }

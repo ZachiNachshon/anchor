@@ -3,6 +3,8 @@ package locator
 import (
 	"fmt"
 	"github.com/anchor/pkg/common"
+	"strconv"
+
 	"github.com/anchor/pkg/logger"
 	"github.com/pkg/errors"
 	"os"
@@ -10,7 +12,20 @@ import (
 	"strings"
 )
 
+var DirLocator Locator
+
 type DirectoryIdentifier string
+
+var excludedDirectories map[string]bool
+
+var lineFormat = "| %-3v | %-35v %-15v %-15v %-15v\n"
+var header = fmt.Sprintf(lineFormat, "#", "NAME", "DOCKERFILE", "K8S_MANIFEST", "AFFINITY")
+
+func init() {
+	excludedDirectories = make(map[string]bool)
+	excludedDirectories[".git"] = true
+	excludedDirectories[".idea"] = true
+}
 
 const (
 	DOCKER_FILE_IDENTIFIER DirectoryIdentifier = "Dockerfile"
@@ -18,105 +33,229 @@ const (
 )
 
 type locator struct {
+	dirs        map[string]*dirContent
+	dirsNumeric map[int]*dirContent
 }
 
-func NewLocator() Locator {
-	return &locator{}
+type dirContent struct {
+	name              string
+	k8sManifest       string
+	dockerfile        string
+	affinity          string
+	dockerContextRoot string
 }
 
-func (l *locator) Dockerfile(name string) (string, error) {
-	expected := fmt.Sprintf("%v/%v/%v", common.GlobalOptions.DockerRepositoryPath, name, DOCKER_FILE_IDENTIFIER)
-	dirNames, _ := GetDirNamesNoPath(false, DOCKER_FILE_IDENTIFIER)
+type ListOpts struct {
+	OnlyK8sManifests bool
+	AffinityFilter   string
+}
 
-	for _, e := range dirNames {
-		if strings.EqualFold(expected, e) {
-			return e, nil
-		}
+func New() Locator {
+	var locator = &locator{
+		dirs:        make(map[string]*dirContent),
+		dirsNumeric: make(map[int]*dirContent),
 	}
 
-	return "", errors.Errorf("Cannot find Dockerfile for %v", name)
+	return locator
 }
 
-func (l *locator) DockerfileDir(name string) (string, error) {
-	if path, err := l.Dockerfile(name); err != nil {
-		return "", err
-	} else {
-		return filepath.Dir(path), nil
-	}
-}
-
-func (l *locator) Manifest(name string) (string, error) {
-	expected := fmt.Sprintf("%v/%v/%v", common.GlobalOptions.DockerRepositoryPath, name, MANIFESTS_IDENTIFIER)
-	dirNames, _ := GetDirNamesNoPath(false, MANIFESTS_IDENTIFIER)
-
-	for _, e := range dirNames {
-		if strings.EqualFold(expected, e) {
-			return e, nil
-		}
-	}
-
-	return "", errors.Errorf("Cannot find K8s manifest for %v", name)
-}
-
-func (l *locator) ManifestDir(name string) (string, error) {
-	if path, err := l.Manifest(name); err != nil {
-		return "", err
-	} else {
-		return filepath.Dir(path), nil
-	}
-}
-
-func (l *locator) GetRootFromManifestFile(path string) string {
-	// Dirname to k8s
-	dirName := filepath.Dir(path)
-	// Dirname to container dir name
-	dirName = filepath.Dir(dirName)
-	return dirName
-}
-
-func (l *locator) GetRootFromDockerfile(path string) string {
-	// Dirname to container dir name
-	dirName := filepath.Dir(path)
-	return dirName
-}
-
-func GetDirNamesNoPath(verbose bool, identifier DirectoryIdentifier) ([]string, error) {
-	var dirNames = make([]string, 0)
+func (l *locator) Scan() error {
+	i := 1
 	err := filepath.Walk(common.GlobalOptions.DockerRepositoryPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			// Continue to the next path
-			if !strings.Contains(path, string(identifier)) {
+			// Ignore root directory
+			if info.IsDir() && path == common.GlobalOptions.DockerRepositoryPath {
 				return nil
 			}
 
-			if filePath, err := filepath.Abs(path); err != nil {
-				return err
-			} else {
-				dirName := extractDirName(filePath, identifier)
-
-				if verbose {
-					logger.Info("  " + dirName)
-				}
-
-				dirNames = append(dirNames, filePath)
+			// Ignore all hidden directories
+			if info.IsDir() && strings.HasPrefix(info.Name(), ".") {
+				return nil
 			}
 
+			// Ignore all files under root folder
+			dir := filepath.Dir(path)
+			if !info.IsDir() && dir == common.GlobalOptions.DockerRepositoryPath {
+				return nil
+			}
+
+			// Skip if dir/file should be excluded
+			name := info.Name()
+			if isExcluded(name) {
+				if info.IsDir() {
+					return filepath.SkipDir
+				} else {
+					return nil
+				}
+			}
+
+			if dockerfilePath, ok := hasDockerfile(path); ok {
+
+				dirContent := new(dirContent)
+				dirContent.name = name
+				dirContent.dockerfile = dockerfilePath
+
+				if k8sManifestPath, ok := hasKubernetesManifest(path); ok {
+					dirContent.k8sManifest = k8sManifestPath
+				}
+
+				if affinity, ok := hasAffinity(path); ok {
+					dirContent.affinity = affinity
+				}
+
+				ctxRoot := filepath.Dir(dockerfilePath)
+				dirContent.dockerContextRoot = ctxRoot
+
+				l.dirs[name] = dirContent
+
+				// Maintain a 2nd map based on numeric keys for easier CLI selection
+				l.dirsNumeric[i] = dirContent
+				i += 1
+			}
 			return nil
 		})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return dirNames, nil
+	return nil
 }
 
-func extractDirName(path string, identifier DirectoryIdentifier) string {
-	dirName := strings.TrimPrefix(path, common.GlobalOptions.DockerRepositoryPath+"/")
-	dirName = strings.TrimSuffix(dirName, "/"+string(identifier))
-	return dirName
+func (l *locator) Print(opts *ListOpts) {
+	size := len(l.dirsNumeric)
+	if size == 0 {
+		return
+	}
+
+	var affinityFilter = ""
+	var listK8sOnly = false
+	if opts != nil {
+		listK8sOnly = opts.OnlyK8sManifests
+		affinityFilter = opts.AffinityFilter
+	}
+
+	table := "\n"
+	table += header
+	for i := 1; i <= size; {
+		content := l.dirsNumeric[i]
+
+		if len(affinityFilter) > 0 && content.affinity != affinityFilter {
+			i += 1
+			continue
+		}
+
+		hasDockerfile := "     no"
+		if content.dockerfile != "" {
+			hasDockerfile = "   yes"
+		}
+
+		hasK8sManifest := "    no"
+		hasK8s := false
+		if content.k8sManifest != "" {
+			hasK8sManifest = "    yes"
+			hasK8s = true
+		}
+
+		if listK8sOnly && !hasK8s {
+			i += 1
+			continue
+		} else {
+			l := fmt.Sprintf(lineFormat, i, content.name, hasDockerfile, hasK8sManifest, content.affinity)
+			table += l
+			i += 1
+		}
+	}
+
+	logger.Info(table)
+}
+
+func (l *locator) Name(identifier string) (string, error) {
+	if number, err := strconv.Atoi(identifier); err == nil {
+		if content, ok := l.dirsNumeric[number]; ok {
+			return content.name, nil
+		}
+	} else {
+		if content, ok := l.dirs[identifier]; ok {
+			return content.name, nil
+		}
+	}
+	return "", errors.Errorf("Cannot find Dockerfile for %v", identifier)
+}
+
+func (l *locator) Dockerfile(identifier string) (string, error) {
+	if number, err := strconv.Atoi(identifier); err == nil {
+		if content, ok := l.dirsNumeric[number]; ok {
+			return content.dockerfile, nil
+		}
+	} else {
+		if content, ok := l.dirs[identifier]; ok {
+			return content.dockerfile, nil
+		}
+	}
+	return "", errors.Errorf("Cannot find Dockerfile for %v", identifier)
+}
+
+func (l *locator) DockerContext(identifier string) (string, error) {
+	if number, err := strconv.Atoi(identifier); err == nil {
+		if content, ok := l.dirsNumeric[number]; ok {
+			return content.dockerContextRoot, nil
+		}
+	} else {
+		if content, ok := l.dirs[identifier]; ok {
+			return content.dockerContextRoot, nil
+		}
+	}
+	return "", errors.Errorf("Cannot find Docker context directory for %v", identifier)
+}
+
+func (l *locator) Manifest(identifier string) (string, error) {
+	if number, err := strconv.Atoi(identifier); err == nil {
+		if content, ok := l.dirsNumeric[number]; ok {
+			return content.k8sManifest, nil
+		}
+	} else {
+		if content, ok := l.dirs[identifier]; ok {
+			return content.k8sManifest, nil
+		}
+	}
+	return "", errors.Errorf("Cannot find K8s manifest for %v", identifier)
+}
+
+func isExcluded(name string) bool {
+	if excluded, exist := excludedDirectories[name]; exist && excluded {
+		return true
+	}
+	return false
+}
+
+func hasDockerfile(path string) (string, bool) {
+	dockerfilePath := fmt.Sprintf("%v/%v", path, DOCKER_FILE_IDENTIFIER)
+	if _, err := os.Stat(dockerfilePath); err != nil {
+		return "", false
+	}
+	return dockerfilePath, true
+}
+
+func hasKubernetesManifest(path string) (string, bool) {
+	k8sManifestPath := fmt.Sprintf("%v/%v", path, MANIFESTS_IDENTIFIER)
+	if _, err := os.Stat(k8sManifestPath); err != nil {
+		return "", false
+	}
+	return k8sManifestPath, true
+}
+
+func hasAffinity(path string) (string, bool) {
+	parentPath := path[:strings.LastIndex(path, "/")]
+	rootDirName := filepath.Base(common.GlobalOptions.DockerRepositoryPath)
+	parentDirName := filepath.Base(parentPath)
+
+	if rootDirName == parentDirName {
+		return "", false
+	}
+	return parentDirName, true
 }
