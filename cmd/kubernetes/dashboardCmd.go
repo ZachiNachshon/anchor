@@ -2,9 +2,12 @@ package kubernetes
 
 import (
 	"fmt"
+	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 )
@@ -125,9 +128,22 @@ func uninstallDashboard() error {
 		// Kill possible running kubectl proxy
 		_ = killKubectlProxy()
 
-		uninstallCmd := fmt.Sprintf("kubectl delete -f %v", common.GlobalOptions.DashboardManifest)
-		if err := common.ShellExec.Execute(uninstallCmd); err != nil {
+		if file, err := ioutil.TempFile(os.TempDir(), "anchor-dashboard-manifest.yaml"); err != nil {
 			return err
+		} else {
+			// Remove after finished
+			defer os.Remove(file.Name())
+
+			if _, err := file.WriteString(config.KubernetesDashboardManifest); err != nil {
+				return err
+			} else {
+				removeDashboardCmd := fmt.Sprintf("cat %v | kubectl delete -f -",
+					file.Name())
+
+				if err := common.ShellExec.Execute(removeDashboardCmd); err != nil {
+					return err
+				}
+			}
 		}
 	} else {
 		logger.Info("Dashboard does not exists, nothing to delete.")
@@ -137,18 +153,31 @@ func uninstallDashboard() error {
 
 func installDashboard() error {
 	logger.Info("\n==> Installing dashboard...\n")
-	deployCmd := fmt.Sprintf("kubectl apply -f %v", common.GlobalOptions.DashboardManifest)
-	createCmd := "kubectl create serviceaccount -n kube-system kubernetes-dashboard"
-	createRoleCmd := `kubectl create clusterrolebinding -n kube-system kubernetes-dashboard \
+	if file, err := ioutil.TempFile(os.TempDir(), "anchor-dashboard-manifest.yaml"); err != nil {
+		return err
+	} else {
+		// Remove after finished
+		defer os.Remove(file.Name())
+
+		if _, err := file.WriteString(config.KubernetesDashboardManifest); err != nil {
+			return err
+		} else {
+			createDashboardCmd := fmt.Sprintf("cat %v | kubectl apply -f -",
+				file.Name())
+
+			if err := common.ShellExec.Execute(createDashboardCmd); err != nil {
+				return err
+			}
+
+			createCmd := "kubectl create serviceaccount -n kube-system kubernetes-dashboard"
+			createRoleCmd := `kubectl create clusterrolebinding -n kube-system kubernetes-dashboard \
 			--clusterrole cluster-admin \
 			--serviceaccount kube-system:kubernetes-dashboard
 		`
-	if err := common.ShellExec.Execute(deployCmd); err != nil {
-		return err
+			_ = common.ShellExec.Execute(createCmd)
+			_ = common.ShellExec.Execute(createRoleCmd)
+		}
 	}
-	_ = common.ShellExec.Execute(createCmd)
-	_ = common.ShellExec.Execute(createRoleCmd)
-
 	return nil
 }
 

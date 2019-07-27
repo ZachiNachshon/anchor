@@ -2,6 +2,7 @@ package installer
 
 import (
 	"fmt"
+	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/shell"
 
@@ -97,6 +98,49 @@ func NewBrewInstaller(shellExec shell.Shell) *brewInstaller {
 
 // endregion
 
+// region GoLang Installer
+type goInstaller struct {
+	baseInstaller
+}
+
+func (d *goInstaller) verify() error {
+	if _, err := d.shellExec.ExecuteWithOutput("which go"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *goInstaller) install() error {
+	logger.Info("==> Installing Go...")
+	brew := NewBrewInstaller(d.shellExec)
+	if err := brew.installPackage("go"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *goInstaller) Check() error {
+	if err := d.verify(); err != nil {
+		in := input.NewYesNoInput()
+		if result, err := in.WaitForInput("Go is not installed, install?"); err != nil || !result {
+			return errors.Errorf("Go language missing, must be installed, cannot proceed.")
+		} else {
+			return d.install()
+		}
+	}
+	return nil
+}
+
+func NewGoInstaller(shellExec shell.Shell) Installer {
+	return &goInstaller{
+		baseInstaller: baseInstaller{
+			shellExec: shellExec,
+		},
+	}
+}
+
+// endregion
+
 // region Docker Installer
 type dockerInstaller struct {
 	baseInstaller
@@ -154,6 +198,8 @@ func (d *kindInstaller) verify() error {
 
 func (d *kindInstaller) install() error {
 	logger.Info("==> Installing Kind...")
+	// TODO: Replace with brew install once available
+	//       https://github.com/kubernetes-sigs/kind/issues/88
 	if err := d.shellExec.Execute("export GO111MODULE=\"on\" && go get sigs.k8s.io/kind@v0.4.0"); err != nil {
 		return err
 	}
@@ -197,7 +243,7 @@ func (k *kubectlInstaller) verify() error {
 func (k *kubectlInstaller) install() error {
 	brew := NewBrewInstaller(k.shellExec)
 	logger.Info("==> Installing kubectl...")
-	if err := brew.installCask("kubernetes-cli"); err != nil {
+	if err := brew.installPackage("kubernetes-cli"); err != nil {
 		return err
 	}
 	return nil
@@ -294,7 +340,7 @@ func (e *envsubstInstaller) install() error {
 
 func (e *envsubstInstaller) Check() error {
 	if err := e.verify(); err != nil {
-		logger.Info("envsubst is mandatory for ENV vars substitution on Kubernetes manifests, installing...")
+		logger.Info("envsubst is mandatory for ENV vars substitution on Dockerfiles/Kubernetes manifests")
 		return e.install()
 	}
 	return nil
@@ -302,6 +348,45 @@ func (e *envsubstInstaller) Check() error {
 
 func NewEnvsubstInstaller(shellExec shell.Shell) Installer {
 	return &envsubstInstaller{
+		baseInstaller: baseInstaller{
+			shellExec: shellExec,
+		},
+	}
+}
+
+// endregion
+
+// region Hostess Installer
+type hostessInstaller struct {
+	baseInstaller
+}
+
+func (e *hostessInstaller) verify() error {
+	if _, err := e.shellExec.ExecuteWithOutput("which hostess"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *hostessInstaller) install() error {
+	brew := NewBrewInstaller(e.shellExec)
+	logger.Info("==> Installing hostess...")
+	if err := brew.installPackage("hostess"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *hostessInstaller) Check() error {
+	if err := e.verify(); err != nil {
+		logger.Infof("hostess is mandatory for managing your /etc/hosts to create a %v DNS record", common.GlobalOptions.DockerRegistryDns)
+		return e.install()
+	}
+	return nil
+}
+
+func NewHostessInstaller(shellExec shell.Shell) Installer {
+	return &hostessInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,
 		},

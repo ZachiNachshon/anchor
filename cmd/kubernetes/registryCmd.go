@@ -7,6 +7,7 @@ import (
 	"github.com/anchor/config"
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
+	"github.com/anchor/pkg/utils/input"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
@@ -80,10 +81,9 @@ func (cmd *registryCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *registryCmd) initFlags() error {
-	// TODO: Allow force creation by flag even if registry exists
 	cmd.cobraCmd.Flags().BoolVarP(
 		&shouldDeleteRegistry,
-		"Delete Kubernetes docker registry as a pod",
+		"delete",
 		"d",
 		shouldDeleteRegistry,
 		"anchor cluster registry -d")
@@ -120,7 +120,7 @@ func deployDockerRegistry() error {
 			}
 
 			// Deploy docker registry as a pod
-			if err := deployDockerRegistryPod(); err != nil {
+			if err := installDockerRegistryPod(); err != nil {
 				return err
 			}
 
@@ -134,6 +134,11 @@ func deployDockerRegistry() error {
 
 			// Forwards registry port 32001 -> 5000
 			if err := forwardDockerRegistryPort(); err != nil {
+				return err
+			}
+
+			// Create /etc/hosts entry with private docker registry DNS record
+			if err := createHostRegistryDns(); err != nil {
 				return err
 			}
 		}
@@ -196,10 +201,26 @@ func restartKubeletService(nodeName string) error {
 	return common.ShellExec.Execute(kubeletRestartCmd)
 }
 
-func deployDockerRegistryPod() error {
-	logger.Info("Deploying docker registry as a pod...")
-	deployRegistryCmd := fmt.Sprintf("kubectl apply -f %v", common.GlobalOptions.RegistryManifest)
-	return common.ShellExec.Execute(deployRegistryCmd)
+func installDockerRegistryPod() error {
+	logger.Info("\n==> Installing docker registry...\n")
+	if file, err := ioutil.TempFile(os.TempDir(), "anchor-registry-manifest.yaml"); err != nil {
+		return err
+	} else {
+		// Remove after finished
+		defer os.Remove(file.Name())
+
+		if _, err := file.WriteString(config.KubernetesRegistryManifest); err != nil {
+			return err
+		} else {
+			createDashboardCmd := fmt.Sprintf("cat %v | kubectl apply -f -",
+				file.Name())
+
+			if err := common.ShellExec.Execute(createDashboardCmd); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func waitForDockerRegistryPod() error {
@@ -227,7 +248,7 @@ Registry:
 ---------`)
 		logger.Infof("Registry is available at: %s", "registry.anchor:32001")
 
-		getCatalogCmd := fmt.Sprintf(`docker exec -t anchor-control-plane /bin/sh -c "curl -X GET http://%v/v2/_catalog"`, common.GlobalOptions.DockerRegistryDns)
+		getCatalogCmd := fmt.Sprintf(`docker exec -t anchor-control-plane /bin/sh -c "curl -X GET http://%v/v2/_catalog"`, common.GlobalOptions.DockerRegistryDnsWithIp)
 		if out, err := common.ShellExec.ExecuteWithOutput(getCatalogCmd); err != nil {
 			// TODO: Change to warn/error ?
 			logger.Info(out)
@@ -244,8 +265,25 @@ func uninstallRegistry() error {
 		return err
 	} else if exists {
 		logger.Info("\n==> Uninstalling registry...\n")
-		uninstallCmd := fmt.Sprintf("kubectl delete -f %v", common.GlobalOptions.RegistryManifest)
-		if err := common.ShellExec.Execute(uninstallCmd); err != nil {
+		if file, err := ioutil.TempFile(os.TempDir(), "anchor-registry-manifest.yaml"); err != nil {
+			return err
+		} else {
+			// Remove after finished
+			defer os.Remove(file.Name())
+
+			if _, err := file.WriteString(config.KubernetesRegistryManifest); err != nil {
+				return err
+			} else {
+				uninstallCmd := fmt.Sprintf("cat %v | kubectl delete -f -",
+					file.Name())
+
+				if err := common.ShellExec.Execute(uninstallCmd); err != nil {
+					return err
+				}
+			}
+		}
+
+		if err := removeHostRegistryDns(); err != nil {
 			return err
 		}
 	} else {
@@ -286,6 +324,71 @@ func printCatalogContent(catalog string) error {
 			return err
 		} else {
 			logger.Info(prettyJSON.String())
+		}
+	}
+	return nil
+}
+
+func createHostRegistryDns() error {
+	logger.Infof("Checking if should add %v DNS record to /etc/hosts...", common.GlobalOptions.DockerRegistryDns)
+	if err := validateHostsFile(); err != nil {
+		return err
+	}
+
+	verifyDnsCmd := fmt.Sprintf("hostess has %v", common.GlobalOptions.DockerRegistryDns)
+	if err := common.ShellExec.Execute(verifyDnsCmd); err == nil {
+		logger.Infof("Found %v on /etc/hosts, no need to add", common.GlobalOptions.DockerRegistryDns)
+		return nil
+	}
+
+	logger.Infof("==> About to add registry DNS record %v to /etc/hosts...", common.GlobalOptions.DockerRegistryDns)
+	addDnsCmd := fmt.Sprintf("sudo hostess add %v 127.0.0.1", common.GlobalOptions.DockerRegistryDns)
+	if common.GlobalOptions.Verbose {
+		logger.Info("\n" + addDnsCmd + "\n")
+	}
+
+	if err := common.ShellExec.Execute(addDnsCmd); err != nil {
+		logger.Fatalf("Failed to create DNS record %v on /etc/hosts, cannot start private docker registry", common.GlobalOptions.DockerRegistryDns)
+		return err
+	}
+	return nil
+}
+
+func removeHostRegistryDns() error {
+	logger.Infof("Checking if should remove %v DNS record from /etc/hosts...", common.GlobalOptions.DockerRegistryDns)
+	if err := validateHostsFile(); err != nil {
+		return err
+	}
+
+	verifyDnsCmd := fmt.Sprintf("hostess has %v", common.GlobalOptions.DockerRegistryDns)
+	if err := common.ShellExec.Execute(verifyDnsCmd); err != nil {
+		logger.Infof("Cannot find %v on /etc/hosts, no need to remove", common.GlobalOptions.DockerRegistryDns)
+		return nil
+	}
+
+	logger.Infof("==> About to remove registry DNS record %v from /etc/hosts...", common.GlobalOptions.DockerRegistryDns)
+	removeDnsCmd := fmt.Sprintf("sudo hostess del %v", common.GlobalOptions.DockerRegistryDns)
+	if common.GlobalOptions.Verbose {
+		logger.Info("\n" + removeDnsCmd + "\n")
+	}
+
+	if err := common.ShellExec.Execute(removeDnsCmd); err != nil {
+		logger.Infof("Failed to remove DNS record %v from /etc/hosts, consider removing manually", common.GlobalOptions.DockerRegistryDns)
+		return err
+	}
+	return nil
+}
+
+func validateHostsFile() error {
+	if err := common.ShellExec.Execute("hostess fixed"); err != nil {
+		ynInput := input.NewYesNoInput()
+		q := "Found issues on /etc/hosts file, attempt to fix?"
+		if result, err := ynInput.WaitForInput(q); err == nil && result {
+			if err := common.ShellExec.Execute("sudo hostess fix"); err != nil {
+				return err
+			}
+		} else {
+			return err
 		}
 	}
 	return nil

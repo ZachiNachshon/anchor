@@ -10,18 +10,14 @@ var GlobalOptions = CmdRootOptions{
 	Verbose: false,
 
 	// Docker
-	DockerRegistryDns:    "registry.anchor:32001",
-	DockerImageNamespace: "anchor",
-	DockerImageTag:       "latest",
-	DockerRepositoryPath: "",
+	DockerRegistryDns:       "registry.anchor",
+	DockerRegistryDnsWithIp: "registry.anchor:32001",
+	DockerImageNamespace:    "anchor",
+	DockerImageTag:          "latest",
+	DockerRepositoryPath:    "",
 
 	// Kind
 	KindClusterName: "anchor",
-
-	// Remote Files
-	DashboardManifest:        "https://raw.githubusercontent.com/ZachiNachshon/anchor-files/master/v1/dashboard/dashboard.yaml",
-	RegistryManifest:         "https://raw.githubusercontent.com/ZachiNachshon/anchor-files/master/v1/docker-registry/registry.yaml",
-	RegistryContainerdConfig: "https://raw.githubusercontent.com/ZachiNachshon/anchor-files/master/v1/docker-registry/config_template.toml",
 }
 
 type CmdRootOptions struct {
@@ -31,16 +27,12 @@ type CmdRootOptions struct {
 	Verbose bool
 
 	// Docker
-	DockerRegistryDns    string
-	DockerImageNamespace string
-	DockerRepositoryPath string
-	DockerImageTag       string
+	DockerRegistryDns       string
+	DockerRegistryDnsWithIp string
+	DockerImageNamespace    string
+	DockerRepositoryPath    string
+	DockerImageTag          string
 
 	// Kind
 	KindClusterName string
-
-	// Remote Files
-	DashboardManifest        string
-	RegistryManifest         string
-	RegistryContainerdConfig string
 }

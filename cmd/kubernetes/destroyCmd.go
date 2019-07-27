@@ -75,6 +75,9 @@ func destroyKubernetesCluster(name string) error {
 		// Kill possible running kubectl proxy
 		_ = killKubectlProxy()
 
+		// Remove docker registry and clean /etc/host entry
+		_ = uninstallRegistry()
+
 		destroyCmd := fmt.Sprintf("kind delete cluster --name %v", name)
 		if err := common.ShellExec.Execute(destroyCmd); err != nil {
 			return err

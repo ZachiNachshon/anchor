@@ -85,7 +85,8 @@ func (s *shellExecutor) Execute(script string) error {
 
 func (s *shellExecutor) ExecuteInBackground(script string) error {
 	cmd := exec.Command(string(s.shellType), "-c", script)
-	cmd.Stdout = os.Stdout
+	// Temporary prevent logs verbosity from background process
+	//cmd.Stdout = os.Stdout
 	err := cmd.Start()
 	if err != nil {
 		// TODO: Change to warn once implemented

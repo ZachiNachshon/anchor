@@ -95,9 +95,9 @@ func createNamespace() error {
 		if _, err := file.WriteString(namespaceManifest); err != nil {
 			return err
 		} else {
-			replaceConfigCmd := fmt.Sprintf("cat %v | kubectl apply -f -",
+			createNamespaceCmd := fmt.Sprintf("cat %v | kubectl apply -f -",
 				file.Name())
-			return common.ShellExec.Execute(replaceConfigCmd)
+			return common.ShellExec.Execute(createNamespaceCmd)
 		}
 	}
 }

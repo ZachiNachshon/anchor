@@ -22,8 +22,8 @@ type StatusCmdOptions struct {
 func NewStatusCmd(opts *common.CmdRootOptions) *statusCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "status",
-		Short: fmt.Sprintf("Print cluster [%v] status", common.GlobalOptions.DockerRegistryDns),
-		Long:  fmt.Sprintf(`Print cluster [%v] status`, common.GlobalOptions.DockerRegistryDns),
+		Short: fmt.Sprintf("Print cluster [%v] status", common.GlobalOptions.KindClusterName),
+		Long:  fmt.Sprintf(`Print cluster [%v] status`, common.GlobalOptions.KindClusterName),
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Retrieve Cluster Status")

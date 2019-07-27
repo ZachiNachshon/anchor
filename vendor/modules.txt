@@ -1,3 +1,7 @@
+# github.com/cbednarski/hostess v0.3.0
+github.com/cbednarski/hostess
+# github.com/codegangsta/cli v1.20.0
+github.com/codegangsta/cli
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
 # github.com/joho/godotenv v1.3.0

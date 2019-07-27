@@ -15,7 +15,7 @@ func NewYesNoInput() *YesNoInput {
 }
 
 func (input *YesNoInput) WaitForInput(question string) (bool, error) {
-	fmt.Print(question + " (y/n): ")
+	fmt.Print("\n  " + question + " (y/n): ")
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -44,6 +44,8 @@ func (input *YesNoInput) WaitForInput(question string) (bool, error) {
 			break
 		}
 	}
+
+	fmt.Print("\n")
 
 	return selection, nil
 }

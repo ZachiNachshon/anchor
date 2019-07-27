@@ -54,10 +54,13 @@ func checkPrerequisites() error {
 	if err := installer.NewKindInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
+	if err := installer.NewEnvsubstInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
 	if err := installer.NewKubectlInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
-	if err := installer.NewEnvsubstInstaller(common.ShellExec).Check(); err != nil {
+	if err := installer.NewHostessInstaller(common.ShellExec).Check(); err != nil {
 		return err
 	}
 	//if err := shell.NewHelmlInstaller(common.ShellExec).Check(); err != nil {

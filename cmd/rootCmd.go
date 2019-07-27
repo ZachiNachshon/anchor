@@ -93,7 +93,7 @@ func (root *RootCmd) Execute() {
 
 	// Use for generating auto-complete script for updating config.BashCompletionFunc
 	//_ = root.cobraCmd.GenZshCompletion(os.Stdout)
-	//_ = root.cobraCmd.GenBashCompletionFile("out.sh")
+	//_ = root.cobraCmd.GenZshCompletionFile("out.sh")
 }
 
 //func init() {
