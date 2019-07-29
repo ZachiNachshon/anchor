@@ -93,6 +93,7 @@ func (k *kubernetesCmd) initClusterCommands() {
 	k.cobraCmd.AddCommand(NewRegistryCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewExposeCmd(opts).GetCobraCmd())
 	k.cobraCmd.AddCommand(NewConnectCmd(opts).GetCobraCmd())
+	k.cobraCmd.AddCommand(NewTokenCmd(opts).GetCobraCmd())
 }
 
 func loadKubeConfig() error {

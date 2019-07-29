@@ -172,7 +172,8 @@ func getAllNodes() ([]string, error) {
 
 func overrideContainerdConfig(nodeName string) error {
 	logger.Info("Overwriting control plane containerd config.toml...")
-	if file, err := ioutil.TempFile(os.TempDir(), "anchor-containerd-config-template"); err != nil {
+	var tempDir = os.TempDir()
+	if file, err := ioutil.TempFile(tempDir, "anchor-containerd-config-template"); err != nil {
 		return err
 	} else {
 		// Remove after finished
@@ -182,8 +183,8 @@ func overrideContainerdConfig(nodeName string) error {
 		if _, err := file.WriteString(config.RegistryContainerdConfigTemplate); err != nil {
 			return err
 		} else {
-			replaceConfigCmd := fmt.Sprintf("envsubst < %v > config.toml; docker cp config.toml %v:/etc/containerd/config.toml",
-				file.Name(), nodeName)
+			replaceConfigCmd := fmt.Sprintf("envsubst < %v > %v/config.toml; docker cp %v/config.toml %v:/etc/containerd/config.toml",
+				file.Name(), tempDir, tempDir, nodeName)
 			return common.ShellExec.Execute(replaceConfigCmd)
 		}
 	}
