@@ -53,7 +53,7 @@ func NewPushCmd(opts *common.CmdRootOptions) *pushCmd {
 }
 
 func tagDockerImage(identifier string) error {
-	logger.Info("\n==> Tagging image...\n")
+	logger.PrintCommandHeader(fmt.Sprintf("Tagging image %v", identifier))
 	if tagCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandTag); err != nil {
 		return err
 	} else {
@@ -69,7 +69,7 @@ func tagDockerImage(identifier string) error {
 }
 
 func pushDockerImage(identifier string) error {
-	logger.Info("\n==> Pushing image...\n")
+	logger.PrintCommandHeader(fmt.Sprintf("Pushing image %v", identifier))
 	if pushCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandPush); err != nil {
 		return err
 	} else {

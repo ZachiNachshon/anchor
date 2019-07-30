@@ -1,8 +1,12 @@
 package docker
 
 import (
+	"fmt"
 	"github.com/anchor/pkg/utils/extractor"
+	"github.com/anchor/pkg/utils/input"
 	"github.com/anchor/pkg/utils/locator"
+	"github.com/pkg/errors"
+	"regexp"
 	"strings"
 
 	"github.com/anchor/pkg/common"
@@ -14,6 +18,8 @@ type buildCmd struct {
 	cobraCmd *cobra.Command
 	opts     BuildCmdOptions
 }
+
+const PullAccessDeniedRegexp = "pull access denied for .*, repository does not exist"
 
 type BuildCmdOptions struct {
 	*common.CmdRootOptions
@@ -50,7 +56,7 @@ func NewBuildCmd(opts *common.CmdRootOptions) *buildCmd {
 }
 
 func buildDockerfile(identifier string) error {
-	logger.Info("\n==> Building image...\n")
+	logger.PrintCommandHeader(fmt.Sprintf("Building image %v", identifier))
 	if buildCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandBuild); err != nil {
 		return err
 	} else {
@@ -65,8 +71,32 @@ func buildDockerfile(identifier string) error {
 			logger.Info("\n" + buildCmd + "\n")
 		}
 
-		if err = common.ShellExec.Execute(buildCmd); err != nil {
-			return err
+		if err := common.ShellExec.Execute(buildCmd); err != nil {
+			// Check is base image is missing
+			if out, err := common.ShellExec.ExecuteWithOutput(buildCmd); err != nil {
+				// Docker-compose behaviour, look for missing base images from DOCKER_FILES directory
+				if matched, err := regexp.MatchString(PullAccessDeniedRegexp, out); err == nil && matched {
+
+					imageName := extractImageNameFromPullAccessError(out)
+					imageNoNamespace := RemoveNamespaceFromImageName(imageName)
+
+					in := input.NewYesNoInput()
+					q := fmt.Sprintf("Found missing dependant image %v, try to build?", imageNoNamespace)
+					if result, err := in.WaitForInput(q); err == nil && result {
+
+						// Build missing base image
+						_ = buildDockerfile(imageNoNamespace)
+
+						// Build previous Dockerfile
+						_ = buildDockerfile(identifier)
+
+					} else {
+						return errors.Errorf(out)
+					}
+				} else {
+					return err
+				}
+			}
 		}
 	}
 
@@ -85,4 +115,11 @@ func (cmd *buildCmd) initFlags() error {
 		common.GlobalOptions.DockerImageTag,
 		"anchor docker build <name> -t my_tag")
 	return nil
+}
+
+func extractImageNameFromPullAccessError(error string) string {
+	startIdx := len("pull access denied for ")
+	lastIdx := strings.Index(error, ", repository does not exist")
+	result := error[startIdx:lastIdx]
+	return result
 }

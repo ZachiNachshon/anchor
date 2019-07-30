@@ -10,22 +10,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type cleanCmd struct {
+type removeCmd struct {
 	cobraCmd *cobra.Command
-	opts     CleanCmdOptions
+	opts     RemoveCmdOptions
 }
 
-type CleanCmdOptions struct {
+type RemoveCmdOptions struct {
 	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewCleanCmd(opts *common.CmdRootOptions) *cleanCmd {
+func NewRemoveCmd(opts *common.CmdRootOptions) *removeCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "clean",
-		Short: "Clean docker containers and images",
-		Long:  `Clean docker containers and images`,
+		Use:   "remove",
+		Short: "Remove docker containers and images",
+		Long:  `Remove docker containers and images`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline("Cleanup: Containers & Images")
@@ -44,18 +44,19 @@ func NewCleanCmd(opts *common.CmdRootOptions) *cleanCmd {
 		},
 	}
 
-	var cleanCmd = new(cleanCmd)
-	cleanCmd.cobraCmd = cobraCmd
-	cleanCmd.opts.CmdRootOptions = opts
+	var removeCmd = new(removeCmd)
+	removeCmd.cobraCmd = cobraCmd
+	removeCmd.opts.CmdRootOptions = opts
 
-	if err := cleanCmd.initFlags(); err != nil {
+	if err := removeCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	return cleanCmd
+	return removeCmd
 }
 
 func removeImages(identifier string) error {
+	logger.PrintCommandHeader(fmt.Sprintf("Removing image %v", identifier))
 	var dirname = ""
 	var err error
 	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
@@ -102,10 +103,10 @@ func removeImages(identifier string) error {
 	return nil
 }
 
-func (cmd *cleanCmd) GetCobraCmd() *cobra.Command {
+func (cmd *removeCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *cleanCmd) initFlags() error {
+func (cmd *removeCmd) initFlags() error {
 	return nil
 }

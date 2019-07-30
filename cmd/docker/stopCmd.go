@@ -51,6 +51,7 @@ func NewStopCmd(opts *common.CmdRootOptions) *stopCmd {
 }
 
 func stopContainers(identifier string) error {
+	logger.PrintCommandHeader(fmt.Sprintf("Stopping container %v", identifier))
 	var dirname = ""
 	var err error
 	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
@@ -78,6 +79,7 @@ func stopContainers(identifier string) error {
 }
 
 func removeContainers(identifier string) error {
+	logger.PrintCommandHeader(fmt.Sprintf("Removing container %v", identifier))
 	var dirname = ""
 	var err error
 	if dirname, err = locator.DirLocator.Name(identifier); err != nil {

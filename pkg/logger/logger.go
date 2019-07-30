@@ -50,3 +50,8 @@ func PrintCompletion() {
 	format := "\n    Done.\n"
 	Info(format)
 }
+
+func PrintCommandHeader(header string) {
+	format := fmt.Sprintf("\n==> %v...\n", header)
+	Info(format)
+}

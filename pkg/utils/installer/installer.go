@@ -15,11 +15,11 @@ func logInstallHeader(name string) {
 }
 
 func logInstallPackage(cask string) {
-	logger.Infof("  ==> Installing Homebrew package %v...", cask)
+	logger.Infof("  ==> Installing Homebrew package %v... (Please be patient, might take some time)", cask)
 }
 
 func logInstallCask(cask string) {
-	logger.Infof("  ==> Installing Homebrew cask %v...", cask)
+	logger.Infof("  ==> Installing Homebrew cask %v... (Please be patient, might take some time)", cask)
 }
 
 type baseInstaller struct {

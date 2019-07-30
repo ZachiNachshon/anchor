@@ -9,7 +9,7 @@ import (
 
 type purgeCmd struct {
 	cobraCmd *cobra.Command
-	opts     CleanCmdOptions
+	opts     PurgeCmdOptions
 }
 
 type PurgeCmdOptions struct {

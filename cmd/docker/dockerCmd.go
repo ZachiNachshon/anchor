@@ -6,6 +6,7 @@ import (
 	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/installer"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 type dockerCmd struct {
@@ -76,11 +77,29 @@ func (d *dockerCmd) initDockerCommands() {
 	opts := d.opts.CmdRootOptions
 
 	d.cobraCmd.AddCommand(NewBuildCmd(opts).GetCobraCmd())
-	d.cobraCmd.AddCommand(NewCleanCmd(opts).GetCobraCmd())
+	d.cobraCmd.AddCommand(NewRemoveCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewPushCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewRunCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewStopCmd(opts).GetCobraCmd())
 	d.cobraCmd.AddCommand(NewPurgeCmd(opts).GetCobraCmd())
+}
+
+func RemoveNamespaceFromImageName(name string) string {
+	if len(name) == 0 {
+		return name
+	}
+
+	var result = name
+	backslashIdx := strings.LastIndex(name, "/")
+	if backslashIdx > 0 {
+		result = result[backslashIdx+1:]
+	}
+	tagIdx := strings.LastIndex(name, ":")
+	if tagIdx > 0 {
+		result = result[:backslashIdx+1]
+	}
+
+	return result
 }
 
 func ComposeDockerContainerIdentifier(dirname string) string {

@@ -54,6 +54,7 @@ func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 }
 
 func runContainer(identifier string) error {
+	logger.PrintCommandHeader(fmt.Sprintf("Running container %v", identifier))
 	if runCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandRun); err != nil {
 		return err
 	} else {
