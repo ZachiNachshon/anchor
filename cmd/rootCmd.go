@@ -16,15 +16,15 @@ type RootCmd struct {
 	opts     common.CmdRootOptions
 }
 
-var validArgs = []string{"docker", "kubernetes", "list"}
+var validArgs = []string{"docker", "kubernetes", "list", "version", "completion"}
 
 func NewCmdRoot() *RootCmd {
 	var rootCmd = &cobra.Command{
-		Use:                    "anchor",
-		Short:                  "Utility for local Docker/Kubernetes development environment",
-		Long:                   `Utility for local Docker/Kubernetes development environment`,
-		BashCompletionFunction: config.BashCompletionFunc,
-		ValidArgs:              validArgs,
+		Use:   "anchor",
+		Short: "Utility for local Docker/Kubernetes development environment",
+		Long:  `Utility for local Docker/Kubernetes development environment`,
+		//BashCompletionFunction: config.AutoCompletionFuncZsh,
+		//ValidArgs:              validArgs,
 	}
 
 	if err := config.CheckPrerequisites(); err != nil {
@@ -72,7 +72,7 @@ func (root *RootCmd) initSubCommands() error {
 	root.cobraCmd.AddCommand(NewVersionCmd(&root.opts).GetCobraCmd())
 
 	// Auto completion
-	//root.cobraCmd.AddCommand(NewCompletionCmd(root.cobraCmd, &root.opts).GetCobraCmd())
+	root.cobraCmd.AddCommand(NewCompletionCmd(root, &root.opts).GetCobraCmd())
 
 	return nil
 }
@@ -90,10 +90,6 @@ func (root *RootCmd) Execute() {
 	if err := root.cobraCmd.Execute(); err != nil {
 		logger.Fatal(err.Error())
 	}
-
-	// Use for generating auto-complete script for updating config.BashCompletionFunc
-	//_ = root.cobraCmd.GenZshCompletion(os.Stdout)
-	//_ = root.cobraCmd.GenZshCompletionFile("out.sh")
 }
 
 //func init() {

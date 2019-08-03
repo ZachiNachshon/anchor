@@ -159,7 +159,7 @@ oom_score = 0
     startup_delay = "100ms"
 `
 
-const BashCompletionFunc = `# bash completion for anchor                               -*- shell-script -*-
+const AutoCompletionFuncBash = `# bash completion for anchor                               -*- shell-script -*-
 
 __anchor_debug()
 {
@@ -1181,6 +1181,269 @@ else
 fi
 
 # ex: ts=4 sw=4 et filetype=sh
+`
+
+const AutoCompletionFuncZsh = `#compdef _anchor anchor
+
+
+function _anchor {
+  local -a commands
+
+  _arguments -C \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]' \
+    "1: :->cmnds" \
+    "*::arg:->args"
+
+  case $state in
+  cmnds)
+    commands=(
+      "completion:Generate auto completion script for bash/zsh"
+      "docker:Docker commands"
+      "help:Help about any command"
+      "kubernetes:Kubernetes commands"
+      "list:List all supported directories from DOCKER_FILES repository"
+      "version:Print anchor version"
+    )
+    _describe "command" commands
+    ;;
+  esac
+
+  case "$words[1]" in
+  completion)
+    _anchor_completion
+    ;;
+  docker)
+    _anchor_docker
+    ;;
+  help)
+    _anchor_help
+    ;;
+  kubernetes)
+    _anchor_kubernetes
+    ;;
+  list)
+    _anchor_list
+    ;;
+  version)
+    _anchor_version
+    ;;
+  esac
+}
+
+function _anchor_completion {
+  _arguments \
+    '(-f --file)'{-f,--file}'[anchor completion -f]' \
+    '(-h --help)'{-h,--help}'[help for completion]' \
+    '(-s --shell)'{-s,--shell}'[anchor completion -s bash/zsh]:' \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+
+function _anchor_docker {
+  local -a commands
+
+  _arguments -C \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]' \
+    "1: :->cmnds" \
+    "*::arg:->args"
+
+  case $state in
+  cmnds)
+    commands=(
+      "build:Builds a docker image"
+      "purge:Purge all docker images and containers"
+      "push:Push a docker image to repository [registry.anchor]"
+      "remove:Remove docker containers and images"
+      "run:Run a docker container"
+      "stop:Stop a docker container"
+    )
+    _describe "command" commands
+    ;;
+  esac
+
+  case "$words[1]" in
+  build)
+    _anchor_docker_build
+    ;;
+  purge)
+    _anchor_docker_purge
+    ;;
+  push)
+    _anchor_docker_push
+    ;;
+  remove)
+    _anchor_docker_remove
+    ;;
+  run)
+    _anchor_docker_run
+    ;;
+  stop)
+    _anchor_docker_stop
+    ;;
+  esac
+}
+
+function _anchor_docker_build {
+  _arguments \
+    '(-t --tag)'{-t,--tag}'[anchor docker build <name> -t my_tag]:' \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_docker_purge {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_docker_push {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_docker_remove {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_docker_run {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_docker_stop {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_help {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+
+function _anchor_kubernetes {
+  local -a commands
+
+  _arguments -C \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]' \
+    "1: :->cmnds" \
+    "*::arg:->args"
+
+  case $state in
+  cmnds)
+    commands=(
+      "connect:Connect to a kubernetes pod by name"
+      "create:Create a local Kubernetes cluster"
+      "dashboard:Deploy a Kubernetes dashboard"
+      "deploy:Deploy a container Kubernetes manifest"
+      "destroy:Destroy local Kubernetes cluster"
+      "expose:Expose a container port to the host instance"
+      "registry:Create a private docker registry [registry.anchor]"
+      "remove:Removed a previously deployed container manifest"
+      "status:Print cluster [anchor] status"
+      "token:Generate export KUBECONFIG command and load to clipboard"
+    )
+    _describe "command" commands
+    ;;
+  esac
+
+  case "$words[1]" in
+  connect)
+    _anchor_kubernetes_connect
+    ;;
+  create)
+    _anchor_kubernetes_create
+    ;;
+  dashboard)
+    _anchor_kubernetes_dashboard
+    ;;
+  deploy)
+    _anchor_kubernetes_deploy
+    ;;
+  destroy)
+    _anchor_kubernetes_destroy
+    ;;
+  expose)
+    _anchor_kubernetes_expose
+    ;;
+  registry)
+    _anchor_kubernetes_registry
+    ;;
+  remove)
+    _anchor_kubernetes_remove
+    ;;
+  status)
+    _anchor_kubernetes_status
+    ;;
+  token)
+    _anchor_kubernetes_token
+    ;;
+  esac
+}
+
+function _anchor_kubernetes_connect {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_create {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_dashboard {
+  _arguments \
+    '(-d --Delete Kubernetes dashboard)'{-d,--Delete Kubernetes dashboard}'[anchor cluster dashboard -d]' \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_deploy {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_destroy {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_expose {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_registry {
+  _arguments \
+    '(-d --delete)'{-d,--delete}'[anchor cluster registry -d]' \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_remove {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_status {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_kubernetes_token {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_list {
+  _arguments \
+    '(-a --filter by affinity)'{-a,--filter by affinity}'[anchor list -a affinity-name]:' \
+    '(-k --filter kubernetes manifests only)'{-k,--filter kubernetes manifests only}'[anchor list -k]' \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
+function _anchor_version {
+  _arguments \
+    '(-v --verbose)'{-v,--verbose}'[anchor <command> -v]'
+}
+
 `
 
 const KubernetesDashboardManifest = `# Copyright 2017 The Kubernetes Authors.

@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type VersionCmd struct {
+type versionCmd struct {
 	cobraCmd *cobra.Command
 	opts     VersionCmdOptions
 }
@@ -18,7 +18,7 @@ type VersionCmdOptions struct {
 	// Additional Build Params
 }
 
-func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
+func NewVersionCmd(opts *common.CmdRootOptions) *versionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print anchor version",
@@ -29,7 +29,7 @@ func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
 		},
 	}
 
-	var versionCmd = new(VersionCmd)
+	var versionCmd = new(versionCmd)
 	versionCmd.cobraCmd = cobraCmd
 	versionCmd.opts.CmdRootOptions = opts
 
@@ -40,11 +40,11 @@ func NewVersionCmd(opts *common.CmdRootOptions) *VersionCmd {
 	return versionCmd
 }
 
-func (cmd *VersionCmd) GetCobraCmd() *cobra.Command {
+func (cmd *versionCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *VersionCmd) initFlags() error {
+func (cmd *versionCmd) initFlags() error {
 	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }
