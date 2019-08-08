@@ -56,7 +56,12 @@ func NewBuildCmd(opts *common.CmdRootOptions) *buildCmd {
 }
 
 func buildDockerfile(identifier string) error {
-	logger.PrintCommandHeader(fmt.Sprintf("Building image %v", identifier))
+	if name, err := locator.DirLocator.Name(identifier); err != nil {
+		return err
+	} else {
+		logger.PrintCommandHeader(fmt.Sprintf("Building image [%v]", name))
+	}
+
 	if buildCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandBuild); err != nil {
 		return err
 	} else {

@@ -5,6 +5,7 @@ import (
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/extractor"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -69,7 +70,12 @@ func tagDockerImage(identifier string) error {
 }
 
 func pushDockerImage(identifier string) error {
-	logger.PrintCommandHeader(fmt.Sprintf("Pushing image %v", identifier))
+	if name, err := locator.DirLocator.Name(identifier); err != nil {
+		return err
+	} else {
+		logger.PrintCommandHeader(fmt.Sprintf("Pushing image [%v]", name))
+	}
+
 	if pushCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandPush); err != nil {
 		return err
 	} else {

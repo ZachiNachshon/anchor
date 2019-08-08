@@ -5,6 +5,7 @@ import (
 	"github.com/anchor/pkg/common"
 	"github.com/anchor/pkg/logger"
 	"github.com/anchor/pkg/utils/extractor"
+	"github.com/anchor/pkg/utils/locator"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +55,12 @@ func NewRunCmd(opts *common.CmdRootOptions) *runCmd {
 }
 
 func runContainer(identifier string) error {
-	logger.PrintCommandHeader(fmt.Sprintf("Running container %v", identifier))
+	if name, err := locator.DirLocator.Name(identifier); err != nil {
+		return err
+	} else {
+		logger.PrintCommandHeader(fmt.Sprintf("Running container [%v]", name))
+	}
+
 	if runCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandRun); err != nil {
 		return err
 	} else {
@@ -62,10 +68,11 @@ func runContainer(identifier string) error {
 			logger.Info("\n" + runCmd + "\n")
 		}
 
-		if containerId, err := common.ShellExec.ExecuteWithOutput(runCmd); err != nil {
+		if out, err := common.ShellExec.ExecuteWithOutput(runCmd); err != nil {
+			logger.Info(out)
 			return err
 		} else {
-			tailCmd := fmt.Sprintf("docker logs -f %v", containerId)
+			tailCmd := fmt.Sprintf("docker logs -f %v", out)
 			if err := common.ShellExec.Execute(tailCmd); err != nil {
 				return err
 			}
