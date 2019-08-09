@@ -63,8 +63,8 @@ func (b *brewInstaller) installCask(cask string) error {
 		return err
 	} else {
 		logInstallCask(cask)
-		caskInstallFormat := "brew update && brew tap caskroom/cask && brew search %v && brew cask info %v && brew cask install %v && brew cleanup"
-		installCmd := fmt.Sprintf(caskInstallFormat, cask, cask, cask)
+		caskInstallFormat := "brew tap caskroom/cask && brew cask install %v"
+		installCmd := fmt.Sprintf(caskInstallFormat, cask)
 		if err := b.shellExec.Execute(installCmd); err != nil {
 			return err
 		}
@@ -77,8 +77,8 @@ func (b *brewInstaller) installPackage(pkg string) error {
 		return err
 	} else {
 		logInstallPackage(pkg)
-		pkgInstallFormat := "brew update && brew search %v && brew install %v && brew cleanup"
-		installCmd := fmt.Sprintf(pkgInstallFormat, pkg, pkg)
+		pkgInstallFormat := "brew install %v"
+		installCmd := fmt.Sprintf(pkgInstallFormat, pkg)
 		if err := b.shellExec.Execute(installCmd); err != nil {
 			return err
 		}
