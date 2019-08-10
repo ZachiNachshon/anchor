@@ -6,109 +6,32 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 - [Docker](https://github.com/docker) for running containerized applications
 - [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container
 - [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
+- [Hostess](https://github.com/cbednarski/hostess) for managing your `/etc/hosts` file
 - [Homebrew](https://github.com/Homebrew/brew) for managing macOS/Linux packages
 
 [![Build Status](https://travis-ci.com/ZachiNachshon/anchor.svg "Travis CI status")](https://travis-ci.com/ZachiNachshon/anchor)
 
 > Note:<br>
-> Anchor is utilizing the following components: `docker`, `kind`, `kubectl`, `envsubst`.<br>
+> Anchor is utilizing the following components: `docker`, `kind`, `kubectl`, `envsubst`, `hostess`.<br>
 > If they can't be found on your machine, `Homebrew` is being installed and fetches them for you.
 
 ## Why
 1. Development environment should strive to be the same as production
-2. Avoid clutter by consolidate into a single folder all the docker build/run/tag/push commands and kubernetes manifests   
+2. Avoid clutter by consolidate into a single folder all the docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
 3. Easily manage and expand your kubernetes supported resources 
 4. Utilize simple commands that encapsulate your repetitive docker and kubernetes cli commands
 
 ## How does it work?
-#### Directory Structure
-Anchor act as one stop shop for all Dockerfiles & Kubernetes manifests that comprise your development environment.<br>
-It relies on a `DOCKER_FILES` ENV variable that points to a local directory path containing the following structure:
-
-    .
-    ├── ...
-    ├── nginx                   # Name of the docker image/container
-    │   └── k8s                 # Kubernetes content
-    │       └── manifest.yaml   # Kubernetes manifest
-    │   ├── Dockerfile          # Docker build/run/tag/push instructions
-    │   ├── .env                # Optional: Override root `NAMESPACE` & `TAG` environment vars
-    │   └── ...                 # Optional: files for docker build
-    ├── ... 
-    └── .env                    # Optional: Override default `NAMESPACE` & `TAG` environment vars at root level                 
-    
-> It is recommended to back the `DOCKER_FILES` directory by a git repository
-
-Anchor allow flexibility for changing the namespace and tag of every resource.<br>
-The following environment variables can be set on one of the `.env` files:
-- `export NAMESPACE="my-namespace`
-- `export TAG="v1.1.0`
-
-> Default values are `anchor` namespace and `latest` tag
-
-#### Dockerfile Instructions
-Every Dockerfile must contain the following header in order to integrate properly with `anchor`
-```dockerfile
-# OVERVIEW
-# --------
-# This is the Dockerfile for nginx
-#
-# REQUIRED BASE IMAGE TO BUILD THIS IMAGE
-# ---------------------------------------
-# None.
-#
-# REQUIRED FILES TO BUILD THIS IMAGE
-# ----------------------------------
-# (1) None.
-#
-# HOW TO BUILD THIS IMAGE
-# -----------------------
-# docker build -f Dockerfile \
-#              -t ${NAMESPACE}/nginx:${TAG} \
-#              .
-#
-# HOW TO RUN THIS CONTAINER
-# -------------------------
-# docker run -t -d \
-#            -v ${HOME}/.nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
-#            --name=${NAMESPACE}-nginx \
-#            -p 8080:80 \
-#            ${NAMESPACE}/alpine:${TAG}
-#
-# HOW TO TAG THIS IMAGE
-# ---------------------
-# docker tag ${NAMESPACE}/nginx:${TAG} \
-#            ${REGISTRY}/${NAMESPACE}/nginx:${TAG}
-#
-# HOW TO PUSH THIS IMAGE
-# ----------------------
-# docker push ${REGISTRY}/${NAMESPACE}/nginx:${TAG}
-# 
-```
-
-#### Kubernetes Manifest
-Anchor is using a standard kubernetes manifest.<br>
-It supports ENV vars substitution within manifests using `envsubst`.<br>
-In order to properly expose the deployed manifest to the host, a `port-forward` declaration is needed on the manifest:<br>
-```dockerfile
-# HOW TO EXPOSE THIS MANIFEST
-# ---------------------------
-# kubectl port-forward -n default deployment/${NAMESPACE}-nginx 1234:80
-#
-``` 
+#### Directory Structure & Instructions
+Please refer to [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-dockerfiles) repository for additional details.
 
 ## Requirements
 - Go 1.12.x
 
-> **Important !**<br>
-> Temporary add the following line to `/etc/hosts`:<br>
-> `127.0.0.1	localhost registry.anchor`<br>
->
-> _Issue should be automated using [go-dnsmasq](https://github.com/janeczku/go-dnsmasq) later on._
-
 ## Download
 
 #### I don't have GO environment 
-Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin`.
+Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` / `ust/local/bin`.
 
 #### I do have GO environment
 Clone anchor repository and build as follows:
