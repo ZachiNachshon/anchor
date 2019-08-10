@@ -3,7 +3,7 @@ package input
 import (
 	"bufio"
 	"fmt"
-	"github.com/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"os"
 	"strconv"
 )

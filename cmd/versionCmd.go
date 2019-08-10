@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/anchor/pkg/common"
+	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/spf13/cobra"
 )
 

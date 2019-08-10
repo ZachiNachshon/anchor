@@ -2,9 +2,9 @@ package extractor
 
 import (
 	"fmt"
-	"github.com/anchor/config"
-	"github.com/anchor/pkg/utils/locator"
-	"github.com/anchor/pkg/utils/parser"
+	"github.com/ZachiNachshon/anchor/config"
+	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
+	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"strings"

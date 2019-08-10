@@ -2,11 +2,11 @@ package docker
 
 import (
 	"fmt"
-	"github.com/anchor/pkg/utils/locator"
+	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"strings"
 
-	"github.com/anchor/pkg/common"
-	"github.com/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/pkg/common"
+	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/spf13/cobra"
 )
 

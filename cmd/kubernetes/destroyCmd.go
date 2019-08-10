@@ -2,9 +2,9 @@ package kubernetes
 
 import (
 	"fmt"
-	"github.com/anchor/pkg/common"
-	"github.com/anchor/pkg/logger"
-	"github.com/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/common"
+	"github.com/ZachiNachshon/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/spf13/cobra"
 )
 

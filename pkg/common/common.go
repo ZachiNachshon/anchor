@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/anchor/pkg/utils/shell"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
 var ShellExec shell.Shell

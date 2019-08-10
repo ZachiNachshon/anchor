@@ -1,4 +1,4 @@
-module github.com/anchor
+module github.com/ZachiNachshon/anchor
 
 go 1.12
 

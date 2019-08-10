@@ -2,7 +2,7 @@ package shell
 
 import (
 	"bytes"
-	"github.com/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/pkg/logger"
 	gotty "github.com/mattn/go-tty"
 	"io"
 	"log"

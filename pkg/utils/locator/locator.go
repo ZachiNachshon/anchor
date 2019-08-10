@@ -2,10 +2,10 @@ package locator
 
 import (
 	"fmt"
-	"github.com/anchor/pkg/common"
+	"github.com/ZachiNachshon/anchor/pkg/common"
 	"strconv"
 
-	"github.com/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
