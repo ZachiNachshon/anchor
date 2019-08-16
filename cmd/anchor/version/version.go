@@ -1,31 +1,32 @@
-package cmd
+package version
 
 import (
 	"fmt"
-
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/spf13/cobra"
 )
 
 type versionCmd struct {
 	cobraCmd *cobra.Command
-	opts     VersionCmdOptions
+	opts     VersionOptions
 }
 
-type VersionCmdOptions struct {
+type VersionOptions struct {
 	*common.CmdRootOptions
 
 	// Additional Build Params
 }
 
-func NewVersionCmd(opts *common.CmdRootOptions) *versionCmd {
+// TODO: take from config
+const Version = "v0.3.0"
+
+func NewCommand(opts *common.CmdRootOptions) *versionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Print anchor version",
-		Long:  `Print anchor version`,
+		Short: "Print anchor CLI version",
+		Long:  `Print anchor CLI version`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// TODO: take from config
-			fmt.Println("v1.0.0")
+			fmt.Println(Version)
 		},
 	}
 
@@ -45,6 +46,5 @@ func (cmd *versionCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *versionCmd) initFlags() error {
-	//rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 	return nil
 }
