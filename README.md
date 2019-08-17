@@ -31,7 +31,7 @@ Please refer to [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-doc
 ## Download
 
 #### I don't have GO environment 
-Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `ust/local/bin`.
+Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `usr/local/bin`.
 
 #### I do have GO environment
 
@@ -81,39 +81,36 @@ Flags:
 
 Global Flags:
   -v, --verbose   anchor <command> -v
-
-Use "anchor docker [command] --help" for more information about a command.
 ```
 
-List of available `anchor kubernetes` commands:
+List of available `anchor cluster` commands:
 ```bash
 Usage:
-  anchor kubernetes [command]
+  anchor cluster [command]
 
 Aliases:
-  kubernetes, k
+  cluster, c
 
 Available Commands:
-  connect     Connect to a kubernetes pod by name
+  apply       Apply a container Kubernetes manifest
+  connect     Connect to a kubernetes pod by name (if ^M appear as Enter, run - stty sane)
   create      Create a local Kubernetes cluster
   dashboard   Deploy a Kubernetes dashboard
-  deploy      Deploy a container Kubernetes manifest
+  delete      Delete a previously deployed container manifest
+  deploy      Deploy a fully managed container to Kubernetes
   destroy     Destroy local Kubernetes cluster
   expose      Expose a container port to the host instance
+  log         Log a running kubernetes pod by name
   registry    Create a private docker registry [registry.anchor]
-  remove      Removed a previously deployed container manifest
   status      Print cluster [anchor] status
   token       Generate export KUBECONFIG command and load to clipboard
 
 Flags:
-  -h, --help   help for kubernetes
+  -h, --help   help for cluster
 
 Global Flags:
   -v, --verbose   anchor <command> -v
-
-Use "anchor kubernetes [command] --help" for more information about a command.
 ```
----
 
 
 
