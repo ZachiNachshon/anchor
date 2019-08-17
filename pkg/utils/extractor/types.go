@@ -14,6 +14,7 @@ type ManifestCommand string
 const (
 	ManifestCommandPortForward ManifestCommand = "kubectl port-forward"
 	ManifestCommandWait        ManifestCommand = "kubectl wait"
+	ManifestCommandHostPath    ManifestCommand = "hostPath:"
 )
 
 type Extractor interface {

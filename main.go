@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ZachiNachshon/anchor/cmd"
+	"github.com/ZachiNachshon/anchor/cmd/anchor"
 	"github.com/sirupsen/logrus"
 	"os"
 )
@@ -21,5 +21,5 @@ func init() {
 }
 
 func main() {
-	cmd.NewCmdRoot().Execute()
+	anchor.Main()
 }

@@ -17,7 +17,7 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 
 ## Why
 1. Development environment should strive to be the same as production
-2. Avoid clutter by consolidate into a single folder all the docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
+2. Avoid clutter by consolidate into a single directory all docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
 3. Easily manage and expand your kubernetes supported resources 
 4. Utilize simple commands that encapsulate your repetitive docker and kubernetes cli commands
 
@@ -31,28 +31,100 @@ Please refer to [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-doc
 ## Download
 
 #### I don't have GO environment 
-Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` / `ust/local/bin`.
+Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `ust/local/bin`.
 
 #### I do have GO environment
-Clone anchor repository and build as follows:
+
+##### without source
 ```bash
-~$ git clone https://github.com/ZachiNachshon/anchor.git ~/anchor-example/anchor
-~$ cd ~/anchor-example/anchor
+~$ go get github.com/ZachiNachshon/anchor@v0.2.0
+```
+
+##### with source
+```bash
+~$ git clone https://github.com/ZachiNachshon/anchor.git ${GOPATH}/src/github.com/anchor
+~$ cd {GOPATH}/src/github.com/anchor
 ~$ make build
 ```
 
 ## Quick Start Guide
-
-Clone an example dockerfiles git repository
 ```bash
-~$ git clone https://github.com/ZachiNachshon/anchor-dockerfiles.git ~/anchor-example/anchor-dockerfiles
+~$ ./scripts/quick-start.sh
 ```
 
-Define required environment variable (append to `$PATH` via `~/.bash_profile` / `~/.bashrc`)
+#### What's included?
+1. Clone `anchor-dockerfiles` to `${HOME}/.anchor` 
+2. Set `DOCKER_FILES` ENV var to `${HOME}/.anchor/anchor-dockerfiles` 
+
+> Note:<br/>
+> Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`) 
+
+---
+List of available `anchor docker` commands:
 ```bash
-~$ cd ~/anchor-example/anchor-dockerfiles
-~$ export DOCKER_FILES="$(PWD)"
-``` 
+Usage:
+  anchor docker [command]
+
+Aliases:
+  docker, d
+
+Available Commands:
+  build       Builds a docker image
+  purge       Purge all docker images and containers
+  push        Push a docker image to repository [registry.anchor]
+  remove      Remove docker containers and images
+  run         Run a docker container
+  stop        Stop a docker container
+
+Flags:
+  -h, --help   help for docker
+
+Global Flags:
+  -v, --verbose   anchor <command> -v
+
+Use "anchor docker [command] --help" for more information about a command.
+```
+
+List of available `anchor kubernetes` commands:
+```bash
+Usage:
+  anchor kubernetes [command]
+
+Aliases:
+  kubernetes, k
+
+Available Commands:
+  connect     Connect to a kubernetes pod by name
+  create      Create a local Kubernetes cluster
+  dashboard   Deploy a Kubernetes dashboard
+  deploy      Deploy a container Kubernetes manifest
+  destroy     Destroy local Kubernetes cluster
+  expose      Expose a container port to the host instance
+  registry    Create a private docker registry [registry.anchor]
+  remove      Removed a previously deployed container manifest
+  status      Print cluster [anchor] status
+  token       Generate export KUBECONFIG command and load to clipboard
+
+Flags:
+  -h, --help   help for kubernetes
+
+Global Flags:
+  -v, --verbose   anchor <command> -v
+
+Use "anchor kubernetes [command] --help" for more information about a command.
+```
+---
+
+
+
+
+
+
+
+
+
+
+
 
 List all available docker supported images/manifests
 ```bash
@@ -131,44 +203,4 @@ Delete kubernetes cluster
 ```bash
 ~$ anchor cluster delete
 ```
----
-List of available `anchor docker` commands:
-```bash
-Usage:
-  anchor docker [command]
-
-Aliases:
-  docker, d
-
-Available Commands:
-  build       Builds a docker image
-  clean       Clean docker containers and images
-  list        List all available docker supported images from DOCKER_FILES repository
-  purge       Purge all docker images and containers
-  push        Push a docker image to repository [registry.anchor:32001]
-  run         Run a docker container
-  stop        Stop a docker container
-```
-
-List of available `anchor cluster` commands:
-```bash
-Usage:
-  anchor cluster [command]
-
-Aliases:
-  cluster, c
-
-Available Commands:
-  connect     Connect to a kubernetes pod by name
-  create      Create a local Kubernetes cluster
-  dashboard   Deploy a Kubernetes dashboard
-  deploy      Deploy a container Kubernetes manifest
-  destroy     Destroy local Kubernetes cluster
-  expose      Expose a container port to the host instance
-  list        List all containers with Kubernetes manifests from DOCKER_FILES repository
-  registry    Create a private docker registry [registry.anchor:32001]
-  remove      Removed a previously deployed container manifest
-  status      Print cluster [registry.anchor:32001] status
-```
----
 

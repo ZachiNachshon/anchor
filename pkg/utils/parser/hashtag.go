@@ -29,7 +29,7 @@ func (x *hashtagParser) Parse(text string) error {
 		if strings.HasPrefix(line, x.pfx) {
 			line = strings.TrimPrefix(line, x.pfx)
 			//line = strings.TrimSuffix(line, x.sfx)
-			line = strings.TrimSpace(line)
+			//line = strings.TrimSpace(line)
 		} else {
 			line = x.mrkr
 		}

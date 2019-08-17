@@ -5,7 +5,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/logger"
 	gotty "github.com/mattn/go-tty"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -31,7 +30,7 @@ func NewShellExecutor(sType ShellType) Shell {
 func (s *shellExecutor) ExecuteTTY(script string) error {
 	tty, err := gotty.Open()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer tty.Close()
 

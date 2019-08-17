@@ -85,7 +85,6 @@ func (e *extractor) ManifestCmd(identifier string, manifestCommand ManifestComma
 			}
 
 			if result = p.Find(string(manifestCommand)); result != "" {
-				// In the future might manually substitute arguments
 				result = strings.TrimSuffix(result, "\n")
 			}
 

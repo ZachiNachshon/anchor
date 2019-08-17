@@ -57,7 +57,20 @@ func NewNumericInput() *NumericInput {
 }
 
 func (input *NumericInput) WaitForInput() (int, error) {
+	return input.waitForInputInner(false)
+}
+
+func (input *NumericInput) WaitForInputAllowDefault() (int, error) {
+	return input.waitForInputInner(true)
+}
+
+func (input *NumericInput) waitForInputInner(allowDefault bool) (int, error) {
 	fmt.Print("  Enter a value: ")
+
+	//_ = exec.Command(string(shell.BASH), "-c", "stty sane")
+
+	// Check is shell is zsh and execute 'stty sane' to fix the ^M char for enter key press
+	//_, _ = common.ShellExec.ExecuteWithOutput("stty sane")
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -72,10 +85,16 @@ func (input *NumericInput) WaitForInput() (int, error) {
 
 		switch value {
 		case "\n":
+			if allowDefault {
+				return -1, nil
+			}
 			fmt.Print("  Enter a value: ")
 			break
 		default:
 			if number, err := strconv.Atoi(value); err != nil {
+				if allowDefault {
+					return -1, nil
+				}
 				logger.Info("Selection must be a numeric value")
 				fmt.Print("\n  Enter a value: ")
 			} else {

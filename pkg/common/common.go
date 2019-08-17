@@ -18,11 +18,6 @@ var GlobalOptions = CmdRootOptions{
 
 	// Kind
 	KindClusterName: "anchor",
-
-	// Auto Completion
-	AutoCompletionDefaultShell:      "bash",
-	AutoCompleteGenerateFile:        false,
-	AutoCompletionDefaultFilePrefix: "anchor-auto-completion",
 }
 
 type CmdRootOptions struct {
@@ -40,9 +35,4 @@ type CmdRootOptions struct {
 
 	// Kind
 	KindClusterName string
-
-	// Auto Completion
-	AutoCompletionDefaultShell      string
-	AutoCompleteGenerateFile        bool
-	AutoCompletionDefaultFilePrefix string
 }
