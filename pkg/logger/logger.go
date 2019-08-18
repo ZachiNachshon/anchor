@@ -13,6 +13,7 @@ type AnchorLogger struct {
 
 type HeadlineContext string
 
+const InstallerHeadline HeadlineContext = "Install"
 const DockerHeadline HeadlineContext = "Docker"
 const ClusterHeadline HeadlineContext = "Cluster"
 
@@ -51,6 +52,11 @@ func Fatalf(format string, a ...interface{}) {
 func PrintHeadline(context HeadlineContext, action string) {
 	var format = "\n[%s: %s]"
 	switch context {
+	case InstallerHeadline:
+		prefix := Sprintf(Bold(Magenta("\n[%s: ")), context)
+		suffix := Sprintf(Bold(Yellow("%s]")), action)
+		format = prefix + suffix
+		break
 	case DockerHeadline:
 		prefix := Sprintf(Bold(Blue("\n[%s: ")), context)
 		suffix := Sprintf(Bold(Yellow("%s]")), action)

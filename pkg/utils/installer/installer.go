@@ -11,15 +11,17 @@ import (
 )
 
 func logInstallHeader(name string) {
-	logger.Infof("==> Installing %v...", name)
+	logger.PrintHeadline(logger.InstallerHeadline, name)
 }
 
 func logInstallPackage(cask string) {
-	logger.Infof("  ==> Installing Homebrew package %v... (Please be patient, might take some time)", cask)
+	msg := fmt.Sprintf("Installing Homebrew package %v (Please be patient, might take some time)", cask)
+	logger.PrintCommandHeader(msg)
 }
 
 func logInstallCask(cask string) {
-	logger.Infof("  ==> Installing Homebrew cask %v... (Please be patient, might take some time)", cask)
+	msg := fmt.Sprintf("Installing Homebrew cask %v (Please be patient, might take some time)", cask)
+	logger.PrintCommandHeader(msg)
 }
 
 type baseInstaller struct {
