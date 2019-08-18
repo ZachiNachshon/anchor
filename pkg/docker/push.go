@@ -20,7 +20,7 @@ func Tag(identifier string) error {
 		if err = common.ShellExec.Execute(tagCmd); err != nil {
 			return err
 		}
-		logger.Info(" Successfully tagged.")
+		logger.Info("Successfully tagged.")
 		return nil
 	}
 }
@@ -44,7 +44,7 @@ func Push(identifier string) error {
 
 		_ = untagDockerImage(pushCmd)
 
-		logger.Info(" Successfully pushed to registry.")
+		logger.Info("Successfully pushed to registry.")
 	}
 	return nil
 }

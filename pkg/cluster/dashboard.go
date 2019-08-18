@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"time"
 )
 
 var dashboardUrl = "http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy"
@@ -60,21 +59,15 @@ func startDashboard() error {
 	// Start new kubectl proxy
 	_ = startKubectlProxy()
 
-	// Sleep for 3 secs to allow kubectl proxy to start
-	time.Sleep(5 * time.Second)
-
 	// Wait until dashboard pod is ready
-	if err := waitForDashboardPod(); err != nil {
-		// TODO: handle error gracefully
-		//return err
+	label := "k8s-app=kubernetes-dashboard"
+	namespace := "kube-system"
+	if ready, err := waitForPodReadiness(label, namespace, 5); err != nil {
+		logger.Info(err.Error())
+	} else if !ready {
+		logger.Infof("Cannot identify ready dashboard pods with label %v", label)
 	}
-
-	_ = PrintDashboardInfo()
-
-	// Open browser and start kubectl proxy
-	startProxyCmd := fmt.Sprintf(`open "%v"`, dashboardUrl)
-
-	return common.ShellExec.Execute(startProxyCmd)
+	return nil
 }
 
 func getSecret() error {
@@ -89,14 +82,15 @@ echo
 	return common.ShellExec.Execute(printSecretCmd)
 }
 
-func waitForDashboardPod() error {
-	logger.Info("Waiting for dashboard pod to become ready (2m timeout)...")
-	waitContainerCmd := fmt.Sprintf("kubectl wait -n kube-system -l k8s-app=kubernetes-dashboard --timeout=2m --for=condition=Ready pod")
-	return common.ShellExec.Execute(waitContainerCmd)
+func isDashboardPortExposed() bool {
+	if pid, err := common.ShellExec.ExecuteWithOutput(`ps -ef | grep "kubectl proxy" | grep -v grep | awk '{print $2}'`); err == nil && len(pid) > 0 {
+		return true
+	}
+	return false
 }
 
-// Creates a proxy server or application-level gateway between localhost and the Kubernetes API Server.
 func startKubectlProxy() error {
+	// Creates a proxy server or application-level gateway between localhost and the Kubernetes API Server.
 	return common.ShellExec.ExecuteInBackground("kubectl proxy")
 }
 
@@ -161,10 +155,16 @@ func Dashboard() error {
 		if err := startDashboard(); err != nil {
 			return err
 		}
-
-	} else {
-		logger.Info("Dashboard already exists, skipping creation.")
-		return PrintDashboardInfo()
+	} else if !isDashboardPortExposed() {
+		if err := startDashboard(); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	_ = PrintDashboardInfo()
+
+	// Open browser and start kubectl proxy
+	startProxyCmd := fmt.Sprintf(`open "%v"`, dashboardUrl)
+
+	return common.ShellExec.Execute(startProxyCmd)
 }

@@ -38,10 +38,16 @@ func Delete(identifier string, namespace string) (string, error) {
 		}
 
 		// Check if volume should be unmounted via hostPath on manifest.yaml
-		if hostPath, err := extractor.CmdExtractor.ManifestCmd(name, extractor.ManifestCommandHostPath); err == nil {
-			if err := unMountHostPath(name, namespace, hostPath); err != nil {
+		if stateful, err := extractor.CmdExtractor.ManifestContent(name, extractor.ManifestCommandStateful); err == nil && stateful {
+			if err := unMountHostPath(name, namespace); err != nil {
 				return "", err
 			}
+		}
+
+		logger.PrintCommandHeader(fmt.Sprintf("Stopping kubectl process for %v", name))
+		if err := KillRunningKubectl(name); err != nil {
+			msg := fmt.Sprintf("Failed stopping kubectl process for %v, please do so manually", name)
+			logger.Info(msg)
 		}
 
 		return manifestFilePath, nil

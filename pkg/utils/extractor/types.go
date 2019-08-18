@@ -14,10 +14,11 @@ type ManifestCommand string
 const (
 	ManifestCommandPortForward ManifestCommand = "kubectl port-forward"
 	ManifestCommandWait        ManifestCommand = "kubectl wait"
-	ManifestCommandHostPath    ManifestCommand = "hostPath:"
+	ManifestCommandStateful    ManifestCommand = "anchor-stateful"
 )
 
 type Extractor interface {
 	DockerCmd(identifier string, dockerCommand DockerCommand) (string, error)
 	ManifestCmd(identifier string, manifestCommand ManifestCommand) (string, error)
+	ManifestContent(identifier string, manifestCommand ManifestCommand) (bool, error)
 }

@@ -14,8 +14,6 @@ func Apply(identifier string, namespace string) (string, error) {
 	var err error
 	if name, err = locator.DirLocator.Name(identifier); err != nil {
 		return "", err
-	} else {
-		logger.PrintCommandHeader(fmt.Sprintf("Applying %v", name))
 	}
 
 	if manifestFilePath, err := locator.DirLocator.Manifest(name); err != nil {
@@ -26,10 +24,13 @@ func Apply(identifier string, namespace string) (string, error) {
 		config.LoadEnvVars(identifier)
 
 		// Check if volume should be mounted via hostPath on manifest.yaml
-		if hostPath, err := extractor.CmdExtractor.ManifestCmd(name, extractor.ManifestCommandHostPath); err == nil {
-			if err := mountHostPath(name, namespace, hostPath); err != nil {
+		if stateful, err := extractor.CmdExtractor.ManifestContent(name, extractor.ManifestCommandStateful); err == nil && stateful {
+			logger.PrintCommandHeader(fmt.Sprintf("Applying %v (Stateful)", name))
+			if err := mountHostPath(name, namespace); err != nil {
 				return "", err
 			}
+		} else {
+			logger.PrintCommandHeader(fmt.Sprintf("Applying %v", name))
 		}
 
 		if common.GlobalOptions.Verbose {

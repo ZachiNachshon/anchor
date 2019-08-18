@@ -1,15 +1,14 @@
 package config
 
 import (
-	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
-	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
-	"os"
-
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
+	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
+	"os"
 )
 
 func CheckPrerequisites() error {
@@ -22,6 +21,11 @@ func CheckPrerequisites() error {
 	// TODO: resolve shell type from configuration (https://github.com/spf13/viper ?)
 	common.ShellExec = shell.NewShellExecutor(shell.BASH)
 
+	// Create ${HOME}/.anchor directory
+	if err := CreateDirectory(common.GlobalOptions.AnchorHomeDirectory); err != nil {
+		return err
+	}
+
 	setDefaultEnvVar()
 	LoadEnvVars(common.GlobalOptions.DockerRepositoryPath)
 
@@ -29,6 +33,13 @@ func CheckPrerequisites() error {
 		return err
 	}
 
+	return nil
+}
+
+func CreateDirectory(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.Mkdir(path, os.ModePerm)
+	}
 	return nil
 }
 

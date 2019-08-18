@@ -20,7 +20,7 @@ func Destroy() error {
 		logger.PrintCommandHeader(fmt.Sprintf("Destroying cluster %v", name))
 
 		// Kill possible running kubectl proxy
-		_ = KillKubectlProxy()
+		_ = KillAllRunningKubectl()
 
 		// Remove docker registry and clean /etc/host entry
 		_ = DeleteRegistry()

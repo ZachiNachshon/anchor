@@ -2,12 +2,16 @@ package common
 
 import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
+	"os"
+	"path/filepath"
 )
 
 var ShellExec shell.Shell
 
 var GlobalOptions = CmdRootOptions{
 	Verbose: false,
+
+	AnchorHomeDirectory: filepath.Join(os.Getenv("HOME"), ".anchor"),
 
 	// Docker
 	DockerRegistryDns:       "registry.anchor",
@@ -22,6 +26,8 @@ var GlobalOptions = CmdRootOptions{
 
 type CmdRootOptions struct {
 	ConfigFile string
+
+	AnchorHomeDirectory string
 
 	// Log options
 	Verbose bool

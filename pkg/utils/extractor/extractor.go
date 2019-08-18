@@ -99,3 +99,20 @@ func (e *extractor) ManifestCmd(identifier string, manifestCommand ManifestComma
 func missingManifestCmdMsg(manifestCommand ManifestCommand, dirname string) string {
 	return fmt.Sprintf("Missing '%v' on %v K8s manifest\n", manifestCommand, dirname)
 }
+
+func (e *extractor) ManifestContent(identifier string, manifestCommand ManifestCommand) (bool, error) {
+	if manifestFilePath, err := locator.DirLocator.Manifest(identifier); err != nil {
+		return false, err
+	} else {
+		if contentByte, err := ioutil.ReadFile(manifestFilePath); err != nil {
+			return false, err
+		} else {
+			// Load .env file
+			config.LoadEnvVars(identifier)
+
+			var manifestContent = string(contentByte)
+			stateful := strings.Contains(manifestContent, string(manifestCommand))
+			return stateful, nil
+		}
+	}
+}

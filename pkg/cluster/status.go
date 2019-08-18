@@ -54,8 +54,8 @@ Services:
 
 func printDeployments() error {
 	logger.Info(`
-Services:
----------`)
+Deployments:
+------------`)
 	getDeploymentsCmd := "kubectl get deployments --all-namespaces=true"
 	return common.ShellExec.Execute(getDeploymentsCmd)
 }
@@ -79,7 +79,7 @@ Pods:
 
 func Status() error {
 	name := common.GlobalOptions.KindClusterName
-	logger.PrintCommandHeader(fmt.Sprintf("Print cluster %v status", name))
+	logger.PrintCommandHeader(fmt.Sprintf("Print %v cluster status", name))
 
 	// Double check since other command might call directly to this method
 	if exists, err := CheckForActiveCluster(name); err != nil {

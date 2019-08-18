@@ -76,10 +76,7 @@ func PrintCommandHeader(header string) {
 }
 
 func PrintWarning(msg string) {
-	wrap := fmt.Sprintf(`
-==========
-IMPORTANT: %v
-==========`, msg)
+	wrap := fmt.Sprintf("\nIMPORTANT: %v", msg)
 	format := Sprintf(Bold(Red("%v")), wrap)
 	Info(format)
 }

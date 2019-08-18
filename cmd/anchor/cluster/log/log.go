@@ -22,7 +22,7 @@ type LogOptions struct {
 
 func NewCommand(opts *common.CmdRootOptions) *logCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "log",
+		Use:   "logs",
 		Short: "Log a running kubernetes pod by name",
 		Long:  `Log a running kubernetes pod by name`,
 		Args:  cobra.ExactArgs(1),

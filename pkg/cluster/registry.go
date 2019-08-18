@@ -8,10 +8,10 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"io/ioutil"
 	"os"
 	"strings"
-	"time"
 )
 
 func checkForActiveRegistry() (bool, error) {
@@ -107,6 +107,13 @@ func forwardDockerRegistryPort() error {
 
 func killRegistryPortForwarding() error {
 	return common.ShellExec.Execute(`ps -ef | grep "kubectl port-forward -n container-registry" | grep -v grep | awk '{print $2}' | xargs kill -9`)
+}
+
+func isRegistryPortExposed() bool {
+	if pid, err := common.ShellExec.ExecuteWithOutput(`ps -ef | grep "kubectl port-forward -n container-registry" | grep -v grep | awk '{print $2}'`); err == nil && len(pid) > 0 {
+		return true
+	}
+	return false
 }
 
 func printCatalogContent(catalog string) error {
@@ -232,7 +239,7 @@ Registry:
 ---------`)
 		logger.Infof("Registry is available at: %s", "registry.anchor:32001")
 
-		getCatalogCmd := fmt.Sprintf(`docker exec -t anchor-control-plane /bin/sh -c "curl -X GET http://%v/v2/_catalog"`, common.GlobalOptions.DockerRegistryDnsWithIp)
+		getCatalogCmd := fmt.Sprintf(`docker exec -t anchor-control-plane %v -c "curl -X GET http://%v/v2/_catalog"`, shell.SH, common.GlobalOptions.DockerRegistryDnsWithIp)
 		if out, err := common.ShellExec.ExecuteWithOutput(getCatalogCmd); err != nil {
 			// TODO: Change to warn/error ?
 			logger.Info(out)
@@ -245,16 +252,20 @@ Registry:
 }
 
 func DeleteRegistry() error {
-	logger.PrintCommandHeader("Deleting registry")
 	if exists, err := checkForActiveRegistry(); err != nil {
 		return err
 	} else if exists {
+
+		logger.PrintCommandHeader("Stopping kubectl process for container-registry")
+		_ = KillRunningKubectl("container-registry")
+
 		if file, err := ioutil.TempFile(os.TempDir(), "anchor-registry-manifest.yaml"); err != nil {
 			return err
 		} else {
 			// Remove after finished
 			defer os.Remove(file.Name())
 
+			logger.PrintCommandHeader("Deleting registry")
 			if _, err := file.WriteString(config.KubernetesRegistryManifest); err != nil {
 				return err
 			} else {
@@ -271,16 +282,20 @@ func DeleteRegistry() error {
 			return err
 		}
 	} else {
-		logger.Info("Docker Registry does not exists, nothing to delete.")
+		logger.Info("\nDocker Registry does not exists, nothing to delete.")
 	}
 	return nil
 }
 
 func Registry() error {
-	logger.PrintCommandHeader("Creating registry")
 	if exists, err := checkForActiveRegistry(); err != nil {
 		return err
 	} else if !exists {
+		logger.PrintWarning(`
+Registry creation involve restarting Kind containerd runtime on all nodes.
+Port forwarding should get re-executed.`)
+
+		logger.PrintCommandHeader("Creating registry")
 
 		// Kill possible running kubectl registry port forwarding
 		_ = killRegistryPortForwarding()
@@ -311,33 +326,34 @@ func Registry() error {
 				return err
 			}
 		}
-	} else {
-		logger.Info("Docker registry already exists, skipping creation.")
-		return PrintRegistryInfo()
+
+		// Deploy docker registry as a pod
+		if err := installDockerRegistryPod(); err != nil {
+			return err
+		}
+
+		// Wait until registry pod is ready
+		label := "app=registry"
+		namespace := "container-registry"
+		if ready, err := waitForPodReadiness(label, namespace, 5); err != nil {
+			logger.Info(err.Error())
+		} else if !ready {
+			logger.Infof("Cannot identify ready registry pods with label %v", label)
+		}
+
+		// Create /etc/hosts entry with private docker registry DNS record
+		if err := createHostRegistryDns(); err != nil {
+			return err
+		}
 	}
 
-	// Deploy docker registry as a pod
-	if err := installDockerRegistryPod(); err != nil {
-		return err
+	if !isRegistryPortExposed() {
+		logger.PrintCommandHeader("Exposing registry")
+		// Forwards registry port 32001 -> 5000
+		if err := forwardDockerRegistryPort(); err != nil {
+			return err
+		}
 	}
 
-	// Sleep for 3 secs to allow registry pod deployment
-	time.Sleep(3 * time.Second)
-
-	// Wait for the registry pod to become ready with 2 minutes timeout
-	if err := waitForDockerRegistryPod(); err != nil {
-		return err
-	}
-
-	// Forwards registry port 32001 -> 5000
-	if err := forwardDockerRegistryPort(); err != nil {
-		return err
-	}
-
-	// Create /etc/hosts entry with private docker registry DNS record
-	if err := createHostRegistryDns(); err != nil {
-		return err
-	}
-
-	return nil
+	return PrintRegistryInfo()
 }

@@ -2,15 +2,20 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
+	"time"
 )
 
-const statefulLabel = "stateful"
+const statefulLabel = "anchor-stateful"
+const podReadinessRetries = 3
+const podReadinessInterval = 5 * time.Second
 
 type nodesSelector struct {
 	nodeColumns []*nodeColumn
@@ -338,8 +343,28 @@ func CheckForActiveCluster(name string) (bool, error) {
 	}
 }
 
+func KillAllRunningKubectl() error {
+	killAllCmd := `ps -ef | grep "kubectl" | grep -v grep | awk '{print $2}' | xargs kill -9`
+	if common.GlobalOptions.Verbose {
+		logger.Info("\n" + killAllCmd + "\n")
+	}
+	return common.ShellExec.Execute(killAllCmd)
+}
+
+func KillRunningKubectl(name string) error {
+	killCmd := fmt.Sprintf(`ps -ef | grep "kubectl" | grep %v | grep -v grep | awk '{print $2}' | xargs kill -9`, name)
+	if common.GlobalOptions.Verbose {
+		logger.Info("\n" + killCmd + "\n")
+	}
+	return common.ShellExec.Execute(killCmd)
+}
+
 func KillKubectlProxy() error {
-	return common.ShellExec.Execute(`ps -ef | grep "kubectl proxy" | grep -v grep | awk '{print $2}' | xargs kill -9`)
+	killProxyCmd := `ps -ef | grep "kubectl proxy" | grep -v grep | awk '{print $2}' | xargs kill -9`
+	if common.GlobalOptions.Verbose {
+		logger.Info("\n" + killProxyCmd + "\n")
+	}
+	return common.ShellExec.Execute(killProxyCmd)
 }
 
 func Prerequisites() bool {
@@ -356,17 +381,13 @@ func Prerequisites() bool {
 	return true
 }
 
-func extractVolumePath(hostPath string) string {
-	volumePath := hostPath[strings.Index(hostPath, " "):]
-	volumePath = strings.TrimSpace(volumePath)
-	volumePath = strings.TrimSuffix(volumePath, "\n")
-	return volumePath
+func createHostPath(name string) string {
+	return fmt.Sprintf("%v/%v", common.GlobalOptions.AnchorHomeDirectory, name)
 }
 
-func mountHostPath(name string, namespace string, hostPath string) error {
-	volumePath := extractVolumePath(hostPath)
+func mountHostPath(name string, namespace string) error {
+	hostPath := createHostPath(name)
 
-	// Init node selector and prepare node options
 	nodesSelector := NewNodesSelector()
 	if err := nodesSelector.PrepareOptions(); err != nil {
 		return err
@@ -378,6 +399,7 @@ func mountHostPath(name string, namespace string, hostPath string) error {
 		return errors.Errorf("Failed applying manifest since no nodes could be found")
 	}
 
+	logger.Info(fmt.Sprintf("Please select a stateful node:"))
 	if nodeInfo, err := nodesSelector.SelectNode(); err != nil {
 		return err
 	} else {
@@ -385,9 +407,15 @@ func mountHostPath(name string, namespace string, hostPath string) error {
 		if err := addNodeLabel(nodeInfo.Name, namespace, name, statefulLabel); err != nil {
 			return err
 		} else {
+
+			// Create ${HOME}/.anchor/<name> directory if does not exist
+			if err := config.CreateDirectory(hostPath); err != nil {
+				return err
+			}
+
 			// Copy hostPath content to <node>/opt/stateful
-			logger.PrintCommandHeader(fmt.Sprintf("Copying %v to %v:/opt/stateful/%v", volumePath, nodeInfo.Name, name))
-			copyHostPathCmd := fmt.Sprintf("docker cp %v %v:/opt/stateful/%v", volumePath, nodeInfo.Name, name)
+			logger.PrintCommandHeader(fmt.Sprintf("Copying %v to %v:/opt/stateful/%v", hostPath, nodeInfo.Name, name))
+			copyHostPathCmd := fmt.Sprintf("docker cp %v %v:/opt/stateful", hostPath, nodeInfo.Name)
 
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + copyHostPathCmd + "\n")
@@ -401,9 +429,7 @@ func mountHostPath(name string, namespace string, hostPath string) error {
 	return nil
 }
 
-func unMountHostPath(name string, namespace string, hostPath string) error {
-	volumePath := extractVolumePath(hostPath)
-
+func unMountHostPath(name string, namespace string) error {
 	label := fmt.Sprintf("%v=%v", name, statefulLabel)
 	var nodeName string
 	var err error
@@ -414,7 +440,7 @@ func unMountHostPath(name string, namespace string, hostPath string) error {
 		logger.Info(msg)
 	} else {
 
-		if err := backupMountPath(nodeName, name, volumePath); err != nil {
+		if err := backupMountPath(nodeName, name); err != nil {
 			return err
 		}
 
@@ -429,10 +455,11 @@ func unMountHostPath(name string, namespace string, hostPath string) error {
 	return nil
 }
 
-func backupMountPath(nodeName string, name string, volumePath string) error {
-	// Copy content from <node>/opt/stateful/<name> to hostPath
-	logger.PrintCommandHeader(fmt.Sprintf("Copying %v:/opt/stateful/%v to %v", nodeName, name, volumePath))
-	copyMountPathCmd := fmt.Sprintf("docker cp %v:/opt/stateful/%v %v", nodeName, name, volumePath)
+func backupMountPath(nodeName string, name string) error {
+	anchorHome := common.GlobalOptions.AnchorHomeDirectory
+	// Copy content from <node>:/opt/stateful/<name> to ~/.anchor
+	logger.PrintCommandHeader(fmt.Sprintf("Copying %v:/opt/stateful/%v/ to %v/%v", nodeName, name, anchorHome, name))
+	copyMountPathCmd := fmt.Sprintf("docker cp %v:/opt/stateful/%v/ %v", nodeName, name, anchorHome)
 	if common.GlobalOptions.Verbose {
 		logger.Info("\n" + copyMountPathCmd + "\n")
 	}
@@ -445,7 +472,7 @@ func backupMountPath(nodeName string, name string, volumePath string) error {
 func deleteMountPath(nodeName string, name string) error {
 	// Delete mounted volume on node
 	logger.PrintCommandHeader(fmt.Sprintf("Deleting %v:/opt/stateful/%v", nodeName, name))
-	deleteVolumeCmd := fmt.Sprintf("docker exec -t %v /bin/bash 'rm -rf /opt/stateful/%v'", nodeName, name)
+	deleteVolumeCmd := fmt.Sprintf("docker exec -t %v %v -c 'rm -rf /opt/stateful/%v'", nodeName, shell.BASH, name)
 	if common.GlobalOptions.Verbose {
 		logger.Info("\n" + deleteVolumeCmd + "\n")
 	}
@@ -453,4 +480,26 @@ func deleteMountPath(nodeName string, name string) error {
 		return err
 	}
 	return nil
+}
+
+func waitForPodReadiness(label string, namespace string, retries int) (bool, error) {
+	logger.Info(fmt.Sprintf("Waiting for pod to become ready (%v retries, %v interval)", retries, podReadinessInterval))
+	checkCmd := fmt.Sprintf("kubectl get pods -l %v -o 'jsonpath={..status.conditions[?(@.type==\"Ready\")].status}' -n %v", label, namespace)
+	if common.GlobalOptions.Verbose {
+		logger.Info("\n" + checkCmd + "\n")
+	}
+	var count = 1
+	for count <= retries {
+		logger.Info(fmt.Sprintf("Attempt %v/%v (label %v)...", count, retries, label))
+		if out, err := common.ShellExec.ExecuteWithOutput(checkCmd); err != nil {
+			return false, err
+		} else if out == "True" {
+			return true, nil
+		} else if count+1 > retries {
+			break
+		}
+		time.Sleep(podReadinessInterval)
+		count++
+	}
+	return false, nil
 }

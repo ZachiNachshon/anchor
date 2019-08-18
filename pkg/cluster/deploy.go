@@ -5,6 +5,9 @@ import (
 )
 
 func Deploy(identifier string, namespace string) error {
+
+	// TODO: Should verify delete before starting again ?
+
 	if err := docker.Build(identifier); err != nil {
 		return err
 	}
