@@ -22,6 +22,10 @@ var GlobalOptions = CmdRootOptions{
 
 	// Kind
 	KindClusterName: "anchor",
+
+	// Go
+	GoPathDir: filepath.Join(os.Getenv("HOME"), "go"),
+	GoRootDir: "/usr/local/opt/go", // symlink
 }
 
 type CmdRootOptions struct {
@@ -41,4 +45,8 @@ type CmdRootOptions struct {
 
 	// Kind
 	KindClusterName string
+
+	// Go
+	GoPathDir string
+	GoRootDir string
 }

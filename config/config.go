@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
-	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/joho/godotenv"
@@ -28,10 +27,6 @@ func CheckPrerequisites() error {
 
 	setDefaultEnvVar()
 	LoadEnvVars(common.GlobalOptions.DockerRepositoryPath)
-
-	if err := installer.NewGoInstaller(common.ShellExec).Check(); err != nil {
-		return err
-	}
 
 	return nil
 }

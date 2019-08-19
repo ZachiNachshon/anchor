@@ -2,12 +2,13 @@ package installer
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
-
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/pkg/errors"
+	"os"
 )
 
 func logInstallHeader(name string) {
@@ -41,7 +42,6 @@ func (b *brewInstaller) verify() error {
 }
 
 func (b *brewInstaller) install() error {
-	logInstallHeader("Homebrew")
 	installCmd := "/usr/bin/ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""
 	if err := b.shellExec.Execute(installCmd); err != nil {
 		return err
@@ -103,6 +103,7 @@ func (b *brewInstaller) linkPackageFiles(pkg string) error {
 
 func (b *brewInstaller) Check() error {
 	if err := b.verify(); err != nil {
+		logInstallHeader("Homebrew")
 		in := input.NewYesNoInput()
 		if result, err := in.WaitForInput("Homebrew is not installed, install?"); err != nil || !result {
 			return errors.Errorf("brew is missing, must be installed, cannot proceed.")
@@ -136,7 +137,17 @@ func (d *goInstaller) verify() error {
 }
 
 func (d *goInstaller) install() error {
-	logInstallHeader("Go")
+	logger.Infof("Creating GOPATH directory structure at %v...", common.GlobalOptions.GoPathDir)
+	if err := config.CreateDirectory(common.GlobalOptions.GoPathDir); err != nil {
+		logger.Infof("Failed creating GOPATH at %v", common.GlobalOptions.GoPathDir)
+		return err
+	}
+	//else {
+	//	_ = config.CreateDirectory(common.GlobalOptions.GoPathDir + "/bin")
+	//	_ = config.CreateDirectory(common.GlobalOptions.GoPathDir + "/pkg")
+	//	_ = config.CreateDirectory(common.GlobalOptions.GoPathDir + "/src")
+	//}
+
 	brew := NewBrewInstaller(d.shellExec)
 	if err := brew.installPackage("go"); err != nil {
 		return err
@@ -149,6 +160,7 @@ func (d *goInstaller) install() error {
 
 func (d *goInstaller) Check() error {
 	if err := d.verify(); err != nil {
+		logInstallHeader("Go")
 		in := input.NewYesNoInput()
 		if result, err := in.WaitForInput("Go is not installed, install?"); err != nil || !result {
 			return errors.Errorf("Go language missing, must be installed, cannot proceed.")
@@ -159,7 +171,25 @@ func (d *goInstaller) Check() error {
 	return nil
 }
 
+func setDefaultGoEnvVarsIfMissing() {
+	if len(os.Getenv("GOPATH")) == 0 {
+		logger.Infof("Missing GOPATH, setting to %v", common.GlobalOptions.GoPathDir)
+		_ = os.Setenv("GOPATH", common.GlobalOptions.GoPathDir)
+	}
+	if len(os.Getenv("GOROOT")) == 0 {
+		logger.Infof("Missing GOROOT, setting to %v", common.GlobalOptions.GoRootDir)
+		_ = os.Setenv("GOROOT", common.GlobalOptions.GoRootDir)
+	}
+	if len(os.Getenv("GO111MODULE")) == 0 {
+		logger.Info("Missing GO111MODULE, setting to \"on\"")
+		_ = os.Setenv("GO111MODULE", "on")
+	}
+}
+
 func NewGoInstaller(shellExec shell.Shell) Installer {
+	// If Go was installed via anchor using Homebrew, assign GOPATH & GOROOT for every new command
+	setDefaultGoEnvVarsIfMissing()
+
 	return &goInstaller{
 		baseInstaller: baseInstaller{
 			shellExec: shellExec,
@@ -182,7 +212,6 @@ func (d *dockerInstaller) verify() error {
 }
 
 func (d *dockerInstaller) install() error {
-	logInstallHeader("Docker")
 	brew := NewBrewInstaller(d.shellExec)
 	if err := brew.installCask("docker"); err != nil {
 		return err
@@ -197,6 +226,7 @@ func (d *dockerInstaller) install() error {
 
 func (d *dockerInstaller) Check() error {
 	if err := d.verify(); err != nil {
+		logInstallHeader("Docker")
 		in := input.NewYesNoInput()
 		if result, err := in.WaitForInput("Docker is not installed, install?"); err != nil || !result {
 			return errors.Errorf("docker is missing, must be installed, cannot proceed.")
@@ -230,7 +260,6 @@ func (d *kindInstaller) verify() error {
 }
 
 func (d *kindInstaller) install() error {
-	logInstallHeader("Kind")
 	// TODO: Replace with brew install once available
 	//       https://github.com/kubernetes-sigs/kind/issues/88
 	if err := d.shellExec.Execute("export GO111MODULE=\"on\" && go get sigs.k8s.io/kind@v0.4.0"); err != nil {
@@ -241,6 +270,7 @@ func (d *kindInstaller) install() error {
 
 func (d *kindInstaller) Check() error {
 	if err := d.verify(); err != nil {
+		logInstallHeader("Kind")
 		in := input.NewYesNoInput()
 		if result, err := in.WaitForInput("Kind is not installed, install?"); err != nil || !result {
 			return errors.Errorf("kind is missing, must be installed, cannot proceed.")
@@ -274,7 +304,6 @@ func (k *kubectlInstaller) verify() error {
 }
 
 func (k *kubectlInstaller) install() error {
-	logInstallHeader("kubectl")
 	brew := NewBrewInstaller(k.shellExec)
 	if err := brew.installPackage("kubernetes-cli"); err != nil {
 		return err
@@ -287,6 +316,7 @@ func (k *kubectlInstaller) install() error {
 
 func (k *kubectlInstaller) Check() error {
 	if err := k.verify(); err != nil {
+		logInstallHeader("kubectl")
 		in := input.NewYesNoInput()
 		if result, err := in.WaitForInput("Kubectl is not installed, install?"); err != nil || !result {
 			return errors.Errorf("kubectl is missing, must be installed, cannot proceed.")
@@ -320,7 +350,6 @@ func (h *helmInstaller) verify() error {
 }
 
 func (h *helmInstaller) install() error {
-	logInstallHeader("Helm")
 	brew := NewBrewInstaller(h.shellExec)
 	if err := brew.installCask("kubernetes-helm"); err != nil {
 		return err
@@ -330,6 +359,7 @@ func (h *helmInstaller) install() error {
 
 func (h *helmInstaller) Check() error {
 	if err := h.verify(); err != nil {
+		logInstallHeader("Helm")
 		in := input.NewYesNoInput()
 		if result, err := in.WaitForInput("Helm is not installed, install?"); err != nil || !result {
 			return errors.Errorf("helm is missing, must be installed, cannot proceed.")
@@ -363,7 +393,6 @@ func (e *envsubstInstaller) verify() error {
 }
 
 func (e *envsubstInstaller) install() error {
-	logInstallHeader("envsubst")
 	brew := NewBrewInstaller(e.shellExec)
 	if err := brew.installPackage("gettext"); err != nil {
 		return err
@@ -376,6 +405,7 @@ func (e *envsubstInstaller) install() error {
 
 func (e *envsubstInstaller) Check() error {
 	if err := e.verify(); err != nil {
+		logInstallHeader("envsubst")
 		logger.Info("envsubst is mandatory for ENV vars substitution on Dockerfiles/Kubernetes manifests")
 		return e.install()
 	}
@@ -405,7 +435,6 @@ func (e *hostessInstaller) verify() error {
 }
 
 func (e *hostessInstaller) install() error {
-	logInstallHeader("hostess")
 	brew := NewBrewInstaller(e.shellExec)
 	if err := brew.installPackage("hostess"); err != nil {
 		return err
@@ -418,6 +447,7 @@ func (e *hostessInstaller) install() error {
 
 func (e *hostessInstaller) Check() error {
 	if err := e.verify(); err != nil {
+		logInstallHeader("hostess")
 		logger.Infof("hostess is mandatory for managing your /etc/hosts to create a %v DNS record", common.GlobalOptions.DockerRegistryDns)
 		return e.install()
 	}
