@@ -7,11 +7,11 @@ import (
 	"runtime"
 )
 
-func Load(cmd string) error {
+func Load(content string) error {
 	switch runtime.GOOS {
 	case "darwin":
 		{
-			if err := common.ShellExec.Execute(fmt.Sprintf("echo %v | pbcopy", cmd)); err != nil {
+			if err := common.ShellExec.Execute(fmt.Sprintf("echo \"%v\" | pbcopy", content)); err != nil {
 				logger.Info("Failed setting value to clipboard using 'pbcopy ...'")
 				return err
 			}
@@ -19,7 +19,7 @@ func Load(cmd string) error {
 		}
 	case "linux":
 		{
-			if err := common.ShellExec.Execute(fmt.Sprintf("xclip -selection %v", cmd)); err != nil {
+			if err := common.ShellExec.Execute(fmt.Sprintf("xclip -selection %v", content)); err != nil {
 				logger.Info("Failed setting value to clipboard using 'xclip -selection ...'")
 				return err
 			}

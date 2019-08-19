@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/pkg/utils/clipboard"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -70,7 +71,7 @@ func startDashboard() error {
 	return nil
 }
 
-func getSecret() error {
+func getSecret() (string, error) {
 	// TODO: Prevent overload of secrets if there is no dashboard secret
 	printSecretCmd := `
 kubectl -n kube-system describe secret $(
@@ -79,7 +80,7 @@ kubectl -n kube-system describe secret $(
 echo 
 `
 	// Print token to be used for Dashboard authentication
-	return common.ShellExec.Execute(printSecretCmd)
+	return common.ShellExec.ExecuteWithOutput(printSecretCmd)
 }
 
 func isDashboardPortExposed() bool {
@@ -94,6 +95,18 @@ func startKubectlProxy() error {
 	return common.ShellExec.ExecuteInBackground("kubectl proxy")
 }
 
+func loadDashboardSecret() error {
+	logger.Info("\nPaste the following secret from clipboard as the dashboard TOKEN - \n")
+	if out, err := getSecret(); err != nil {
+		return err
+	} else {
+		out := strings.TrimSpace(out)
+		logger.Info(out)
+		_ = clipboard.Load(out)
+	}
+	return nil
+}
+
 func PrintDashboardInfo() error {
 	if exists, err := checkForActiveDashboard(); err != nil {
 		return err
@@ -101,8 +114,6 @@ func PrintDashboardInfo() error {
 		logger.Info(`
 Dashboard:
 ----------`)
-		logger.Info("Copy the following and paste as the dashboard TOKEN - \n")
-		_ = getSecret()
 		logger.Info("Dashboard available at:\n\n  " + dashboardUrl + "\n")
 	}
 	return nil
@@ -159,6 +170,10 @@ func Dashboard() error {
 		if err := startDashboard(); err != nil {
 			return err
 		}
+	}
+
+	if err := loadDashboardSecret(); err != nil {
+		return err
 	}
 
 	_ = PrintDashboardInfo()
