@@ -26,11 +26,11 @@ func Expose(identifier string) error {
 		}
 
 		label := fmt.Sprintf("%v=%v", "app", name)
-		if ready, err := waitForPodReadiness(label, common.GlobalOptions.DockerImageNamespace, podReadinessRetries); err != nil {
+		if ready, err := waitForPodReadiness(label, common.GlobalOptions.DockerImageNamespace); err != nil {
 			// TODO: handle error gracefully
 			logger.Info(err.Error())
 		} else if !ready {
-			logger.Infof("Cannot identify ready pods with label %v, skipping port forwarding", label)
+			logger.Infof("Cannot identify ready pods with label %v, skipping port forwarding, try 'expose' cluster command once pod is ready", label)
 		} else {
 			if err := common.ShellExec.ExecuteInBackground(exposeCmd); err != nil {
 				return err

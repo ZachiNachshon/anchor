@@ -63,7 +63,7 @@ func startDashboard() error {
 	// Wait until dashboard pod is ready
 	label := "k8s-app=kubernetes-dashboard"
 	namespace := "kube-system"
-	if ready, err := waitForPodReadiness(label, namespace, 5); err != nil {
+	if ready, err := waitForPodReadiness(label, namespace); err != nil {
 		logger.Info(err.Error())
 	} else if !ready {
 		logger.Infof("Cannot identify ready dashboard pods with label %v", label)

@@ -16,14 +16,32 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 > If they can't be found on your machine, `Homebrew` is being installed and fetches them for you.
 
 ## Why
-1. Development environment should strive to be the same as production
-2. Avoid clutter by consolidate into a single directory all docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
-3. Easily manage and expand your kubernetes supported resources 
-4. Utilize simple commands that encapsulate your repetitive docker and kubernetes cli commands
+1. Allow a repository to become an anchor for all docker / kubernetes scripts that you manage on local / CI environment
+2. Avoid clutter by consolidate into a single repository all docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
+3. Encapsulate commonly used, repetitive docker/kubernetes actions as simple cli commands
+4. Development environment should strive to be the same as production, deploy locally the same as you deploy to production
+
+## What's in the box?
+- Private docker registry deployed on control-plane with multi node support
+- Allow stateful volume `mountPath` / `hostPath` between local and a running pod within the Kind docker via the node selector: `app-name: anchor-stateful`
+- Selection menu for quick connect to any node/pod 
 
 ## How does it work?
 #### Directory Structure & Instructions
-Please refer to [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-dockerfiles) repository for additional details.
+`Anchor` relies on a `DOCKER_FILES` environment variable that points to a local directory path containing the dockerfiles and k8s manifests.<br/> 
+Please refer to the sample [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-dockerfiles) repository for additional details.
+
+#### Quick Start Setup 
+```bash
+~$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ZachiNachshon/anchor/master/scripts/quick-start.sh)"
+```
+
+##### What's included?
+1. Clone `anchor-dockerfiles` to `${HOME}/.anchor` 
+2. Set `DOCKER_FILES` ENV var to `${HOME}/.anchor/anchor-dockerfiles` 
+
+> Note:<br/>
+> Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`)
 
 ## Requirements
 - Go 1.12.x
@@ -47,19 +65,30 @@ Download your OS and ARCH relevant binary from [releases](https://github.com/Zac
 ~$ make build
 ```
 
-## Quick Start Guide
-```bash
-~$ ./scripts/quick-start.sh
-```
+## Usage Example 
+Create an `anchor` Kubernetes cluster:
+[![https://youtu.be/7PtbKPpiJIA](assets/thumbnails/anchor-cluster-create-tn.png)](https://youtu.be/4XCf3M424Gk)
 
-#### What's included?
-1. Clone `anchor-dockerfiles` to `${HOME}/.anchor` 
-2. Set `DOCKER_FILES` ENV var to `${HOME}/.anchor/anchor-dockerfiles` 
+Build and run `nginx` as a docker container:
+[![https://youtu.be/7PtbKPpiJIA](assets/thumbnails/anchor-docker-nginx-tn.png)](https://youtu.be/7PtbKPpiJIA)
 
-> Note:<br/>
-> Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`) 
+Auto deploy `nginx` to Kubernetes:
+[![https://youtu.be/urmfVmYi5BE](assets/thumbnails/anchor-deploy-auto-nginx-tn.png)](https://youtu.be/7Tdx1GHaQ50)
 
----
+Manual deploy `nginx` to Kubernetes:
+[![https://youtu.be/urmfVmYi5BE](assets/thumbnails/anchor-deploy-manual-nginx-tn.png)](https://youtu.be/urmfVmYi5BE)
+
+Connect to a running Kubernetes pod/node:
+[![https://youtu.be/O25weLHGC-M](assets/thumbnails/anchor-cluster-connect-tn.png)](https://youtu.be/O25weLHGC-M)
+
+
+## Still in progress
+- After macOS restart `kubectl` is losing cluster context
+- Use `stty sane` to avoid terminal input errors such as `^M` on Enter
+- Add `-y` flag to skip all prompts using default values  
+
+## Available Anchor commands
+
 List of available `anchor docker` commands:
 ```bash
 Usage:
@@ -93,14 +122,14 @@ Aliases:
 
 Available Commands:
   apply       Apply a container Kubernetes manifest
-  connect     Connect to a kubernetes pod by name (if ^M appear as Enter, run - stty sane)
+  connect     Connect to a kubernetes node/pod by name
   create      Create a local Kubernetes cluster
   dashboard   Deploy a Kubernetes dashboard
   delete      Delete a previously deployed container manifest
   deploy      Deploy a fully managed container to Kubernetes
   destroy     Destroy local Kubernetes cluster
   expose      Expose a container port to the host instance
-  log         Log a running kubernetes pod by name
+  logs        Log a running kubernetes pod by name
   registry    Create a private docker registry [registry.anchor]
   status      Print cluster [anchor] status
   token       Generate export KUBECONFIG command and load to clipboard
@@ -111,93 +140,3 @@ Flags:
 Global Flags:
   -v, --verbose   anchor <command> -v
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-List all available docker supported images/manifests
-```bash
-~$ anchor docker list
-
------------------------ Listing all Docker images ------------------------
-  alpine
-  nginx
-
-    Done.
-```
-
-```bash
-~$ anchor cluster list
-
------------------------ Listing Containers With K8S Manifests -----------------------
-  alpine
-  nginx
-
-    Done.
-```
-
-Let's create a cluster (patience needed since the first creation pulls image `kindest/node:v1.15.0`)
-```bash
-~$ anchor cluster create
-```
-
-> Follow on-screen dashboard instructions to enter the Kubernetes Web-UI
-
-Make sure all pods are running as expected
-```bash
-~$ anchor cluster status
-```
-
-Build an `nginx` docker image
-```bash
-~$ anchor docker build nginx
-```
-
-Push to private docker registry
-```bash
-~$ anchor docker push nginx
-```
-
-Verify `nginx` image exists on registry catalog
-```bash
-~$ anchor cluster registry
-```
-
-Deploy `nginx` kubernetes manifest and check status on K8s dashboard
-```bash
-~$ anchor cluster deploy nginx
-```
-
-Expose `nginx` port forwarding to the host instance
-```bash
-~$ anchor cluster expose nginx
-```
-
-Interact with `nginx` service
-```bash
-~$ curl -X GET http://localhost:1234
-```
-
-Connect to an `nginx` pod
-```bash
-~$ anchor cluster connect nginx
-```
-
-Remove `nginx` kubernetes manifest
-```bash
-~$ anchor cluster remove nginx
-```
-
-Delete kubernetes cluster
-```bash
-~$ anchor cluster delete
-```
-

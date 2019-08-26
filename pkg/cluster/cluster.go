@@ -14,7 +14,7 @@ import (
 )
 
 const statefulLabel = "anchor-stateful"
-const podReadinessRetries = 3
+const podReadinessRetries = 10
 const podReadinessInterval = 5 * time.Second
 
 type nodesSelector struct {
@@ -369,6 +369,9 @@ func KillKubectlProxy() error {
 
 func Prerequisites() bool {
 	name := common.GlobalOptions.KindClusterName
+
+	_, _ = startKindContainerNodesIfNeeded()
+
 	if exists, err := CheckForActiveCluster(name); err != nil {
 		logger.Fatal(err.Error())
 	} else if !exists {
@@ -482,20 +485,20 @@ func deleteMountPath(nodeName string, name string) error {
 	return nil
 }
 
-func waitForPodReadiness(label string, namespace string, retries int) (bool, error) {
-	logger.Info(fmt.Sprintf("Waiting for pod to become ready (%v retries, %v interval)", retries, podReadinessInterval))
+func waitForPodReadiness(label string, namespace string) (bool, error) {
+	logger.Info(fmt.Sprintf("Waiting for pod to become ready (%v retries, %v interval)", podReadinessRetries, podReadinessInterval))
 	checkCmd := fmt.Sprintf("kubectl get pods -l %v -o 'jsonpath={..status.conditions[?(@.type==\"Ready\")].status}' -n %v", label, namespace)
 	if common.GlobalOptions.Verbose {
 		logger.Info("\n" + checkCmd + "\n")
 	}
 	var count = 1
-	for count <= retries {
-		logger.Info(fmt.Sprintf("Attempt %v/%v (label %v)...", count, retries, label))
+	for count <= podReadinessRetries {
+		logger.Info(fmt.Sprintf("Attempt %v/%v (label %v)...", count, podReadinessRetries, label))
 		if out, err := common.ShellExec.ExecuteWithOutput(checkCmd); err != nil {
 			return false, err
-		} else if out == "True" {
+		} else if strings.Contains(out, "True") {
 			return true, nil
-		} else if count+1 > retries {
+		} else if count+1 > podReadinessRetries {
 			break
 		}
 		time.Sleep(podReadinessInterval)

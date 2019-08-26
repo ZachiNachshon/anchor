@@ -16,7 +16,7 @@ func printConfiguration() error {
 	logger.Info(`
 Configuration:
 --------------`)
-	getConfigCmd := "kind get kubeconfig-path"
+	getConfigCmd := fmt.Sprintf("kind get kubeconfig-path --name %v", name)
 	if out, err := common.ShellExec.ExecuteWithOutput(getConfigCmd); err != nil {
 		// TODO: Change to warn
 		logger.Infof("Something went wrong, error: %v", err.Error())

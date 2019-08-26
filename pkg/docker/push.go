@@ -10,7 +10,12 @@ import (
 )
 
 func Tag(identifier string) error {
-	logger.PrintCommandHeader(fmt.Sprintf("Tagging image %v", identifier))
+	if name, err := locator.DirLocator.Name(identifier); err != nil {
+		return err
+	} else {
+		logger.PrintCommandHeader(fmt.Sprintf("Tagging image %v", name))
+	}
+
 	if tagCmd, err := extractor.CmdExtractor.DockerCmd(identifier, extractor.DockerCommandTag); err != nil {
 		return err
 	} else {

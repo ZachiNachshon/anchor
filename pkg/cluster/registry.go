@@ -293,7 +293,7 @@ func Registry() error {
 	} else if !exists {
 		logger.PrintWarning(`
 Registry creation involve restarting Kind containerd runtime on all nodes.
-Port forwarding should get re-executed.`)
+Port forwarding should get re-executed on any exposed pod.`)
 
 		logger.PrintCommandHeader("Creating registry")
 
@@ -335,7 +335,7 @@ Port forwarding should get re-executed.`)
 		// Wait until registry pod is ready
 		label := "app=registry"
 		namespace := "container-registry"
-		if ready, err := waitForPodReadiness(label, namespace, 5); err != nil {
+		if ready, err := waitForPodReadiness(label, namespace); err != nil {
 			logger.Info(err.Error())
 		} else if !ready {
 			logger.Infof("Cannot identify ready registry pods with label %v", label)

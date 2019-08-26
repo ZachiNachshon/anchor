@@ -19,7 +19,7 @@ func Load(content string) error {
 		}
 	case "linux":
 		{
-			if err := common.ShellExec.Execute(fmt.Sprintf("xclip -selection %v", content)); err != nil {
+			if err := common.ShellExec.Execute(fmt.Sprintf("xclip -selection \"%v\"", content)); err != nil {
 				logger.Info("Failed setting value to clipboard using 'xclip -selection ...'")
 				return err
 			}

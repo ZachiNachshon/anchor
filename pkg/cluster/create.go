@@ -33,36 +33,41 @@ func createNamespace() error {
 	}
 }
 
-func checkIfClusterContainerAvailable(name string) (bool, error) {
-	var runningContainer = ""
-	var pastContainer = ""
-	var err error
+// After restart Kind container nodes are not running, they should be started again
+func startKindContainerNodesIfNeeded() (bool, error) {
+	kindNodesIdentifier := "kindest/node:"
 
-	clusterContainerName := fmt.Sprintf("%v-control-plane", name)
-
-	runningContainerCmd := fmt.Sprintf("docker ps | grep '%v' | awk {'print $1'}", clusterContainerName)
-	if runningContainer, err = common.ShellExec.ExecuteWithOutput(runningContainerCmd); err != nil {
+	runningContainerCmd := fmt.Sprintf("docker ps | grep '%v' | awk {'print $1'}", kindNodesIdentifier)
+	if runningContainer, err := common.ShellExec.ExecuteWithOutput(runningContainerCmd); err != nil {
 		return false, err
+	} else if len(runningContainer) > 0 {
+		// Do nothing, already running
+		return false, nil
 	}
 
-	pastContainerCmd := fmt.Sprintf("docker ps -a | grep '%v' | awk {'print $1'}", clusterContainerName)
-	if pastContainer, err = common.ShellExec.ExecuteWithOutput(pastContainerCmd); err != nil {
+	pastContainerCmd := fmt.Sprintf("docker ps -a | grep '%v' | awk {'print $1'}", kindNodesIdentifier)
+	if pastContainers, err := common.ShellExec.ExecuteWithOutput(pastContainerCmd); err != nil {
 		return false, err
-	}
-
-	if len(runningContainer) > 0 || len(pastContainer) > 0 {
-		logger.Infof("Found stopped container %v, starting and sleeping for 15s...", clusterContainerName)
+	} else if len(pastContainers) > 0 {
+		logger.Infof("\nFound %v stopped Kind containers, starting and sleeping for 15s...", len(pastContainers))
+		pastContainersArr := strings.Split(pastContainers, "\n")
+		for _, containerId := range pastContainersArr {
+			if len(containerId) <= 0 {
+				continue
+			}
+			logger.Info(fmt.Sprintf("Starting Kind node %v...", containerId))
+			startNodeCmd := fmt.Sprintf("docker start %v", containerId)
+			if common.GlobalOptions.Verbose {
+				logger.Info("\n" + startNodeCmd + "\n")
+			}
+			if err := common.ShellExec.Execute(startNodeCmd); err != nil {
+				logger.Info(fmt.Sprintf("Failed command: %v. Error: %v", startNodeCmd, err.Error()))
+			}
+		}
 
 		// Sleep for 15
 		time.Sleep(15 * time.Second)
-
-		startClusterCmd := fmt.Sprintf("docker start %v", clusterContainerName)
-		if common.GlobalOptions.Verbose {
-			logger.Info("\n" + startClusterCmd + "\n")
-		}
-		if err := common.ShellExec.Execute(startClusterCmd); err != nil {
-			return true, err
-		}
+		return true, nil
 	}
 
 	return false, nil
@@ -79,9 +84,6 @@ func createKindConfigManifest(workerNodes int) string {
 
 func Create() error {
 	name := common.GlobalOptions.KindClusterName
-	if started, err := checkIfClusterContainerAvailable(name); err == nil && started {
-		return nil
-	}
 
 	logger.Info("\nPlease specify how many worker nodes should be created (default 1):\n")
 	in := input.NewNumericInput()
