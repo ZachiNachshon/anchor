@@ -18,7 +18,7 @@ type VersionOptions struct {
 }
 
 // TODO: take from config
-const Version = "v0.3.0"
+const Version = "v0.4.0"
 
 func NewCommand(opts *common.CmdRootOptions) *versionCmd {
 	var cobraCmd = &cobra.Command{
