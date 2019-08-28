@@ -418,7 +418,7 @@ func mountHostPath(name string, namespace string) error {
 
 			// Copy hostPath content to <node>/opt/stateful
 			logger.PrintCommandHeader(fmt.Sprintf("Copying %v to %v:/opt/stateful/%v", hostPath, nodeInfo.Name, name))
-			copyHostPathCmd := fmt.Sprintf("docker cp %v %v:/opt/stateful/", hostPath, nodeInfo.Name)
+			copyHostPathCmd := fmt.Sprintf("docker cp %v/ %v:/opt/stateful/", hostPath, nodeInfo.Name)
 
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + copyHostPathCmd + "\n")

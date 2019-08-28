@@ -26,6 +26,10 @@ func Destroy() error {
 		_ = DeleteRegistry()
 
 		destroyCmd := fmt.Sprintf("kind delete cluster --name %v", name)
+		if common.GlobalOptions.Verbose {
+			logger.Info("\n" + destroyCmd + "\n")
+		}
+
 		if err := common.ShellExec.Execute(destroyCmd); err != nil {
 			return err
 		}
