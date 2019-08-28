@@ -418,7 +418,7 @@ func mountHostPath(name string, namespace string) error {
 
 			// Copy hostPath content to <node>/opt/stateful
 			logger.PrintCommandHeader(fmt.Sprintf("Copying %v to %v:/opt/stateful/%v", hostPath, nodeInfo.Name, name))
-			copyHostPathCmd := fmt.Sprintf("docker cp %v %v:/opt/stateful", hostPath, nodeInfo.Name)
+			copyHostPathCmd := fmt.Sprintf("docker cp %v %v:/opt/stateful/", hostPath, nodeInfo.Name)
 
 			if common.GlobalOptions.Verbose {
 				logger.Info("\n" + copyHostPathCmd + "\n")
@@ -432,7 +432,7 @@ func mountHostPath(name string, namespace string) error {
 	return nil
 }
 
-func unMountHostPath(name string, namespace string) error {
+func unMountHostPath(name string, namespace string, backupOnly bool) error {
 	label := fmt.Sprintf("%v=%v", name, statefulLabel)
 	var nodeName string
 	var err error
@@ -447,12 +447,14 @@ func unMountHostPath(name string, namespace string) error {
 			return err
 		}
 
-		if err := deleteMountPath(nodeName, name); err != nil {
-			return err
-		}
+		if !backupOnly {
+			if err := deleteMountPath(nodeName, name); err != nil {
+				return err
+			}
 
-		if err := removeNodeLabel(nodeName, namespace, name); err != nil {
-			return err
+			if err := removeNodeLabel(nodeName, namespace, name); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

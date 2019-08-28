@@ -38,7 +38,7 @@ Note for zsh users: [1] zsh completions are only supported in versions of zsh >=
 func NewCommand(root *cobra.Command, opts *common.CmdRootOptions) *CompletionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "completion",
-		Short: "Generate auto completion script for bash/zsh",
+		Short: "Generate auto completion script for [bash, zsh]",
 		Long:  longDescription,
 		Args:  cobra.NoArgs,
 	}

@@ -39,7 +39,7 @@ func NewCommand(opts *common.CmdRootOptions) *registryCmd {
 				}
 			} else {
 				// Deploy registry
-				if err := cluster.Registry(); err != nil {
+				if err := cluster.Registry(true); err != nil {
 					logger.Fatal(err.Error())
 				}
 			}

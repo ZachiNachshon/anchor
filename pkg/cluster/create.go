@@ -119,7 +119,7 @@ func Create() error {
 			_ = LoadKubeConfig()
 			_ = createNamespace()
 			_ = Dashboard()
-			_ = Registry()
+			_ = Registry(true)
 			_ = Status()
 
 			return nil

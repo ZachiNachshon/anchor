@@ -21,8 +21,8 @@ type ExposeOptions struct {
 func NewCommand(opts *common.CmdRootOptions) *exposeCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "expose",
-		Short: "Expose a container port to the host instance",
-		Long:  `Expose a container port to the host instance`,
+		Short: "Expose to the host instance a container port of a deployed Kubernetes resource",
+		Long:  `Expose to the host instance a container port of a deployed Kubernetes resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline(logger.ClusterHeadline, "Expose")

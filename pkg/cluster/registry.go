@@ -93,6 +93,7 @@ func installDockerRegistryPod() error {
 	return nil
 }
 
+// TODO: Should be removed later on, wait was implemented internally without the 'wait' command
 func waitForDockerRegistryPod() error {
 	logger.Info("Waiting for docker registry pod to become ready (5m timeout)...")
 	waitContainerCmd := fmt.Sprintf("kubectl wait -n container-registry -l app=registry --timeout=5m --for=condition=Ready pod")
@@ -287,7 +288,7 @@ func DeleteRegistry() error {
 	return nil
 }
 
-func Registry() error {
+func Registry(printCatalog bool) error {
 	if exists, err := checkForActiveRegistry(); err != nil {
 		return err
 	} else if !exists {
@@ -355,5 +356,9 @@ Port forwarding should get re-executed on any exposed pod.`)
 		}
 	}
 
-	return PrintRegistryInfo()
+	if printCatalog {
+		return PrintRegistryInfo()
+	}
+
+	return nil
 }

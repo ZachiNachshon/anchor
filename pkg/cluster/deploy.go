@@ -16,6 +16,11 @@ func Deploy(identifier string, namespace string) error {
 		return err
 	}
 
+	// Verify Registry is up and running, else start before try to tag & push
+	if err := Registry(false); err != nil {
+		return err
+	}
+
 	if err := docker.Push(identifier); err != nil {
 		return err
 	}

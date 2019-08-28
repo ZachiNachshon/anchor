@@ -18,7 +18,7 @@ Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes
 ## Why
 1. Allow a repository to become an anchor for all docker / kubernetes scripts that you manage on local / CI environment
 2. Avoid clutter by consolidate into a single repository all docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
-3. Encapsulate commonly used, repetitive docker/kubernetes actions as simple cli commands
+3. Encapsulate commonly used, repetitive docker / kubernetes actions as simple cli commands
 4. Development environment should strive to be the same as production, deploy locally the same as you deploy to production
 
 ## What's in the box?
@@ -38,7 +38,7 @@ Please refer to the sample [anchor-dockerfiles](https://github.com/ZachiNachshon
 
 ##### What's included?
 1. Clone `anchor-dockerfiles` to `${HOME}/.anchor` 
-2. Set `DOCKER_FILES` ENV var to `${HOME}/.anchor/anchor-dockerfiles` 
+2. Set `DOCKER_FILES` environment variable to `${HOME}/.anchor/anchor-dockerfiles` 
 
 > Note:<br/>
 > Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`)
@@ -55,7 +55,7 @@ Download your OS and ARCH relevant binary from [releases](https://github.com/Zac
 
 ##### without source
 ```bash
-~$ go get github.com/ZachiNachshon/anchor@v0.2.0
+~$ go get github.com/ZachiNachshon/anchor@v0.3.0
 ```
 
 ##### with source
@@ -85,7 +85,9 @@ Connect to a running Kubernetes pod/node:
 ## Still in progress
 - After macOS restart `kubectl` is losing cluster context
 - Use `stty sane` to avoid terminal input errors such as `^M` on Enter
-- Add `-y` flag to skip all prompts using default values  
+- Add the ability to delete an image from private docker registry 
+- Add `-y` flag to skip all prompts using default values
+- Tests coverage 
 
 ## Available Anchor commands
 
@@ -121,14 +123,15 @@ Aliases:
   cluster, c
 
 Available Commands:
-  apply       Apply a container Kubernetes manifest
-  connect     Connect to a kubernetes node/pod by name
+  apply       Apply a Kubernetes manifest resource
+  backup      Backup a stateful mounted volume
+  connect     Connect to a kubernetes [node, pod] by name
   create      Create a local Kubernetes cluster
   dashboard   Deploy a Kubernetes dashboard
-  delete      Delete a previously deployed container manifest
-  deploy      Deploy a fully managed container to Kubernetes
+  delete      Delete a previously deployed Kubernetes resource
+  deploy      Deploy a fully managed Kubernetes resource
   destroy     Destroy local Kubernetes cluster
-  expose      Expose a container port to the host instance
+  expose      Expose to the host instance a container port of a deployed Kubernetes resource
   logs        Log a running kubernetes pod by name
   registry    Create a private docker registry [registry.anchor]
   status      Print cluster [anchor] status

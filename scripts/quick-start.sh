@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ANCHOR_VERSION="v3.0.0"
+ANCHOR_VERSION="v0.3.0"
 
 print_banner() {
   echo -e "

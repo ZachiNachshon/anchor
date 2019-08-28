@@ -2,6 +2,7 @@ package push
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/pkg/cluster"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/docker"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
@@ -27,6 +28,11 @@ func NewCommand(opts *common.CmdRootOptions) *pushCmd {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline(logger.DockerHeadline, "Push")
+
+			// Verify Registry is up and running, else start before try to tag & push
+			if err := cluster.Registry(false); err != nil {
+				logger.Fatal(err.Error())
+			}
 
 			if err := docker.Tag(args[0]); err != nil {
 				logger.Fatal(err.Error())

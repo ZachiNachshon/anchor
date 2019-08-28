@@ -39,7 +39,7 @@ func Delete(identifier string, namespace string) (string, error) {
 
 		// Check if volume should be unmounted via hostPath on manifest.yaml
 		if stateful, err := extractor.CmdExtractor.ManifestContent(name, extractor.ManifestCommandStateful); err == nil && stateful {
-			if err := unMountHostPath(name, namespace); err != nil {
+			if err := unMountHostPath(name, namespace, false); err != nil {
 				return "", err
 			}
 		}

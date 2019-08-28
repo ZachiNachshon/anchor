@@ -23,8 +23,8 @@ type DeployOptions struct {
 func NewCommand(opts *common.CmdRootOptions) *deployCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "deploy",
-		Short: "Deploy a fully managed container to Kubernetes",
-		Long:  `Deploy a fully managed container to Kubernetes`,
+		Short: "Deploy a fully managed Kubernetes resource",
+		Long:  `Deploy a fully managed Kubernetes resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline(logger.ClusterHeadline, "Deploy")

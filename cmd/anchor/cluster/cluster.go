@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/cluster/apply"
+	"github.com/ZachiNachshon/anchor/cmd/anchor/cluster/backup"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/cluster/connect"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/cluster/create"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/cluster/dashboard"
@@ -104,6 +105,7 @@ func (cmd *clusterCmd) initClusterCommands() {
 	cmd.cobraCmd.AddCommand(status.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(deploy.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(delete.NewCommand(opts).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(backup.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(registry.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(expose.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(connect.NewCommand(opts).GetCobraCmd())

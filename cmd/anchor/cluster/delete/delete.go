@@ -23,8 +23,8 @@ type DeleteOptions struct {
 func NewCommand(opts *common.CmdRootOptions) *deleteCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "delete",
-		Short: "Delete a previously deployed container manifest",
-		Long:  `Delete a previously deployed container manifest`,
+		Short: "Delete a previously deployed Kubernetes resource",
+		Long:  `Delete a previously deployed Kubernetes resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline(logger.ClusterHeadline, "Delete")
@@ -41,15 +41,15 @@ func NewCommand(opts *common.CmdRootOptions) *deleteCmd {
 		},
 	}
 
-	var removeCmd = new(deleteCmd)
-	removeCmd.cobraCmd = cobraCmd
-	removeCmd.opts.CmdRootOptions = opts
+	var deleteCmd = new(deleteCmd)
+	deleteCmd.cobraCmd = cobraCmd
+	deleteCmd.opts.CmdRootOptions = opts
 
-	if err := removeCmd.initFlags(); err != nil {
+	if err := deleteCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	return removeCmd
+	return deleteCmd
 }
 
 func (cmd *deleteCmd) GetCobraCmd() *cobra.Command {

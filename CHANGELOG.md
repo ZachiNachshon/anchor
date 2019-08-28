@@ -1,4 +1,38 @@
-## 0.3.0 (Unreleased)
+## 0.4.0 (Unreleased)
+## 0.3.0 (August 28, 2019)
+
+NOTES:
+* Added a quick-start script
+
+FEATURES:
+* Added new cluster commands: `backup`, `connect node`, `connect pod`, `logs`, `token`
+* During Kind cluster creation, ask for node workers count, defaults to 1
+* K8s manifest now can specify a `hostPath` to sync a host volume to Kind container which mounts to a running pod volume
+* Support stateful deployments via nodeSelector - `<app-name>: anchor-stateful`
+* Apply command now identify if deployment is stateful (mounted volume) and ask for a node for deployment
+* Delete command now identify if deployment is stateful (mounted volume), backup mounted volume and delete content from pod after removal
+* Always backup mounted stateful volume to host path volume before deletion
+* Added new flag support for cluster commands: `-namespace` / `-n` flag
+* Added new library `logrusorgru/aurora` for log colors + mod vendor
+* On every anchor action verify and create if needed a `${HOME}/.anchor` directory
+
+ENHANCEMENTS:
+* Changed codebase structure with cmd/pkg logic separation
+* Added pod/node selector to allow SSH like behaviour with selection menu
+* Cluster log command tails the running pod logs without exec into it
+* WaitForInput now allow defaults by allowing new line character
+* Added `ManifestContent` that extract content from manifest rather than from the comment header
+* Load dashboard secret to clipboard on every dashboard command execution
+
+BUG FIXES:
+* Dashboard & registry commands verify for `kubectl` port forwarding and re-run is required
+* Kill all `kubectl` port forwarding on cluster destroy
+* Kill `kubectl` port forwarding if needed on k8s delete
+* Setting `GOPATH` & `GOROOT` to default Homebrew locations is missing
+* Prerequisites now checks if there are stopped Kind containers that should be started again after macOS restart
+* Missing anchor cluster name on printConfiguration
+* Tag was missing integer selection to resource name replacement
+
 ## 0.2.0 (August 10, 2019)
 
 NOTES:

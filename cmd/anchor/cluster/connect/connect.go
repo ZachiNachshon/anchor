@@ -22,8 +22,8 @@ type ConnectOptions struct {
 func NewCommand(opts *common.CmdRootOptions) *connectCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "connect",
-		Short: "Connect to a kubernetes node/pod by name",
-		Long:  `Connect to a kubernetes node/pod by name`,
+		Short: "Connect to a kubernetes [node, pod] by name",
+		Long:  `Connect to a kubernetes [node, pod] by name`,
 		Args:  cobra.NoArgs,
 	}
 

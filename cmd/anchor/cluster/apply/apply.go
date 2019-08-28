@@ -23,8 +23,8 @@ type ApplyOptions struct {
 func NewCommand(opts *common.CmdRootOptions) *applyCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "apply",
-		Short: "Apply a container Kubernetes manifest",
-		Long:  `Apply a container Kubernetes manifest`,
+		Short: "Apply a Kubernetes manifest resource",
+		Long:  `Apply a Kubernetes manifest resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline(logger.ClusterHeadline, "Apply")
