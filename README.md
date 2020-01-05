@@ -44,7 +44,7 @@ Please refer to the sample [anchor-dockerfiles](https://github.com/ZachiNachshon
 > Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`)
 
 ## Requirements
-- Go 1.12.x
+- Go 1.13.x
 
 ## Download
 

@@ -25,7 +25,7 @@ func RunContainer(identifier string) error {
 		if out, err := common.ShellExec.ExecuteWithOutput(runCmd); err != nil {
 			logger.Info(out)
 			return err
-		} else {
+		} else if common.GlobalOptions.DockerRunAutoLog {
 			tailCmd := fmt.Sprintf("docker logs -f %v", out)
 			if err := common.ShellExec.Execute(tailCmd); err != nil {
 				return err

@@ -19,6 +19,7 @@ var GlobalOptions = CmdRootOptions{
 	DockerImageNamespace:    "anchor",
 	DockerImageTag:          "latest",
 	DockerRepositoryPath:    "",
+	DockerRunAutoLog:        true,
 
 	// Kind
 	KindClusterName: "anchor",
@@ -42,6 +43,7 @@ type CmdRootOptions struct {
 	DockerImageNamespace    string
 	DockerRepositoryPath    string
 	DockerImageTag          string
+	DockerRunAutoLog        bool
 
 	// Kind
 	KindClusterName string

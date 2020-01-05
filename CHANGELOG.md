@@ -1,4 +1,11 @@
 ## 0.4.0 (Unreleased)
+
+NOTES:
+* Updated supported Go version to 1.13.x 
+
+FEATURES: 
+* Introduced new auto-log to control docker run auto log
+
 ## 0.3.0 (August 28, 2019)
 
 NOTES:

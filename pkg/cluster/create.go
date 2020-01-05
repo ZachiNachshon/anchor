@@ -49,8 +49,8 @@ func startKindContainerNodesIfNeeded() (bool, error) {
 	if pastContainers, err := common.ShellExec.ExecuteWithOutput(pastContainerCmd); err != nil {
 		return false, err
 	} else if len(pastContainers) > 0 {
-		logger.Infof("\nFound %v stopped Kind containers, starting and sleeping for 15s...", len(pastContainers))
 		pastContainersArr := strings.Split(pastContainers, "\n")
+		logger.Infof("\nFound %v stopped Kind containers, starting and sleeping for 15s...", len(pastContainersArr))
 		for _, containerId := range pastContainersArr {
 			if len(containerId) <= 0 {
 				continue
