@@ -45,7 +45,7 @@ func StopContainers(identifier string) error {
 }
 
 func RemoveContainers(identifier string) error {
-	logger.PrintCommandHeader(fmt.Sprintf("Removing container %v", identifier))
+	logger.PrintCommandHeader(fmt.Sprintf("Removing container [%v]", identifier))
 	var dirname = ""
 	var err error
 	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
