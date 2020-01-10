@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
@@ -19,6 +20,9 @@ func StopContainers(identifier string) error {
 	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
 		return err
 	}
+
+	// Load .env file
+	config.LoadEnvVars(identifier)
 
 	stopContainerFmt := "docker stop %v"
 	imageIdentifier := ComposeDockerContainerIdentifierNoTag(dirname)
