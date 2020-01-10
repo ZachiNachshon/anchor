@@ -52,6 +52,9 @@ func RemoveContainers(identifier string) error {
 		return err
 	}
 
+	// Load .env file
+	config.LoadEnvVars(identifier)
+
 	removeContainerFmt := "docker rm -f %v"
 	imageIdentifier := ComposeDockerContainerIdentifierNoTag(dirname)
 

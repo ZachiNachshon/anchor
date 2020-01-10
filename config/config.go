@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"os"
+	"strings"
 )
 
 func CheckPrerequisites() error {
@@ -48,14 +49,34 @@ func setDefaultEnvVar() {
 func LoadEnvVars(identifier string) {
 	var envFilePath = ""
 
+	// identifier should be the repository root folder only at config CheckPrerequisites stage
 	if identifier == common.GlobalOptions.DockerRepositoryPath {
-		// dirname should be the repository root folder only at config CheckPrerequisites stage
 		envFilePath = common.GlobalOptions.DockerRepositoryPath + "/.env"
-	} else {
-		ctxDir, _ := locator.DirLocator.DockerContext(identifier)
-		envFilePath = ctxDir + "/.env"
+		if isValidEnvFile(envFilePath) {
+			loadEnvVarsInner(envFilePath)
+		}
+		return
 	}
-	loadEnvVarsInner(envFilePath)
+
+	if dockerContextPath, err := locator.DirLocator.DockerContext(identifier); err != nil {
+		logger.Infof("Cannot locate docker context path for %v. Error: %v", identifier, err.Error())
+	} else {
+		// On non-root level, traverse the tree until:
+		//   - Found .env file, load and complete
+		//	 - Arrived to root level, do nothing since .env was loaded at init stage, if exist
+		var ctxDir = dockerContextPath
+		for ctxDir != common.GlobalOptions.DockerRepositoryPath {
+			envFilePath = ctxDir + "/.env"
+			if isValidEnvFile(envFilePath) {
+				break
+			}
+			ctxDir = ctxDir[:strings.LastIndex(ctxDir, "/")]
+		}
+
+		if len(envFilePath) > 0 {
+			loadEnvVarsInner(envFilePath)
+		}
+	}
 }
 
 func loadEnvVarsInner(envFilePath string) {
@@ -73,6 +94,13 @@ func loadEnvVarsInner(envFilePath string) {
 	if v := os.Getenv("TAG"); len(v) > 0 {
 		common.GlobalOptions.DockerImageTag = v
 	}
+}
+
+func isValidEnvFile(path string) bool {
+	if _, err := os.Stat(path); err != nil {
+		return false
+	}
+	return true
 }
 
 const KindClusterManifestFormat = `# Kind cluster creation config
