@@ -58,12 +58,6 @@ func (cmd *AnchorCmd) initFlags() error {
 		common.GlobalOptions.Verbose,
 		"anchor <command> -v")
 
-	cmd.cobraCmd.PersistentFlags().BoolVar(
-		&common.GlobalOptions.DockerRunAutoLog,
-		"auto-log",
-		common.GlobalOptions.DockerRunAutoLog,
-		"anchor docker run <image> --auto-log=false")
-
 	cmd.cobraCmd.PersistentFlags().SortFlags = false
 	return nil
 }

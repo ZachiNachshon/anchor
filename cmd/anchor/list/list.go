@@ -24,8 +24,8 @@ type ListOptions struct {
 func NewCommand(opts *common.CmdRootOptions) *listCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List all supported directories from DOCKER_FILES repository",
-		Long:  `List all supported directories from DOCKER_FILES repository`,
+		Short: "List all supported directories under DOCKER_FILES folder",
+		Long:  `List all supported directories under DOCKER_FILES folder`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.PrintHeadline(logger.DockerHeadline, "List")

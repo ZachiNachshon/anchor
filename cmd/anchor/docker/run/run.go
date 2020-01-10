@@ -57,5 +57,11 @@ func (cmd *runCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *runCmd) initFlags() error {
+	cmd.cobraCmd.PersistentFlags().BoolVar(
+		&common.GlobalOptions.DockerRunAutoLog,
+		"auto-log",
+		common.GlobalOptions.DockerRunAutoLog,
+		"anchor docker run <image> --auto-log=false")
+
 	return nil
 }

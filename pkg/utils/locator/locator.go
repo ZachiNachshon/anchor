@@ -25,11 +25,18 @@ func init() {
 	excludedDirectories = make(map[string]bool)
 	excludedDirectories[".git"] = true
 	excludedDirectories[".idea"] = true
+	excludedDirectories[".DS_Store"] = true
+	excludedDirectories[".gradle"] = true
+	excludedDirectories["build"] = true
+	excludedDirectories["out"] = true
+	excludedDirectories["target"] = true
+	excludedDirectories["logs"] = true
 }
 
 const (
-	DOCKER_FILE_IDENTIFIER DirectoryIdentifier = "Dockerfile"
-	MANIFESTS_IDENTIFIER   DirectoryIdentifier = "k8s/manifest.yaml"
+	DockerFileIdentifier   DirectoryIdentifier = "Dockerfile"
+	ManifestsIdentifier    DirectoryIdentifier = "k8s/manifest.yaml"
+	AnchorIgnoreIdentifier DirectoryIdentifier = ".anchorignore"
 )
 
 type locator struct {
@@ -99,6 +106,10 @@ func (l *locator) Scan() error {
 				dirContent.name = name
 				dirContent.dockerfile = dockerfilePath
 
+				if _, ok := hasAnchorIgnoreIdentifier(path); ok {
+					return filepath.SkipDir
+				}
+
 				if k8sManifestPath, ok := hasKubernetesManifest(path); ok {
 					dirContent.k8sManifest = k8sManifestPath
 				}
@@ -141,11 +152,11 @@ func (l *locator) Print(opts *ListOpts) {
 
 	table := "\n"
 	table += header
-	for i := 1; i <= size; {
-		content := l.dirsNumeric[i]
+	for lineNumber := 1; lineNumber <= size; {
+		content := l.dirsNumeric[lineNumber]
 
 		if len(affinityFilter) > 0 && content.affinity != affinityFilter {
-			i += 1
+			lineNumber += 1
 			continue
 		}
 
@@ -162,12 +173,12 @@ func (l *locator) Print(opts *ListOpts) {
 		}
 
 		if listK8sOnly && !hasK8s {
-			i += 1
+			lineNumber += 1
 			continue
 		} else {
-			l := fmt.Sprintf(lineFormat, i, content.name, hasDockerfile, hasK8sManifest, content.affinity)
+			l := fmt.Sprintf(lineFormat, lineNumber, content.name, hasDockerfile, hasK8sManifest, content.affinity)
 			table += l
-			i += 1
+			lineNumber += 1
 		}
 	}
 
@@ -234,7 +245,7 @@ func isExcluded(name string) bool {
 }
 
 func hasDockerfile(path string) (string, bool) {
-	dockerfilePath := fmt.Sprintf("%v/%v", path, DOCKER_FILE_IDENTIFIER)
+	dockerfilePath := fmt.Sprintf("%v/%v", path, DockerFileIdentifier)
 	if _, err := os.Stat(dockerfilePath); err != nil {
 		return "", false
 	}
@@ -242,11 +253,19 @@ func hasDockerfile(path string) (string, bool) {
 }
 
 func hasKubernetesManifest(path string) (string, bool) {
-	k8sManifestPath := fmt.Sprintf("%v/%v", path, MANIFESTS_IDENTIFIER)
+	k8sManifestPath := fmt.Sprintf("%v/%v", path, ManifestsIdentifier)
 	if _, err := os.Stat(k8sManifestPath); err != nil {
 		return "", false
 	}
 	return k8sManifestPath, true
+}
+
+func hasAnchorIgnoreIdentifier(path string) (string, bool) {
+	anchorIgnorePath := fmt.Sprintf("%v/%v", path, AnchorIgnoreIdentifier)
+	if _, err := os.Stat(anchorIgnorePath); err != nil {
+		return "", false
+	}
+	return anchorIgnorePath, true
 }
 
 func hasAffinity(path string) (string, bool) {
