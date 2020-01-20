@@ -25,6 +25,9 @@ func NewCommand(opts *common.CmdRootOptions) *createCmd {
 		Long:  `Create a local Kubernetes cluster`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Create")
 			name := common.GlobalOptions.KindClusterName
 			if exists, err := cluster.CheckForActiveCluster(name); err != nil {

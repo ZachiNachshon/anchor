@@ -25,6 +25,9 @@ func NewCommand(opts *common.CmdRootOptions) *logCmd {
 		Long:  `Run a running docker container`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := docker.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.DockerHeadline, "Log")
 
 			if err := docker.LogContainer(args[0]); err != nil {

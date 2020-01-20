@@ -27,6 +27,9 @@ func NewCommand(opts *common.CmdRootOptions) *pushCmd {
 		Long:  fmt.Sprintf("Push a docker image to repository [%v]", common.GlobalOptions.DockerRegistryDns),
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := docker.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.DockerHeadline, "Push")
 
 			// Verify Registry is up and running, else start before try to tag & push

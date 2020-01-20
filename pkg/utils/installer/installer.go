@@ -2,13 +2,11 @@ package installer
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/pkg/errors"
-	"os"
 )
 
 func logInstallHeader(name string) {
@@ -124,81 +122,6 @@ func NewBrewInstaller(shellExec shell.Shell) *brewInstaller {
 
 // endregion
 
-// region GoLang Installer
-type goInstaller struct {
-	baseInstaller
-}
-
-func (d *goInstaller) verify() error {
-	if _, err := d.shellExec.ExecuteWithOutput("which go"); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (d *goInstaller) install() error {
-	logger.Infof("Creating GOPATH directory structure at %v...", common.GlobalOptions.GoPathDir)
-	if err := config.CreateDirectory(common.GlobalOptions.GoPathDir); err != nil {
-		logger.Infof("Failed creating GOPATH at %v", common.GlobalOptions.GoPathDir)
-		return err
-	}
-	//else {
-	//	_ = config.CreateDirectory(common.GlobalOptions.GoPathDir + "/bin")
-	//	_ = config.CreateDirectory(common.GlobalOptions.GoPathDir + "/pkg")
-	//	_ = config.CreateDirectory(common.GlobalOptions.GoPathDir + "/src")
-	//}
-
-	brew := NewBrewInstaller(d.shellExec)
-	if err := brew.installPackage("go"); err != nil {
-		return err
-	}
-	if err := brew.linkPackageFiles("go"); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (d *goInstaller) Check() error {
-	if err := d.verify(); err != nil {
-		logInstallHeader("Go")
-		in := input.NewYesNoInput()
-		if result, err := in.WaitForInput("Go is not installed, install?"); err != nil || !result {
-			return errors.Errorf("Go language missing, must be installed, cannot proceed.")
-		} else {
-			return d.install()
-		}
-	}
-	return nil
-}
-
-func setDefaultGoEnvVarsIfMissing() {
-	if len(os.Getenv("GOPATH")) == 0 {
-		logger.Infof("Missing GOPATH, setting to %v", common.GlobalOptions.GoPathDir)
-		_ = os.Setenv("GOPATH", common.GlobalOptions.GoPathDir)
-	}
-	if len(os.Getenv("GOROOT")) == 0 {
-		logger.Infof("Missing GOROOT, setting to %v", common.GlobalOptions.GoRootDir)
-		_ = os.Setenv("GOROOT", common.GlobalOptions.GoRootDir)
-	}
-	if len(os.Getenv("GO111MODULE")) == 0 {
-		logger.Info("Missing GO111MODULE, setting to \"on\"")
-		_ = os.Setenv("GO111MODULE", "on")
-	}
-}
-
-func NewGoInstaller(shellExec shell.Shell) Installer {
-	// If Go was installed via anchor using Homebrew, assign GOPATH & GOROOT for every new command
-	setDefaultGoEnvVarsIfMissing()
-
-	return &goInstaller{
-		baseInstaller: baseInstaller{
-			shellExec: shellExec,
-		},
-	}
-}
-
-// endregion
-
 // region Docker Installer
 type dockerInstaller struct {
 	baseInstaller
@@ -260,9 +183,11 @@ func (d *kindInstaller) verify() error {
 }
 
 func (d *kindInstaller) install() error {
-	// TODO: Replace with brew install once available
-	//       https://github.com/kubernetes-sigs/kind/issues/88
-	if err := d.shellExec.Execute("export GO111MODULE=\"on\" && go get sigs.k8s.io/kind@v0.4.0"); err != nil {
+	brew := NewBrewInstaller(d.shellExec)
+	if err := brew.installPackage("kind"); err != nil {
+		return err
+	}
+	if err := brew.linkPackageFiles("kind"); err != nil {
 		return err
 	}
 	return nil

@@ -10,7 +10,6 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/docker/stop"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
-	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
 	"github.com/spf13/cobra"
 )
 
@@ -39,10 +38,6 @@ func NewCommand(opts *common.CmdRootOptions) *dockerCmd {
 	dockerCmd.cobraCmd = cobraCmd
 	dockerCmd.opts.CmdRootOptions = opts
 
-	if err := checkPrerequisites(); err != nil {
-		logger.Fatal(err.Error())
-	}
-
 	if err := dockerCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
@@ -56,14 +51,6 @@ func NewCommand(opts *common.CmdRootOptions) *dockerCmd {
 
 func (cmd *dockerCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
-}
-
-func checkPrerequisites() error {
-	if err := installer.NewDockerInstaller(common.ShellExec).Check(); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (cmd *dockerCmd) initFlags() error {

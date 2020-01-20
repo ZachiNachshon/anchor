@@ -25,6 +25,9 @@ func NewCommand(opts *common.CmdRootOptions) *exposeCmd {
 		Long:  `Expose to the host instance a container port of a deployed Kubernetes resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Expose")
 			if valid := cluster.Prerequisites(); !valid {
 				return

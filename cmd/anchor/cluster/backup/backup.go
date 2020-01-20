@@ -38,6 +38,9 @@ func NewCommand(opts *common.CmdRootOptions) *backupCmd {
 		Long:  longDescription,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Backup")
 			if valid := cluster.Prerequisites(); !valid {
 				return

@@ -25,6 +25,9 @@ func NewCommand(opts *common.CmdRootOptions) *destroyCmd {
 		Long:  `Destroy local Kubernetes cluster`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Destroy")
 			if valid := cluster.Prerequisites(); !valid {
 				return

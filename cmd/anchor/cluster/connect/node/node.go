@@ -16,6 +16,9 @@ func NewCommand() *nodeCmd {
 		Short: "Connect to a kubernetes node (if ^M appear as Enter, run - stty sane)",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Connect Node")
 			if valid := cluster.Prerequisites(); !valid {
 				return

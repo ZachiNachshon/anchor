@@ -28,6 +28,9 @@ func NewCommand(opts *common.CmdRootOptions) *registryCmd {
 		Long:  fmt.Sprintf("Create a private docker registry [%v]", common.GlobalOptions.DockerRegistryDns),
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Registry")
 			if valid := cluster.Prerequisites(); !valid {
 				return

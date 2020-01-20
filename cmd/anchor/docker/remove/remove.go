@@ -25,6 +25,9 @@ func NewCommand(opts *common.CmdRootOptions) *removeCmd {
 		Long:  `Remove docker containers and images`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := docker.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.DockerHeadline, "Remove")
 
 			if err := docker.StopContainers(args[0]); err != nil {

@@ -10,7 +10,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/extractor"
-	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/spf13/cobra"
 )
@@ -31,10 +30,6 @@ func NewCommand() *AnchorCmd {
 	}
 
 	if err := config.CheckPrerequisites(); err != nil {
-		logger.Fatal(err.Error())
-	}
-
-	if err := installer.NewGoInstaller(common.ShellExec).Check(); err != nil {
 		logger.Fatal(err.Error())
 	}
 

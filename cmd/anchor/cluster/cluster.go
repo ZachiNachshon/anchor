@@ -16,7 +16,6 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/cluster/token"
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
-	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
 	"github.com/spf13/cobra"
 )
 
@@ -45,10 +44,6 @@ func NewCommand(opts *common.CmdRootOptions) *clusterCmd {
 	clusterCmd.cobraCmd = cobraCmd
 	clusterCmd.opts.CmdRootOptions = opts
 
-	if err := checkPrerequisites(); err != nil {
-		logger.Fatal(err.Error())
-	}
-
 	if err := clusterCmd.initFlags(); err != nil {
 		logger.Fatal(err.Error())
 	}
@@ -62,25 +57,6 @@ func NewCommand(opts *common.CmdRootOptions) *clusterCmd {
 
 func (cmd *clusterCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
-}
-
-func checkPrerequisites() error {
-	if err := installer.NewKindInstaller(common.ShellExec).Check(); err != nil {
-		return err
-	}
-	if err := installer.NewEnvsubstInstaller(common.ShellExec).Check(); err != nil {
-		return err
-	}
-	if err := installer.NewKubectlInstaller(common.ShellExec).Check(); err != nil {
-		return err
-	}
-	if err := installer.NewHostessInstaller(common.ShellExec).Check(); err != nil {
-		return err
-	}
-	//if err := shell.NewHelmlInstaller(common.ShellExec).Check(); err != nil {
-	//	return err
-	//}
-	return nil
 }
 
 func (cmd *clusterCmd) initFlags() error {

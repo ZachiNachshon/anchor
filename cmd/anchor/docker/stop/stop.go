@@ -24,6 +24,9 @@ func NewCommand(opts *common.CmdRootOptions) *stopCmd {
 		Short: "Stop a docker container",
 		Long:  `Stop a docker container`,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := docker.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.DockerHeadline, "Stop")
 
 			if err := docker.StopContainers(args[0]); err != nil {

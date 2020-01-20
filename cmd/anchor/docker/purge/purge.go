@@ -25,6 +25,9 @@ func NewCommand(opts *common.CmdRootOptions) *purgeCmd {
 		Long:  `Purge all docker images and containers`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := docker.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.DockerHeadline, "Purge")
 
 			if err := docker.PurgeAll(); err != nil {

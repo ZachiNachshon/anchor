@@ -27,6 +27,9 @@ func NewCommand(opts *common.CmdRootOptions) *applyCmd {
 		Long:  `Apply a Kubernetes manifest resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Apply")
 			if valid := cluster.Prerequisites(); !valid {
 				return

@@ -3,6 +3,7 @@ package docker
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/pkg/common"
+	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
 	"strings"
 )
 
@@ -37,4 +38,12 @@ func ComposeDockerContainerIdentifierNoTag(dirname string) string {
 func ComposeDockerImageIdentifierNoTag(dirname string) string {
 	imageIdentifier := fmt.Sprintf("%v/%v", common.GlobalOptions.DockerImageNamespace, dirname)
 	return imageIdentifier
+}
+
+func CheckEnvironment() error {
+	if err := installer.NewDockerInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
+
+	return nil
 }

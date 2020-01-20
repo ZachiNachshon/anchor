@@ -27,6 +27,9 @@ func NewCommand(opts *common.CmdRootOptions) *logCmd {
 		Long:  `Log a running kubernetes pod by name`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Log")
 			if valid := cluster.Prerequisites(); !valid {
 				return

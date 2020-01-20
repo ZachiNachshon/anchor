@@ -26,6 +26,9 @@ func NewCommand(opts *common.CmdRootOptions) *statusCmd {
 		Long:  fmt.Sprintf(`Print cluster [%v] status`, common.GlobalOptions.KindClusterName),
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Status")
 			if valid := cluster.Prerequisites(); !valid {
 				return

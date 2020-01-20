@@ -27,6 +27,9 @@ func NewCommand(opts *common.CmdRootOptions) *tokenCmd {
 		Long:  `Generate export KUBECONFIG command and load to clipboard`,
 		Args:  cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Token")
 			if valid := cluster.Prerequisites(); !valid {
 				return

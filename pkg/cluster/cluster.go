@@ -6,6 +6,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/common"
 	"github.com/ZachiNachshon/anchor/pkg/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/utils/installer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/pkg/errors"
 	"os"
@@ -382,6 +383,25 @@ func Prerequisites() bool {
 	_ = LoadKubeConfig()
 
 	return true
+}
+
+func CheckEnvironment() error {
+	if err := installer.NewKindInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
+	if err := installer.NewEnvsubstInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
+	if err := installer.NewKubectlInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
+	if err := installer.NewHostessInstaller(common.ShellExec).Check(); err != nil {
+		return err
+	}
+	//if err := shell.NewHelmlInstaller(common.ShellExec).Check(); err != nil {
+	//	return err
+	//}
+	return nil
 }
 
 func createHostPath(name string) string {

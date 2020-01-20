@@ -27,6 +27,9 @@ func NewCommand(opts *common.CmdRootOptions) *deployCmd {
 		Long:  `Deploy a fully managed Kubernetes resource`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := cluster.CheckEnvironment(); err != nil {
+				logger.Fatal(err.Error())
+			}
 			logger.PrintHeadline(logger.ClusterHeadline, "Deploy")
 			if valid := cluster.Prerequisites(); !valid {
 				return
