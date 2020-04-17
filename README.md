@@ -21,93 +21,116 @@ Anchor is a CLI tool for local development that simplify interactions with:
 It is based on:
 
 - [Docker](https://github.com/docker) for running containerized applications
-- [Kind](https://github.com/kubernetes-sigs/kind) for running local Kubernetes cluster within a docker container
+- [KinD](https://github.com/kubernetes-sigs/kind) for running local Kubernetes cluster within a docker container
 - [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
 - [Hostess](https://github.com/cbednarski/hostess) for managing your `/etc/hosts` file
 - [Homebrew](https://github.com/Homebrew/brew) for managing macOS / Linux packages
 
-> Note:<br>
-> Anchor is utilizing the following components: `docker`, `kind`, `kubectl`, `envsubst`, `hostess`.<br>
-> If they can't be found on your machine, `Homebrew` is prompt for installation to fetches them for you.
+> **Note:**<br/>
+> Anchor is utilizing the following components: `docker`, `kind`, `kubectl`, `envsubst`, `hostess`. If they can't be found on your machine, `Homebrew` is prompt for installation to fetches them for you.
 
 <h2 id="why">Why</h2>
 
-1. Allow a repository to become an anchor for all docker / kubernetes scripts that you manage on local / CI environment
-1. Avoid clutter by consolidate into a single repository all docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
-1. Encapsulate commonly used, repetitive docker / kubernetes actions as simple cli commands
+1. Allow a repository to become an _anchor_ for all Docker / Kubernetes scripts scattered all over
+1. Keep docker commands (e.g. `build`/`run`/`tag`/`push`) on the same `Dockerfile` they should get executed on
+1. Keep `kubectl` commands on the same YAML manifest they should get executed on
+1. Encapsulate commonly used, repetitive Docker / Kubernetes actions as simple CLI commands
 1. Development environment should strive to be the same as production, deploy locally the same as you deploy to production
 
-## What's in the box?
+<h2 id="whats-in-the-box">What's in the box</h2>
+
 - Private docker registry deployed on control-plane with multi node support
-- Allow stateful volume `mountPath` / `hostPath` between local and a running pod within the Kind docker via the node selector: `app-name: anchor-stateful`
-- Selection menu for quick connect to any node/pod 
+- Allow stateful volume `mountPath` / `hostPath` between local and a running pod within the KinD container via the node selector: `app-name: anchor-stateful`
+- Selection menu for quick connect to any node / pod 
 
-## How does it work?
-#### Directory Structure & Instructions
-`Anchor` relies on a `DOCKER_FILES` environment variable that points to a local directory path containing the dockerfiles and k8s manifests.<br/> 
-Please refer to the sample [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-dockerfiles) repository for additional details.
+<h2 id="requirements">Requirements</h2>
 
-#### Quick Start Setup 
-```bash
-~$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ZachiNachshon/anchor/master/scripts/quick-start.sh)"
-```
-
-##### What's included?
-1. Clone `anchor-dockerfiles` to `${HOME}/.anchor` 
-2. Set `DOCKER_FILES` environment variable to `${HOME}/.anchor/anchor-dockerfiles` 
-
-> Note:<br/>
-> Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`)
-
-## Requirements
 - Go 1.13.x
 
-## Download
+<h2 id="quick-start-guide">Quick Start Guide</h2>
 
-#### I don't have GO environment 
-Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `usr/local/bin`.
+1. Download Anchor CLI tool:
 
-#### I do have GO environment
+	**I don't have GO environment**
 
-##### without source
-```bash
-~$ go get github.com/ZachiNachshon/anchor@v0.3.0
-```
+	Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `usr/local/bin` or add to `$PATH`
+	
+	**I do have GO environment**
 
-##### with source
-```bash
-~$ git clone https://github.com/ZachiNachshon/anchor.git ${GOPATH}/src/github.com/anchor
-~$ cd {GOPATH}/src/github.com/anchor
-~$ make build
-```
+	- 	without source code
+			
+		```bash
+		~$ go get github.com/ZachiNachshon/anchor@v0.3.0
+		```
 
-## Usage Example 
-Create an `anchor` Kubernetes cluster:
+	- 	with source code
+		
+		```bash
+		~$ git clone https://github.com/ZachiNachshon/anchor.git ${GOPATH}/src/github.com/anchor
+		~$ cd {GOPATH}/src/github.com/anchor
+		~$ make build
+		```
+
+1. Clone complementary repo `anchor-dockerfiles` and set `DOCKER_FILES` env var:
+
+	```bash
+	~$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ZachiNachshon/anchor/master/scripts/quick-start.sh)"
+	```
+	
+	**What's included in the script?**
+	
+	- Clone `anchor-dockerfiles` to `${HOME}/.anchor` 
+	- Set `DOCKER_FILES` environment variable to `${HOME}/.anchor/anchor-dockerfiles` 
+	
+	> **Note:**<br/>
+	> Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`)
+
+<h2 id="how-does-it-work">How does it work</h2>
+
+**Directory Structure & Instructions**
+
+An environment variable `DOCKER_FILES` is pointing to a local directory path with specific structure layout containing the dockerfiles and k8s manifests.<br/> 
+Please refer to the sample [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-dockerfiles) repository for additional details.
+
+<h2 id="usage-example">Usage Examples</h2>
+
+<details><summary>Create an `anchor` Kubernetes cluster</summary>
+
 [![https://youtu.be/7PtbKPpiJIA](assets/thumbnails/anchor-cluster-create-tn.png)](https://youtu.be/4XCf3M424Gk)
+</details>
 
-Build and run `nginx` as a docker container:
+<details><summary>Build and run `nginx` as a docker container</summary>
+
 [![https://youtu.be/7PtbKPpiJIA](assets/thumbnails/anchor-docker-nginx-tn.png)](https://youtu.be/7PtbKPpiJIA)
+</details>
 
-Auto deploy `nginx` to Kubernetes:
+<details><summary>Auto deploy `nginx` to Kubernetes</summary>
+
 [![https://youtu.be/urmfVmYi5BE](assets/thumbnails/anchor-deploy-auto-nginx-tn.png)](https://youtu.be/7Tdx1GHaQ50)
+</details>
 
-Manual deploy `nginx` to Kubernetes:
+<details><summary>Manual deploy `nginx` to Kubernetes</summary>
+
 [![https://youtu.be/urmfVmYi5BE](assets/thumbnails/anchor-deploy-manual-nginx-tn.png)](https://youtu.be/urmfVmYi5BE)
+</details>
 
-Connect to a running Kubernetes pod/node:
+<details><summary>Connect to a running Kubernetes pod/node</summary>
+
 [![https://youtu.be/O25weLHGC-M](assets/thumbnails/anchor-cluster-connect-tn.png)](https://youtu.be/O25weLHGC-M)
+</details>
 
+<h2 id="still-in-progress">Still in progress</h2>
 
-## Still in progress
 - After macOS restart `kubectl` is losing cluster context
 - Use `stty sane` to avoid terminal input errors such as `^M` on Enter
 - Add the ability to delete an image from private docker registry 
 - Add `-y` flag to skip all prompts using default values
 - Tests coverage 
 
-## Available Anchor commands
+<h2 id="available-anchor-commands">Available Anchor commands</h2>
 
 List of available `anchor docker` commands:
+
 ```bash
 Usage:
   anchor docker [command]
@@ -117,6 +140,7 @@ Aliases:
 
 Available Commands:
   build       Builds a docker image
+  log         Log a running docker container
   purge       Purge all docker images and containers
   push        Push a docker image to repository [registry.anchor]
   remove      Remove docker containers and images
@@ -131,6 +155,7 @@ Global Flags:
 ```
 
 List of available `anchor cluster` commands:
+
 ```bash
 Usage:
   anchor cluster [command]
