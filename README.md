@@ -1,25 +1,41 @@
-![anchor-side](assets/anchor-logo-side-600px.png)
+<h2>Anchor is a CLI tool on top of k8s KinD and Docker</h2>
 
-## Overview
-Anchor is a utility intended for managing an ephemeral local Docker / Kubernetes development environment with ease.
-<br> It is based on:
+<h3 align="center" id="wixperiments-features"><img src="assets/anchor-logo-130px.png"></h3>
+
+<p align="center">
+  <a href="https://travis-ci.com/ZachiNachshon/anchor">
+    <img src="https://travis-ci.com/ZachiNachshon/anchor.svg" alt="Travis CI status"/>
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
+  </a>
+</p>
+
+<h2 id="overview">Overview</h2>
+
+Anchor is a CLI tool for local development that simplify interactions with:
+
+- Local Kubernetes cluster running on top of KinD
+- Docker containers
+
+It is based on:
+
 - [Docker](https://github.com/docker) for running containerized applications
-- [Kind](https://github.com/kubernetes-sigs/kind) for running local K8s cluster as a docker container
+- [Kind](https://github.com/kubernetes-sigs/kind) for running local Kubernetes cluster within a docker container
 - [Kubectl](https://github.com/kubernetes/kubernetes/tree/master/pkg/kubectl) for running commands against Kubernetes clusters 
 - [Hostess](https://github.com/cbednarski/hostess) for managing your `/etc/hosts` file
-- [Homebrew](https://github.com/Homebrew/brew) for managing macOS/Linux packages
-
-[![Build Status](https://travis-ci.com/ZachiNachshon/anchor.svg "Travis CI status")](https://travis-ci.com/ZachiNachshon/anchor)
+- [Homebrew](https://github.com/Homebrew/brew) for managing macOS / Linux packages
 
 > Note:<br>
 > Anchor is utilizing the following components: `docker`, `kind`, `kubectl`, `envsubst`, `hostess`.<br>
-> If they can't be found on your machine, `Homebrew` is being installed and fetches them for you.
+> If they can't be found on your machine, `Homebrew` is prompt for installation to fetches them for you.
 
-## Why
+<h2 id="why">Why</h2>
+
 1. Allow a repository to become an anchor for all docker / kubernetes scripts that you manage on local / CI environment
-2. Avoid clutter by consolidate into a single repository all docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
-3. Encapsulate commonly used, repetitive docker / kubernetes actions as simple cli commands
-4. Development environment should strive to be the same as production, deploy locally the same as you deploy to production
+1. Avoid clutter by consolidate into a single repository all docker `build`/`run`/`tag`/`push` commands and kubernetes manifests   
+1. Encapsulate commonly used, repetitive docker / kubernetes actions as simple cli commands
+1. Development environment should strive to be the same as production, deploy locally the same as you deploy to production
 
 ## What's in the box?
 - Private docker registry deployed on control-plane with multi node support
