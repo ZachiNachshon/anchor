@@ -53,17 +53,17 @@ It is based on:
 
 	**I don't have GO environment**
 
-	Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `usr/local/bin` or add to `$PATH`
+	- Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `usr/local/bin` or add to `$PATH`
 	
 	**I do have GO environment**
 
-	- 	without source code
+	- 	Without source code
 			
 		```bash
 		~$ go get github.com/ZachiNachshon/anchor@v0.3.0
 		```
 
-	- 	with source code
+	- 	With source code
 		
 		```bash
 		~$ git clone https://github.com/ZachiNachshon/anchor.git ${GOPATH}/src/github.com/anchor
