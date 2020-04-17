@@ -27,7 +27,7 @@ It is based on:
 - [Homebrew](https://github.com/Homebrew/brew) for managing macOS / Linux packages
 
 > **Note:**<br/>
-> Anchor is utilizing the following components: `docker`, `kind`, `kubectl`, `envsubst`, `hostess`. If they can't be found on your machine, `Homebrew` is prompt for installation to fetches them for you.
+> Anchor utilize the following components: `docker`, `kind`, `kubectl`, `envsubst`, `hostess`. If they can't be found on your machine, `Homebrew` is prompt for installation to fetches them for you.
 
 <h2 id="why">Why</h2>
 
@@ -36,12 +36,6 @@ It is based on:
 1. Keep `kubectl` commands on the same YAML manifest they should get executed on
 1. Encapsulate commonly used, repetitive Docker / Kubernetes actions as simple CLI commands
 1. Development environment should strive to be the same as production, deploy locally the same as you deploy to production
-
-<h2 id="whats-in-the-box">What's in the box</h2>
-
-- Private docker registry deployed on control-plane with multi node support
-- Allow stateful volume `mountPath` / `hostPath` between local and a running pod within the KinD container via the node selector: `app-name: anchor-stateful`
-- Selection menu for quick connect to any node / pod 
 
 <h2 id="requirements">Requirements</h2>
 
@@ -87,10 +81,50 @@ It is based on:
 
 <h2 id="how-does-it-work">How does it work</h2>
 
+**Examples for aliasing repetitive/complex commands with intuitive ones**
+
+- Run `anchor docker run busybox` instead of:
+
+	```bash
+	docker run -t -d \
+	           --name=<namespace>-busybox \
+	           --network=anchor-network \
+	           -p 8080:80 \
+	           <namespace>/busybox:<tag>
+	```
+
+- Run `anchor docker connect busybox` instead of:
+
+	```bash
+	docker exec -it $(docker ps | grep 'busybox' | awk {'print $1'}) /bin/bash OR /bin/sh
+	```
+	
+- Run `anchor cluster create` instead of:
+
+	```bash
+	kind create cluster --name <name> --config <config-file-path>
+	```
+
+- Run `anchor cluster dashboard` instead of:
+
+	```bash
+	kubectl create serviceaccount -n kube-system kubernetes-dashboard
+	kubectl create clusterrolebinding \
+	  -n kube-system kubernetes-dashboard \
+	  --clusterrole cluster-admin \
+	  --serviceaccount kube-system:kubernetes-dashboard
+	```
+
 **Directory Structure & Instructions**
 
 An environment variable `DOCKER_FILES` is pointing to a local directory path with specific structure layout containing the dockerfiles and k8s manifests.<br/> 
 Please refer to the sample [anchor-dockerfiles](https://github.com/ZachiNachshon/anchor-dockerfiles) repository for additional details.
+
+<h2 id="whats-in-the-box">What's in the box</h2>
+
+- Private docker registry deployed on control-plane with multi node support
+- Allow stateful volume `mountPath` / `hostPath` between local and a running pod within the KinD container via the node selector: `app-name: anchor-stateful`
+- Selection menu for quick connect to any node / pod 
 
 <h2 id="usage-example">Usage Examples</h2>
 
