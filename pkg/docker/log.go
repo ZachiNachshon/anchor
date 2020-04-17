@@ -10,16 +10,12 @@ import (
 )
 
 func LogContainer(identifier string) error {
-	if name, err := locator.DirLocator.Name(identifier); err != nil {
-		return err
-	} else {
-		logger.PrintCommandHeader(fmt.Sprintf("Logging container [%v]", name))
-	}
-
 	var dirname = ""
 	var err error
 	if dirname, err = locator.DirLocator.Name(identifier); err != nil {
 		return err
+	} else {
+		logger.PrintCommandHeader(fmt.Sprintf("Logging container [%v]", dirname))
 	}
 
 	// Load .env file

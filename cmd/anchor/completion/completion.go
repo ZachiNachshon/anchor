@@ -22,7 +22,8 @@ type CompletionOptions struct {
 
 const longDescription = `
 Outputs anchor shell completion for the given shell (bash or zsh)
-This depends on the bash-completion binary.  Example installation instructions:
+This depends on the bash-completion binary. Example installation instructions:
+
 # for bash users
 	$ anchor completion bash > ~/.anchor-completion
 	$ source ~/.anchor-completion

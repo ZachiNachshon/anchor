@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/docker/build"
+	"github.com/ZachiNachshon/anchor/cmd/anchor/docker/connect"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/docker/log"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/docker/purge"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/docker/push"
@@ -74,5 +75,6 @@ func (cmd *dockerCmd) initDockerCommands() {
 	cmd.cobraCmd.AddCommand(run.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(stop.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(log.NewCommand(opts).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(connect.NewCommand(opts).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(purge.NewCommand(opts).GetCobraCmd())
 }

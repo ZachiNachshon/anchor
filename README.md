@@ -82,8 +82,8 @@ It is based on:
 	- Clone `anchor-dockerfiles` to `${HOME}/.anchor` 
 	- Set `DOCKER_FILES` environment variable to `${HOME}/.anchor/anchor-dockerfiles` 
 	
-	> **Note:**<br/>
-	> Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`)
+> **Note:**<br/>
+> Consider setting `DOCKER_FILES` as permanent environment variable (append to `$PATH`)
 
 <h2 id="how-does-it-work">How does it work</h2>
 
