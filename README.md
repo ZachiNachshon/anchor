@@ -1,6 +1,6 @@
 <h2>Anchor is a CLI tool on top of k8s KinD and Docker</h2>
 
-<h3 align="center" id="wixperiments-features"><img src="assets/anchor-logo-130px.png"></h3>
+<h3 align="center" id="anchor-logo"><img src="assets/anchor-logo-130px.png"></h3>
 
 <p align="center">
   <a href="https://travis-ci.com/ZachiNachshon/anchor">
