@@ -7,6 +7,9 @@ build: fmtcheck
 	go build
 	go install
 
+test:
+	go test -v
+
 fmt:
 	gofmt -w $(GOFMT_FILES)
 
