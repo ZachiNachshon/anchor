@@ -1,0 +1,10 @@
+author: Zachi Nachshon
+license: Apache
+config:
+  repositoryFiles:
+    remote:
+      url: https://github.com/ZachiNachshon/test.git
+      revision: a1234567890
+      branch: some-branch
+    local:
+      path: /path/to/local/folder

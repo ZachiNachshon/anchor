@@ -2,7 +2,9 @@ package shell
 
 import (
 	"bytes"
-	"github.com/ZachiNachshon/anchor/pkg/logger"
+	"fmt"
+	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/registry"
 	gotty "github.com/mattn/go-tty"
 	"io"
 	"os"
@@ -10,21 +12,60 @@ import (
 	"strings"
 )
 
+const (
+	identifier string = "shell"
+)
+
+func ToRegistry(reg *registry.InjectionsRegistry, shell Shell) {
+	reg.Register(registry.RegistryTuple{
+		Name:  identifier,
+		Value: shell,
+	})
+}
+
+func FromRegistry(reg *registry.InjectionsRegistry) (Shell, error) {
+	locate := reg.Get(identifier).(Shell)
+	if locate == nil {
+		return nil, fmt.Errorf("failed to retrieve shell executor from registry")
+	}
+	return locate, nil
+}
+
 type ShellType string
 
 const (
-	BASH ShellType = "/bin/bash"
-	SH   ShellType = "/bin/sh"
+	bash ShellType = "/bin/bash"
+	sh   ShellType = "/bin/sh"
 )
 
 type shellExecutor struct {
 	shellType ShellType
 }
 
-func NewShellExecutor(sType ShellType) Shell {
+func New() Shell {
 	return &shellExecutor{
-		shellType: sType,
+		shellType: sh, // is bin/sh enough?
 	}
+}
+
+func (s *shellExecutor) ExecuteScript(dir string, relativeScriptPath string, args ...string) error {
+	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
+	// Args must include the command as Args[0]
+	slice := append([]string{path}, args...)
+
+	cmd := &exec.Cmd{
+		Path:   path,
+		Args:   slice,
+		Dir:    dir,
+		Stdout: os.Stdout,
+		Stderr: os.Stdout,
+	}
+
+	// Execute
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *shellExecutor) ExecuteTTY(script string) error {

@@ -1,0 +1,19 @@
+promptItems:
+  - id: hello-universe
+    title: "Hello Universe"
+    file: app/second-app/sub-folder/hello_universe.sh
+
+  - id: goodbye-universe
+    title: "Goodbye Universe"
+    file: app/second-app/sub-folder/goodbye_universe.sh
+
+  - id: global-hello-universe
+    title: "Global Hello Universe"
+    file: k8s/scripts/global_hello_universe.sh
+
+autoRun:
+  - hello-universe
+  - global-hello-universe
+
+autoCleanup:
+  - goodbye-universe

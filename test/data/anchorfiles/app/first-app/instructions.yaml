@@ -1,0 +1,20 @@
+promptItems:
+  - id: hello-world
+    title: "Hello World"
+    file: app/first-app/sub-folder/hello_world.sh
+
+  - id: goodbye-world
+    title: "Goodbye World"
+    file: app/first-app/sub-folder/goodbye_world.sh
+
+  - id: global-hello-world
+    title: "Global Hello World"
+    file: k8s/scripts/global_hello_world.sh
+
+autoRun:
+  - hello-world
+  - global-hello-world
+
+autoCleanup:
+  - goodbye-world
+

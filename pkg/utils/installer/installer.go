@@ -2,25 +2,24 @@ package installer
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/pkg/common"
-	"github.com/ZachiNachshon/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/pkg/errors"
 )
 
 func logInstallHeader(name string) {
-	logger.PrintHeadline(logger.InstallerHeadline, name)
+	//logger.PrintHeadline(logger.InstallerHeadline, name)
 }
 
 func logInstallPackage(cask string) {
-	msg := fmt.Sprintf("Installing Homebrew package %v (Please be patient, might take some time)", cask)
-	logger.PrintCommandHeader(msg)
+	//msg := fmt.Sprintf("Installing Homebrew package %v (Please be patient, might take some time)", cask)
+	//logger.PrintCommandHeader(msg)
 }
 
 func logInstallCask(cask string) {
-	msg := fmt.Sprintf("Installing Homebrew cask %v (Please be patient, might take some time)", cask)
-	logger.PrintCommandHeader(msg)
+	//msg := fmt.Sprintf("Installing Homebrew cask %v (Please be patient, might take some time)", cask)
+	//logger.PrintCommandHeader(msg)
 }
 
 type baseInstaller struct {
@@ -373,7 +372,7 @@ func (e *hostessInstaller) install() error {
 func (e *hostessInstaller) Check() error {
 	if err := e.verify(); err != nil {
 		logInstallHeader("hostess")
-		logger.Infof("hostess is mandatory for managing your /etc/hosts to create a %v DNS record", common.GlobalOptions.DockerRegistryDns)
+		logger.Infof("hostess is mandatory for managing your /etc/hosts to create a %v DNS record", "")
 		return e.install()
 	}
 	return nil

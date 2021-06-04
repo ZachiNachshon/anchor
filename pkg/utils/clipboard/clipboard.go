@@ -2,16 +2,26 @@ package clipboard
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/pkg/common"
-	"github.com/ZachiNachshon/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"runtime"
 )
 
-func Load(content string) error {
+type clipboardImpl struct {
+	shell shell.Shell
+}
+
+func New(shell shell.Shell) Clipboard {
+	return &clipboardImpl{
+		shell: shell,
+	}
+}
+
+func (c clipboardImpl) Load(content string) error {
 	switch runtime.GOOS {
 	case "darwin":
 		{
-			if err := common.ShellExec.Execute(fmt.Sprintf("echo \"%v\" | pbcopy", content)); err != nil {
+			if err := c.shell.Execute(fmt.Sprintf("echo \"%v\" | pbcopy", content)); err != nil {
 				logger.Info("Failed setting value to clipboard using 'pbcopy ...'")
 				return err
 			}
@@ -19,7 +29,7 @@ func Load(content string) error {
 		}
 	case "linux":
 		{
-			if err := common.ShellExec.Execute(fmt.Sprintf("xclip -selection \"%v\"", content)); err != nil {
+			if err := c.shell.Execute(fmt.Sprintf("xclip -selection \"%v\"", content)); err != nil {
 				logger.Info("Failed setting value to clipboard using 'xclip -selection ...'")
 				return err
 			}

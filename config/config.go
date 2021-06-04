@@ -1,439 +1,175 @@
 package config
 
 import (
-	"github.com/ZachiNachshon/anchor/pkg/common"
-	"github.com/ZachiNachshon/anchor/pkg/logger"
-	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
-	"github.com/joho/godotenv"
-	"github.com/pkg/errors"
-	"os"
-	"strings"
+	"bytes"
+	"fmt"
+	"github.com/ZachiNachshon/anchor/common"
+	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/viper"
 )
 
-func CheckPrerequisites() error {
-	var repoPath = ""
-	if repoPath = os.Getenv("DOCKER_FILES"); len(repoPath) <= 0 {
-		return errors.Errorf("DOCKER_FILES environment variable is missing, must contain path to 'dockerfiles' git repository.")
-	}
-	common.GlobalOptions.DockerRepositoryPath = repoPath
+const (
+	DefaultAuthor  = "Zachi Nachshon <zachi.nachshon@gmail.com>"
+	DefaultLicense = "Apache"
+)
 
-	// TODO: resolve shell type from configuration (https://github.com/spf13/viper ?)
-	common.ShellExec = shell.NewShellExecutor(shell.BASH)
-
-	// Create ${HOME}/.anchor directory
-	if err := CreateDirectory(common.GlobalOptions.AnchorHomeDirectory); err != nil {
-		return err
-	}
-
-	setDefaultEnvVar()
-	LoadEnvVars(common.GlobalOptions.DockerRepositoryPath)
-
-	return nil
+func FromContext(ctx common.Context) AnchorConfig {
+	return ctx.Config().(AnchorConfig)
 }
 
-func CreateDirectory(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return os.Mkdir(path, os.ModePerm)
+func SetInContext(ctx common.Context, config AnchorConfig) {
+	ctx.(common.ConfigSetter).SetConfig(config)
+}
+
+type AnchorConfig struct {
+	Config  Config
+	Author  string
+	License string
+}
+
+type Config struct {
+	RepositoryFiles RepositoryFiles `yaml:"repositoryFiles"`
+}
+
+type RepositoryFiles struct {
+	Remote Remote `yaml:"remote"`
+	Local  Local  `yaml:"local"`
+}
+
+type Remote struct {
+	Url       string `yaml:"url"`
+	Revision  string `yaml:"revision"`
+	Branch    string `yaml:"branch"`
+	LocalPath string `yaml:"localPath"`
+}
+
+type Local struct {
+	Path string `yaml:"path"`
+}
+
+func initConfigPath() {
+	viper.SetConfigName("anchorConfig")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("${HOME}/.config/anchor") // path to look for the config file in
+	//viper.AddConfigPath(".")                      // optionally look for config in the working directory
+}
+
+func setDefaults() {
+	viper.SetDefault("author", DefaultAuthor)
+	viper.SetDefault("license", DefaultLicense)
+}
+
+func createConfigFileWithDefaults() {
+	err := viper.SafeWriteConfig() // Write defaults
+	if err != nil {
+		logger.Errorf("Could not create config file with defaults: %s \n", err)
 	}
-	return nil
 }
 
-func setDefaultEnvVar() {
-	// Docker
-	_ = os.Setenv("REGISTRY", common.GlobalOptions.DockerRegistryDnsWithIp)
-	_ = os.Setenv("NAMESPACE", common.GlobalOptions.DockerImageNamespace)
-	_ = os.Setenv("TAG", common.GlobalOptions.DockerImageTag)
+func listenOnConfigFileChanges() {
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		// Suggest to git fetch the repository
+		logger.Infof("Config file changed:", e.Name)
+	})
 }
 
-func LoadEnvVars(identifier string) {
-	var envFilePath = ""
+func createConfigObject() *AnchorConfig {
+	var config Config
+	if err := viper.UnmarshalKey("config", &config); err != nil {
+		logger.Fatal(fmt.Sprintf("Failed to unmarshal configuration file. error: %s \n", err))
+	}
 
-	// identifier should be the repository root folder only at config CheckPrerequisites stage
-	if identifier == common.GlobalOptions.DockerRepositoryPath {
-		envFilePath = common.GlobalOptions.DockerRepositoryPath + "/.env"
-		if isValidEnvFile(envFilePath) {
-			loadEnvVarsInner(envFilePath)
+	return &AnchorConfig{
+		Config:  config,
+		Author:  viper.GetString("author"),
+		License: viper.GetString("license"),
+	}
+}
+
+var ViperConfigInMemoryLoader = func(yaml string) (*AnchorConfig, error) {
+	viper.SetConfigType("yaml")
+	setDefaults()
+
+	if err := viper.ReadConfig(bytes.NewBuffer([]byte(yaml))); err != nil {
+		logger.Errorf("Failed to read config from buffer. error: %s", err)
+		return nil, err
+	}
+
+	return createConfigObject(), nil
+}
+
+var ViperConfigFileLoader = func() (*AnchorConfig, error) {
+	initConfigPath()
+
+	// Find and read the config file
+	if err := viper.ReadInConfig(); err != nil {
+		// Handle errors reading the config file
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			setDefaults()
+			createConfigFileWithDefaults()
+			listenOnConfigFileChanges()
+		} else {
+			logger.Errorf("Config file was found but an error occurred. error: %s", err)
+			return nil, err
 		}
-		return
 	}
 
-	if dockerContextPath, err := locator.DirLocator.DockerContext(identifier); err != nil {
-		logger.Infof("Cannot locate docker context path for %v. Error: %v", identifier, err.Error())
-	} else {
-		// On non-root level, traverse the tree until:
-		//   - Found .env file, load and complete
-		//	 - Arrived to root level, do nothing since .env was loaded at init stage, if exist
-		var ctxDir = dockerContextPath
-		for ctxDir != common.GlobalOptions.DockerRepositoryPath {
-			envFilePath = ctxDir + "/.env"
-			if isValidEnvFile(envFilePath) {
-				break
-			}
-			ctxDir = ctxDir[:strings.LastIndex(ctxDir, "/")]
-		}
+	// Every viper.Get request auto checks for ANCHOR_<flag-name> before reading from config file
+	viper.SetEnvPrefix("ANCHOR")
+	viper.AutomaticEnv()
 
-		if len(envFilePath) > 0 {
-			loadEnvVarsInner(envFilePath)
-		}
-	}
+	return createConfigObject(), nil
 }
 
-func loadEnvVarsInner(envFilePath string) {
-	if err := godotenv.Overload(envFilePath); err != nil {
-		if common.GlobalOptions.Verbose {
-			// TODO: Change to warn once implemented
-			logger.Info(err.Error())
+var ResolveAnchorfilesPathFromConfig = func(anchorConfig AnchorConfig) (string, error) {
+	// Checks if repositoryFiles config attribute is empty
+	if anchorConfig.Config.RepositoryFiles == (RepositoryFiles{}) {
+		return "", fmt.Errorf("missing required config value. name: repositoryFiles")
+	}
+
+	if localPath, localRepoErr := tryResolveFromLocalPath(anchorConfig.Config.RepositoryFiles.Local); localRepoErr != nil {
+
+		if remotePath, remoteRepoErr := tryResolveFromRemoteRepo(anchorConfig.Config.RepositoryFiles.Remote); remoteRepoErr == nil && remotePath != "" {
+
+			logger.Infof("Using cloned anchorfiles remote repository. path: %s", remotePath)
+			return remotePath, nil
+		}
+
+	} else if localPath != "" {
+		logger.Infof("Using local anchorfiles repository. path: %s", localPath)
+		return localPath, nil
+	}
+
+	return "", fmt.Errorf("could not resolve anchorfiles local repo path or git tracked repo path")
+}
+
+func tryResolveFromLocalPath(local Local) (string, error) {
+	pathToUse := local.Path
+	if len(pathToUse) > 0 {
+		if !ioutils.IsValidPath(pathToUse) {
+			return "", fmt.Errorf("local anchorfiles repository path is invalid. path: %s", pathToUse)
+		} else {
+			return pathToUse, nil
 		}
 	}
-
-	if v := os.Getenv("NAMESPACE"); len(v) > 0 {
-		common.GlobalOptions.DockerImageNamespace = v
-	}
-
-	if v := os.Getenv("TAG"); len(v) > 0 {
-		common.GlobalOptions.DockerImageTag = v
-	}
+	return "", nil
 }
 
-func isValidEnvFile(path string) bool {
-	if _, err := os.Stat(path); err != nil {
-		return false
+func tryResolveFromRemoteRepo(remote Remote) (string, error) {
+	pathToUse := remote.Url
+
+	// TODO: resolve from remote repo in here...
+
+	if len(pathToUse) > 0 {
+
+		if !ioutils.IsValidPath(pathToUse) {
+			return "", fmt.Errorf("remote anchorfiles cloned repository path is invalid. path: %s", pathToUse)
+		} else {
+			return pathToUse, nil
+		}
 	}
-	return true
+	return "", nil
 }
-
-const KindClusterManifestFormat = `# Kind cluster creation config
-kind: Cluster
-apiVersion: kind.sigs.k8s.io/v1alpha3
-nodes:
-%v
-%v`
-
-const KubernetesNamespaceManifest = `
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: NAMESPACE-TO-REPLACE
-`
-
-const RegistryContainerdConfigTemplate = `disabled_plugins = ["aufs", "btrfs", "zfs"]
-root = "/var/lib/containerd"
-state = "/run/containerd"
-oom_score = 0
-
-[grpc]
-  address = "/run/containerd/containerd.sock"
-  uid = 0
-  gid = 0
-  max_recv_message_size = 16777216
-  max_send_message_size = 16777216
-
-[debug]
-  address = ""
-  uid = 0
-  gid = 0
-  level = ""
-
-[metrics]
-  address = ""
-  grpc_histogram = false
-
-[cgroup]
-  path = ""
-
-[plugins]
-  [plugins.cgroups]
-    no_prometheus = false
-  [plugins.cri]
-    stream_server_address = "127.0.0.1"
-    stream_server_port = "0"
-    enable_selinux = false
-    sandbox_image = "k8s.gcr.io/pause:3.1"
-    stats_collect_period = 10
-    systemd_cgroup = false
-    enable_tls_streaming = false
-    max_container_log_line_size = 16384
-    [plugins.cri.containerd]
-      snapshotter = "overlayfs"
-      no_pivot = false
-      [plugins.cri.containerd.default_runtime]
-        runtime_type = "io.containerd.runtime.v1.linux"
-        runtime_engine = ""
-        runtime_root = ""
-      [plugins.cri.containerd.untrusted_workload_runtime]
-        runtime_type = ""
-        runtime_engine = ""
-        runtime_root = ""
-    [plugins.cri.cni]
-      bin_dir = "/opt/cni/bin"
-      conf_dir = "/etc/cni/net.d"
-      conf_template = ""
-    [plugins.cri.registry]
-      [plugins.cri.registry.mirrors]
-        [plugins.cri.registry.mirrors."local.insecure-registry.io"]
-          endpoint = ["http://127.0.0.1:32001"]
-        [plugins.cri.registry.mirrors."registry.anchor:32001"]
-          endpoint = ["http://127.0.0.1:32001"]
-        [plugins.cri.registry.mirrors."docker.io"]
-          endpoint = ["https://registry-1.docker.io"]
-    [plugins.cri.x509_key_pair_streaming]
-      tls_cert_file = ""
-      tls_key_file = ""
-  [plugins.diff-service]
-    default = ["walking"]
-  [plugins.linux]
-    shim = "containerd-shim"
-    runtime = "runc"
-    runtime_root = ""
-    no_shim = false
-    shim_debug = false
-  [plugins.opt]
-    path = "/opt/containerd"
-  [plugins.restart]
-    interval = "10s"
-  [plugins.scheduler]
-    pause_threshold = 0.02
-    deletion_threshold = 0
-    mutation_threshold = 100
-    schedule_delay = "0s"
-    startup_delay = "100ms"
-`
-
-const KubernetesDashboardManifest = `# Copyright 2017 The Kubernetes Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# ------------------- Dashboard Secret ------------------- #
-
-apiVersion: v1
-kind: Secret
-metadata:
-  labels:
-    k8s-app: kubernetes-dashboard
-  name: kubernetes-dashboard-certs
-  namespace: kube-system
-type: Opaque
-
----
-# ------------------- Dashboard Service Account ------------------- #
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    k8s-app: kubernetes-dashboard
-  name: kubernetes-dashboard
-  namespace: kube-system
-
----
-# ------------------- Dashboard Role & Role Binding ------------------- #
-
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: kubernetes-dashboard-minimal
-  namespace: kube-system
-rules:
-  # Allow Dashboard to create 'kubernetes-dashboard-key-holder' secret.
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["create"]
-    # Allow Dashboard to create 'kubernetes-dashboard-settings' config map.
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["create"]
-    # Allow Dashboard to get, update and delete Dashboard exclusive secrets.
-  - apiGroups: [""]
-    resources: ["secrets"]
-    resourceNames: ["kubernetes-dashboard-key-holder", "kubernetes-dashboard-certs"]
-    verbs: ["get", "update", "delete"]
-    # Allow Dashboard to get and update 'kubernetes-dashboard-settings' config map.
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    resourceNames: ["kubernetes-dashboard-settings"]
-    verbs: ["get", "update"]
-    # Allow Dashboard to get metrics from heapster.
-  - apiGroups: [""]
-    resources: ["services"]
-    resourceNames: ["heapster"]
-    verbs: ["proxy"]
-  - apiGroups: [""]
-    resources: ["services/proxy"]
-    resourceNames: ["heapster", "http:heapster:", "https:heapster:"]
-    verbs: ["get"]
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: kubernetes-dashboard-minimal
-  namespace: kube-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kubernetes-dashboard-minimal
-subjects:
-  - kind: ServiceAccount
-    name: kubernetes-dashboard
-    namespace: kube-system
-
----
-# ------------------- Dashboard Deployment ------------------- #
-
-kind: Deployment
-apiVersion: apps/v1
-metadata:
-  labels:
-    k8s-app: kubernetes-dashboard
-  name: kubernetes-dashboard
-  namespace: kube-system
-spec:
-  replicas: 1
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      k8s-app: kubernetes-dashboard
-  template:
-    metadata:
-      labels:
-        k8s-app: kubernetes-dashboard
-    spec:
-      containers:
-        - name: kubernetes-dashboard
-          image: k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1
-          ports:
-            - containerPort: 8443
-              protocol: TCP
-          args:
-            - --auto-generate-certificates
-            # Uncomment the following line to manually specify Kubernetes API server Host
-            # If not specified, Dashboard will attempt to auto discover the API server and connect
-            # to it. Uncomment only if the default does not work.
-            # - --apiserver-host=http://my-address:port
-          volumeMounts:
-            - name: kubernetes-dashboard-certs
-              mountPath: /certs
-              # Create on-disk volume to store exec logs
-            - mountPath: /tmp
-              name: tmp-volume
-          livenessProbe:
-            httpGet:
-              scheme: HTTPS
-              path: /
-              port: 8443
-            initialDelaySeconds: 30
-            timeoutSeconds: 30
-      volumes:
-        - name: kubernetes-dashboard-certs
-          secret:
-            secretName: kubernetes-dashboard-certs
-        - name: tmp-volume
-          emptyDir: {}
-      serviceAccountName: kubernetes-dashboard
-      # Comment the following tolerations if Dashboard must not be deployed on master
-      tolerations:
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
-
----
-# ------------------- Dashboard Service ------------------- #
-
-kind: Service
-apiVersion: v1
-metadata:
-  labels:
-    k8s-app: kubernetes-dashboard
-  name: kubernetes-dashboard
-  namespace: kube-system
-spec:
-  ports:
-    - port: 443
-      targetPort: 8443
-  selector:
-    k8s-app: kubernetes-dashboard`
-
-const KubernetesRegistryManifest = `---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: container-registry
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: registry-claim
-  namespace: container-registry
-spec:
-  accessModes:
-    - ReadWriteMany
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: registry
-  name: registry
-  namespace: container-registry
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: registry
-  template:
-    metadata:
-      labels:
-        app: registry
-    spec:
-      containers:
-        - name: registry
-          image: cdkbot/registry-amd64:2.6
-          env:
-            - name: REGISTRY_HTTP_ADDR
-              value: :5000
-            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
-              value: /var/lib/registry
-            - name: REGISTRY_STORAGE_DELETE_ENABLED
-              value: "yes"
-          ports:
-            - containerPort: 5000
-              name: registry
-              protocol: TCP
-          volumeMounts:
-            - mountPath: /var/lib/registry
-              name: registry-data
-      volumes:
-        - name: registry-data
-          persistentVolumeClaim:
-            claimName: registry-claim
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: registry
-  name: registry
-  namespace: container-registry
-spec:
-  type: NodePort
-  selector:
-    app: registry
-  ports:
-    - name: "registry"
-      port: 5000
-      targetPort: 5000
-      nodePort: 32001`

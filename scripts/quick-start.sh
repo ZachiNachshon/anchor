@@ -16,7 +16,7 @@ print_banner() {
 clone_anchor_dockerfiles_repo() {
   echo -e "
 =======================================================================
-                          Clonning Repositories
+                          Cloning Repositories
 ======================================================================="
 
   echo -e "

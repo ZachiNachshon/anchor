@@ -1,24 +1,34 @@
 TEST?=./...
 GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 
-default: build
+default: help
 
-build: fmtcheck
+build: fmtcheck ## Build project, format check and install to bin folder
 	go build
 	go install
 
-test:
-	go test -v
+.PHONY: run-tests-ci
+run-tests-ci: ## Run tests suites on CI containerized environment
+	go test -v $(TEST)
+	#go test -v config/config_test.go config/config.go
 
-fmt:
+.PHONY: run-tests-dockerized
+run-tests-dockerized: ## Run tests suites dockerized
+	docker run -it \
+        -v $(PWD):/home/anchor \
+        --entrypoint /bin/sh golang:1.14.15 \
+        -c 'cd /home/anchor; make run-tests-ci'
+
+fmt: ## Format go files
 	gofmt -w $(GOFMT_FILES)
 
-fmtcheck:
+fmtcheck: ## Check go files format validity
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
-release: fmtcheck
+release: fmtcheck ## Create release artifacts with format check
 	@sh -c "'$(CURDIR)/scripts/gorelease.sh'"
 
-.PHONY: build fmt fmtcheck release
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 

@@ -3,21 +3,14 @@ package completion
 import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/completion/bash"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/completion/zsh"
-	"github.com/ZachiNachshon/anchor/cmd/anchor/version"
-	"github.com/ZachiNachshon/anchor/pkg/common"
-	"github.com/ZachiNachshon/anchor/pkg/logger"
+	"github.com/ZachiNachshon/anchor/common"
+	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/spf13/cobra"
 )
 
-type CompletionCmd struct {
+type completionCmd struct {
 	cobraCmd *cobra.Command
-	opts     version.VersionOptions
-}
-
-type CompletionOptions struct {
-	*common.CmdRootOptions
-
-	// Additional Build Params
+	ctx      common.Context
 }
 
 const longDescription = `
@@ -36,7 +29,7 @@ Additionally, you may want to output the completion to a file and source in your
 Note for zsh users: [1] zsh completions are only supported in versions of zsh >= 5.2
 `
 
-func NewCommand(root *cobra.Command, opts *common.CmdRootOptions) *CompletionCmd {
+func NewCommand(root *cobra.Command, ctx common.Context) *completionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "completion",
 		Short: "Generate auto completion script for [bash, zsh]",
@@ -44,12 +37,9 @@ func NewCommand(root *cobra.Command, opts *common.CmdRootOptions) *CompletionCmd
 		Args:  cobra.NoArgs,
 	}
 
-	var completionCmd = new(CompletionCmd)
-	completionCmd.cobraCmd = cobraCmd
-	completionCmd.opts.CmdRootOptions = opts
-
-	if err := completionCmd.initFlags(); err != nil {
-		// TODO: log error
+	var completionCmd = &completionCmd{
+		cobraCmd: cobraCmd,
+		ctx:      ctx,
 	}
 
 	if err := completionCmd.initSubCommands(root); err != nil {
@@ -59,15 +49,11 @@ func NewCommand(root *cobra.Command, opts *common.CmdRootOptions) *CompletionCmd
 	return completionCmd
 }
 
-func (cmd *CompletionCmd) GetCobraCmd() *cobra.Command {
+func (cmd *completionCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *CompletionCmd) initFlags() error {
-	return nil
-}
-
-func (cmd *CompletionCmd) initSubCommands(root *cobra.Command) error {
+func (cmd *completionCmd) initSubCommands(root *cobra.Command) error {
 	cmd.cobraCmd.AddCommand(bash.NewCommand(root).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(zsh.NewCommand(root).GetCobraCmd())
 	return nil

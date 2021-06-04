@@ -19,10 +19,9 @@ func NewCommand(root *cobra.Command) *zshCmd {
 		},
 	}
 
-	var zshCmd = new(zshCmd)
-	zshCmd.cobraCmd = cobraCmd
-
-	return zshCmd
+	return &zshCmd{
+		cobraCmd: cobraCmd,
+	}
 }
 
 func (cmd *zshCmd) GetCobraCmd() *cobra.Command {
