@@ -7,7 +7,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/test/harness"
-	"github.com/ZachiNachshon/anchor/test/kits"
 	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -27,17 +26,17 @@ func Test_ConfigShould(t *testing.T) {
 			Func: ResolveConfigWithDefaultsFromYamlTextSuccessfully,
 		},
 		{
-			Name: "resolve local test anchorfiles path successfully",
-			Func: ResolveLocalTestAnchorfilesPathSuccessfully,
+			Name: "resolve local anchorfiles test repo successfully",
+			Func: ResolveLocalAnchorfilesTestRepoSuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var ResolveLocalTestAnchorfilesPathSuccessfully = func(t *testing.T) {
+var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := kits.GetDefaultTestConfigText()
+			yamlConfigText := GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
 				harness.HarnessAnchorfilesTestRepo(ctx)
 				assert.True(t, ioutils.IsValidPath(ctx.AnchorFilesPath()),
@@ -51,11 +50,11 @@ var ResolveConfigFromYamlTextSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			// Override default values explicitly
-			var items = kits.TemplateItems{
+			var items = TemplateItems{
 				Author:  TestAuthor,
 				License: TestLicense,
 			}
-			yamlConfigText := kits.GetCustomTestConfigText(items)
+			yamlConfigText := GetCustomTestConfigText(items)
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
 				assert.EqualValues(t, cfg.Author, nonViperConfig.Author)
@@ -70,7 +69,7 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			// Omit config items that should get default values
-			yamlConfigText := kits.GetDefaultTestConfigText()
+			yamlConfigText := GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
 				assert.EqualValues(t, cfg.Author, config.DefaultAuthor)

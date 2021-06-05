@@ -4,32 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/pkg/registry"
 	gotty "github.com/mattn/go-tty"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 )
-
-const (
-	identifier string = "shell"
-)
-
-func ToRegistry(reg *registry.InjectionsRegistry, shell Shell) {
-	reg.Register(registry.RegistryTuple{
-		Name:  identifier,
-		Value: shell,
-	})
-}
-
-func FromRegistry(reg *registry.InjectionsRegistry) (Shell, error) {
-	locate := reg.Get(identifier).(Shell)
-	if locate == nil {
-		return nil, fmt.Errorf("failed to retrieve shell executor from registry")
-	}
-	return locate, nil
-}
 
 type ShellType string
 

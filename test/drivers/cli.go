@@ -14,11 +14,17 @@ type commandInTest interface {
 	InitSubCommands()
 }
 
-var (
-	CLI = &cliRunnerImpl{}
-)
+type CLIActions interface {
+	RunCommand(cmd commandInTest, args ...string) (string, error)
+}
 
-type cliRunnerImpl struct{}
+type cliRunnerImpl struct {
+	CLIActions
+}
+
+func CLI() CLIActions {
+	return &cliRunnerImpl{}
+}
 
 func (cli *cliRunnerImpl) RunCommand(cmd commandInTest, args ...string) (string, error) {
 	cmd.InitFlags()

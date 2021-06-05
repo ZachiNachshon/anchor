@@ -1,7 +1,8 @@
-package kits
+package test
 
 import (
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/test/kits"
 )
 
 var configYamlTemplate = `
@@ -29,7 +30,7 @@ type TemplateItems struct {
 }
 
 var GetDefaultTestConfigText = func() string {
-	var yamlConfig, err = TemplateToText(configYamlTemplate, nil)
+	var yamlConfig, err = kits.TemplateToText(configYamlTemplate, nil)
 	if err != nil {
 		// Stop testing process since tests environment has an issue
 		logger.Fatalf("Failed to generate config template. error: %s", err)
@@ -38,7 +39,7 @@ var GetDefaultTestConfigText = func() string {
 }
 
 var GetCustomTestConfigText = func(items TemplateItems) string {
-	var yamlConfig, err = TemplateToText(configYamlTemplate, &items)
+	var yamlConfig, err = kits.TemplateToText(configYamlTemplate, &items)
 	if err != nil {
 		// Stop testing process since tests environment has an issue
 		logger.Fatalf("Failed to generate config template with substitutions. error: %s", err)

@@ -7,6 +7,7 @@ import (
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
+	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
@@ -14,6 +15,7 @@ func injectComponents(ctx common.Context) {
 	locator.ToRegistry(ctx.Registry(), locator.New(ctx.AnchorFilesPath()))
 	shell.ToRegistry(ctx.Registry(), shell.New())
 	extractor.ToRegistry(ctx.Registry(), extractor.New())
+	parser.ToRegistry(ctx.Registry(), parser.New())
 
 	//registry.Initialize().CmdExtractor = extractor.New()
 	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().Shell)

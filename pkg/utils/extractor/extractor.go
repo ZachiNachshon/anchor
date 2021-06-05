@@ -2,30 +2,10 @@ package extractor
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/pkg/registry"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 	"io/ioutil"
 )
-
-const (
-	identifier string = "extractor"
-)
-
-func ToRegistry(reg *registry.InjectionsRegistry, locator Extractor) {
-	reg.Register(registry.RegistryTuple{
-		Name:  identifier,
-		Value: locator,
-	})
-}
-
-func FromRegistry(reg *registry.InjectionsRegistry) (Extractor, error) {
-	locate := reg.Get(identifier).(Extractor)
-	if locate == nil {
-		return nil, fmt.Errorf("failed to retrieve extractor from registry")
-	}
-	return locate, nil
-}
 
 type extractor struct{}
 
@@ -33,7 +13,7 @@ func New() Extractor {
 	return &extractor{}
 }
 
-func (e *extractor) ExtractPromptItems(instructionsPath string) (*parser.PromptItems, error) {
+func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser) (*parser.PromptItems, error) {
 	if !ioutils.IsValidPath(instructionsPath) {
 		return nil, fmt.Errorf("invalid instructions path. path: %s", instructionsPath)
 	}
@@ -43,7 +23,6 @@ func (e *extractor) ExtractPromptItems(instructionsPath string) (*parser.PromptI
 	} else {
 		var yamlText = string(contentByte)
 
-		p := parser.New(yamlText)
 		if items, err := p.Parse(yamlText); err != nil {
 			return nil, err
 		} else {
