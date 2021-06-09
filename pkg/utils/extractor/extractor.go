@@ -13,7 +13,7 @@ func New() Extractor {
 	return &extractor{}
 }
 
-func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser) (*parser.PromptItems, error) {
+func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser) (*parser.Instructions, error) {
 	if !ioutils.IsValidPath(instructionsPath) {
 		return nil, fmt.Errorf("invalid instructions path. path: %s", instructionsPath)
 	}

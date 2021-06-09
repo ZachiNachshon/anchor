@@ -6,6 +6,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20190803045625-94edacc10f9b // indirect
+	github.com/manifoldco/promptui v0.8.0
 	github.com/mattn/go-tty v0.0.0-20190424173100-523744f04859
 	github.com/mfridman/tparse v0.8.3 // indirect
 	github.com/pkg/errors v0.9.1

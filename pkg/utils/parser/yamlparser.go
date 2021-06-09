@@ -10,8 +10,8 @@ func New() Parser {
 	return &yamlParser{}
 }
 
-func (p *yamlParser) Parse(yamlText string) (*PromptItems, error) {
-	items := &PromptItems{}
+func (p *yamlParser) Parse(yamlText string) (*Instructions, error) {
+	items := &Instructions{}
 	if err := converters.UnmarshalYamlToObj(yamlText, items); err != nil {
 		return nil, err
 	}

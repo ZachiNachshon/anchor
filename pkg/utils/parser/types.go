@@ -5,10 +5,10 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
-type PromptItems struct {
-	Items       []PromptItem `yaml:"promptItems"`
-	AutoRun     []string     `yaml:"autoRun"`
-	AutoCleanup []string     `yaml:"autoCleanup"`
+type Instructions struct {
+	Items       []*PromptItem `yaml:"promptItems"`
+	AutoRun     []string      `yaml:"autoRun"`
+	AutoCleanup []string      `yaml:"autoCleanup"`
 }
 
 type PromptItem struct {
@@ -18,7 +18,7 @@ type PromptItem struct {
 }
 
 type Parser interface {
-	Parse(yamlText string) (*PromptItems, error)
+	Parse(yamlText string) (*Instructions, error)
 	//Find(text string) string
 }
 

@@ -102,16 +102,14 @@ func (l *locator) Scan() error {
 				}
 			}
 
-			if isApp := isApplication(path); isApp {
-
-				if _, ok := hasAnchorIgnoreIdentifier(path); ok {
-					return filepath.SkipDir
-				}
-
-				logger.Debugf("locate application. Name: %s", name)
-				appContent := newAppContent(name, path)
-				l.appDirs[name] = appContent
+			if _, ok := hasAnchorIgnoreIdentifier(path); ok {
+				return filepath.SkipDir
 			}
+
+			if tryResolveApplication(l, path, name) {
+				return nil
+			}
+
 			return nil
 		})
 
@@ -122,12 +120,16 @@ func (l *locator) Scan() error {
 	return nil
 }
 
-func (l *locator) Applications() []string {
-	keys := make([]string, 0, len(l.appDirs))
-	for k := range l.appDirs {
-		keys = append(keys, k)
+func (l *locator) Applications() []*AppContent {
+	res := make([]*AppContent, 0, len(l.appDirs))
+	for _, v := range l.appDirs {
+		res = append(res, v)
 	}
-	return keys
+	return res
+}
+
+func (l *locator) ApplicationsAsMap() map[string]*AppContent {
+	return l.appDirs
 }
 
 func (l *locator) Application(name string) *AppContent {
@@ -135,6 +137,16 @@ func (l *locator) Application(name string) *AppContent {
 		return value
 	}
 	return nil
+}
+
+func tryResolveApplication(l *locator, path string, name string) bool {
+	if isApp := isApplication(path); isApp {
+		logger.Debugf("locate application. Name: %s", name)
+		appContent := newAppContent(name, path)
+		l.appDirs[name] = appContent
+		return true
+	}
+	return false
 }
 
 func isExcluded(name string) bool {

@@ -43,3 +43,9 @@ func main() {
 	injectComponents(ctx)
 	anchor.Main(ctx)
 }
+
+//func main() {
+//	appData := prompter.generateApplicationTestData()
+//	appsSelector := prompter.prepareAppsItems(appData)
+//	appsSelector.Run()
+//}

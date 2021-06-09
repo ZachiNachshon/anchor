@@ -7,7 +7,8 @@ import (
 
 type Locator interface {
 	Scan() error
-	Applications() []string
+	Applications() []*AppContent
+	ApplicationsAsMap() map[string]*AppContent
 	Application(name string) *AppContent
 	//Print()
 }

@@ -26,5 +26,5 @@ func FromRegistry(reg *registry.InjectionsRegistry) (Extractor, error) {
 }
 
 type Extractor interface {
-	ExtractPromptItems(instructionsPath string, p parser.Parser) (*parser.PromptItems, error)
+	ExtractPromptItems(instructionsPath string, p parser.Parser) (*parser.Instructions, error)
 }
