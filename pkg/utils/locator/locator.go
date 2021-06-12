@@ -39,7 +39,7 @@ const (
 	anchorIgnoreFileName string              = ".anchorignore"
 )
 
-type locator struct {
+type locatorImpl struct {
 	Locator
 	anchorfilesLocalPath string
 	appDirs              map[string]*models.AppContent
@@ -54,13 +54,13 @@ func newAppContent(name string, path string) *models.AppContent {
 }
 
 func New(anchorFilesLocalPath string) Locator {
-	return &locator{
+	return &locatorImpl{
 		anchorfilesLocalPath: anchorFilesLocalPath,
 		appDirs:              make(map[string]*models.AppContent),
 	}
 }
 
-func (l *locator) Scan() error {
+func (l *locatorImpl) Scan() error {
 	if !ioutils.IsValidPath(l.anchorfilesLocalPath) {
 		return fmt.Errorf("invalid anchorfile local path. path: %s", l.anchorfilesLocalPath)
 	}
@@ -115,7 +115,7 @@ func (l *locator) Scan() error {
 	return nil
 }
 
-func (l *locator) Applications() []*models.AppContent {
+func (l *locatorImpl) Applications() []*models.AppContent {
 	res := make([]*models.AppContent, 0, len(l.appDirs))
 	for _, v := range l.appDirs {
 		res = append(res, v)
@@ -123,18 +123,18 @@ func (l *locator) Applications() []*models.AppContent {
 	return res
 }
 
-func (l *locator) ApplicationsAsMap() map[string]*models.AppContent {
+func (l *locatorImpl) ApplicationsAsMap() map[string]*models.AppContent {
 	return l.appDirs
 }
 
-func (l *locator) Application(name string) *models.AppContent {
+func (l *locatorImpl) Application(name string) *models.AppContent {
 	if value, exists := l.appDirs[name]; exists {
 		return value
 	}
 	return nil
 }
 
-func tryResolveApplication(l *locator, path string, name string) bool {
+func tryResolveApplication(l *locatorImpl, path string, name string) bool {
 	if isApp := isApplication(path); isApp {
 		logger.Debugf("locate application. Name: %s", name)
 		appContent := newAppContent(name, path)

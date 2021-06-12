@@ -14,10 +14,10 @@ import (
 
 func Test_InstallCommandShould(t *testing.T) {
 	tests := []harness.TestsHarness{
-		//{
-		//	Name: "fail on illegal amount of args",
-		//	Func: FailOnIllegalAmountOfArgs,
-		//},
+		{
+			Name: "fail on illegal amount of args",
+			Func: FailOnIllegalAmountOfArgs,
+		},
 	}
 	harness.RunTests(t, tests)
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
+	"github.com/ZachiNachshon/anchor/pkg/utils/printer"
 	"github.com/spf13/cobra"
 )
 
@@ -20,11 +21,17 @@ func NewCommand(ctx common.Context) *listCmd {
 		Long:  `List all supported applications`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			if registry, err := locator.FromRegistry(ctx.Registry()); err != nil {
+			l, err := locator.FromRegistry(ctx.Registry())
+			if err != nil {
 				logger.Fatal(err.Error())
-			} else {
-				printSupportedApplications(registry)
 			}
+
+			p, err := printer.FromRegistry(ctx.Registry())
+			if err != nil {
+				logger.Fatal(err.Error())
+			}
+
+			printSupportedApplications(l, p)
 		},
 	}
 
@@ -44,9 +51,10 @@ func (cmd *listCmd) InitFlags() {
 func (cmd *listCmd) InitSubCommands() {
 }
 
-func printSupportedApplications(locate locator.Locator) {
-
-	// TODO: Move print from locator to another utility struct
-
-	//locate.Print()
+func printSupportedApplications(l locator.Locator, p printer.Printer) {
+	if err := l.Scan(); err != nil {
+		logger.Fatalf("Scanning for available application failed.")
+	} else {
+		p.PrintApplications(l.Applications())
+	}
 }
