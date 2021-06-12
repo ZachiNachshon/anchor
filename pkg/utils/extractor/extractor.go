@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 	"io/ioutil"
@@ -13,7 +14,7 @@ func New() Extractor {
 	return &extractor{}
 }
 
-func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser) (*parser.Instructions, error) {
+func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
 	if !ioutils.IsValidPath(instructionsPath) {
 		return nil, fmt.Errorf("invalid instructions path. path: %s", instructionsPath)
 	}

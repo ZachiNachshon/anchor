@@ -1,24 +1,24 @@
 package prompter
 
 import (
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
-	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 )
 
 type Prompter interface {
-	PromptApps(l locator.Locator) (*locator.AppContent, error)
-	PromptInstructions(*parser.Instructions) (*parser.PromptItem, error)
+	PromptApps(l locator.Locator) (*models.AppContent, error)
+	PromptInstructions(*models.Instructions) (*models.PromptItem, error)
 }
 
-var appsPromptTemplateDetails = `{{ if not (eq .Name "Back") }}
+var appsPromptTemplateDetails = `{{ if not (eq .Name "cancel") }}
 --------- Information ----------
 {{ "Name:" | faint }}	{{ .Name }}
 {{ "Overview:" | faint }}	{{ .DirPath }}
 {{ else }}
-Go back to previous step
+Cancel application selector
 {{ end }}`
 
-var instructionsPromptTemplateDetails = `{{ if not (eq .Name "Back") }}
+var instructionsPromptTemplateDetails = `{{ if not (eq .Id "back") }}
 --------- Information ----------
 {{ "Id:" | faint }}	{{ .Id }}
 {{ "Title:" | faint }}	{{ .Title }}

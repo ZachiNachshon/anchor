@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/config/test"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/test/drivers"
 	"github.com/ZachiNachshon/anchor/test/harness"
@@ -28,17 +29,23 @@ var CallPrintFuncExactlyOnce = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := test.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
-				printCallCount := 0
+				scanCallCount := 0
 				fake := locator.FakeLocatorLoader(ctx.AnchorFilesPath())
-				fake.PrintMock = func() {
-					printCallCount += 1
+				fake.ScanMock = func() error {
+					scanCallCount += 1
+					return nil
+				}
+				appsCallCount := 0
+				fake.ApplicationsMock = func() []*models.AppContent {
+					appsCallCount += 1
+					return nil
 				}
 				locator.ToRegistry(ctx.Registry(), fake)
 				cmd := NewCommand(ctx)
 				if _, err := drivers.CLI().RunCommand(cmd); err != nil {
 					assert.Failf(t, err.Error(), err.Error())
 				} else {
-					assert.Equal(t, printCallCount, 1, "expected print func to be called exactly once")
+					assert.Equal(t, scanCallCount, 1, "expected print func to be called exactly once")
 				}
 			})
 		})

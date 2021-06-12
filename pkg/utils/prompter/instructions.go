@@ -1,12 +1,12 @@
 package prompter
 
 import (
-	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/manifoldco/promptui"
 	"strings"
 )
 
-func preparePromptInstructionsItems(instructions *parser.Instructions) promptui.Select {
+func PreparePromptInstructionsItems(instructions *models.Instructions) promptui.Select {
 	appendInstructionCustomOptions(instructions)
 	instTemplate := prepareInstructionsTemplate()
 	instSearcher := prepareInstructionsSearcher(instructions.Items)
@@ -17,9 +17,9 @@ func setSearchInstructionsPrompt() {
 	promptui.SearchPrompt = "Search Instruction: "
 }
 
-func appendInstructionCustomOptions(instructions *parser.Instructions) {
-	instItems := make([]*parser.PromptItem, 0, len(instructions.Items)+1)
-	back := &parser.PromptItem{
+func appendInstructionCustomOptions(instructions *models.Instructions) {
+	instItems := make([]*models.PromptItem, 0, len(instructions.Items)+1)
+	back := &models.PromptItem{
 		Id: backButtonName,
 	}
 	instItems = append(instItems, back)
@@ -37,7 +37,7 @@ func prepareInstructionsTemplate() *promptui.SelectTemplates {
 	}
 }
 
-func prepareInstructionsSearcher(items []*parser.PromptItem) func(input string, index int) bool {
+func prepareInstructionsSearcher(items []*models.PromptItem) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := items[index]
 		name := strings.Replace(strings.ToLower(item.Id), " ", "", -1)
@@ -47,7 +47,7 @@ func prepareInstructionsSearcher(items []*parser.PromptItem) func(input string, 
 }
 
 func prepareInstructionsSelector(
-	instructions *parser.Instructions,
+	instructions *models.Instructions,
 	templates *promptui.SelectTemplates,
 	searcher func(input string, index int) bool) promptui.Select {
 

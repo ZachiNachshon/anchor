@@ -1,9 +1,9 @@
 package prompter
 
 import (
-	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
-	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/test/harness"
+	"github.com/ZachiNachshon/anchor/test/kits"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -31,35 +31,35 @@ func Test_PrompterShould(t *testing.T) {
 }
 
 var AddBackOptionToAppsPromptSelector = func(t *testing.T) {
-	appData := GenerateApplicationTestData()
+	appData := kits.GenerateApplicationTestData()
 	appsSelector := PreparePromptAppsItems(appData)
-	assert.EqualValues(t, "cancel", appsSelector.Items.([]*locator.AppContent)[0].Name)
+	assert.EqualValues(t, "cancel", appsSelector.Items.([]*models.AppContent)[0].Name)
 }
 
 var CreateValidAppsPromptSelector = func(t *testing.T) {
-	appData := GenerateApplicationTestData()
+	appData := kits.GenerateApplicationTestData()
 	appsSelector := PreparePromptAppsItems(appData)
 	assert.EqualValues(t, "Available Applications", appsSelector.Label)
-	assert.EqualValues(t, "first-application", appsSelector.Items.([]*locator.AppContent)[1].Name)
-	assert.EqualValues(t, "second-application", appsSelector.Items.([]*locator.AppContent)[2].Name)
+	assert.EqualValues(t, "first-application", appsSelector.Items.([]*models.AppContent)[1].Name)
+	assert.EqualValues(t, "second-application", appsSelector.Items.([]*models.AppContent)[2].Name)
 	assert.EqualValues(t, appsSelector.Templates.Details, appsPromptTemplateDetails)
 }
 
 var AddBackOptionToInstructionsPromptSelector = func(t *testing.T) {
-	instData := GenerateInstructionsTestData()
-	instSelector := preparePromptInstructionsItems(instData)
-	assert.EqualValues(t, "back", instSelector.Items.([]*parser.PromptItem)[0].Id)
+	instData := kits.GenerateInstructionsTestData()
+	instSelector := PreparePromptInstructionsItems(instData)
+	assert.EqualValues(t, "back", instSelector.Items.([]*models.PromptItem)[0].Id)
 }
 
 var CreateValidInstructionsPromptSelector = func(t *testing.T) {
-	instData := GenerateInstructionsTestData()
-	instSelector := preparePromptInstructionsItems(instData)
+	instData := kits.GenerateInstructionsTestData()
+	instSelector := PreparePromptInstructionsItems(instData)
 	assert.EqualValues(t, "Available Instructions", instSelector.Label)
-	assert.EqualValues(t, "hello-first-app", instSelector.Items.([]*parser.PromptItem)[1].Id)
-	assert.EqualValues(t, "This is the 1st item in test", instSelector.Items.([]*parser.PromptItem)[1].Title)
-	assert.EqualValues(t, "/path/to/hello-first-app", instSelector.Items.([]*parser.PromptItem)[1].File)
-	assert.EqualValues(t, "goodbye-first-app", instSelector.Items.([]*parser.PromptItem)[2].Id)
-	assert.EqualValues(t, "This is the 2nd item in test", instSelector.Items.([]*parser.PromptItem)[2].Title)
-	assert.EqualValues(t, "/path/to/goodbye-first-app", instSelector.Items.([]*parser.PromptItem)[2].File)
+	assert.EqualValues(t, "hello-world", instSelector.Items.([]*models.PromptItem)[1].Id)
+	assert.EqualValues(t, "1st instruction", instSelector.Items.([]*models.PromptItem)[1].Title)
+	assert.EqualValues(t, "/path/to/hello-world", instSelector.Items.([]*models.PromptItem)[1].File)
+	assert.EqualValues(t, "goodbye-world", instSelector.Items.([]*models.PromptItem)[2].Id)
+	assert.EqualValues(t, "2nd instruction", instSelector.Items.([]*models.PromptItem)[2].Title)
+	assert.EqualValues(t, "/path/to/goodbye-world", instSelector.Items.([]*models.PromptItem)[2].File)
 	assert.EqualValues(t, instructionsPromptTemplateDetails, instSelector.Templates.Details)
 }

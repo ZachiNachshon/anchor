@@ -2,15 +2,15 @@ package locator
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
 type Locator interface {
 	Scan() error
-	Applications() []*AppContent
-	ApplicationsAsMap() map[string]*AppContent
-	Application(name string) *AppContent
-	//Print()
+	Applications() []*models.AppContent
+	ApplicationsAsMap() map[string]*models.AppContent
+	Application(name string) *models.AppContent
 }
 
 const (

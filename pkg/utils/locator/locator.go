@@ -3,6 +3,7 @@ package locator
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
 	"path/filepath"
@@ -41,17 +42,11 @@ const (
 type locator struct {
 	Locator
 	anchorfilesLocalPath string
-	appDirs              map[string]*AppContent
+	appDirs              map[string]*models.AppContent
 }
 
-type AppContent struct {
-	Name             string
-	DirPath          string
-	InstructionsPath string
-}
-
-func newAppContent(name string, path string) *AppContent {
-	return &AppContent{
+func newAppContent(name string, path string) *models.AppContent {
+	return &models.AppContent{
 		Name:             name,
 		DirPath:          path,
 		InstructionsPath: fmt.Sprintf("%s/%s", path, instructionsFileName),
@@ -61,7 +56,7 @@ func newAppContent(name string, path string) *AppContent {
 func New(anchorFilesLocalPath string) Locator {
 	return &locator{
 		anchorfilesLocalPath: anchorFilesLocalPath,
-		appDirs:              make(map[string]*AppContent),
+		appDirs:              make(map[string]*models.AppContent),
 	}
 }
 
@@ -120,19 +115,19 @@ func (l *locator) Scan() error {
 	return nil
 }
 
-func (l *locator) Applications() []*AppContent {
-	res := make([]*AppContent, 0, len(l.appDirs))
+func (l *locator) Applications() []*models.AppContent {
+	res := make([]*models.AppContent, 0, len(l.appDirs))
 	for _, v := range l.appDirs {
 		res = append(res, v)
 	}
 	return res
 }
 
-func (l *locator) ApplicationsAsMap() map[string]*AppContent {
+func (l *locator) ApplicationsAsMap() map[string]*models.AppContent {
 	return l.appDirs
 }
 
-func (l *locator) Application(name string) *AppContent {
+func (l *locator) Application(name string) *models.AppContent {
 	if value, exists := l.appDirs[name]; exists {
 		return value
 	}

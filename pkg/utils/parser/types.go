@@ -2,23 +2,12 @@ package parser
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
-type Instructions struct {
-	Items       []*PromptItem `yaml:"promptItems"`
-	AutoRun     []string      `yaml:"autoRun"`
-	AutoCleanup []string      `yaml:"autoCleanup"`
-}
-
-type PromptItem struct {
-	Id    string `yaml:"id"`
-	Title string `yaml:"title"`
-	File  string `yaml:"file"`
-}
-
 type Parser interface {
-	Parse(yamlText string) (*Instructions, error)
+	Parse(yamlText string) (*models.Instructions, error)
 	//Find(text string) string
 }
 

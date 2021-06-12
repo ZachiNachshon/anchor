@@ -1,21 +1,21 @@
 package prompter
 
 import (
-	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/manifoldco/promptui"
 	"strings"
 )
 
-func PreparePromptAppsItems(apps []*locator.AppContent) promptui.Select {
+func PreparePromptAppsItems(apps []*models.AppContent) promptui.Select {
 	apps = appendAppsCustomOptions(apps)
 	appsTemplate := prepareAppsTemplate()
 	appsSearcher := prepareAppsSearcher(apps)
 	return prepareAppsSelector(apps, appsTemplate, appsSearcher)
 }
 
-func appendAppsCustomOptions(apps []*locator.AppContent) []*locator.AppContent {
-	appDirs := make([]*locator.AppContent, 0, len(apps)+1)
-	cancel := &locator.AppContent{
+func appendAppsCustomOptions(apps []*models.AppContent) []*models.AppContent {
+	appDirs := make([]*models.AppContent, 0, len(apps)+1)
+	cancel := &models.AppContent{
 		Name: cancelButtonName,
 	}
 	appDirs = append(appDirs, cancel)
@@ -37,7 +37,7 @@ func prepareAppsTemplate() *promptui.SelectTemplates {
 	}
 }
 
-func prepareAppsSearcher(apps []*locator.AppContent) func(input string, index int) bool {
+func prepareAppsSearcher(apps []*models.AppContent) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := apps[index]
 		name := strings.Replace(strings.ToLower(item.Name), " ", "", -1)
@@ -47,7 +47,7 @@ func prepareAppsSearcher(apps []*locator.AppContent) func(input string, index in
 }
 
 func prepareAppsSelector(
-	apps []*locator.AppContent,
+	apps []*models.AppContent,
 	templates *promptui.SelectTemplates,
 	searcher func(input string, index int) bool) promptui.Select {
 

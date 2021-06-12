@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 )
@@ -26,5 +27,5 @@ func FromRegistry(reg *registry.InjectionsRegistry) (Extractor, error) {
 }
 
 type Extractor interface {
-	ExtractPromptItems(instructionsPath string, p parser.Parser) (*parser.Instructions, error)
+	ExtractPromptItems(instructionsPath string, p parser.Parser) (*models.Instructions, error)
 }

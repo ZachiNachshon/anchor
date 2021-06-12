@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
 )
 
@@ -10,8 +11,8 @@ func New() Parser {
 	return &yamlParser{}
 }
 
-func (p *yamlParser) Parse(yamlText string) (*Instructions, error) {
-	items := &Instructions{}
+func (p *yamlParser) Parse(yamlText string) (*models.Instructions, error) {
+	items := &models.Instructions{}
 	if err := converters.UnmarshalYamlToObj(yamlText, items); err != nil {
 		return nil, err
 	}

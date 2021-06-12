@@ -3,8 +3,8 @@ package prompter
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
-	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 )
 
 const (
@@ -20,7 +20,7 @@ func New() Prompter {
 	return &prompterImpl{}
 }
 
-func (p *prompterImpl) PromptApps(l locator.Locator) (*locator.AppContent, error) {
+func (p *prompterImpl) PromptApps(l locator.Locator) (*models.AppContent, error) {
 	setSearchAppPrompt()
 	appsArr := l.Applications()
 	appsSelector := PreparePromptAppsItems(appsArr)
@@ -32,9 +32,9 @@ func (p *prompterImpl) PromptApps(l locator.Locator) (*locator.AppContent, error
 	return appsArr[i], nil
 }
 
-func (p *prompterImpl) PromptInstructions(instructions *parser.Instructions) (*parser.PromptItem, error) {
+func (p *prompterImpl) PromptInstructions(instructions *models.Instructions) (*models.PromptItem, error) {
 	setSearchInstructionsPrompt()
-	instSelector := preparePromptInstructionsItems(instructions)
+	instSelector := PreparePromptInstructionsItems(instructions)
 	i, _, err := instSelector.Run()
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare and run instruction prompt selector. error: %s", err.Error())
