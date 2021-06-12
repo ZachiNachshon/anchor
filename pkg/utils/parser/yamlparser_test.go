@@ -25,14 +25,14 @@ var ParsePromptItemsSuccessfully = func(t *testing.T) {
 	assert.Nil(t, err, "expected parser to succeed")
 	assert.Equal(t, 2, len(prompItems.Items), "expected 2 instructions but found %v", len(prompItems.Items))
 	// And their names should match
-	assert.Equal(t, prompItems.Items[0].Id, "hello-world")
-	assert.Equal(t, prompItems.Items[1].Id, "goodbye-world")
+	assert.Equal(t, "hello-world", prompItems.Items[0].Id)
+	assert.Equal(t, "goodbye-world", prompItems.Items[1].Id)
 	// And I expect a single auto run action
 	assert.Equal(t, 1, len(prompItems.AutoRun), "expected 1 auto run action but found %v", len(prompItems.AutoRun))
 	// And I expect the auto run action name to match
-	assert.Equal(t, prompItems.AutoRun[0], "hello-world")
+	assert.Equal(t, "hello-world", prompItems.AutoRun[0])
 	// And I expect a single auto cleanup action
 	assert.Equal(t, 1, len(prompItems.AutoCleanup), "expected 1 auto cleanup action but found %v", len(prompItems.AutoCleanup))
 	// And I expect the auto cleanup action name to match
-	assert.Equal(t, prompItems.AutoCleanup[0], "goodbye-world")
+	assert.Equal(t, "goodbye-world", prompItems.AutoCleanup[0])
 }

@@ -22,26 +22,44 @@ func Test_PrompterShould(t *testing.T) {
 			Name: "add back option to instructions prompt selector",
 			Func: AddBackOptionToInstructionsPromptSelector,
 		},
+		{
+			Name: "create a valid instructions prompt selector",
+			Func: CreateValidInstructionsPromptSelector,
+		},
 	}
 	harness.RunTests(t, tests)
 }
 
 var AddBackOptionToAppsPromptSelector = func(t *testing.T) {
-	appData := generateApplicationTestData()
-	appsSelector := prepareAppsItems(appData)
-	assert.EqualValues(t, appsSelector.Items.([]*locator.AppContent)[0].Name, "Back")
+	appData := GenerateApplicationTestData()
+	appsSelector := PreparePromptAppsItems(appData)
+	assert.EqualValues(t, "cancel", appsSelector.Items.([]*locator.AppContent)[0].Name)
 }
 
 var CreateValidAppsPromptSelector = func(t *testing.T) {
-	appData := generateApplicationTestData()
-	appsSelector := prepareAppsItems(appData)
-	assert.EqualValues(t, appsSelector.Label, "Available Applications")
-	assert.EqualValues(t, appsSelector.Items.([]*locator.AppContent)[1].Name, "first-application")
-	assert.EqualValues(t, appsSelector.Items.([]*locator.AppContent)[2].Name, "second-application")
+	appData := GenerateApplicationTestData()
+	appsSelector := PreparePromptAppsItems(appData)
+	assert.EqualValues(t, "Available Applications", appsSelector.Label)
+	assert.EqualValues(t, "first-application", appsSelector.Items.([]*locator.AppContent)[1].Name)
+	assert.EqualValues(t, "second-application", appsSelector.Items.([]*locator.AppContent)[2].Name)
 	assert.EqualValues(t, appsSelector.Templates.Details, appsPromptTemplateDetails)
 }
 
 var AddBackOptionToInstructionsPromptSelector = func(t *testing.T) {
-	instSelector := prepareInstructionsItems(FirstAppInstructions)
-	assert.EqualValues(t, instSelector.Items.([]*parser.PromptItem)[0].Id, "Back")
+	instData := GenerateInstructionsTestData()
+	instSelector := preparePromptInstructionsItems(instData)
+	assert.EqualValues(t, "back", instSelector.Items.([]*parser.PromptItem)[0].Id)
+}
+
+var CreateValidInstructionsPromptSelector = func(t *testing.T) {
+	instData := GenerateInstructionsTestData()
+	instSelector := preparePromptInstructionsItems(instData)
+	assert.EqualValues(t, "Available Instructions", instSelector.Label)
+	assert.EqualValues(t, "hello-first-app", instSelector.Items.([]*parser.PromptItem)[1].Id)
+	assert.EqualValues(t, "This is the 1st item in test", instSelector.Items.([]*parser.PromptItem)[1].Title)
+	assert.EqualValues(t, "/path/to/hello-first-app", instSelector.Items.([]*parser.PromptItem)[1].File)
+	assert.EqualValues(t, "goodbye-first-app", instSelector.Items.([]*parser.PromptItem)[2].Id)
+	assert.EqualValues(t, "This is the 2nd item in test", instSelector.Items.([]*parser.PromptItem)[2].Title)
+	assert.EqualValues(t, "/path/to/goodbye-first-app", instSelector.Items.([]*parser.PromptItem)[2].File)
+	assert.EqualValues(t, instructionsPromptTemplateDetails, instSelector.Templates.Details)
 }
