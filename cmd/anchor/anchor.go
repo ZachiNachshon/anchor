@@ -7,11 +7,12 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/spf13/cobra"
 )
 
 type anchorCmd struct {
-	common.CliCommand
+	models.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
 }

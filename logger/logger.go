@@ -74,7 +74,11 @@ var LogrusLoggerLoader = func(verbose bool) error {
 	}
 
 	// Log as JSON instead of the default ASCII formatter.
-	logrus.SetFormatter(&logrus.JSONFormatter{})
+	//logrus.SetFormatter(&logrus.JSONFormatter{})
+	textFormatter := logrus.TextFormatter{}
+	textFormatter.FullTimestamp = true
+	textFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	logrus.SetFormatter(&textFormatter)
 
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example

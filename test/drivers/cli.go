@@ -3,19 +3,12 @@ package drivers
 import (
 	"bytes"
 	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/spf13/cobra"
+	"github.com/ZachiNachshon/anchor/models"
 	"io/ioutil"
 )
 
-// TODO: move to prod code
-type commandInTest interface {
-	GetCobraCmd() *cobra.Command
-	InitFlags()
-	InitSubCommands()
-}
-
 type CLIActions interface {
-	RunCommand(cmd commandInTest, args ...string) (string, error)
+	RunCommand(cmd models.AnchorCommand, args ...string) (string, error)
 }
 
 type cliRunnerImpl struct {
@@ -26,7 +19,7 @@ func CLI() CLIActions {
 	return &cliRunnerImpl{}
 }
 
-func (cli *cliRunnerImpl) RunCommand(cmd commandInTest, args ...string) (string, error) {
+func (cli *cliRunnerImpl) RunCommand(cmd models.AnchorCommand, args ...string) (string, error) {
 	cmd.InitFlags()
 	cmd.InitSubCommands()
 

@@ -8,13 +8,13 @@ import (
 	"io/ioutil"
 )
 
-type extractor struct{}
+type extractorImpl struct{}
 
 func New() Extractor {
-	return &extractor{}
+	return &extractorImpl{}
 }
 
-func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+func (e *extractorImpl) ExtractPromptItems(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
 	if !ioutils.IsValidPath(instructionsPath) {
 		return nil, fmt.Errorf("invalid instructions path. path: %s", instructionsPath)
 	}
@@ -22,9 +22,9 @@ func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser)
 	if contentByte, err := ioutil.ReadFile(instructionsPath); err != nil {
 		return nil, err
 	} else {
-		var yamlText = string(contentByte)
+		var text = string(contentByte)
 
-		if items, err := p.Parse(yamlText); err != nil {
+		if items, err := p.Parse(text); err != nil {
 			return nil, err
 		} else {
 			return items, nil
@@ -48,7 +48,7 @@ func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser)
 //	return ""
 //}
 //
-//func (e *extractor) ManifestCmd(identifier string) (string, error) {
+//func (e *extractorImpl) ManifestCmd(identifier string) (string, error) {
 //	if manifestFilePath, err := locator.DirLocator.Manifest(identifier); err != nil {
 //		return "", err
 //	} else {
@@ -83,7 +83,7 @@ func (e *extractor) ExtractPromptItems(instructionsPath string, p parser.Parser)
 //	return ""
 //}
 //
-//func (e *extractor) ManifestContent(identifier string) (bool, error) {
+//func (e *extractorImpl) ManifestContent(identifier string) (bool, error) {
 //	if _, err := locator.DirLocator.Manifest(identifier); err != nil {
 //		return false, err
 //	} else {

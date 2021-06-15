@@ -49,11 +49,16 @@ type Local struct {
 	Path string `yaml:"path"`
 }
 
-func initConfigPath() {
-	viper.SetConfigName("anchorConfig")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("${HOME}/.config/anchor") // path to look for the config file in
-	//viper.AddConfigPath(".")                      // optionally look for config in the working directory
+func initConfigPath() error {
+	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+		return err
+	} else {
+		viper.SetConfigName("anchorConfig")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath(homeFolder + "/.config/anchor") // path to look for the config file in
+		//viper.AddConfigPath(".")                      		// optionally look for config in the working directory
+		return nil
+	}
 }
 
 func setDefaults() {
@@ -102,7 +107,11 @@ var ViperConfigInMemoryLoader = func(yaml string) (*AnchorConfig, error) {
 }
 
 var ViperConfigFileLoader = func() (*AnchorConfig, error) {
-	initConfigPath()
+	err := initConfigPath()
+	if err != nil {
+		logger.Fatalf("Failed to initialize anchor configuration path. error: %s", err.Error())
+		return nil, err
+	}
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
@@ -134,12 +143,12 @@ var ResolveAnchorfilesPathFromConfig = func(anchorConfig AnchorConfig) (string, 
 
 		if remotePath, remoteRepoErr := tryResolveFromRemoteRepo(anchorConfig.Config.RepositoryFiles.Remote); remoteRepoErr == nil && remotePath != "" {
 
-			logger.Infof("Using cloned anchorfiles remote repository. path: %s", remotePath)
+			logger.Debugf("Using cloned anchorfiles remote repository. path: %s", remotePath)
 			return remotePath, nil
 		}
 
 	} else if localPath != "" {
-		logger.Infof("Using local anchorfiles repository. path: %s", localPath)
+		logger.Debugf("Using local anchorfiles repository. path: %s", localPath)
 		return localPath, nil
 	}
 

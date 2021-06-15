@@ -3,11 +3,12 @@ package install
 import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/spf13/cobra"
 )
 
 type installCmd struct {
-	common.CliCommand
+	models.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
 }

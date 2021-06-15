@@ -37,3 +37,11 @@ func CreateDirectory(path string) error {
 	}
 	return nil
 }
+
+func GetUserHomeFolder() (string, error) {
+	if dirname, err := os.UserHomeDir(); err != nil {
+		return "", err
+	} else {
+		return dirname, nil
+	}
+}

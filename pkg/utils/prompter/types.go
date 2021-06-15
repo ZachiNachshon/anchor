@@ -1,13 +1,37 @@
 package prompter
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/models"
-	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
+	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
 type Prompter interface {
-	PromptApps(l locator.Locator) (*models.AppContent, error)
-	PromptInstructions(*models.Instructions) (*models.PromptItem, error)
+	PromptApps(appsArr []*models.AppContent) (*models.AppContent, error)
+	PromptInstructions(instructions *models.Instructions) (*models.PromptItem, error)
+}
+
+const (
+	identifier string = "prompter"
+)
+
+func ToRegistry(reg *registry.InjectionsRegistry, locator Prompter) {
+	reg.Register(registry.RegistryTuple{
+		Name:  identifier,
+		Value: locator,
+	})
+}
+
+func FromRegistry(reg *registry.InjectionsRegistry) (Prompter, error) {
+	locate := reg.Get(identifier).(Prompter)
+	if locate == nil {
+		return nil, fmt.Errorf("failed to retrieve prompter from registry")
+	}
+	return locate, nil
+}
+
+type Orchestrator interface {
+	OrchestrateAppInstructionSelection() (*models.PromptItem, error)
 }
 
 var appsPromptTemplateDetails = `{{ if not (eq .Name "cancel") }}

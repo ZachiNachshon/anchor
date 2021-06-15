@@ -32,13 +32,13 @@ func Test_PrompterShould(t *testing.T) {
 
 var AddBackOptionToAppsPromptSelector = func(t *testing.T) {
 	appData := kits.GenerateApplicationTestData()
-	appsSelector := PreparePromptAppsItems(appData)
+	appsSelector := preparePromptAppsItems(appData)
 	assert.EqualValues(t, "cancel", appsSelector.Items.([]*models.AppContent)[0].Name)
 }
 
 var CreateValidAppsPromptSelector = func(t *testing.T) {
 	appData := kits.GenerateApplicationTestData()
-	appsSelector := PreparePromptAppsItems(appData)
+	appsSelector := preparePromptAppsItems(appData)
 	assert.EqualValues(t, "Available Applications", appsSelector.Label)
 	assert.EqualValues(t, "first-application", appsSelector.Items.([]*models.AppContent)[1].Name)
 	assert.EqualValues(t, "second-application", appsSelector.Items.([]*models.AppContent)[2].Name)
@@ -47,13 +47,13 @@ var CreateValidAppsPromptSelector = func(t *testing.T) {
 
 var AddBackOptionToInstructionsPromptSelector = func(t *testing.T) {
 	instData := kits.GenerateInstructionsTestData()
-	instSelector := PreparePromptInstructionsItems(instData)
+	instSelector := preparePromptInstructionsItems(instData)
 	assert.EqualValues(t, "back", instSelector.Items.([]*models.PromptItem)[0].Id)
 }
 
 var CreateValidInstructionsPromptSelector = func(t *testing.T) {
 	instData := kits.GenerateInstructionsTestData()
-	instSelector := PreparePromptInstructionsItems(instData)
+	instSelector := preparePromptInstructionsItems(instData)
 	assert.EqualValues(t, "Available Instructions", instSelector.Label)
 	assert.EqualValues(t, "hello-world", instSelector.Items.([]*models.PromptItem)[1].Id)
 	assert.EqualValues(t, "1st instruction", instSelector.Items.([]*models.PromptItem)[1].Title)

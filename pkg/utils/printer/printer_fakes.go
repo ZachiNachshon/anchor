@@ -2,7 +2,7 @@ package printer
 
 import "github.com/ZachiNachshon/anchor/models"
 
-var FakePrinter = func() *fakePrinter {
+var CreateFakePrinter = func() *fakePrinter {
 	return &fakePrinter{}
 }
 

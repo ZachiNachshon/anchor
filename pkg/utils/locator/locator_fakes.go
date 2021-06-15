@@ -2,27 +2,27 @@ package locator
 
 import "github.com/ZachiNachshon/anchor/models"
 
-var FakeLocatorLoader = func(anchorFilesPath string) *fakeLocator {
-	return &fakeLocator{
+var CreateFakeLocator = func(anchorFilesPath string) *fakeLocatorImpl {
+	return &fakeLocatorImpl{
 		localRepoPath: anchorFilesPath,
 	}
 }
 
-type fakeLocator struct {
+type fakeLocatorImpl struct {
 	Locator
 	localRepoPath    string
 	ScanMock         func() error
 	ApplicationsMock func() []*models.AppContent
 }
 
-func (l *fakeLocator) LocalRepoPath() string {
+func (l *fakeLocatorImpl) LocalRepoPath() string {
 	return l.localRepoPath
 }
 
-func (l *fakeLocator) Scan() error {
+func (l *fakeLocatorImpl) Scan() error {
 	return l.ScanMock()
 }
 
-func (l *fakeLocator) Applications() []*models.AppContent {
+func (l *fakeLocatorImpl) Applications() []*models.AppContent {
 	return l.ApplicationsMock()
 }

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/ZachiNachshon/anchor/cmd/anchor"
+	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
+	"github.com/ZachiNachshon/anchor/pkg/utils/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
@@ -16,8 +17,8 @@ func injectComponents(ctx common.Context) {
 	shell.ToRegistry(ctx.Registry(), shell.New())
 	extractor.ToRegistry(ctx.Registry(), extractor.New())
 	parser.ToRegistry(ctx.Registry(), parser.New())
+	prompter.ToRegistry(ctx.Registry(), prompter.New())
 
-	//registry.Initialize().CmdExtractor = extractor.New()
 	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().Shell)
 }
 
@@ -25,7 +26,7 @@ func main() {
 	ctx := common.EmptyAnchorContext()
 
 	if err := logger.LogrusLoggerLoader(false); err != nil {
-		logger.Fatalf("Failed to setup logger. error: %s", err.Error())
+		fmt.Printf("Failed to initialize logger. error: %s", err.Error())
 	}
 
 	if cfg, err := config.ViperConfigFileLoader(); err != nil {
@@ -41,11 +42,22 @@ func main() {
 	}
 
 	injectComponents(ctx)
-	anchor.Main(ctx)
-}
 
-//func main() {
-//	appData := prompter.generateApplicationTestData()
-//	appsSelector := prompter.prepareAppsItems(appData)
-//	appsSelector.Run()
-//}
+	l, _ := locator.FromRegistry(ctx.Registry())
+	err := l.Scan()
+	if err != nil {
+		logger.Fatalf("Failed to locate and scan anchorfiles repository content")
+	}
+
+	if orchestrator, err := prompter.NewOrchestrator(ctx); err != nil {
+		logger.Fatal(err.Error())
+	} else {
+		if selection, err := orchestrator.OrchestrateAppInstructionSelection(); err != nil {
+			logger.Fatal(err.Error())
+		} else {
+			logger.Infof("Selected: %v", selection.Id)
+		}
+	}
+
+	//anchor.Main(ctx)
+}

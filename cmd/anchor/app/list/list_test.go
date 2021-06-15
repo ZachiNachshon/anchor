@@ -31,7 +31,7 @@ var ScanAndListAllAppsSuccessfully = func(t *testing.T) {
 			yamlConfigText := test.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
 				scanCallCount := 0
-				fakeLocator := locator.FakeLocatorLoader(ctx.AnchorFilesPath())
+				fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
 				fakeLocator.ScanMock = func() error {
 					scanCallCount += 1
 					return nil
@@ -44,7 +44,7 @@ var ScanAndListAllAppsSuccessfully = func(t *testing.T) {
 				locator.ToRegistry(ctx.Registry(), fakeLocator)
 
 				printCallCount := 0
-				fakePrinter := printer.FakePrinter()
+				fakePrinter := printer.CreateFakePrinter()
 				fakePrinter.PrintApplicationsMock = func(apps []*models.AppContent) {
 					printCallCount += 1
 				}

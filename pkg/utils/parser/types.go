@@ -7,12 +7,12 @@ import (
 )
 
 type Parser interface {
-	Parse(yamlText string) (*models.Instructions, error)
+	Parse(text string) (*models.Instructions, error)
 	//Find(text string) string
 }
 
 const (
-	identifier string = "extractor"
+	identifier string = "parser"
 )
 
 func ToRegistry(reg *registry.InjectionsRegistry, locator Parser) {

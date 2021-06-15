@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func PreparePromptInstructionsItems(instructions *models.Instructions) promptui.Select {
+func preparePromptInstructionsItems(instructions *models.Instructions) promptui.Select {
 	appendInstructionCustomOptions(instructions)
 	instTemplate := prepareInstructionsTemplate()
 	instSearcher := prepareInstructionsSearcher(instructions.Items)
@@ -30,8 +30,8 @@ func appendInstructionCustomOptions(instructions *models.Instructions) {
 func prepareInstructionsTemplate() *promptui.SelectTemplates {
 	return &promptui.SelectTemplates{
 		Label:    "{{ . }}:",
-		Active:   promptui.IconSelect + " {{ .Id | cyan }} ({{ .Title | red }})",
-		Inactive: "  {{ .Id | cyan }} ({{ .Title | red }})",
+		Active:   promptui.IconSelect + ` {{ .Id | cyan }} {{ if not (eq .Id "back") }} ({{ .Title | red }}) {{ end }}`,
+		Inactive: `  {{ .Id | cyan }} {{ if not (eq .Id "back") }} ({{ .Title | red }}) {{ end }}`,
 		Selected: promptui.IconSelect + " {{ .Id | red | cyan }}",
 		Details:  instructionsPromptTemplateDetails,
 	}
@@ -58,5 +58,6 @@ func prepareInstructionsSelector(
 		Size:              10,
 		Searcher:          searcher,
 		StartInSearchMode: true,
+		HideSelected:      true,
 	}
 }

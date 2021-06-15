@@ -26,8 +26,7 @@ var FailOnIllegalAmountOfArgs = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, test.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
-				cmd := NewCommand(ctx)
-				if _, err := drivers.CLI().RunCommand(cmd); err != nil {
+				if _, err := drivers.CLI().RunCommand(NewCommand(ctx)); err != nil {
 					assert.Equal(t, err.Error(), "accepts 1 arg(s), received 0")
 				} else {
 					assert.Fail(t, "expected to fail on invalid arguments count")

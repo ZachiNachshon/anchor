@@ -3,13 +3,14 @@ package list
 import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/printer"
 	"github.com/spf13/cobra"
 )
 
 type listCmd struct {
-	common.CliCommand
+	models.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
 }

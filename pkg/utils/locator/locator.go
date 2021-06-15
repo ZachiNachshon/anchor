@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/utils/atomics"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
 	"path/filepath"
@@ -13,9 +14,6 @@ import (
 type DirectoryIdentifier string
 
 var excludedDirectories map[string]bool
-
-var lineFormat = "| %-3v | %-35v %-15v %-15v %-15v\n"
-var header = fmt.Sprintf(lineFormat, "#", "NAME", "DOCKERFILE", "K8S_MANIFEST", "AFFINITY")
 
 func init() {
 	excludedDirectories = make(map[string]bool)
@@ -41,6 +39,7 @@ const (
 
 type locatorImpl struct {
 	Locator
+	initialized          atomics.AtomicBool
 	anchorfilesLocalPath string
 	appDirs              map[string]*models.AppContent
 }
@@ -61,6 +60,10 @@ func New(anchorFilesLocalPath string) Locator {
 }
 
 func (l *locatorImpl) Scan() error {
+	if l.isInitialized() {
+		return nil
+	}
+
 	if !ioutils.IsValidPath(l.anchorfilesLocalPath) {
 		return fmt.Errorf("invalid anchorfile local path. path: %s", l.anchorfilesLocalPath)
 	}
@@ -112,6 +115,7 @@ func (l *locatorImpl) Scan() error {
 		return err
 	}
 
+	l.markInitialized()
 	return nil
 }
 
@@ -132,6 +136,14 @@ func (l *locatorImpl) Application(name string) *models.AppContent {
 		return value
 	}
 	return nil
+}
+
+func (l *locatorImpl) isInitialized() bool {
+	return l.initialized.Get()
+}
+
+func (l *locatorImpl) markInitialized() {
+	l.initialized.Set(true)
 }
 
 func tryResolveApplication(l *locatorImpl, path string, name string) bool {

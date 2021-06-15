@@ -1,8 +1,8 @@
-package common
+package models
 
 import "github.com/spf13/cobra"
 
-type CliCommand interface {
+type AnchorCommand interface {
 	GetCobraCmd() *cobra.Command
 	InitFlags()
 	InitSubCommands()

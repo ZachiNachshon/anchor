@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-func PreparePromptAppsItems(apps []*models.AppContent) promptui.Select {
-	apps = appendAppsCustomOptions(apps)
+func preparePromptAppsItems(apps []*models.AppContent) promptui.Select {
+	appsEnhanced := appendAppsCustomOptions(apps)
 	appsTemplate := prepareAppsTemplate()
-	appsSearcher := prepareAppsSearcher(apps)
-	return prepareAppsSelector(apps, appsTemplate, appsSearcher)
+	appsSearcher := prepareAppsSearcher(appsEnhanced)
+	return prepareAppsSelector(appsEnhanced, appsTemplate, appsSearcher)
 }
 
 func appendAppsCustomOptions(apps []*models.AppContent) []*models.AppContent {
@@ -58,5 +58,6 @@ func prepareAppsSelector(
 		Size:              10,
 		Searcher:          searcher,
 		StartInSearchMode: true,
+		HideSelected:      true,
 	}
 }
