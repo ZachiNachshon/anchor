@@ -59,13 +59,13 @@ func (cmd *anchorCmd) InitSubCommands() {
 
 	//cobra.EnableCommandSorting = false
 
-	// Docker Commands
+	// Apps Commands
 	cmd.cobraCmd.AddCommand(app.NewCommand(cmd.ctx).GetCobraCmd())
 
-	// Kubernetes Commands
+	// Controller Commands
 	cmd.cobraCmd.AddCommand(controller.NewCommand(cmd.ctx).GetCobraCmd())
 
-	// Admin
+	// Version
 	cmd.cobraCmd.AddCommand(version.NewCommand(cmd.ctx).GetCobraCmd())
 
 	// Auto completion

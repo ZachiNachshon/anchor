@@ -4,6 +4,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/utils/prompter"
 	"github.com/spf13/cobra"
 )
 
@@ -18,9 +19,17 @@ func NewCommand(ctx common.Context) *installCmd {
 		Use:   "install",
 		Short: "Install an application",
 		Long:  `Install an application`,
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.Info("Hello from install command")
+			if orchestrator, err := prompter.NewOrchestrator(ctx); err != nil {
+				logger.Fatal(err.Error())
+			} else {
+				if selection, err := orchestrator.OrchestrateAppInstructionSelection(); err != nil {
+					logger.Fatal(err.Error())
+				} else {
+					logger.Infof("Selected: %v", selection.Id)
+				}
+			}
 		},
 	}
 

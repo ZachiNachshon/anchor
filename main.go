@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/cmd/anchor"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
@@ -20,6 +21,14 @@ func injectComponents(ctx common.Context) {
 	prompter.ToRegistry(ctx.Registry(), prompter.New())
 
 	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().Shell)
+}
+
+func scanAnchorfilesRepositoryTree(ctx common.Context) {
+	l, _ := locator.FromRegistry(ctx.Registry())
+	err := l.Scan()
+	if err != nil {
+		logger.Fatalf("Failed to locate and scan anchorfiles repository content")
+	}
 }
 
 func main() {
@@ -42,22 +51,7 @@ func main() {
 	}
 
 	injectComponents(ctx)
+	scanAnchorfilesRepositoryTree(ctx)
 
-	l, _ := locator.FromRegistry(ctx.Registry())
-	err := l.Scan()
-	if err != nil {
-		logger.Fatalf("Failed to locate and scan anchorfiles repository content")
-	}
-
-	if orchestrator, err := prompter.NewOrchestrator(ctx); err != nil {
-		logger.Fatal(err.Error())
-	} else {
-		if selection, err := orchestrator.OrchestrateAppInstructionSelection(); err != nil {
-			logger.Fatal(err.Error())
-		} else {
-			logger.Infof("Selected: %v", selection.Id)
-		}
-	}
-
-	//anchor.Main(ctx)
+	anchor.Main(ctx)
 }
