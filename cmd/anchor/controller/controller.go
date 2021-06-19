@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"github.com/ZachiNachshon/anchor/cmd/anchor/controller/install"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/controller"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +18,7 @@ var validArgs = []string{""}
 func NewCommand(ctx common.Context) *controllerCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "controller",
-		Short:     "Kubernetes controllers commands",
+		Short:     "kubernetes controllers commands",
 		Aliases:   []string{"kc"},
 		ValidArgs: validArgs,
 	}
@@ -38,7 +40,7 @@ func (cmd *controllerCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *controllerCmd) initSubCommands() error {
-	// TODO
-	//cmd.cobraCmd.AddCommand(install.NewCommand(cmd.ctx).GetCobraCmd())
+	actions := controller.DefineControllerActions()
+	cmd.cobraCmd.AddCommand(install.NewCommand(cmd.ctx, actions).GetCobraCmd())
 	return nil
 }

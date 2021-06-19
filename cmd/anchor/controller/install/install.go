@@ -3,6 +3,7 @@ package install
 import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/controller"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +13,7 @@ type installCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context) *installCmd {
+func NewCommand(ctx common.Context, ctlActions *controller.ControllerActions) *installCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "install",
 		Short: "Install a controller",
