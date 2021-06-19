@@ -35,7 +35,7 @@ var StartTheListFlowSuccessfully = func(t *testing.T) {
 					},
 				}
 				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
-				assert.Equal(t, 1, callCount, "expected list action to be called exactly once")
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: list")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
 		})

@@ -20,7 +20,7 @@ var ParsePromptItemsSuccessfully = func(t *testing.T) {
 	// Given I create a new YAML parser
 	parser := New()
 	// When I extract instructions items
-	prompItems, err := parser.Parse(instructionsYamlText)
+	prompItems, err := parser.ParseInstructions(instructionsYamlText)
 	// Then I expect to extract exactly the amount of prompt items
 	assert.Nil(t, err, "expected parser to succeed")
 	assert.Equal(t, 2, len(prompItems.Items), "expected 2 instructions but found %v", len(prompItems.Items))

@@ -2,7 +2,6 @@ package install
 
 import (
 	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/app"
 	"github.com/spf13/cobra"
@@ -20,11 +19,8 @@ func NewCommand(ctx common.Context, appActions *app.ApplicationActions) *install
 		Short: "Install an application",
 		Long:  `Install an application`,
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
-			err := appActions.Install(ctx)
-			if err != nil {
-				logger.Fatal(err.Error())
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return appActions.Install(ctx)
 		},
 	}
 

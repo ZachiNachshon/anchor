@@ -11,7 +11,7 @@ func New() Parser {
 	return &yamlParser{}
 }
 
-func (p *yamlParser) Parse(yamlText string) (*models.Instructions, error) {
+func (p *yamlParser) ParseInstructions(yamlText string) (*models.Instructions, error) {
 	items := &models.Instructions{}
 	if err := converters.UnmarshalYamlToObj(yamlText, items); err != nil {
 		return nil, err

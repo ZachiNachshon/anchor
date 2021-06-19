@@ -26,7 +26,11 @@ func (cli *cliRunnerImpl) RunCommand(cmd models.AnchorCommand, args ...string) (
 	cobraCmd := cmd.GetCobraCmd()
 	b := bytes.NewBufferString("")
 	cobraCmd.SetOut(b)
-	cobraCmd.SetArgs(args)
+	if args != nil {
+		cobraCmd.SetArgs(args)
+	} else {
+		cobraCmd.SetArgs([]string{})
+	}
 	err := cobraCmd.Execute()
 	if err != nil {
 		return "", err

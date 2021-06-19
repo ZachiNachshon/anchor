@@ -11,6 +11,6 @@ type fakeParserImpl struct {
 	ParseMock func(text string) (*models.Instructions, error)
 }
 
-func (p *fakeParserImpl) Parse(text string) (*models.Instructions, error) {
+func (p *fakeParserImpl) ParseInstructions(text string) (*models.Instructions, error) {
 	return p.ParseMock(text)
 }

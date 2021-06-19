@@ -11,6 +11,7 @@ func StartApplicationInstallFlow(ctx common.Context) error {
 		return err
 	} else {
 		if selection, err := o.OrchestrateAppInstructionSelection(); err != nil {
+			logger.Error(err.Error())
 			return err
 		} else {
 			logger.Infof("Selected: %v", selection.Id)

@@ -4,11 +4,13 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/controller/install"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/controller"
 	"github.com/spf13/cobra"
 )
 
 type controllerCmd struct {
+	models.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
 }

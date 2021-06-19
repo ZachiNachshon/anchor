@@ -24,7 +24,7 @@ func (e *extractorImpl) ExtractPromptItems(instructionsPath string, p parser.Par
 	} else {
 		var text = string(contentByte)
 
-		if items, err := p.Parse(text); err != nil {
+		if items, err := p.ParseInstructions(text); err != nil {
 			return nil, err
 		} else {
 			return items, nil
@@ -62,7 +62,7 @@ func (e *extractorImpl) ExtractPromptItems(instructionsPath string, p parser.Par
 //			var manifestContent = string(contentByte)
 //
 //			p := parser.NewHashtagParser()
-//			if err := p.Parse(manifestContent); err != nil {
+//			if err := p.ParseInstructions(manifestContent); err != nil {
 //				return "", errors.Errorf("Failed to parse: %v, err: %v", manifestFilePath, err.Error())
 //			}
 //
