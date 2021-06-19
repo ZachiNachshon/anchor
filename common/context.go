@@ -63,16 +63,16 @@ func (a *anchorContext) Registry() *registry.InjectionsRegistry {
 	return a.registry
 }
 
-func createContext() context.Context {
+func createGoContext() context.Context {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	return ctx
 }
 
 func EmptyAnchorContext(reg *registry.InjectionsRegistry) Context {
-	ctx := createContext()
+	goCtx := createGoContext()
 	return &anchorContext{
-		goContext: ctx,
+		goContext: goCtx,
 		registry:  reg,
 	}
 }

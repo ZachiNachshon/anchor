@@ -27,7 +27,7 @@ func New() *InjectionsRegistry {
 func Initialize() *InjectionsRegistry {
 	// Only a single instance of registry should be used within a process lifecycle
 	initOnlyOnce.Do(func() {
-		New()
+		registry = New()
 	})
 	return registry
 }
