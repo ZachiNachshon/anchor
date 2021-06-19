@@ -6,6 +6,8 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
+	"github.com/ZachiNachshon/anchor/pkg/registry"
 	"github.com/ZachiNachshon/anchor/pkg/utils/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
@@ -14,11 +16,23 @@ import (
 )
 
 func injectComponents(ctx common.Context) {
-	locator.ToRegistry(ctx.Registry(), locator.New(ctx.AnchorFilesPath()))
-	shell.ToRegistry(ctx.Registry(), shell.New())
-	extractor.ToRegistry(ctx.Registry(), extractor.New())
-	parser.ToRegistry(ctx.Registry(), parser.New())
-	prompter.ToRegistry(ctx.Registry(), prompter.New())
+	l := locator.New(ctx.AnchorFilesPath())
+	locator.ToRegistry(ctx.Registry(), l)
+
+	s := shell.New()
+	shell.ToRegistry(ctx.Registry(), s)
+
+	e := extractor.New()
+	extractor.ToRegistry(ctx.Registry(), e)
+
+	pa := parser.New()
+	parser.ToRegistry(ctx.Registry(), pa)
+
+	pr := prompter.New()
+	prompter.ToRegistry(ctx.Registry(), pr)
+
+	o := orchestrator.New(pr, l, e, pa)
+	orchestrator.ToRegistry(ctx.Registry(), o)
 
 	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().Shell)
 }
@@ -32,7 +46,7 @@ func scanAnchorfilesRepositoryTree(ctx common.Context) {
 }
 
 func main() {
-	ctx := common.EmptyAnchorContext()
+	ctx := common.EmptyAnchorContext(registry.Initialize())
 
 	if err := logger.LogrusLoggerLoader(false); err != nil {
 		fmt.Printf("Failed to initialize logger. error: %s", err.Error())

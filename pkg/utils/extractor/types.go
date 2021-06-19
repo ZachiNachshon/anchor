@@ -19,11 +19,11 @@ func ToRegistry(reg *registry.InjectionsRegistry, locator Extractor) {
 }
 
 func FromRegistry(reg *registry.InjectionsRegistry) (Extractor, error) {
-	locate := reg.Get(identifier).(Extractor)
-	if locate == nil {
-		return nil, fmt.Errorf("failed to retrieve extractor from registry")
+	item := reg.Get(identifier)
+	if item == nil {
+		return nil, fmt.Errorf("failed to retrieve from registry. name: %s", identifier)
 	}
-	return locate, nil
+	return item.(Extractor), nil
 }
 
 type Extractor interface {

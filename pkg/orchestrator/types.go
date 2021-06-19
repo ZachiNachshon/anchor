@@ -1,4 +1,4 @@
-package printer
+package orchestrator
 
 import (
 	"fmt"
@@ -6,25 +6,25 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
-type Printer interface {
-	PrintApplications(apps []*models.AppContent)
-}
-
 const (
-	identifier string = "printer"
+	identifier string = "orchestrator"
 )
 
-func ToRegistry(reg *registry.InjectionsRegistry, locator Printer) {
+type Orchestrator interface {
+	OrchestrateAppInstructionSelection() (*models.PromptItem, error)
+}
+
+func ToRegistry(reg *registry.InjectionsRegistry, locator Orchestrator) {
 	reg.Register(registry.RegistryTuple{
 		Name:  identifier,
 		Value: locator,
 	})
 }
 
-func FromRegistry(reg *registry.InjectionsRegistry) (Printer, error) {
+func FromRegistry(reg *registry.InjectionsRegistry) (Orchestrator, error) {
 	item := reg.Get(identifier)
 	if item == nil {
 		return nil, fmt.Errorf("failed to retrieve from registry. name: %s", identifier)
 	}
-	return item.(Printer), nil
+	return item.(Orchestrator), nil
 }

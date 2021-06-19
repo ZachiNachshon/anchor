@@ -23,9 +23,9 @@ func ToRegistry(reg *registry.InjectionsRegistry, locator Parser) {
 }
 
 func FromRegistry(reg *registry.InjectionsRegistry) (Parser, error) {
-	locate := reg.Get(identifier).(Parser)
-	if locate == nil {
-		return nil, fmt.Errorf("failed to retrieve parser from registry")
+	item := reg.Get(identifier)
+	if item == nil {
+		return nil, fmt.Errorf("failed to retrieve from registry. name: %s", identifier)
 	}
-	return locate, nil
+	return item.(Parser), nil
 }

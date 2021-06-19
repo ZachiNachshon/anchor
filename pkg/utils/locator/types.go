@@ -25,9 +25,9 @@ func ToRegistry(reg *registry.InjectionsRegistry, locator Locator) {
 }
 
 func FromRegistry(reg *registry.InjectionsRegistry) (Locator, error) {
-	locate := reg.Get(identifier).(Locator)
-	if locate == nil {
-		return nil, fmt.Errorf("failed to retrieve locator from registry")
+	item := reg.Get(identifier)
+	if item == nil {
+		return nil, fmt.Errorf("failed to retrieve from registry. name: %s", identifier)
 	}
-	return locate, nil
+	return item.(Locator), nil
 }

@@ -18,6 +18,7 @@ run-tests-dockerized: ## Run tests suites dockerized
         -v $(PWD):/home/anchor \
         --entrypoint /bin/sh golang:1.14.15 \
         -c 'cd /home/anchor; make run-tests-ci'
+#        -c 'cd /home/anchor; go test -v $(TEST) -json -cover'
 
 fmt: ## Format go files
 	gofmt -w $(GOFMT_FILES)

@@ -20,7 +20,7 @@ func setSearchInstructionsPrompt() {
 func appendInstructionCustomOptions(instructions *models.Instructions) {
 	instItems := make([]*models.PromptItem, 0, len(instructions.Items)+1)
 	back := &models.PromptItem{
-		Id: backButtonName,
+		Id: BackButtonName,
 	}
 	instItems = append(instItems, back)
 	instItems = append(instItems, instructions.Items...)

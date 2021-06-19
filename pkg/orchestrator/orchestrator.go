@@ -1,50 +1,34 @@
-package prompter
+package orchestrator
 
 import (
-	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
+	"github.com/ZachiNachshon/anchor/pkg/utils/prompter"
 )
 
 type orchestratorImpl struct {
 	Orchestrator
-	prompter  Prompter
+	prompter  prompter.Prompter
 	locator   locator.Locator
 	extractor extractor.Extractor
 	parser    parser.Parser
 }
 
-func NewOrchestrator(ctx common.Context) (Orchestrator, error) {
-	registry := ctx.Registry()
-	prompterInjection, err := FromRegistry(registry)
-	if err != nil {
-		return nil, err
-	}
-
-	locatorInjection, err := locator.FromRegistry(registry)
-	if err != nil {
-		return nil, err
-	}
-
-	extractorInjection, err := extractor.FromRegistry(registry)
-	if err != nil {
-		return nil, err
-	}
-
-	parserInjection, err := parser.FromRegistry(registry)
-	if err != nil {
-		return nil, err
-	}
+func New(
+	pr prompter.Prompter,
+	l locator.Locator,
+	e extractor.Extractor,
+	pa parser.Parser) Orchestrator {
 
 	return &orchestratorImpl{
-		prompter:  prompterInjection,
-		locator:   locatorInjection,
-		extractor: extractorInjection,
-		parser:    parserInjection,
-	}, nil
+		prompter:  pr,
+		locator:   l,
+		extractor: e,
+		parser:    pa,
+	}
 }
 
 func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptItem, error) {
@@ -53,9 +37,9 @@ func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptI
 		return nil, err
 	} else {
 		logger.Debugf("Selected application. app: %v", app)
-		if app.Name == cancelButtonName {
+		if app.Name == prompter.CancelButtonName {
 			return &models.PromptItem{
-				Id: cancelButtonName,
+				Id: prompter.CancelButtonName,
 			}, nil
 		} else {
 			path := app.InstructionsPath
@@ -65,7 +49,7 @@ func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptI
 				if item, err := o.prompter.PromptInstructions(instructions); err != nil {
 					return nil, err
 				} else {
-					if item.Id == backButtonName {
+					if item.Id == prompter.BackButtonName {
 						return o.OrchestrateAppInstructionSelection()
 					} else {
 						logger.Debugf("Selected instruction to run. id: %v", item.Id)

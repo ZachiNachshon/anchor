@@ -23,15 +23,11 @@ func ToRegistry(reg *registry.InjectionsRegistry, locator Prompter) {
 }
 
 func FromRegistry(reg *registry.InjectionsRegistry) (Prompter, error) {
-	locate := reg.Get(identifier).(Prompter)
-	if locate == nil {
-		return nil, fmt.Errorf("failed to retrieve prompter from registry")
+	item := reg.Get(identifier)
+	if item == nil {
+		return nil, fmt.Errorf("failed to retrieve from registry. name: %s", identifier)
 	}
-	return locate, nil
-}
-
-type Orchestrator interface {
-	OrchestrateAppInstructionSelection() (*models.PromptItem, error)
+	return item.(Prompter), nil
 }
 
 var appsPromptTemplateDetails = `{{ if not (eq .Name "cancel") }}

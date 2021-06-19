@@ -69,10 +69,10 @@ func createContext() context.Context {
 	return ctx
 }
 
-func EmptyAnchorContext() Context {
+func EmptyAnchorContext(reg *registry.InjectionsRegistry) Context {
 	ctx := createContext()
 	return &anchorContext{
 		goContext: ctx,
-		registry:  registry.Initialize(),
+		registry:  reg,
 	}
 }

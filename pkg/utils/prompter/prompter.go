@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	backButtonName   = "back"
-	cancelButtonName = "cancel"
+	BackButtonName   = "back"
+	CancelButtonName = "cancel"
 )
 
 type prompterImpl struct {

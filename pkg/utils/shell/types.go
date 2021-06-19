@@ -25,9 +25,9 @@ func ToRegistry(reg *registry.InjectionsRegistry, shell Shell) {
 }
 
 func FromRegistry(reg *registry.InjectionsRegistry) (Shell, error) {
-	locate := reg.Get(identifier).(Shell)
-	if locate == nil {
-		return nil, fmt.Errorf("failed to retrieve shell executor from registry")
+	item := reg.Get(identifier)
+	if item == nil {
+		return nil, fmt.Errorf("failed to retrieve from registry. name: %s", identifier)
 	}
-	return locate, nil
+	return item.(Shell), nil
 }

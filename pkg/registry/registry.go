@@ -18,11 +18,16 @@ var (
 	registry     *InjectionsRegistry
 )
 
+func New() *InjectionsRegistry {
+	return &InjectionsRegistry{
+		items: make(map[string]interface{}),
+	}
+}
+
 func Initialize() *InjectionsRegistry {
+	// Only a single instance of registry should be used within a process lifecycle
 	initOnlyOnce.Do(func() {
-		registry = &InjectionsRegistry{
-			items: make(map[string]interface{}),
-		}
+		New()
 	})
 	return registry
 }
@@ -38,8 +43,3 @@ func (r *InjectionsRegistry) Register(tuple RegistryTuple) *InjectionsRegistry {
 	r.items[tuple.Name] = tuple.Value
 	return r
 }
-
-//registry.Shell = reg.Shell
-//registry.DirLocator = reg.DirLocator
-//registry.CmdExtractor = reg.CmdExtractor
-//registry.Clipboard = reg.Clipboard

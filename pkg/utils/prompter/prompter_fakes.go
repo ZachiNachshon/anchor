@@ -13,9 +13,11 @@ type fakePrompterImpl struct {
 }
 
 func (p *fakePrompterImpl) PromptApps(appsArr []*models.AppContent) (*models.AppContent, error) {
+	appsArr = appendAppsCustomOptions(appsArr)
 	return p.PromptAppsMock(appsArr)
 }
 
 func (p *fakePrompterImpl) PromptInstructions(instructions *models.Instructions) (*models.PromptItem, error) {
+	appendInstructionCustomOptions(instructions)
 	return p.PromptInstructionsMock(instructions)
 }

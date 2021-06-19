@@ -7,6 +7,7 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/app/versions"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/app"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +43,8 @@ func (cmd *appCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *appCmd) initSubCommands() error {
-	cmd.cobraCmd.AddCommand(install.NewCommand(cmd.ctx).GetCobraCmd())
+	actions := app.DefineApplicationActions()
+	cmd.cobraCmd.AddCommand(install.NewCommand(cmd.ctx, actions).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(uninstall.NewCommand(cmd.ctx).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(status.NewCommand(cmd.ctx).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(versions.NewCommand(cmd.ctx).GetCobraCmd())

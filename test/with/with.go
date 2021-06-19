@@ -4,13 +4,15 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/registry"
 	"github.com/ZachiNachshon/anchor/test/fakes"
 	"os"
 	"testing"
 )
 
 func Context(f func(ctx common.Context)) {
-	ctx := common.EmptyAnchorContext()
+	// We want a new registry instance on every context
+	ctx := common.EmptyAnchorContext(registry.New())
 	f(ctx)
 }
 

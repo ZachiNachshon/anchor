@@ -2,9 +2,7 @@ package install
 
 import (
 	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
-	"github.com/ZachiNachshon/anchor/pkg/app"
 	"github.com/spf13/cobra"
 )
 
@@ -14,17 +12,13 @@ type installCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, appActions *app.ApplicationActions) *installCmd {
+func NewCommand(ctx common.Context) *installCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "install",
-		Short: "Install an application",
-		Long:  `Install an application`,
+		Short: "Install a controller",
+		Long:  `Install a controller`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := appActions.Install(ctx)
-			if err != nil {
-				logger.Fatal(err.Error())
-			}
 		},
 	}
 

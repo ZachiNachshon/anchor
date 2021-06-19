@@ -16,7 +16,7 @@ func preparePromptAppsItems(apps []*models.AppContent) promptui.Select {
 func appendAppsCustomOptions(apps []*models.AppContent) []*models.AppContent {
 	appDirs := make([]*models.AppContent, 0, len(apps)+1)
 	cancel := &models.AppContent{
-		Name: cancelButtonName,
+		Name: CancelButtonName,
 	}
 	appDirs = append(appDirs, cancel)
 	appDirs = append(appDirs, apps...)
