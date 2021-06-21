@@ -1,6 +1,9 @@
 package printer
 
-import "github.com/ZachiNachshon/anchor/models"
+import (
+	"github.com/ZachiNachshon/anchor/common"
+	"github.com/ZachiNachshon/anchor/models"
+)
 
 var CreateFakePrinter = func() *fakePrinter {
 	return &fakePrinter{}
@@ -8,9 +11,14 @@ var CreateFakePrinter = func() *fakePrinter {
 
 type fakePrinter struct {
 	Printer
-	PrintApplicationsMock func(apps []*models.AppContent)
+	PrintApplicationsMock  func(apps []*models.AppContent)
+	PrintConfigurationMock func(ctx common.Context, cfgText string)
 }
 
 func (l *fakePrinter) PrintApplications(apps []*models.AppContent) {
 	l.PrintApplicationsMock(apps)
+}
+
+func (l *fakePrinter) PrintConfiguration(ctx common.Context, cfgText string) {
+	l.PrintConfigurationMock(ctx, cfgText)
 }

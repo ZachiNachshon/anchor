@@ -1,11 +1,7 @@
-package kits
+package stubs
 
 import (
-	"bytes"
-	"encoding/json"
-	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
-	"text/template"
 )
 
 func GenerateApplicationTestData() []*models.AppContent {
@@ -57,41 +53,4 @@ var app2item2 = models.PromptItem{
 	Id:    "goodbye-second-app",
 	Title: "This is the 2nd item in test",
 	File:  "/path/to/goodbye-second-app",
-}
-
-func structToMap(input interface{}) (map[string]interface{}, error) {
-	var result map[string]interface{}
-	inputBytes, _ := json.Marshal(input)
-	err := json.Unmarshal(inputBytes, &result)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func parseConfigTemplate(templateText string, data interface{}) (string, error) {
-	if t, err := template.New("testkit").Parse(templateText); err != nil {
-		return "", err
-	} else {
-		templateItemsMap, convertErr := structToMap(data)
-		if convertErr != nil {
-			return "", convertErr
-		}
-
-		var buffer bytes.Buffer
-		if err := t.Execute(&buffer, templateItemsMap); err != nil {
-			return "", err
-		} else {
-			return buffer.String(), nil
-		}
-	}
-}
-
-var TemplateToText = func(templateText string, templateData interface{}) (string, error) {
-	if out, err := parseConfigTemplate(templateText, templateData); err != nil {
-		logger.Errorf("Failed to parse template to text. error: %s", err.Error())
-		return "", err
-	} else {
-		return out, err
-	}
 }

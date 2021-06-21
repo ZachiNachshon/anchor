@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	DefaultAuthor  = "Zachi Nachshon <zachi.nachshon@gmail.com>"
-	DefaultLicense = "Apache"
+	DefaultAuthor    = "Zachi Nachshon <zachi.nachshon@gmail.com>"
+	DefaultLicense   = "Apache"
+	DefaultClonePath = "${HOME}/.config/anchor/anchorfiles"
 )
 
 func FromContext(ctx common.Context) AnchorConfig {
@@ -24,16 +25,16 @@ func SetInContext(ctx common.Context, config AnchorConfig) {
 }
 
 type AnchorConfig struct {
-	Config  Config
-	Author  string
-	License string
+	Config  Config `yaml:"config"`
+	Author  string `yaml:"author"`
+	License string `yaml:"license"`
 }
 
 type Config struct {
-	RepositoryFiles RepositoryFiles `yaml:"repositoryFiles"`
+	Repository Repository `yaml:"repository"`
 }
 
-type RepositoryFiles struct {
+type Repository struct {
 	Remote Remote `yaml:"remote"`
 	Local  Local  `yaml:"local"`
 }
@@ -42,7 +43,7 @@ type Remote struct {
 	Url       string `yaml:"url"`
 	Revision  string `yaml:"revision"`
 	Branch    string `yaml:"branch"`
-	LocalPath string `yaml:"localPath"`
+	ClonePath string `yaml:"clonePath"`
 }
 
 type Local struct {
@@ -87,10 +88,18 @@ func createConfigObject() *AnchorConfig {
 		logger.Fatal(fmt.Sprintf("Failed to unmarshal configuration file. error: %s \n", err))
 	}
 
+	setDefaultsPostCreation(&config)
+
 	return &AnchorConfig{
 		Config:  config,
 		Author:  viper.GetString("author"),
 		License: viper.GetString("license"),
+	}
+}
+
+func setDefaultsPostCreation(config *Config) {
+	if config.Repository.Remote.ClonePath == "" {
+		config.Repository.Remote.ClonePath = DefaultClonePath
 	}
 }
 
@@ -135,16 +144,16 @@ var ViperConfigFileLoader = func() (*AnchorConfig, error) {
 
 var ResolveAnchorfilesPathFromConfig = func(anchorConfig AnchorConfig) (string, error) {
 	// Checks if repositoryFiles config attribute is empty
-	if anchorConfig.Config.RepositoryFiles == (RepositoryFiles{}) {
+	if anchorConfig.Config.Repository == (Repository{}) {
 		return "", fmt.Errorf("missing required config value. name: repositoryFiles")
 	}
 
-	if localPath, localRepoErr := tryResolveFromLocalPath(anchorConfig.Config.RepositoryFiles.Local); localRepoErr != nil {
+	if localPath, localRepoErr := tryResolveFromLocalPath(anchorConfig.Config.Repository.Local); localRepoErr != nil {
 
-		if remotePath, remoteRepoErr := tryResolveFromRemoteRepo(anchorConfig.Config.RepositoryFiles.Remote); remoteRepoErr == nil && remotePath != "" {
+		if clonePath, remoteRepoErr := tryResolveFromRemoteRepo(anchorConfig.Config.Repository.Remote); remoteRepoErr == nil && clonePath != "" {
 
-			logger.Debugf("Using cloned anchorfiles remote repository. path: %s", remotePath)
-			return remotePath, nil
+			logger.Debugf("Using cloned anchorfiles remote repository. path: %s", clonePath)
+			return clonePath, nil
 		}
 
 	} else if localPath != "" {

@@ -8,8 +8,8 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/prompter"
+	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/harness"
-	"github.com/ZachiNachshon/anchor/test/kits"
 	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -41,7 +41,7 @@ var ExitAppsPromptMenuOnCancelButton = func(t *testing.T) {
 			// Given I create a locator to return test data
 			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
 			fakeLocator.ApplicationsMock = func() []*models.AppContent {
-				return kits.GenerateApplicationTestData()
+				return stubs.GenerateApplicationTestData()
 			}
 			locator.ToRegistry(registry, fakeLocator)
 
@@ -75,12 +75,12 @@ var PerformBasicPromptFromAppToInstructionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			registry := ctx.Registry()
-			instTestData := kits.GenerateInstructionsTestData()
+			instTestData := stubs.GenerateInstructionsTestData()
 
 			// Given I create a locator to return test data
 			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
 			fakeLocator.ApplicationsMock = func() []*models.AppContent {
-				return kits.GenerateApplicationTestData()
+				return stubs.GenerateApplicationTestData()
 			}
 			locator.ToRegistry(registry, fakeLocator)
 
@@ -120,12 +120,12 @@ var GoBackFromInstructionsToAppsPrompMenuSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			registry := ctx.Registry()
-			instTestData := kits.GenerateInstructionsTestData()
+			instTestData := stubs.GenerateInstructionsTestData()
 
 			// Given I create a locator to return test data
 			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
 			fakeLocator.ApplicationsMock = func() []*models.AppContent {
-				return kits.GenerateApplicationTestData()
+				return stubs.GenerateApplicationTestData()
 			}
 			locator.ToRegistry(registry, fakeLocator)
 

@@ -2,8 +2,8 @@ package prompter
 
 import (
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/harness"
-	"github.com/ZachiNachshon/anchor/test/kits"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -31,13 +31,13 @@ func Test_PrompterShould(t *testing.T) {
 }
 
 var AddBackOptionToAppsPromptSelector = func(t *testing.T) {
-	appData := kits.GenerateApplicationTestData()
+	appData := stubs.GenerateApplicationTestData()
 	appsSelector := preparePromptAppsItems(appData)
 	assert.EqualValues(t, "cancel", appsSelector.Items.([]*models.AppContent)[0].Name)
 }
 
 var CreateValidAppsPromptSelector = func(t *testing.T) {
-	appData := kits.GenerateApplicationTestData()
+	appData := stubs.GenerateApplicationTestData()
 	appsSelector := preparePromptAppsItems(appData)
 	assert.EqualValues(t, "Available Applications", appsSelector.Label)
 	assert.EqualValues(t, "first-application", appsSelector.Items.([]*models.AppContent)[1].Name)
@@ -46,13 +46,13 @@ var CreateValidAppsPromptSelector = func(t *testing.T) {
 }
 
 var AddBackOptionToInstructionsPromptSelector = func(t *testing.T) {
-	instData := kits.GenerateInstructionsTestData()
+	instData := stubs.GenerateInstructionsTestData()
 	instSelector := preparePromptInstructionsItems(instData)
 	assert.EqualValues(t, "back", instSelector.Items.([]*models.PromptItem)[0].Id)
 }
 
 var CreateValidInstructionsPromptSelector = func(t *testing.T) {
-	instData := kits.GenerateInstructionsTestData()
+	instData := stubs.GenerateInstructionsTestData()
 	instSelector := preparePromptInstructionsItems(instData)
 	assert.EqualValues(t, "Available Instructions", instSelector.Label)
 	assert.EqualValues(t, "hello-world", instSelector.Items.([]*models.PromptItem)[1].Id)

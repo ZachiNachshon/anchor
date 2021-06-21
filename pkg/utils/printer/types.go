@@ -2,12 +2,14 @@ package printer
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
 type Printer interface {
 	PrintApplications(apps []*models.AppContent)
+	PrintConfiguration(ctx common.Context, cfgText string)
 }
 
 const (

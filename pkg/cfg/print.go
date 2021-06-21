@@ -1,11 +1,11 @@
 package cfg
 
 import (
-	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
+	"github.com/ZachiNachshon/anchor/pkg/utils/printer"
 )
 
 func StartConfigPrintFlow(ctx common.Context) error {
@@ -14,7 +14,15 @@ func StartConfigPrintFlow(ctx common.Context) error {
 		logger.Error(err.Error())
 		return err
 	} else {
-		fmt.Println(out)
+		return printConfiguration(ctx, out)
+	}
+}
+
+func printConfiguration(ctx common.Context, cfgText string) error {
+	if p, err := printer.FromRegistry(ctx.Registry()); err != nil {
+		return err
+	} else {
+		p.PrintConfiguration(ctx, cfgText)
 	}
 	return nil
 }

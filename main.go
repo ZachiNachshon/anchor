@@ -11,6 +11,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
+	"github.com/ZachiNachshon/anchor/pkg/utils/printer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
@@ -30,6 +31,9 @@ func injectComponents(ctx common.Context) {
 
 	pr := prompter.New()
 	prompter.ToRegistry(ctx.Registry(), pr)
+
+	prntr := printer.New()
+	printer.ToRegistry(ctx.Registry(), prntr)
 
 	o := orchestrator.New(pr, l, e, pa)
 	orchestrator.ToRegistry(ctx.Registry(), o)

@@ -5,7 +5,6 @@ import (
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
-	"github.com/ZachiNachshon/anchor/test/fakes"
 	"os"
 	"testing"
 )
@@ -35,7 +34,7 @@ func createLogger(ctx common.Context, t *testing.T, verbose bool, f func(logger 
 }
 
 func Config(ctx common.Context, content string, f func(config config.AnchorConfig)) {
-	if cfg, err := fakes.FakeConfigLoader(content); err != nil {
+	if cfg, err := config.ViperConfigInMemoryLoader(content); err != nil {
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
 		config.SetInContext(ctx, *cfg)

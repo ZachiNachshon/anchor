@@ -12,7 +12,7 @@ type versionCmd struct {
 }
 
 // TODO: take from config
-const Version = "v0.4.0"
+const Version = "v0.0.1"
 
 func NewCommand(ctx common.Context) *versionCmd {
 	var cobraCmd = &cobra.Command{

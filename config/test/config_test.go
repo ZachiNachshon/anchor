@@ -14,6 +14,7 @@ import (
 
 var TestAuthor = "author: Dummy Name <dummy.name@gmail.com>"
 var TestLicense = "license: TestsLicense"
+var TestClonePath = "clonePath: /test/clone/path"
 
 func Test_ConfigShould(t *testing.T) {
 	tests := []harness.TestsHarness{
@@ -51,15 +52,16 @@ var ResolveConfigFromYamlTextSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			// Override default values explicitly
 			var items = TemplateItems{
-				Author:  TestAuthor,
-				License: TestLicense,
+				Author:    TestAuthor,
+				License:   TestLicense,
+				ClonePath: TestClonePath,
 			}
 			yamlConfigText := GetCustomTestConfigText(items)
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
-				assert.EqualValues(t, cfg.Author, nonViperConfig.Author)
-				assert.EqualValues(t, cfg.License, nonViperConfig.License)
-				assert.EqualValues(t, cfg.Config, nonViperConfig.Config)
+				assert.EqualValues(t, nonViperConfig.Author, cfg.Author)
+				assert.EqualValues(t, nonViperConfig.License, cfg.License)
+				assert.EqualValues(t, nonViperConfig.Config, cfg.Config)
 			})
 		})
 	})
@@ -72,9 +74,10 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 			yamlConfigText := GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
-				assert.EqualValues(t, cfg.Author, config.DefaultAuthor)
-				assert.EqualValues(t, cfg.License, config.DefaultLicense)
-				assert.EqualValues(t, cfg.Config, nonViperConfig.Config)
+				assert.NotNil(t, nonViperConfig, "expected a valid config object")
+				assert.EqualValues(t, config.DefaultAuthor, cfg.Author)
+				assert.EqualValues(t, config.DefaultLicense, cfg.License)
+				assert.EqualValues(t, config.DefaultClonePath, cfg.Config.Repository.Remote.ClonePath)
 			})
 		})
 	})
