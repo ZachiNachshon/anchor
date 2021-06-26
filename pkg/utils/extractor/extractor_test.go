@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/config/test"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
@@ -35,7 +34,7 @@ func Test_ExtractorShould(t *testing.T) {
 var ExtractPromptItemsFromInstructions = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := test.GetDefaultTestConfigText()
+			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
 				// Given I prepare a valid path to anchorfiles test instructions
 				path := prepareInstructionTestFilePath()

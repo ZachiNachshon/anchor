@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/config/test"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/app"
 	"github.com/ZachiNachshon/anchor/test/drivers"
@@ -31,7 +30,7 @@ func Test_InstallCommandShould(t *testing.T) {
 var StartTheInstallationFlowSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, test.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &app.ApplicationActions{
 					Install: func(ctx common.Context) error {
@@ -50,7 +49,7 @@ var StartTheInstallationFlowSuccessfully = func(t *testing.T) {
 var FailCommandWhenInstallActionFailed = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, test.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &app.ApplicationActions{
 					Install: func(ctx common.Context) error {

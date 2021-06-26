@@ -3,7 +3,6 @@ package anchor
 import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/config/test"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/test/drivers"
 	"github.com/ZachiNachshon/anchor/test/harness"
@@ -25,7 +24,7 @@ func Test_AnchorCommandShould(t *testing.T) {
 var ExpectVerbosityOnceFlagIsSet = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, test.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				if _, err := drivers.CLI().RunCommand(NewCommand(ctx), "--verbose"); err != nil {
 					assert.Failf(t, "expected test to succeed. error: %s", err.Error())
 				} else {

@@ -37,7 +37,7 @@ func Test_ConfigShould(t *testing.T) {
 var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := GetDefaultTestConfigText()
+			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
 				harness.HarnessAnchorfilesTestRepo(ctx)
 				assert.True(t, ioutils.IsValidPath(ctx.AnchorFilesPath()),
@@ -51,12 +51,12 @@ var ResolveConfigFromYamlTextSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			// Override default values explicitly
-			var items = TemplateItems{
+			var items = config.TemplateItems{
 				Author:    TestAuthor,
 				License:   TestLicense,
 				ClonePath: TestClonePath,
 			}
-			yamlConfigText := GetCustomTestConfigText(items)
+			yamlConfigText := config.GetCustomTestConfigText(items)
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
 				assert.EqualValues(t, nonViperConfig.Author, cfg.Author)
@@ -71,7 +71,7 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			// Omit config items that should get default values
-			yamlConfigText := GetDefaultTestConfigText()
+			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
 				assert.NotNil(t, nonViperConfig, "expected a valid config object")

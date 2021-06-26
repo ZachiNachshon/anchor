@@ -1,4 +1,4 @@
-package test
+package config
 
 import (
 	"github.com/ZachiNachshon/anchor/logger"

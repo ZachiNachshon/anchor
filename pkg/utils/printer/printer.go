@@ -8,12 +8,9 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/templates"
 )
 
-var configPrintTemplate = `
-Path: {{ .ConfigFilePath }}
+var configPrintTemplate = `Repository in-use: {{ .ConfigFilePath }}
 ---
-Content: 
-{{ .ConfigText }}
-`
+{{ .ConfigText }}`
 
 type PrintConfigTemplateItems struct {
 	ConfigFilePath string

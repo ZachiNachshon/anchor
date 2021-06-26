@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
+	"github.com/ZachiNachshon/anchor/config/resolver"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
@@ -56,19 +57,28 @@ func main() {
 		fmt.Printf("Failed to initialize logger. error: %s", err.Error())
 	}
 
-	if cfg, err := config.ViperConfigFileLoader(); err != nil {
+	cfg, err := config.ViperConfigFileLoader()
+	if err != nil {
 		logger.Fatalf("Failed to load configuration. error: %s", err.Error())
-	} else {
-		ctx.(common.ConfigSetter).SetConfig(*cfg)
+		return
 	}
-
-	if path, err := config.ResolveAnchorfilesPathFromConfig(config.FromContext(ctx)); err != nil {
-		logger.Fatal(err.Error())
-	} else {
-		ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(path)
-	}
+	ctx.(common.ConfigSetter).SetConfig(*cfg)
 
 	injectComponents(ctx)
+
+	rslvr, err := resolver.GetResolverBasedOnConfig(cfg.Config.Repository)
+	if err != nil {
+		logger.Fatalf(err.Error())
+		return
+	}
+
+	repoPath, err := rslvr.ResolveRepository(ctx)
+	if err != nil {
+		logger.Fatalf(err.Error())
+		return
+	}
+
+	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(repoPath)
 	scanAnchorfilesRepositoryTree(ctx)
 
 	anchor.Main(ctx)

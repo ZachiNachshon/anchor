@@ -40,6 +40,7 @@ It is based on:
 <h2 id="requirements">Requirements</h2>
 
 - Go 1.13.x
+- `git` should be installed (recommended v2.30.0 or higher)
 
 <h2 id="quick-start-guide">Quick Start Guide</h2>
 

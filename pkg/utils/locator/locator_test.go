@@ -3,7 +3,6 @@ package locator
 import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/config/test"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -28,7 +27,7 @@ func Test_LocatorShould(t *testing.T) {
 var FailOnInvalidAnchorfilesLocalPath = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := test.GetDefaultTestConfigText()
+			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
 				// Given I create a new locator with invalid anchorfiles path
 				l := New("/invalid/anchorfiles/path")
@@ -45,7 +44,7 @@ var FailOnInvalidAnchorfilesLocalPath = func(t *testing.T) {
 var ScanAndFindExpectedApplications = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := test.GetDefaultTestConfigText()
+			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
 				// Given I prepare an anchorfiles test repo
 				harness.HarnessAnchorfilesTestRepo(ctx)

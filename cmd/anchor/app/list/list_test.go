@@ -3,7 +3,6 @@ package list
 import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/config/test"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/app"
 	"github.com/ZachiNachshon/anchor/test/drivers"
@@ -26,7 +25,7 @@ func Test_ListCommandShould(t *testing.T) {
 var StartTheListFlowSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, test.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &app.ApplicationActions{
 					List: func(ctx common.Context) error {

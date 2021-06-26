@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	DefaultAuthor    = "Zachi Nachshon <zachi.nachshon@gmail.com>"
-	DefaultLicense   = "Apache"
-	DefaultClonePath = "${HOME}/.config/anchor/anchorfiles"
+	DefaultAuthor       = "Zachi Nachshon <zachi.nachshon@gmail.com>"
+	DefaultLicense      = "Apache"
+	DefaultClonePath    = "${HOME}/.config/anchor/anchorfiles"
+	DefaultRemoteBranch = "master"
 )
 
 func FromContext(ctx common.Context) AnchorConfig {
@@ -25,18 +26,18 @@ func SetInContext(ctx common.Context, config AnchorConfig) {
 }
 
 type AnchorConfig struct {
-	Config  Config `yaml:"config"`
-	Author  string `yaml:"author"`
-	License string `yaml:"license"`
+	Config  *Config `yaml:"config"`
+	Author  string  `yaml:"author"`
+	License string  `yaml:"license"`
 }
 
 type Config struct {
-	Repository Repository `yaml:"repository"`
+	Repository *Repository `yaml:"repository"`
 }
 
 type Repository struct {
-	Remote Remote `yaml:"remote"`
-	Local  Local  `yaml:"local"`
+	Remote *Remote `yaml:"remote"`
+	Local  *Local  `yaml:"local"`
 }
 
 type Remote struct {
@@ -91,15 +92,21 @@ func createConfigObject() *AnchorConfig {
 	setDefaultsPostCreation(&config)
 
 	return &AnchorConfig{
-		Config:  config,
+		Config:  &config,
 		Author:  viper.GetString("author"),
 		License: viper.GetString("license"),
 	}
 }
 
 func setDefaultsPostCreation(config *Config) {
-	if config.Repository.Remote.ClonePath == "" {
-		config.Repository.Remote.ClonePath = DefaultClonePath
+	if config.Repository != nil && config.Repository.Remote != nil {
+		if config.Repository.Remote.ClonePath == "" {
+			config.Repository.Remote.ClonePath = DefaultClonePath
+		}
+
+		if config.Repository.Remote.Branch == "" {
+			config.Repository.Remote.Branch = DefaultRemoteBranch
+		}
 	}
 }
 
@@ -140,54 +147,4 @@ var ViperConfigFileLoader = func() (*AnchorConfig, error) {
 	viper.AutomaticEnv()
 
 	return createConfigObject(), nil
-}
-
-var ResolveAnchorfilesPathFromConfig = func(anchorConfig AnchorConfig) (string, error) {
-	// Checks if repositoryFiles config attribute is empty
-	if anchorConfig.Config.Repository == (Repository{}) {
-		return "", fmt.Errorf("missing required config value. name: repositoryFiles")
-	}
-
-	if localPath, localRepoErr := tryResolveFromLocalPath(anchorConfig.Config.Repository.Local); localRepoErr != nil {
-
-		if clonePath, remoteRepoErr := tryResolveFromRemoteRepo(anchorConfig.Config.Repository.Remote); remoteRepoErr == nil && clonePath != "" {
-
-			logger.Debugf("Using cloned anchorfiles remote repository. path: %s", clonePath)
-			return clonePath, nil
-		}
-
-	} else if localPath != "" {
-		logger.Debugf("Using local anchorfiles repository. path: %s", localPath)
-		return localPath, nil
-	}
-
-	return "", fmt.Errorf("could not resolve anchorfiles local repo path or git tracked repo path")
-}
-
-func tryResolveFromLocalPath(local Local) (string, error) {
-	pathToUse := local.Path
-	if len(pathToUse) > 0 {
-		if !ioutils.IsValidPath(pathToUse) {
-			return "", fmt.Errorf("local anchorfiles repository path is invalid. path: %s", pathToUse)
-		} else {
-			return pathToUse, nil
-		}
-	}
-	return "", nil
-}
-
-func tryResolveFromRemoteRepo(remote Remote) (string, error) {
-	pathToUse := remote.Url
-
-	// TODO: resolve from remote repo in here...
-
-	if len(pathToUse) > 0 {
-
-		if !ioutils.IsValidPath(pathToUse) {
-			return "", fmt.Errorf("remote anchorfiles cloned repository path is invalid. path: %s", pathToUse)
-		} else {
-			return pathToUse, nil
-		}
-	}
-	return "", nil
 }
