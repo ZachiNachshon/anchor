@@ -18,6 +18,7 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 	}
 
 	clonePath := rr.RemoteConfig.ClonePath
+
 	if !rr.IsClonedPathExists(clonePath) {
 		if err = rr.Git.Clone(s, clonePath); err != nil {
 			return "", err
@@ -26,13 +27,14 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 
 	if len(rr.RemoteConfig.Revision) > 0 {
 		if err = rr.Git.Reset(s, clonePath, rr.RemoteConfig.Revision); err != nil {
-			// TODO: identify a revision does not exists error code before fetching again
+			// TODO: identify a "revision does not exists" error code before fetching again
 			if err = rr.Git.FetchShallow(s, clonePath, rr.RemoteConfig.Url, rr.RemoteConfig.Branch); err != nil {
+				return "", err
+			} else {
 				if err = rr.Git.Reset(s, clonePath, rr.RemoteConfig.Revision); err != nil {
 					return "", err
 				}
 			}
-			return "", err
 		}
 	}
 
@@ -44,7 +46,7 @@ func (rr *RemoteResolver) IsClonedPathExists(path string) bool {
 }
 
 func (rr *RemoteResolver) verifyRemoteRepositoryConfig() error {
-	if rr.RemoteConfig != nil {
+	if rr.RemoteConfig == nil {
 		return fmt.Errorf("invalid remote repository configuration")
 	}
 	remoteCfg := rr.RemoteConfig

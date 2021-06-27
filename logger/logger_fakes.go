@@ -56,24 +56,24 @@ func (f *FakeLogger) Warningf(format string, args ...interface{}) {
 
 func (f *FakeLogger) Error(msg string) {
 	if f.verbose {
-		f.testing.Log(msg)
+		f.testing.Error(msg)
 	}
 }
 
 func (f *FakeLogger) Errorf(format string, args ...interface{}) {
 	if f.verbose {
-		f.testing.Logf(format, args...)
+		f.testing.Errorf(format, args...)
 	}
 }
 
 func (f *FakeLogger) Fatal(msg string) {
 	if f.verbose {
-		f.testing.Log(msg)
+		f.testing.Fatal(msg)
 	}
 }
 
 func (f *FakeLogger) Fatalf(format string, args ...interface{}) {
 	if f.verbose {
-		f.testing.Logf(format, args...)
+		f.testing.Fatalf(format, args...)
 	}
 }
