@@ -36,4 +36,3 @@ func HarnessAnchorfilesRemoteGitTestRepo(ctx common.Context) {
 	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles-git-based", repoRootPath)
 	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
 }
-

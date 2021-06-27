@@ -5,8 +5,7 @@ import (
 )
 
 var CreateFakeGit = func() *fakeGitImpl {
-	return &fakeGitImpl{
-	}
+	return &fakeGitImpl{}
 }
 
 type fakeGitImpl struct {
