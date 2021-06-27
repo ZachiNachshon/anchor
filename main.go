@@ -64,8 +64,6 @@ func main() {
 	}
 	ctx.(common.ConfigSetter).SetConfig(*cfg)
 
-	injectComponents(ctx)
-
 	rslvr, err := resolver.GetResolverBasedOnConfig(cfg.Config.Repository)
 	if err != nil {
 		logger.Fatalf(err.Error())
@@ -79,7 +77,8 @@ func main() {
 	}
 
 	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(repoPath)
-	scanAnchorfilesRepositoryTree(ctx)
 
+	injectComponents(ctx)
+	scanAnchorfilesRepositoryTree(ctx)
 	anchor.Main(ctx)
 }

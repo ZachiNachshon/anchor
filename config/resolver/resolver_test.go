@@ -302,7 +302,7 @@ config:
 
 				callCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(s shell.Shell, clonePath string) error {
+				fakeGit.CloneMock = func(clonePath string) error {
 					callCount++
 					return nil
 				}
@@ -336,7 +336,7 @@ config:
 
 				callCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(s shell.Shell, clonePath string) error {
+				fakeGit.CloneMock = func(clonePath string) error {
 					callCount++
 					return fmt.Errorf("failed to perform git clone")
 				}
@@ -374,13 +374,13 @@ config:
 
 				cloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(s shell.Shell, clonePath string) error {
+				fakeGit.CloneMock = func(clonePath string) error {
 					cloneCallCount++
 					return nil
 				}
 
 				resetCallCount := 0
-				fakeGit.ResetMock = func(s shell.Shell, path string, revision string) error {
+				fakeGit.ResetMock = func(path string, revision string) error {
 					resetCallCount++
 					return nil
 				}
@@ -418,13 +418,13 @@ config:
 
 				cloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(s shell.Shell, clonePath string) error {
+				fakeGit.CloneMock = func(clonePath string) error {
 					cloneCallCount++
 					return nil
 				}
 
 				resetCallCount := 0
-				fakeGit.ResetMock = func(s shell.Shell, path string, revision string) error {
+				fakeGit.ResetMock = func(path string, revision string) error {
 					resetCallCount++
 					if resetCallCount == 1 {
 						return fmt.Errorf("failed to git reset on 1st try")
@@ -434,7 +434,7 @@ config:
 				}
 
 				fetchCallCount := 0
-				fakeGit.FetchShallowMock = func(s shell.Shell, path string, url string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
 					fetchCallCount++
 					return nil
 				}
@@ -473,19 +473,19 @@ config:
 
 				cloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(s shell.Shell, clonePath string) error {
+				fakeGit.CloneMock = func(clonePath string) error {
 					cloneCallCount++
 					return nil
 				}
 
 				resetCallCount := 0
-				fakeGit.ResetMock = func(s shell.Shell, path string, revision string) error {
+				fakeGit.ResetMock = func(path string, revision string) error {
 					resetCallCount++
 					return fmt.Errorf("failed to git reset on 1st try")
 				}
 
 				fetchCallCount := 0
-				fakeGit.FetchShallowMock = func(s shell.Shell, path string, url string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
 					fetchCallCount++
 					return fmt.Errorf("failed to git fetch shallow")
 				}
@@ -524,13 +524,13 @@ config:
 
 				cloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(s shell.Shell, clonePath string) error {
+				fakeGit.CloneMock = func(clonePath string) error {
 					cloneCallCount++
 					return nil
 				}
 
 				resetCallCount := 0
-				fakeGit.ResetMock = func(s shell.Shell, path string, revision string) error {
+				fakeGit.ResetMock = func(path string, revision string) error {
 					resetCallCount++
 					if resetCallCount == 1 {
 						return fmt.Errorf("failed to git reset on 1st try")
@@ -540,7 +540,7 @@ config:
 				}
 
 				fetchCallCount := 0
-				fakeGit.FetchShallowMock = func(s shell.Shell, path string, url string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
 					fetchCallCount++
 					return nil
 				}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
 func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) {
@@ -12,26 +11,20 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 		return "", err
 	}
 
-	s, err := shell.FromRegistry(ctx.Registry())
-	if err != nil {
-		return "", err
-	}
-
 	clonePath := rr.RemoteConfig.ClonePath
-
 	if !rr.IsClonedPathExists(clonePath) {
-		if err = rr.Git.Clone(s, clonePath); err != nil {
+		if err := rr.Git.Clone(clonePath); err != nil {
 			return "", err
 		}
 	}
 
 	if len(rr.RemoteConfig.Revision) > 0 {
-		if err = rr.Git.Reset(s, clonePath, rr.RemoteConfig.Revision); err != nil {
+		if err := rr.Git.Reset(clonePath, rr.RemoteConfig.Revision); err != nil {
 			// TODO: identify a "revision does not exists" error code before fetching again
-			if err = rr.Git.FetchShallow(s, clonePath, rr.RemoteConfig.Url, rr.RemoteConfig.Branch); err != nil {
+			if err = rr.Git.FetchShallow(clonePath, rr.RemoteConfig.Url, rr.RemoteConfig.Branch); err != nil {
 				return "", err
 			} else {
-				if err = rr.Git.Reset(s, clonePath, rr.RemoteConfig.Revision); err != nil {
+				if err = rr.Git.Reset(clonePath, rr.RemoteConfig.Revision); err != nil {
 					return "", err
 				}
 			}
