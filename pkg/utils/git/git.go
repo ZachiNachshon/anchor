@@ -7,7 +7,7 @@ import (
 )
 
 func New(s shell.Shell) Git {
-	return gitImpl{
+	return &gitImpl{
 		Shell: s,
 	}
 }
@@ -62,5 +62,11 @@ func (g *gitImpl) GitReset(path string, revision string) error {
 func (g *gitImpl) GitClean(path string) error {
 	logger.Infof("Git cleaning untracked files from index. path: %s", path)
 	script := fmt.Sprintf(`git -C %s clean -xdf`, path)
+	return g.Shell.Execute(script)
+}
+
+func (g *gitImpl) GetHeadCommitHash(branch string) error {
+	logger.Infof("Git reading HEAD latest commit hash. branch: %s", branch)
+	script := fmt.Sprintf(`git ls-remote origin -h refs/heads/%s`, branch)
 	return g.Shell.Execute(script)
 }

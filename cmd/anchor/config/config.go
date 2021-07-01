@@ -21,7 +21,6 @@ func NewCommand(ctx common.Context) *configCmd {
 		Use:       "config",
 		Short:     "Configuration file management",
 		Long:      `Configuration file management`,
-		Aliases:   []string{"conf"},
 		ValidArgs: validArgs,
 	}
 

@@ -29,6 +29,10 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 				}
 			}
 		}
+	} else {
+		// Check origin master latest commit hash HEAD
+		// Prompt to update (add a config value to auto-update)
+
 	}
 
 	return clonePath, nil

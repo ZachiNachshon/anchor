@@ -9,6 +9,7 @@ type Git interface {
 	FetchShallow(path string, url string, branch string) error
 	Reset(path string, revision string) error
 	Clean(path string) error
+	GetHeadCommitHash(branch string) error
 }
 
 type gitImpl struct {

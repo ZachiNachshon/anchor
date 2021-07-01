@@ -10,19 +10,20 @@ import (
 
 func StartConfigPrintFlow(ctx common.Context) error {
 	cfg := ctx.Config().(config.AnchorConfig)
-	if out, err := converters.ConfigObjToYaml(cfg); err != nil {
+	if cfgText, err := converters.ConfigObjToYaml(cfg); err != nil {
 		logger.Error(err.Error())
 		return err
 	} else {
-		return printConfiguration(ctx, out)
+		cfgFilePath := config.GetConfigFilePath()
+		return printConfiguration(ctx, cfgFilePath, cfgText)
 	}
 }
 
-func printConfiguration(ctx common.Context, cfgText string) error {
+func printConfiguration(ctx common.Context, cfgFilePath string, cfgText string) error {
 	if p, err := printer.FromRegistry(ctx.Registry()); err != nil {
 		return err
 	} else {
-		p.PrintConfiguration(ctx, cfgText)
+		p.PrintConfiguration(ctx, cfgFilePath, cfgText)
 	}
 	return nil
 }

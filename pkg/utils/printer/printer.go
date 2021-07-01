@@ -8,13 +8,17 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/templates"
 )
 
-var configPrintTemplate = `Repository in-use: {{ .ConfigFilePath }}
+var configPrintTemplate = `---
+Repository in-use: {{ .AnchorfilesRepoPath }}
+---
+Configuration file path: {{ .ConfigFilePath }} 
 ---
 {{ .ConfigText }}`
 
 type PrintConfigTemplateItems struct {
-	ConfigFilePath string
-	ConfigText     string
+	AnchorfilesRepoPath string
+	ConfigFilePath      string
+	ConfigText          string
 }
 
 type printerImpl struct {
@@ -32,10 +36,11 @@ func (p *printerImpl) PrintApplications(apps []*models.AppContent) {
 	}
 }
 
-func (p *printerImpl) PrintConfiguration(ctx common.Context, cfgText string) {
+func (p *printerImpl) PrintConfiguration(ctx common.Context, cfgFilePath string, cfgText string) {
 	var items = PrintConfigTemplateItems{
-		ConfigFilePath: ctx.AnchorFilesPath(),
-		ConfigText:     cfgText,
+		AnchorfilesRepoPath: ctx.AnchorFilesPath(),
+		ConfigFilePath:      cfgFilePath,
+		ConfigText:          cfgText,
 	}
 	if text, err := templates.TemplateToText(configPrintTemplate, items); err != nil {
 		logger.Error("Failed to prepare configuration string")

@@ -11,11 +11,24 @@ import (
 )
 
 const (
-	DefaultAuthor       = "Zachi Nachshon <zachi.nachshon@gmail.com>"
-	DefaultLicense      = "Apache"
-	DefaultClonePath    = "${HOME}/.config/anchor/anchorfiles"
-	DefaultRemoteBranch = "master"
+	DefaultAuthor                 = "Zachi Nachshon <zachi.nachshon@gmail.com>"
+	DefaultLicense                = "Apache"
+	DefaultClonePath              = "${HOME}/.config/anchor/anchorfiles"
+	DefaultRemoteBranch           = "master"
+	defaultConfigFileName         = "anchorConfig"
+	defaultConfigFileType         = "yaml"
+	defaultConfigFolderPathFormat = "%s/.config/anchor"
 )
+
+func GetConfigFilePath() string {
+	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
+		return ""
+	} else {
+		folderPath := fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder)
+		return fmt.Sprintf("%s/%s.%s", folderPath, defaultConfigFileName, defaultConfigFileType)
+	}
+}
 
 func FromContext(ctx common.Context) AnchorConfig {
 	return ctx.Config().(AnchorConfig)
@@ -55,9 +68,9 @@ func initConfigPath() error {
 	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
 		return err
 	} else {
-		viper.SetConfigName("anchorConfig")
-		viper.SetConfigType("yaml")
-		viper.AddConfigPath(homeFolder + "/.config/anchor") // path to look for the config file in
+		viper.SetConfigName(defaultConfigFileName)
+		viper.SetConfigType(defaultConfigFileType)
+		viper.AddConfigPath(fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder)) // path to look for the config file in
 		//viper.AddConfigPath(".")                      		// optionally look for config in the working directory
 		return nil
 	}
