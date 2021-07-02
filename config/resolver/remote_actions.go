@@ -3,7 +3,7 @@ package resolver
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/pkg/utils/git"
+	"github.com/ZachiNachshon/anchor/pkg/git"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 )
 

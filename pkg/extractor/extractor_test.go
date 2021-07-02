@@ -5,8 +5,8 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
+	parser2 "github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
-	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +41,7 @@ var ExtractPromptItemsFromInstructions = func(t *testing.T) {
 				// And I create a new extractor
 				ext := New()
 				// When I extract prompt items
-				prompItems, err := ext.ExtractPromptItems(path, parser.New())
+				prompItems, err := ext.ExtractPromptItems(path, parser2.New())
 				// Then I expect to extract 3 items successfully
 				assert.Nil(t, err, "expected prompt item extraction to succeed")
 				assert.Equal(t, 3, len(prompItems.Items), "expected 3 instructions but found %v", len(prompItems.Items))

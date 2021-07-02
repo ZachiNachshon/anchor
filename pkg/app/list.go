@@ -2,8 +2,8 @@ package app
 
 import (
 	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/pkg/utils/locator"
-	"github.com/ZachiNachshon/anchor/pkg/utils/printer"
+	"github.com/ZachiNachshon/anchor/pkg/locator"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 )
 
 func StartApplicationListFlow(ctx common.Context) error {

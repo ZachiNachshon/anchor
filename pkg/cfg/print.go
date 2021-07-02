@@ -4,8 +4,8 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
-	"github.com/ZachiNachshon/anchor/pkg/utils/printer"
 )
 
 func StartConfigPrintFlow(ctx common.Context) error {

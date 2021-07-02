@@ -3,8 +3,8 @@ package extractor
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
-	"github.com/ZachiNachshon/anchor/pkg/utils/parser"
 	"io/ioutil"
 )
 

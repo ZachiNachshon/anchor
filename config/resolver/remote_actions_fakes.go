@@ -2,7 +2,7 @@ package resolver
 
 import (
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/pkg/utils/git"
+	"github.com/ZachiNachshon/anchor/pkg/git"
 )
 
 var CreateFakeRemoteActions = func() *fakeRemoteActionsImpl {
