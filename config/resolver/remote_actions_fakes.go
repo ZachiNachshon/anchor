@@ -51,6 +51,10 @@ func (ra *fakeRemoteActionsImpl) TryFetchHeadRevision(
 	return ra.TryFetchHeadRevisionMock(clonePath, url, branch)
 }
 
-func (ra *fakeRemoteActionsImpl) CloneRepositoryIfMissing(clonePath string) error {
+func (ra *fakeRemoteActionsImpl) CloneRepositoryIfMissing(
+	clonePath string,
+	url string,
+	branch string) error {
+	
 	return ra.CloneRepositoryIfMissingMock(clonePath)
 }

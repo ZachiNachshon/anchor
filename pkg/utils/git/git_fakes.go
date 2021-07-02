@@ -6,7 +6,7 @@ var CreateFakeGit = func() *fakeGitImpl {
 
 type fakeGitImpl struct {
 	Git
-	CloneMock             func(clonePath string) error
+	CloneMock             func(url string, branch string, clonePath string) error
 	InitMock              func(path string) error
 	AddOriginMock         func(path string, url string) error
 	FetchShallowMock      func(path string, url string, branch string) error
@@ -15,8 +15,8 @@ type fakeGitImpl struct {
 	GetHeadCommitHashMock func(branch string) (string, error)
 }
 
-func (g *fakeGitImpl) Clone(clonePath string) error {
-	return g.CloneMock(clonePath)
+func (g *fakeGitImpl) Clone(url string, branch string, clonePath string) error {
+	return g.CloneMock(url, branch, clonePath)
 }
 
 func (g *fakeGitImpl) Init(path string) error {

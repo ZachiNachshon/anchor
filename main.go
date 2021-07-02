@@ -39,7 +39,7 @@ func injectComponents(ctx common.Context) {
 	o := orchestrator.New(pr, l, e, pa)
 	orchestrator.ToRegistry(ctx.Registry(), o)
 
-	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().Shell)
+	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().shell)
 }
 
 func scanAnchorfilesRepositoryTree(ctx common.Context) {

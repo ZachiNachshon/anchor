@@ -32,6 +32,10 @@ type RemoteResolverActions interface {
 		url string,
 		branch string) error
 
-	CloneRepositoryIfMissing(clonePath string) error
+	CloneRepositoryIfMissing(
+		clonePath string,
+		url string,
+		branch string) error
+
 	VerifyRemoteRepositoryConfig(remoteCfg *config.Remote) error
 }

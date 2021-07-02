@@ -152,12 +152,16 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitCloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
+				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
 					gitCloneCallCount++
 					return fmt.Errorf("failed to perform git clone")
 				}
 				actions := NewRemoteActions(fakeGit)
-				err := actions.CloneRepositoryIfMissing(cfg.Config.Repository.Remote.ClonePath)
+				err := actions.CloneRepositoryIfMissing(
+					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Url,
+					cfg.Config.Repository.Remote.Branch)
+
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, 1, gitCloneCallCount)
 				assert.Equal(t, "failed to perform git clone", err.Error())
@@ -180,12 +184,16 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitCloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
+				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
 					gitCloneCallCount++
 					return nil
 				}
 				actions := NewRemoteActions(fakeGit)
-				err := actions.CloneRepositoryIfMissing(cfg.Config.Repository.Remote.ClonePath)
+				err := actions.CloneRepositoryIfMissing(
+					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Url,
+					cfg.Config.Repository.Remote.Branch)
+
 				assert.Nil(t, err, "expected not to fail")
 				assert.Equal(t, 1, gitCloneCallCount)
 			})
@@ -209,12 +217,16 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitCloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
+				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
 					gitCloneCallCount++
 					return nil
 				}
 				actions := NewRemoteActions(fakeGit)
-				err := actions.CloneRepositoryIfMissing(cfg.Config.Repository.Remote.ClonePath)
+				err := actions.CloneRepositoryIfMissing(
+					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Url,
+					cfg.Config.Repository.Remote.Branch)
+
 				assert.Nil(t, err, "expected not to fail")
 				assert.Equal(t, 0, gitCloneCallCount)
 			})

@@ -3,7 +3,7 @@ package git
 import "github.com/ZachiNachshon/anchor/pkg/utils/shell"
 
 type Git interface {
-	Clone(clonePath string) error
+	Clone(url string, branch string, clonePath string) error
 	Init(path string) error
 	AddOrigin(path string, url string) error
 	FetchShallow(path string, url string, branch string) error
@@ -14,5 +14,5 @@ type Git interface {
 
 type gitImpl struct {
 	Git
-	Shell shell.Shell
+	shell shell.Shell
 }

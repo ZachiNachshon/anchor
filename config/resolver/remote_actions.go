@@ -39,9 +39,13 @@ func (ra *remoteActionsImpl) VerifyRemoteRepositoryConfig(remoteCfg *config.Remo
 	return nil
 }
 
-func (ra *remoteActionsImpl) CloneRepositoryIfMissing(clonePath string) error {
+func (ra *remoteActionsImpl) CloneRepositoryIfMissing(
+	clonePath string,
+	url string,
+	branch string) error {
+
 	if !ioutils.IsValidPath(clonePath) {
-		if err := ra.git.Clone(clonePath); err != nil {
+		if err := ra.git.Clone(url, branch, clonePath); err != nil {
 			return err
 		}
 	}

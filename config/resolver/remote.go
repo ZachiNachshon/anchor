@@ -16,15 +16,17 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 	}
 
 	clonePath := rr.RemoteConfig.ClonePath
-	if err := rr.RemoteActions.CloneRepositoryIfMissing(clonePath); err != nil {
+	url := rr.RemoteConfig.Url
+	branch := rr.RemoteConfig.Branch
+	if err := rr.RemoteActions.CloneRepositoryIfMissing(clonePath, url, branch); err != nil {
 		return "", err
 	}
 
 	if len(rr.RemoteConfig.Revision) > 0 {
 		if err := rr.RemoteActions.TryResetToRevision(
 			clonePath,
-			rr.RemoteConfig.Url,
-			rr.RemoteConfig.Branch,
+			url,
+			branch,
 			rr.RemoteConfig.Revision); err != nil {
 			return "", err
 		}
@@ -32,13 +34,13 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 		if rr.RemoteConfig.AutoUpdate {
 			msg := fmt.Sprintf("Mutually exclusive config values found: autoUpdate / revision. "+
 				"To allow auto update from '%s' branch latest HEAD, remove the revision from config.",
-				rr.RemoteConfig.Branch)
+				branch)
 
 			logger.Warning(msg)
 		}
 
 	} else if rr.RemoteConfig.AutoUpdate {
-		if err := rr.RemoteActions.TryFetchHeadRevision(clonePath, rr.RemoteConfig.Url, rr.RemoteConfig.Branch); err != nil {
+		if err := rr.RemoteActions.TryFetchHeadRevision(clonePath, url, branch); err != nil {
 			return "", err
 		}
 	}
