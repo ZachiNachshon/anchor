@@ -5,8 +5,6 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/pkg/utils/git"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
@@ -40,44 +38,36 @@ func Test_ResolverShould(t *testing.T) {
 			Func: FailToResolveLocalRepositoryDueToMissingConfig,
 		},
 		{
+			Name: "fail to resolve remote repository due to invalid remote actions",
+			Func: FailToResolveRemoteRepositoryDueToInvalidRemoteActions,
+		},
+		{
 			Name: "fail to resolve remote repository due to invalid config",
 			Func: FailToResolveRemoteRepositoryDueToInvalidConfig,
 		},
 		{
-			Name: "fail to resolve remote repository due to invalid url",
-			Func: FailToResolveRemoteRepositoryDueToInvalidUrl,
+			Name: "fail to clone a fresh remote repository into clone path",
+			Func: FailToCloneFreshRemoteRepositoryIntoClonePath,
 		},
 		{
-			Name: "fail to resolve remote repository due to invalid branch",
-			Func: FailToResolveRemoteRepositoryDueToInvalidBranch,
+			Name: "perform an initial fresh remote repository clone into a clone path successfully",
+			Func: PerformInitialFreshRemoteRepositoryCloneIntoClonePathSuccessfully,
 		},
 		{
-			Name: "fail to resolve remote repository due to invalid clonePath",
-			Func: FailToResolveRemoteRepositoryDueToInvalidClonePath,
+			Name: "reset to revision on existing cloned repo successfully",
+			Func: ResetToRevisionOnExistingClonedRepoSuccessfully,
 		},
 		{
-			Name: "clone a remote repository into a clone path successfully",
-			Func: CloneRemoteRepositoryIntoClonePathSuccessfully,
+			Name: "fail resetting to revision on existing cloned repo",
+			Func: FailResettingToRevisionOnExistingClonedRepo,
 		},
 		{
-			Name: "fail to clone a remote repository due to git clone failure",
-			Func: FailToCloneRemoteRepositoryDueToGitCloneFailure,
+			Name: "auto update to latest HEAD revision successfully",
+			Func: AutoUpdateToLatestHeadRevisionSuccessfully,
 		},
 		{
-			Name: "clone a remote repository successfully on 2nd reset to revision after fetch",
-			Func: CloneRemoteRepositorySuccessfullyOnSecondResetToRevisionAfterFetch,
-		},
-		{
-			Name: "clone a remote repository successfully on 1st reset to revision",
-			Func: CloneRemoteRepositorySuccessfullyOnFirstResetToRevision,
-		},
-		{
-			Name: "fail to fetch a remote repository after 1st reset failures",
-			Func: FailToFetchRemoteRepositoryAfterFirstResetFailure,
-		},
-		{
-			Name: "fail to reset 2nd time after a successful fetch",
-			Func: FailToResetSecondTimeAfterSuccessfulFetch,
+			Name: "fail auto updating to latest HEAD revision",
+			Func: FailAutoUpdatingToLatestHeadRevision,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -211,151 +201,83 @@ config:
 	})
 }
 
+var FailToResolveRemoteRepositoryDueToInvalidRemoteActions = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := config.GetDefaultTestConfigText()
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				rslvr := &RemoteResolver{
+					RemoteConfig: cfg.Config.Repository.Remote,
+				}
+				repoPath, err := rslvr.ResolveRepository(ctx)
+				assert.NotNil(t, err, "expected to fail on remote resolver")
+				assert.Equal(t, "remote actions weren't defined for remote resolver, cannot proceed", err.Error())
+				assert.Equal(t, "", repoPath, "expected not to have a repository path")
+			})
+		})
+	})
+}
+
 var FailToResolveRemoteRepositoryDueToInvalidConfig = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
   repository:
-		remote:
-`
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-				}
-				repoPath, err := rslvr.ResolveRepository(ctx)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "invalid remote repository configuration", err.Error())
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
-			})
-		})
-	})
-}
-
-var FailToResolveRemoteRepositoryDueToInvalidUrl = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				cfg.Config.Repository.Remote.Url = ""
-				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-				}
-				repoPath, err := rslvr.ResolveRepository(ctx)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "remote repository config is missing value. name: url", err.Error())
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
-			})
-		})
-	})
-}
-
-var FailToResolveRemoteRepositoryDueToInvalidBranch = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				cfg.Config.Repository.Remote.Branch = ""
-				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-				}
-				repoPath, err := rslvr.ResolveRepository(ctx)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "remote repository config is missing value. name: branch", err.Error())
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
-			})
-		})
-	})
-}
-
-var FailToResolveRemoteRepositoryDueToInvalidClonePath = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				cfg.Config.Repository.Remote.ClonePath = ""
-				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-				}
-				repoPath, err := rslvr.ResolveRepository(ctx)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "remote repository config is missing value. name: clonePath", err.Error())
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
-			})
-		})
-	})
-}
-
-var CloneRemoteRepositoryIntoClonePathSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := `
-config:
-  repository:
     remote:
-      url: https://github.com/ZachiNachshon/dummy-repo.git
-      branch: some-branch
-      clonePath: /not/exist/path/to/clone/new/repo
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				populateShellInRegistry(ctx)
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
+					return fmt.Errorf("invalid config")
+				}
 
-				callCount := 0
-				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
-					callCount++
+				rslvr := &RemoteResolver{
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
+				}
+				repoPath, err := rslvr.ResolveRepository(ctx)
+				assert.NotNil(t, err, "expected to fail on remote resolver")
+				assert.Equal(t, "invalid config", err.Error())
+				assert.Equal(t, 1, verifyConfigCallCount)
+				assert.Equal(t, "", repoPath, "expected not to have a repository path")
+			})
+		})
+	})
+}
+
+var FailToCloneFreshRemoteRepositoryIntoClonePath = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := config.GetDefaultTestConfigText()
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
 					return nil
 				}
-
-				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-					Git:          fakeGit,
+				cloneRepoIfMissingCallCount := 0
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+					cloneRepoIfMissingCallCount++
+					return fmt.Errorf("failed to clone")
 				}
-				repoPath, err := rslvr.ResolveRepository(ctx)
-				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, 1, callCount, "expected git action to be called exactly once. name: clone")
-				assert.Equal(t, "/not/exist/path/to/clone/new/repo", repoPath, "expected to have a repository path")
-			})
-		})
-	})
-}
-
-var FailToCloneRemoteRepositoryDueToGitCloneFailure = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := `
-config:
-  repository:
-    remote:
-      url: https://github.com/ZachiNachshon/dummy-repo.git
-      branch: some-branch
-      clonePath: /clone/repo/path
-`
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				populateShellInRegistry(ctx)
-
-				callCount := 0
-				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
-					callCount++
-					return fmt.Errorf("failed to perform git clone")
-				}
-
 				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-					Git:          fakeGit,
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
 				}
 				repoPath, err := rslvr.ResolveRepository(ctx)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, 1, callCount, "expected git action to be called exactly once. name: clone")
-				assert.Equal(t, "failed to perform git clone", err.Error())
+				assert.Equal(t, "failed to clone", err.Error())
 				assert.Equal(t, "", repoPath, "expected not to have a repository path")
 			})
 		})
 	})
 }
 
-var CloneRemoteRepositorySuccessfullyOnFirstResetToRevision = func(t *testing.T) {
+var PerformInitialFreshRemoteRepositoryCloneIntoClonePathSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
@@ -365,41 +287,36 @@ config:
    remote:
      url: https://github.com/ZachiNachshon/dummy-repo.git
      branch: some-branch
-     revision: l33tf4k3c0mm1757r1n6
      clonePath: %s
 `, ctx.AnchorFilesPath())
 
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				populateShellInRegistry(ctx)
-
-				cloneCallCount := 0
-				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
-					cloneCallCount++
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
 					return nil
 				}
-
-				resetCallCount := 0
-				fakeGit.ResetMock = func(path string, revision string) error {
-					resetCallCount++
+				cloneRepoIfMissingCallCount := 0
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+					cloneRepoIfMissingCallCount++
 					return nil
 				}
-
 				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-					Git:          fakeGit,
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
 				}
 				repoPath, err := rslvr.ResolveRepository(ctx)
 				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, 0, cloneCallCount, "expected git action not to be called. name: clone")
-				assert.Equal(t, 1, resetCallCount, "expected git action to be called exactly once. name: reset")
+				assert.Equal(t, 1, verifyConfigCallCount)
+				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})
 		})
 	})
 }
 
-var CloneRemoteRepositorySuccessfullyOnSecondResetToRevisionAfterFetch = func(t *testing.T) {
+var ResetToRevisionOnExistingClonedRepoSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
@@ -414,47 +331,85 @@ config:
 `, ctx.AnchorFilesPath())
 
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				populateShellInRegistry(ctx)
-
-				cloneCallCount := 0
-				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
-					cloneCallCount++
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
 					return nil
 				}
-
-				resetCallCount := 0
-				fakeGit.ResetMock = func(path string, revision string) error {
-					resetCallCount++
-					if resetCallCount == 1 {
-						return fmt.Errorf("failed to git reset on 1st try")
-					} else {
-						return nil
-					}
+				cloneRepoIfMissingCallCount := 0
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+					cloneRepoIfMissingCallCount++
+					return nil
 				}
-
-				fetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
-					fetchCallCount++
+				tryResetToRevisionCallCount := 0
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+					tryResetToRevisionCallCount++
 					return nil
 				}
 
 				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-					Git:          fakeGit,
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
 				}
 				repoPath, err := rslvr.ResolveRepository(ctx)
 				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, 0, cloneCallCount, "expected git action not to be called. name: clone")
-				assert.Equal(t, 1, fetchCallCount, "expected git action to be called exactly once. name: fetch")
-				assert.Equal(t, 2, resetCallCount, "expected git action to be called multiple times. name: reset")
+				assert.Equal(t, 1, verifyConfigCallCount)
+				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
+				assert.Equal(t, 1, tryResetToRevisionCallCount)
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})
 		})
 	})
 }
 
-var FailToFetchRemoteRepositoryAfterFirstResetFailure = func(t *testing.T) {
+var FailResettingToRevisionOnExistingClonedRepo = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+ repository:
+   remote:
+     url: https://github.com/ZachiNachshon/dummy-repo.git
+     branch: some-branch
+     revision: l33tf4k3c0mm1757r1n6
+     clonePath: /some/clone/path
+`
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
+					return nil
+				}
+				cloneRepoIfMissingCallCount := 0
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+					cloneRepoIfMissingCallCount++
+					return nil
+				}
+				tryResetToRevisionCallCount := 0
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+					tryResetToRevisionCallCount++
+					return fmt.Errorf("failed resetting to revision")
+				}
+
+				rslvr := &RemoteResolver{
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
+				}
+				repoPath, err := rslvr.ResolveRepository(ctx)
+				assert.Equal(t, 1, verifyConfigCallCount)
+				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
+				assert.Equal(t, 1, tryResetToRevisionCallCount)
+				assert.NotNil(t, err, "expected to fail on remote resolver")
+				assert.Equal(t, "failed resetting to revision", err.Error())
+				assert.Equal(t, "", repoPath, "expected not to have a repository path")
+			})
+		})
+	})
+}
+
+var AutoUpdateToLatestHeadRevisionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
@@ -464,103 +419,95 @@ config:
    remote:
      url: https://github.com/ZachiNachshon/dummy-repo.git
      branch: some-branch
-     revision: l33tf4k3c0mm1757r1n6
      clonePath: %s
+     autoUpdate: true
 `, ctx.AnchorFilesPath())
 
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				populateShellInRegistry(ctx)
-
-				cloneCallCount := 0
-				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
-					cloneCallCount++
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
 					return nil
 				}
-
-				resetCallCount := 0
-				fakeGit.ResetMock = func(path string, revision string) error {
-					resetCallCount++
-					return fmt.Errorf("failed to git reset on 1st try")
+				cloneRepoIfMissingCallCount := 0
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+					cloneRepoIfMissingCallCount++
+					return nil
 				}
-
-				fetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
-					fetchCallCount++
-					return fmt.Errorf("failed to git fetch shallow")
+				tryResetToRevisionCallCount := 0
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+					tryResetToRevisionCallCount++
+					return nil
 				}
-
+				tryFetchHeadRevisionCallCount := 0
+				fakeRemoteActions.TryFetchHeadRevisionMock = func(clonePath string, url string, branch string) error {
+					tryFetchHeadRevisionCallCount++
+					return nil
+				}
 				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-					Git:          fakeGit,
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
 				}
 				repoPath, err := rslvr.ResolveRepository(ctx)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, 0, cloneCallCount, "expected git action not to be called. name: clone")
-				assert.Equal(t, 1, resetCallCount, "expected git action to be called exactly once. name: reset")
-				assert.Equal(t, 1, fetchCallCount, "expected git action to be called exactly once. name: fetch")
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
+				assert.Equal(t, 1, verifyConfigCallCount)
+				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
+				assert.Equal(t, 0, tryResetToRevisionCallCount)
+				assert.Equal(t, 1, tryFetchHeadRevisionCallCount)
+				assert.Nil(t, err, "expected to succeed on remote resolver")
+				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})
 		})
 	})
 }
 
-var FailToResetSecondTimeAfterSuccessfulFetch = func(t *testing.T) {
+var FailAutoUpdatingToLatestHeadRevision = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
+			yamlConfigText := `
 config:
  repository:
    remote:
      url: https://github.com/ZachiNachshon/dummy-repo.git
      branch: some-branch
-     revision: l33tf4k3c0mm1757r1n6
-     clonePath: %s
-`, ctx.AnchorFilesPath())
-
+     clonePath: /some/clone/path
+     autoUpdate: true
+`
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				populateShellInRegistry(ctx)
-
-				cloneCallCount := 0
-				fakeGit := git.CreateFakeGit()
-				fakeGit.CloneMock = func(clonePath string) error {
-					cloneCallCount++
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
 					return nil
 				}
-
-				resetCallCount := 0
-				fakeGit.ResetMock = func(path string, revision string) error {
-					resetCallCount++
-					if resetCallCount == 1 {
-						return fmt.Errorf("failed to git reset on 1st try")
-					} else {
-						return fmt.Errorf("failed to git reset on 2nd try")
-					}
-				}
-
-				fetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
-					fetchCallCount++
+				cloneRepoIfMissingCallCount := 0
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+					cloneRepoIfMissingCallCount++
 					return nil
 				}
-
+				tryResetToRevisionCallCount := 0
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+					tryResetToRevisionCallCount++
+					return nil
+				}
+				tryFetchHeadRevisionCallCount := 0
+				fakeRemoteActions.TryFetchHeadRevisionMock = func(clonePath string, url string, branch string) error {
+					tryFetchHeadRevisionCallCount++
+					return fmt.Errorf("failed to auto update")
+				}
 				rslvr := &RemoteResolver{
-					RemoteConfig: cfg.Config.Repository.Remote,
-					Git:          fakeGit,
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
 				}
 				repoPath, err := rslvr.ResolveRepository(ctx)
+				assert.Equal(t, 1, verifyConfigCallCount)
+				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
+				assert.Equal(t, 0, tryResetToRevisionCallCount)
+				assert.Equal(t, 1, tryFetchHeadRevisionCallCount)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, 0, cloneCallCount, "expected git action not to be called. name: clone")
-				assert.Equal(t, 1, fetchCallCount, "expected git action to be called exactly once. name: fetch")
-				assert.Equal(t, 2, resetCallCount, "expected git action to be called exactly once. name: reset")
+				assert.Equal(t, "failed to auto update", err.Error())
 				assert.Equal(t, "", repoPath, "expected not to have a repository path")
 			})
 		})
 	})
-}
-
-func populateShellInRegistry(ctx common.Context) {
-	s := shell.New()
-	shell.ToRegistry(ctx.Registry(), s)
 }

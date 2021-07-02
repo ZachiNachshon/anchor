@@ -65,8 +65,8 @@ func (g *gitImpl) GitClean(path string) error {
 	return g.Shell.Execute(script)
 }
 
-func (g *gitImpl) GetHeadCommitHash(branch string) error {
+func (g *gitImpl) GetHeadCommitHash(branch string) (string, error) {
 	logger.Infof("Git reading HEAD latest commit hash. branch: %s", branch)
 	script := fmt.Sprintf(`git ls-remote origin -h refs/heads/%s`, branch)
-	return g.Shell.Execute(script)
+	return g.Shell.ExecuteWithOutput(script)
 }

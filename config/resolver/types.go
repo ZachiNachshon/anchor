@@ -3,7 +3,6 @@ package resolver
 import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/pkg/utils/git"
 )
 
 type Resolver interface {
@@ -17,6 +16,22 @@ type LocalResolver struct {
 
 type RemoteResolver struct {
 	Resolver
-	RemoteConfig *config.Remote
-	Git          git.Git
+	RemoteConfig  *config.Remote
+	RemoteActions RemoteResolverActions
+}
+
+type RemoteResolverActions interface {
+	TryResetToRevision(
+		clonePath string,
+		url string,
+		branch string,
+		revision string) error
+
+	TryFetchHeadRevision(
+		clonePath string,
+		url string,
+		branch string) error
+
+	CloneRepositoryIfMissing(clonePath string) error
+	VerifyRemoteRepositoryConfig(remoteCfg *config.Remote) error
 }

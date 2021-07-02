@@ -54,10 +54,11 @@ type Repository struct {
 }
 
 type Remote struct {
-	Url       string `yaml:"url"`
-	Revision  string `yaml:"revision"`
-	Branch    string `yaml:"branch"`
-	ClonePath string `yaml:"clonePath"`
+	Url        string `yaml:"url"`
+	Revision   string `yaml:"revision"`
+	Branch     string `yaml:"branch"`
+	ClonePath  string `yaml:"clonePath"`
+	AutoUpdate bool   `yaml:"autoUpdate"`
 }
 
 type Local struct {
@@ -111,14 +112,14 @@ func createConfigObject() *AnchorConfig {
 	}
 }
 
-func setDefaultsPostCreation(config *Config) {
-	if config.Repository != nil && config.Repository.Remote != nil {
-		if config.Repository.Remote.ClonePath == "" {
-			config.Repository.Remote.ClonePath = DefaultClonePath
+func setDefaultsPostCreation(cfg *Config) {
+	if cfg.Repository != nil && cfg.Repository.Remote != nil {
+		if cfg.Repository.Remote.ClonePath == "" {
+			cfg.Repository.Remote.ClonePath = DefaultClonePath
 		}
 
-		if config.Repository.Remote.Branch == "" {
-			config.Repository.Remote.Branch = DefaultRemoteBranch
+		if cfg.Repository.Remote.Branch == "" {
+			cfg.Repository.Remote.Branch = DefaultRemoteBranch
 		}
 	}
 }

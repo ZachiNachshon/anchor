@@ -3,63 +3,45 @@ package resolver
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
+	"github.com/ZachiNachshon/anchor/logger"
 )
 
 func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) {
-	if err := rr.verifyRemoteRepositoryConfig(); err != nil {
+	if rr.RemoteActions == nil {
+		return "", fmt.Errorf("remote actions weren't defined for remote resolver, cannot proceed")
+	}
+
+	if err := rr.RemoteActions.VerifyRemoteRepositoryConfig(rr.RemoteConfig); err != nil {
 		return "", err
 	}
 
 	clonePath := rr.RemoteConfig.ClonePath
-	if !rr.IsClonedPathExists(clonePath) {
-		if err := rr.Git.Clone(clonePath); err != nil {
+	if err := rr.RemoteActions.CloneRepositoryIfMissing(clonePath); err != nil {
+		return "", err
+	}
+
+	if len(rr.RemoteConfig.Revision) > 0 {
+		if err := rr.RemoteActions.TryResetToRevision(
+			clonePath,
+			rr.RemoteConfig.Url,
+			rr.RemoteConfig.Branch,
+			rr.RemoteConfig.Revision); err != nil {
+			return "", err
+		}
+
+		if rr.RemoteConfig.AutoUpdate {
+			msg := fmt.Sprintf("Mutually exclusive config values found: autoUpdate / revision. "+
+				"To allow auto update from '%s' branch latest HEAD, remove the revision from config.",
+				rr.RemoteConfig.Branch)
+
+			logger.Warning(msg)
+		}
+
+	} else if rr.RemoteConfig.AutoUpdate {
+		if err := rr.RemoteActions.TryFetchHeadRevision(clonePath, rr.RemoteConfig.Url, rr.RemoteConfig.Branch); err != nil {
 			return "", err
 		}
 	}
 
-	if len(rr.RemoteConfig.Revision) > 0 {
-		if err := rr.Git.Reset(clonePath, rr.RemoteConfig.Revision); err != nil {
-			// TODO: identify a "revision does not exists" error code before fetching again
-			if err = rr.Git.FetchShallow(clonePath, rr.RemoteConfig.Url, rr.RemoteConfig.Branch); err != nil {
-				return "", err
-			} else {
-				if err = rr.Git.Reset(clonePath, rr.RemoteConfig.Revision); err != nil {
-					return "", err
-				}
-			}
-		}
-	} else {
-		// Check origin master latest commit hash HEAD
-		// Prompt to update (add a config value to auto-update)
-
-	}
-
 	return clonePath, nil
-}
-
-func (rr *RemoteResolver) IsClonedPathExists(path string) bool {
-	return ioutils.IsValidPath(path)
-}
-
-func (rr *RemoteResolver) verifyRemoteRepositoryConfig() error {
-	if rr.RemoteConfig == nil {
-		return fmt.Errorf("invalid remote repository configuration")
-	}
-	remoteCfg := rr.RemoteConfig
-	errFormat := "remote repository config is missing value. name: %s"
-
-	if len(remoteCfg.Url) == 0 {
-		return fmt.Errorf(errFormat, "url")
-	}
-
-	if len(remoteCfg.Branch) == 0 {
-		return fmt.Errorf(errFormat, "branch")
-	}
-
-	if len(remoteCfg.ClonePath) == 0 {
-		return fmt.Errorf(errFormat, "clonePath")
-	}
-
-	return nil
 }
