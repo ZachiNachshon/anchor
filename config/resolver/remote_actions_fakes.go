@@ -26,7 +26,11 @@ type fakeRemoteActionsImpl struct {
 		url string,
 		branch string) error
 
-	CloneRepositoryIfMissingMock     func(clonePath string) error
+	CloneRepositoryIfMissingMock func(
+		clonePath string,
+		url string,
+		branch string) error
+
 	VerifyRemoteRepositoryConfigMock func(remoteCfg *config.Remote) error
 }
 
@@ -55,6 +59,6 @@ func (ra *fakeRemoteActionsImpl) CloneRepositoryIfMissing(
 	clonePath string,
 	url string,
 	branch string) error {
-	
-	return ra.CloneRepositoryIfMissingMock(clonePath)
+
+	return ra.CloneRepositoryIfMissingMock(clonePath, url, branch)
 }
