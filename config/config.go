@@ -11,22 +11,41 @@ import (
 )
 
 const (
-	DefaultAuthor                 = "Zachi Nachshon <zachi.nachshon@gmail.com>"
-	DefaultLicense                = "Apache"
-	DefaultClonePath              = "${HOME}/.config/anchor/anchorfiles"
-	DefaultRemoteBranch           = "master"
-	defaultConfigFileName         = "anchorConfig"
-	defaultConfigFileType         = "yaml"
-	defaultConfigFolderPathFormat = "%s/.config/anchor"
+	DefaultAuthor                  = "Zachi Nachshon <zachi.nachshon@gmail.com>"
+	DefaultLicense                 = "Apache"
+	DefaultRemoteBranch            = "master"
+	defaultConfigFileName          = "anchorConfig"
+	defaultConfigFileType          = "yaml"
+	defaultConfigFolderPathFormat  = "%s/.config/anchor"
+	defaultRepoClonePathFormat     = "%s/.config/anchor/anchorfiles"
+	defaultLoggerLogFilePathFormat = "%s/.config/anchor/anchor.log"
 )
 
-func GetConfigFilePath() string {
+func GetConfigFilePath() (string, error) {
 	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
-		return ""
+		return "", err
 	} else {
 		folderPath := fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder)
-		return fmt.Sprintf("%s/%s.%s", folderPath, defaultConfigFileName, defaultConfigFileType)
+		return fmt.Sprintf("%s/%s.%s", folderPath, defaultConfigFileName, defaultConfigFileType), nil
+	}
+}
+
+func GetDefaultRepoClonePath() (string, error) {
+	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
+		return "", err
+	} else {
+		return fmt.Sprintf(defaultRepoClonePathFormat, homeFolder), nil
+	}
+}
+
+func GetDefaultLoggerLogFilePath() (string, error) {
+	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
+		return "", err
+	} else {
+		return fmt.Sprintf(defaultLoggerLogFilePathFormat, homeFolder), nil
 	}
 }
 
@@ -115,7 +134,11 @@ func createConfigObject() *AnchorConfig {
 func setDefaultsPostCreation(cfg *Config) {
 	if cfg.Repository != nil && cfg.Repository.Remote != nil {
 		if cfg.Repository.Remote.ClonePath == "" {
-			cfg.Repository.Remote.ClonePath = DefaultClonePath
+			clonePath, err := GetDefaultRepoClonePath()
+			if err != nil {
+				logger.Fatal("failed to resolve default repo clone path")
+			}
+			cfg.Repository.Remote.ClonePath = clonePath
 		}
 
 		if cfg.Repository.Remote.Branch == "" {

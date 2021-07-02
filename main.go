@@ -15,6 +15,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/printer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
+	"os"
 )
 
 func injectComponents(ctx common.Context) {
@@ -53,7 +54,13 @@ func scanAnchorfilesRepositoryTree(ctx common.Context) {
 func main() {
 	ctx := common.EmptyAnchorContext(registry.Initialize())
 
-	if err := logger.LogrusLoggerLoader(false); err != nil {
+	logFilePath, err := config.GetDefaultLoggerLogFilePath()
+	if err != nil {
+		fmt.Println("failed to resolve logger file path")
+		os.Exit(1)
+	}
+
+	if err := logger.LogrusLoggerLoader(false, logFilePath); err != nil {
 		fmt.Printf("Failed to initialize logger. error: %s", err.Error())
 	}
 

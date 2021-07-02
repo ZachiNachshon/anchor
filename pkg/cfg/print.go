@@ -14,7 +14,7 @@ func StartConfigPrintFlow(ctx common.Context) error {
 		logger.Error(err.Error())
 		return err
 	} else {
-		cfgFilePath := config.GetConfigFilePath()
+		cfgFilePath, _ := config.GetConfigFilePath()
 		return printConfiguration(ctx, cfgFilePath, cfgText)
 	}
 }

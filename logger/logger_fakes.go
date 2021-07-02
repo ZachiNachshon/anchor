@@ -69,3 +69,8 @@ func (f *FakeLogger) Fatal(msg string) {
 func (f *FakeLogger) Fatalf(format string, args ...interface{}) {
 	f.testing.Fatalf(format, args...)
 }
+
+func (f *FakeLogger) setVerbosityLevel(level string) error {
+	f.verbose = level == "debug"
+	return nil
+}
