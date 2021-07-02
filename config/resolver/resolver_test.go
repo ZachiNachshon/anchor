@@ -260,7 +260,7 @@ var FailToCloneFreshRemoteRepositoryIntoClonePath = func(t *testing.T) {
 					return nil
 				}
 				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
 					cloneRepoIfMissingCallCount++
 					return fmt.Errorf("failed to clone")
 				}
@@ -298,7 +298,7 @@ config:
 					return nil
 				}
 				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
 					cloneRepoIfMissingCallCount++
 					return nil
 				}
@@ -338,7 +338,7 @@ config:
 					return nil
 				}
 				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
 					cloneRepoIfMissingCallCount++
 					return nil
 				}
@@ -383,7 +383,7 @@ config:
 					return nil
 				}
 				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
 					cloneRepoIfMissingCallCount++
 					return nil
 				}
@@ -431,7 +431,7 @@ config:
 					return nil
 				}
 				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
 					cloneRepoIfMissingCallCount++
 					return nil
 				}
@@ -481,7 +481,7 @@ config:
 					return nil
 				}
 				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string) error {
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
 					cloneRepoIfMissingCallCount++
 					return nil
 				}

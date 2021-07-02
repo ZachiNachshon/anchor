@@ -73,11 +73,12 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 			// Omit config items that should get default values
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				defaultClonePath, _ := config.GetDefaultRepoClonePath()
 				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
 				assert.NotNil(t, nonViperConfig, "expected a valid config object")
 				assert.EqualValues(t, config.DefaultAuthor, cfg.Author)
 				assert.EqualValues(t, config.DefaultLicense, cfg.License)
-				assert.EqualValues(t, config.DefaultClonePath, cfg.Config.Repository.Remote.ClonePath)
+				assert.EqualValues(t, defaultClonePath, cfg.Config.Repository.Remote.ClonePath)
 			})
 		})
 	})
