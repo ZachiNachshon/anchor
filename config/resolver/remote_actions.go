@@ -75,7 +75,7 @@ func (ra *remoteActionsImpl) TryFetchHeadRevision(
 	if headRevision, err := ra.git.GetHeadCommitHash(branch); err != nil {
 		return err
 	} else {
-		if err := ra.RemoteResolverActions.TryResetToRevision(
+		if err = ra.TryResetToRevision(
 			clonePath,
 			url,
 			branch,
