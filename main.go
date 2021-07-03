@@ -5,7 +5,6 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/config/resolver"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
@@ -19,7 +18,7 @@ import (
 )
 
 func injectComponents(ctx common.Context) {
-	l := locator.New(ctx.AnchorFilesPath())
+	l := locator.New()
 	locator.ToRegistry(ctx.Registry(), l)
 
 	s := shell.New()
@@ -43,24 +42,16 @@ func injectComponents(ctx common.Context) {
 	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().shell)
 }
 
-func scanAnchorfilesRepositoryTree(ctx common.Context) {
-	l, _ := locator.FromRegistry(ctx.Registry())
-	err := l.Scan()
-	if err != nil {
-		logger.Fatalf("Failed to locate and scan anchorfiles repository content")
-	}
-}
-
 func main() {
 	ctx := common.EmptyAnchorContext(registry.Initialize())
 
 	logFilePath, err := config.GetDefaultLoggerLogFilePath()
 	if err != nil {
-		fmt.Println("failed to resolve logger file path")
+		fmt.Printf("failed to resolve logger file path. error: %s", err)
 		os.Exit(1)
 	}
 
-	if err := logger.LogrusLoggerLoader(false, logFilePath); err != nil {
+	if err = logger.LogrusLoggerLoader(false, logFilePath); err != nil {
 		fmt.Printf("Failed to initialize logger. error: %s", err.Error())
 	}
 
@@ -71,21 +62,6 @@ func main() {
 	}
 	ctx.(common.ConfigSetter).SetConfig(*cfg)
 
-	rslvr, err := resolver.GetResolverBasedOnConfig(cfg.Config.Repository)
-	if err != nil {
-		logger.Fatalf(err.Error())
-		return
-	}
-
-	repoPath, err := rslvr.ResolveRepository(ctx)
-	if err != nil {
-		logger.Fatalf(err.Error())
-		return
-	}
-
-	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(repoPath)
-
 	injectComponents(ctx)
-	scanAnchorfilesRepositoryTree(ctx)
 	anchor.Main(ctx)
 }

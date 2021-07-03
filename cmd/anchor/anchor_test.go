@@ -26,7 +26,7 @@ var ExpectVerbosityOnceFlagIsSet = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				if _, err := drivers.CLI().RunCommand(NewCommand(ctx), "--verbose"); err != nil {
-					assert.Failf(t, "expected test to succeed. error: %s", err.Error())
+					logger.Fatalf("expected test to succeed. error: %s", err.Error())
 				} else {
 					assert.True(t, common.GlobalOptions.Verbose)
 				}

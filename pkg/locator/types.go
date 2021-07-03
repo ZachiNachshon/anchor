@@ -7,7 +7,7 @@ import (
 )
 
 type Locator interface {
-	Scan() error
+	Scan(anchorFilesLocalPath string) error
 	Applications() []*models.AppContent
 	ApplicationsAsMap() map[string]*models.AppContent
 	Application(name string) *models.AppContent

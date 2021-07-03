@@ -11,7 +11,7 @@ var CreateFakeLocator = func(anchorFilesPath string) *fakeLocatorImpl {
 type fakeLocatorImpl struct {
 	Locator
 	localRepoPath    string
-	ScanMock         func() error
+	ScanMock         func(anchorFilesLocalPath string) error
 	ApplicationsMock func() []*models.AppContent
 }
 
@@ -19,8 +19,8 @@ func (l *fakeLocatorImpl) LocalRepoPath() string {
 	return l.localRepoPath
 }
 
-func (l *fakeLocatorImpl) Scan() error {
-	return l.ScanMock()
+func (l *fakeLocatorImpl) Scan(anchorFilesLocalPath string) error {
+	return l.ScanMock(anchorFilesLocalPath)
 }
 
 func (l *fakeLocatorImpl) Applications() []*models.AppContent {

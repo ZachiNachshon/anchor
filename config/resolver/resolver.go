@@ -19,6 +19,7 @@ func GetResolverBasedOnConfig(repoConfig *config.Repository) (Resolver, error) {
 		return &LocalResolver{
 			LocalConfig: repoConfig.Local,
 		}, nil
+
 	} else if repoConfig.Remote != nil {
 		logger.Debugf("Using remote anchorfiles repository")
 		g := git.New(shell.New())

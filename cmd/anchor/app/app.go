@@ -19,12 +19,15 @@ type appCmd struct {
 
 var validArgs = []string{"install", "uninstall", "status", "versions", "list"}
 
-func NewCommand(ctx common.Context) *appCmd {
+func NewCommand(ctx common.Context, loadRepoOrFail func(ctx common.Context)) *appCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "app",
 		Short:     "Application commands",
 		Aliases:   []string{"a"},
 		ValidArgs: validArgs,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			loadRepoOrFail(ctx)
+		},
 	}
 
 	var cmd = &appCmd{

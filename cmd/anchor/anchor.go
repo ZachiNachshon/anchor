@@ -7,8 +7,11 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/controller"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/common"
+	cfgModels "github.com/ZachiNachshon/anchor/config"
+	"github.com/ZachiNachshon/anchor/config/resolver"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/spf13/cobra"
 )
 
@@ -26,17 +29,11 @@ func NewCommand(ctx common.Context) *anchorCmd {
 		Short:     "Anchor your Ops environment into a version controlled repository",
 		Long:      `Anchor your Ops environment into a version controlled repository`,
 		ValidArgs: validArgs,
-	}
-
-	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		level := "info"
-		if common.GlobalOptions.Verbose {
-			level = "debug"
-		}
-		if err := logger.SetVerbosityLevel(level); err != nil {
-			return err
-		}
-		return nil
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if err := alignLoggerWithVerboseFlag(); err != nil {
+				logger.Fatal(err.Error())
+			}
+		},
 	}
 
 	return &anchorCmd{
@@ -61,10 +58,10 @@ func (cmd *anchorCmd) InitSubCommands() {
 	//cobra.EnableCommandSorting = false
 
 	// Apps Commands
-	cmd.cobraCmd.AddCommand(app.NewCommand(cmd.ctx).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(app.NewCommand(cmd.ctx, loadRepoOrFail).GetCobraCmd())
 
 	// Controller Commands
-	cmd.cobraCmd.AddCommand(controller.NewCommand(cmd.ctx).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(controller.NewCommand(cmd.ctx, loadRepoOrFail).GetCobraCmd())
 
 	// Config Commands
 	cmd.cobraCmd.AddCommand(config.NewCommand(cmd.ctx).GetCobraCmd())
@@ -87,6 +84,43 @@ func (cmd *anchorCmd) Execute() {
 	if err := cmd.cobraCmd.Execute(); err != nil {
 		logger.Fatal(err.Error())
 	}
+}
+
+func loadRepoOrFail(ctx common.Context) {
+	cfg := ctx.Config().(cfgModels.AnchorConfig)
+	rslvr, err := resolver.GetResolverBasedOnConfig(cfg.Config.Repository)
+	if err != nil {
+		logger.Fatalf(err.Error())
+		return
+	}
+
+	repoPath, err := rslvr.ResolveRepository(ctx)
+	if err != nil {
+		logger.Fatal(err.Error())
+		return
+	}
+
+	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(repoPath)
+	scanAnchorfilesRepositoryTree(ctx, repoPath)
+}
+
+func scanAnchorfilesRepositoryTree(ctx common.Context, repoPath string) {
+	l, _ := locator.FromRegistry(ctx.Registry())
+	err := l.Scan(repoPath)
+	if err != nil {
+		logger.Fatalf("Failed to locate and scan anchorfiles repository content")
+	}
+}
+
+func alignLoggerWithVerboseFlag() error {
+	level := "info"
+	if common.GlobalOptions.Verbose {
+		level = "debug"
+	}
+	if err := logger.SetVerbosityLevel(level); err != nil {
+		return err
+	}
+	return nil
 }
 
 func Main(ctx common.Context) {

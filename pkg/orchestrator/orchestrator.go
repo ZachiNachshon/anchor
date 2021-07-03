@@ -3,25 +3,25 @@ package orchestrator
 import (
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
-	extractor2 "github.com/ZachiNachshon/anchor/pkg/extractor"
-	locator2 "github.com/ZachiNachshon/anchor/pkg/locator"
-	parser2 "github.com/ZachiNachshon/anchor/pkg/parser"
-	prompter2 "github.com/ZachiNachshon/anchor/pkg/prompter"
+	"github.com/ZachiNachshon/anchor/pkg/extractor"
+	"github.com/ZachiNachshon/anchor/pkg/locator"
+	"github.com/ZachiNachshon/anchor/pkg/parser"
+	"github.com/ZachiNachshon/anchor/pkg/prompter"
 )
 
 type orchestratorImpl struct {
 	Orchestrator
-	prompter  prompter2.Prompter
-	locator   locator2.Locator
-	extractor extractor2.Extractor
-	parser    parser2.Parser
+	prompter  prompter.Prompter
+	locator   locator.Locator
+	extractor extractor.Extractor
+	parser    parser.Parser
 }
 
 func New(
-	pr prompter2.Prompter,
-	l locator2.Locator,
-	e extractor2.Extractor,
-	pa parser2.Parser) Orchestrator {
+	pr prompter.Prompter,
+	l locator.Locator,
+	e extractor.Extractor,
+	pa parser.Parser) Orchestrator {
 
 	return &orchestratorImpl{
 		prompter:  pr,
@@ -37,9 +37,9 @@ func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptI
 		return nil, err
 	} else {
 		logger.Debugf("Selected application. app: %v", app)
-		if app.Name == prompter2.CancelButtonName {
+		if app.Name == prompter.CancelButtonName {
 			return &models.PromptItem{
-				Id: prompter2.CancelButtonName,
+				Id: prompter.CancelButtonName,
 			}, nil
 		} else {
 			path := app.InstructionsPath
@@ -49,7 +49,7 @@ func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptI
 				if item, err := o.prompter.PromptInstructions(instructions); err != nil {
 					return nil, err
 				} else {
-					if item.Id == prompter2.BackButtonName {
+					if item.Id == prompter.BackButtonName {
 						return o.OrchestrateAppInstructionSelection()
 					} else {
 						logger.Debugf("Selected instruction to run. id: %v", item.Id)

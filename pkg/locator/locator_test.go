@@ -30,9 +30,9 @@ var FailOnInvalidAnchorfilesLocalPath = func(t *testing.T) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
 				// Given I create a new locator with invalid anchorfiles path
-				l := New("/invalid/anchorfiles/path")
+				l := New()
 				// When I scan the anchorfiles repo
-				err := l.Scan()
+				err := l.Scan("/invalid/anchorfiles/path")
 				// Then I expect to fail on invalid anchorfiles path
 				assert.NotNil(t, err, "expected to fail on invalid anchorfiles local path")
 				assert.Contains(t, err.Error(), "invalid anchorfile local path")
@@ -49,9 +49,9 @@ var ScanAndFindExpectedApplications = func(t *testing.T) {
 				// Given I prepare an anchorfiles test repo
 				harness.HarnessAnchorfilesTestRepo(ctx)
 				// And I create a new locator
-				l := New(ctx.AnchorFilesPath())
+				l := New()
 				// When I scan the anchorfiles repo
-				assert.Nil(t, l.Scan(), "expect locator to scan successfully")
+				assert.Nil(t, l.Scan(ctx.AnchorFilesPath()), "expect locator to scan successfully")
 				// Then I expect to find 2 applications
 				applications := l.Applications()
 				assert.Equal(t, 2, len(applications), "expected 2 applications but found %v", len(applications))

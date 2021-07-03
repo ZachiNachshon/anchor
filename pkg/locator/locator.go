@@ -52,30 +52,30 @@ func newAppContent(name string, path string) *models.AppContent {
 	}
 }
 
-func New(anchorFilesLocalPath string) Locator {
+func New() Locator {
 	return &locatorImpl{
-		anchorfilesLocalPath: anchorFilesLocalPath,
-		appDirs:              make(map[string]*models.AppContent),
+		appDirs: make(map[string]*models.AppContent),
 	}
 }
 
-func (l *locatorImpl) Scan() error {
+func (l *locatorImpl) Scan(anchorfilesLocalPath string) error {
 	if l.isInitialized() {
+		logger.Warning("scan can be called only once, using previous scan result")
 		return nil
 	}
 
-	if !ioutils.IsValidPath(l.anchorfilesLocalPath) {
-		return fmt.Errorf("invalid anchorfile local path. path: %s", l.anchorfilesLocalPath)
+	if !ioutils.IsValidPath(anchorfilesLocalPath) {
+		return fmt.Errorf("invalid anchorfile local path. path: %s", anchorfilesLocalPath)
 	}
 
-	err := filepath.Walk(l.anchorfilesLocalPath,
+	err := filepath.Walk(anchorfilesLocalPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
 			// Ignore root directory
-			if info.IsDir() && path == l.anchorfilesLocalPath {
+			if info.IsDir() && path == anchorfilesLocalPath {
 				return nil
 			}
 
@@ -86,7 +86,7 @@ func (l *locatorImpl) Scan() error {
 
 			// Ignore all files under root folder
 			dir := filepath.Dir(path)
-			if !info.IsDir() && dir == l.anchorfilesLocalPath {
+			if !info.IsDir() && dir == anchorfilesLocalPath {
 				return nil
 			}
 
