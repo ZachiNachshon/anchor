@@ -54,6 +54,10 @@ func Test_ResolverShould(t *testing.T) {
 			Func: PerformInitialFreshRemoteRepositoryCloneIntoClonePathSuccessfully,
 		},
 		{
+			Name: "clone repository and fail on checkout",
+			Func: CloneRepostitoryAndFailOnCheckout,
+		},
+		{
 			Name: "reset to revision on existing cloned repo successfully",
 			Func: ResetToRevisionOnExistingClonedRepoSuccessfully,
 		},
@@ -302,6 +306,11 @@ config:
 					cloneRepoIfMissingCallCount++
 					return nil
 				}
+				checkoutCallCount := 0
+				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
+					checkoutCallCount++
+					return nil
+				}
 				rslvr := &RemoteResolver{
 					RemoteConfig:  cfg.Config.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
@@ -310,7 +319,54 @@ config:
 				assert.Nil(t, err, "expected to succeed on remote resolver")
 				assert.Equal(t, 1, verifyConfigCallCount)
 				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
+				assert.Equal(t, 1, checkoutCallCount)
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
+			})
+		})
+	})
+}
+
+var CloneRepostitoryAndFailOnCheckout = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			yamlConfigText := fmt.Sprintf(`
+config:
+ repository:
+   remote:
+     url: https://github.com/ZachiNachshon/dummy-repo.git
+     branch: some-branch
+     clonePath: %s
+`, ctx.AnchorFilesPath())
+
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				verifyConfigCallCount := 0
+				fakeRemoteActions := CreateFakeRemoteActions()
+				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
+					verifyConfigCallCount++
+					return nil
+				}
+				cloneRepoIfMissingCallCount := 0
+				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
+					cloneRepoIfMissingCallCount++
+					return nil
+				}
+				checkoutCallCount := 0
+				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
+					checkoutCallCount++
+					return fmt.Errorf("failed to checkout branch")
+				}
+				rslvr := &RemoteResolver{
+					RemoteConfig:  cfg.Config.Repository.Remote,
+					RemoteActions: fakeRemoteActions,
+				}
+				repoPath, err := rslvr.ResolveRepository(ctx)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "failed to checkout branch", err.Error())
+				assert.Equal(t, 1, verifyConfigCallCount)
+				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
+				assert.Equal(t, 1, checkoutCallCount)
+				assert.Equal(t, "", repoPath, "expected not to have a repository path")
 			})
 		})
 	})
@@ -343,11 +399,15 @@ config:
 					return nil
 				}
 				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
 					tryResetToRevisionCallCount++
 					return nil
 				}
-
+				checkoutCallCount := 0
+				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
+					checkoutCallCount++
+					return nil
+				}
 				rslvr := &RemoteResolver{
 					RemoteConfig:  cfg.Config.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
@@ -357,6 +417,7 @@ config:
 				assert.Equal(t, 1, verifyConfigCallCount)
 				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
 				assert.Equal(t, 1, tryResetToRevisionCallCount)
+				assert.Equal(t, 1, checkoutCallCount)
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})
 		})
@@ -388,7 +449,7 @@ config:
 					return nil
 				}
 				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
 					tryResetToRevisionCallCount++
 					return fmt.Errorf("failed resetting to revision")
 				}
@@ -436,13 +497,18 @@ config:
 					return nil
 				}
 				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
 					tryResetToRevisionCallCount++
 					return nil
 				}
 				tryFetchHeadRevisionCallCount := 0
-				fakeRemoteActions.TryFetchHeadRevisionMock = func(clonePath string, url string, branch string) error {
+				fakeRemoteActions.TryFetchHeadRevisionMock = func(clonePath string, branch string) error {
 					tryFetchHeadRevisionCallCount++
+					return nil
+				}
+				checkoutCallCount := 0
+				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
+					checkoutCallCount++
 					return nil
 				}
 				rslvr := &RemoteResolver{
@@ -454,6 +520,7 @@ config:
 				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
 				assert.Equal(t, 0, tryResetToRevisionCallCount)
 				assert.Equal(t, 1, tryFetchHeadRevisionCallCount)
+				assert.Equal(t, 1, checkoutCallCount)
 				assert.Nil(t, err, "expected to succeed on remote resolver")
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})
@@ -486,12 +553,12 @@ config:
 					return nil
 				}
 				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, url string, branch string, revision string) error {
+				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
 					tryResetToRevisionCallCount++
 					return nil
 				}
 				tryFetchHeadRevisionCallCount := 0
-				fakeRemoteActions.TryFetchHeadRevisionMock = func(clonePath string, url string, branch string) error {
+				fakeRemoteActions.TryFetchHeadRevisionMock = func(clonePath string, branch string) error {
 					tryFetchHeadRevisionCallCount++
 					return fmt.Errorf("failed to auto update")
 				}

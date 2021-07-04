@@ -31,6 +31,10 @@ func Test_GitShould(t *testing.T) {
 			Func: ResetSuccessfully,
 		},
 		{
+			Name: "checkout successfully",
+			Func: CheckoutSuccessfully,
+		},
+		{
 			Name: "clean successfully",
 			Func: CleanSuccessfully,
 		},
@@ -98,16 +102,15 @@ var FetchShallowSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			clonePath := "/some/path"
-			url := "git@some-repo"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
 			fakeShell.ExecuteMock = func(script string) error {
-				expected := fmt.Sprintf(`git -C %s fetch --shallow-since="4 weeks ago" --force origin refs/heads/%s:refs/remotes/origin/%s`, clonePath, url, branch)
+				expected := fmt.Sprintf(`git -C %s fetch --shallow-since="4 weeks ago" --force origin refs/heads/%s:refs/remotes/origin/%s`, clonePath, branch, branch)
 				assert.Equal(t, expected, script)
 				return nil
 			}
 			git := New(fakeShell)
-			_ = git.FetchShallow(clonePath, url, branch)
+			_ = git.FetchShallow(clonePath, branch)
 		})
 	})
 }
@@ -125,6 +128,23 @@ var ResetSuccessfully = func(t *testing.T) {
 			}
 			git := New(fakeShell)
 			_ = git.Reset(clonePath, revision)
+		})
+	})
+}
+
+var CheckoutSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			clonePath := "/some/path"
+			branch := "my-branch"
+			fakeShell := shell.CreateFakeShell()
+			fakeShell.ExecuteMock = func(script string) error {
+				expected := fmt.Sprintf(`git -C %s checkout %s`, clonePath, branch)
+				assert.Equal(t, expected, script)
+				return nil
+			}
+			git := New(fakeShell)
+			_ = git.Checkout(clonePath, branch)
 		})
 	})
 }

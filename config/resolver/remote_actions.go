@@ -54,13 +54,12 @@ func (ra *remoteActionsImpl) CloneRepositoryIfMissing(
 
 func (ra *remoteActionsImpl) TryResetToRevision(
 	clonePath string,
-	url string,
 	branch string,
 	revision string) error {
 
 	if err := ra.git.Reset(clonePath, revision); err != nil {
 		// TODO: identify a "revision does not exists" error code before fetching again
-		if err = ra.git.FetchShallow(clonePath, url, branch); err != nil {
+		if err = ra.git.FetchShallow(clonePath, branch); err != nil {
 			return err
 		} else {
 			if err = ra.git.Reset(clonePath, revision); err != nil {
@@ -73,7 +72,6 @@ func (ra *remoteActionsImpl) TryResetToRevision(
 
 func (ra *remoteActionsImpl) TryFetchHeadRevision(
 	clonePath string,
-	url string,
 	branch string) error {
 
 	if headRevision, err := ra.git.GetHeadCommitHash(branch); err != nil {
@@ -81,11 +79,17 @@ func (ra *remoteActionsImpl) TryFetchHeadRevision(
 	} else {
 		if err = ra.TryResetToRevision(
 			clonePath,
-			url,
 			branch,
 			headRevision); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (ra *remoteActionsImpl) TryCheckoutToBranch(
+	clonePath string,
+	branch string) error {
+
+	return ra.git.Checkout(clonePath, branch)
 }

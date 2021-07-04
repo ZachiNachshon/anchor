@@ -23,13 +23,15 @@ type RemoteResolver struct {
 type RemoteResolverActions interface {
 	TryResetToRevision(
 		clonePath string,
-		url string,
 		branch string,
 		revision string) error
 
 	TryFetchHeadRevision(
 		clonePath string,
-		url string,
+		branch string) error
+
+	TryCheckoutToBranch(
+		clonePath string,
 		branch string) error
 
 	CloneRepositoryIfMissing(

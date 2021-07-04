@@ -17,13 +17,15 @@ type fakeRemoteActionsImpl struct {
 
 	TryResetToRevisionMock func(
 		clonePath string,
-		url string,
 		branch string,
 		revision string) error
 
 	TryFetchHeadRevisionMock func(
 		clonePath string,
-		url string,
+		branch string) error
+
+	TryCheckoutToBranchMock func(
+		clonePath string,
 		branch string) error
 
 	CloneRepositoryIfMissingMock func(
@@ -40,19 +42,24 @@ func (ra *fakeRemoteActionsImpl) VerifyRemoteRepositoryConfig(remoteCfg *config.
 
 func (ra *fakeRemoteActionsImpl) TryResetToRevision(
 	clonePath string,
-	url string,
 	branch string,
 	revision string) error {
 
-	return ra.TryResetToRevisionMock(clonePath, url, branch, revision)
+	return ra.TryResetToRevisionMock(clonePath, branch, revision)
 }
 
 func (ra *fakeRemoteActionsImpl) TryFetchHeadRevision(
 	clonePath string,
-	url string,
 	branch string) error {
 
-	return ra.TryFetchHeadRevisionMock(clonePath, url, branch)
+	return ra.TryFetchHeadRevisionMock(clonePath, branch)
+}
+
+func (ra *fakeRemoteActionsImpl) TryCheckoutToBranch(
+	clonePath string,
+	branch string) error {
+
+	return ra.TryCheckoutToBranchMock(clonePath, branch)
 }
 
 func (ra *fakeRemoteActionsImpl) CloneRepositoryIfMissing(

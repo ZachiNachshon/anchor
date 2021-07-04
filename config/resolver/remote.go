@@ -25,7 +25,6 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 	if len(rr.RemoteConfig.Revision) > 0 {
 		if err := rr.RemoteActions.TryResetToRevision(
 			clonePath,
-			url,
 			branch,
 			rr.RemoteConfig.Revision); err != nil {
 			return "", err
@@ -40,9 +39,14 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 		}
 
 	} else if rr.RemoteConfig.AutoUpdate {
-		if err := rr.RemoteActions.TryFetchHeadRevision(clonePath, url, branch); err != nil {
+		if err := rr.RemoteActions.TryFetchHeadRevision(clonePath, branch); err != nil {
 			return "", err
 		}
+	}
+
+	err := rr.RemoteActions.TryCheckoutToBranch(clonePath, branch)
+	if err != nil {
+		return "", err
 	}
 
 	return clonePath, nil

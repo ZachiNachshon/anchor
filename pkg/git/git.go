@@ -23,7 +23,7 @@ func (g *gitImpl) Clone(url string, branch string, clonePath string) error {
 		return err
 	}
 
-	err = g.FetchShallow(clonePath, url, branch)
+	err = g.FetchShallow(clonePath, branch)
 	if err != nil {
 		return err
 	}
@@ -47,15 +47,21 @@ func (g *gitImpl) AddOrigin(path string, url string) error {
 	return g.shell.Execute(script)
 }
 
-func (g *gitImpl) FetchShallow(path string, url string, branch string) error {
+func (g *gitImpl) FetchShallow(path string, branch string) error {
 	logger.Infof("Git fetching branch with shallow refs. branch: %s, since: 4 weeks ago", branch)
-	script := fmt.Sprintf(`git -C %s fetch --shallow-since="4 weeks ago" --force origin refs/heads/%s:refs/remotes/origin/%s`, path, url, branch)
+	script := fmt.Sprintf(`git -C %s fetch --shallow-since="4 weeks ago" --force origin refs/heads/%s:refs/remotes/origin/%s`, path, branch, branch)
 	return g.shell.Execute(script)
 }
 
 func (g *gitImpl) Reset(path string, revision string) error {
 	logger.Infof("Git reset to a specific revision. commit: %s", revision)
 	script := fmt.Sprintf(`git -C %s reset --hard "%s"`, path, revision)
+	return g.shell.Execute(script)
+}
+
+func (g *gitImpl) Checkout(path string, branch string) error {
+	logger.Infof("Git checkout. branch: %s", branch)
+	script := fmt.Sprintf(`git -C %s checkout %s`, path, branch)
 	return g.shell.Execute(script)
 }
 

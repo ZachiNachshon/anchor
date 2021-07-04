@@ -70,6 +70,14 @@ func Test_ResolverActionsShould(t *testing.T) {
 			Name: "fetch latest HEAD revision successfully",
 			Func: FetchLatestHeadRevisionSuccessfully,
 		},
+		{
+			Name: "fail to checkout a branch",
+			Func: FailToCheckoutBranch,
+		},
+		{
+			Name: "checkout to branch successfully",
+			Func: CheckoutToBranchSuccessfully,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -257,7 +265,6 @@ config:
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
 					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch,
 					cfg.Config.Repository.Remote.Revision)
 
@@ -288,14 +295,13 @@ config:
 					return fmt.Errorf("fail to reset to revision 1st try")
 				}
 				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, branch string) error {
 					gitFetchCallCount++
 					return fmt.Errorf("fail to fetch")
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
 					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch,
 					cfg.Config.Repository.Remote.Revision)
 
@@ -331,14 +337,13 @@ config:
 					return nil
 				}
 				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, branch string) error {
 					gitFetchCallCount++
 					return nil
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
 					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch,
 					cfg.Config.Repository.Remote.Revision)
 
@@ -373,14 +378,13 @@ config:
 					return fmt.Errorf("fail to reset to revision 2nd try")
 				}
 				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, branch string) error {
 					gitFetchCallCount++
 					return nil
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
 					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch,
 					cfg.Config.Repository.Remote.Revision)
 
@@ -414,7 +418,6 @@ config:
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryFetchHeadRevision(
 					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch)
 
 				assert.NotNil(t, err, "expected to fail")
@@ -451,14 +454,13 @@ config:
 				}
 				// Used for inner call to actions.TryResetToRevision
 				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, branch string) error {
 					gitFetchCallCount++
 					return fmt.Errorf("failed to fetch")
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryFetchHeadRevision(
 					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch)
 
 				assert.NotNil(t, err, "expected to fail")
@@ -498,12 +500,72 @@ config:
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryFetchHeadRevision(
 					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch)
 
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 1, getHeadRevCallCount)
 				assert.Equal(t, 1, gitResetCallCount)
+			})
+		})
+	})
+}
+
+var FailToCheckoutBranch = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+ repository:
+   remote:
+     url: https://github.com/ZachiNachshon/dummy-repo.git
+     branch: some-branch
+     clonePath: /path/to/clone
+`
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				checkoutCallCount := 0
+				fakeGit := git.CreateFakeGit()
+				fakeGit.CheckoutMock = func(path string, branch string) error {
+					checkoutCallCount++
+					return fmt.Errorf("failed to checkout branch")
+				}
+				actions := NewRemoteActions(fakeGit)
+				err := actions.TryCheckoutToBranch(
+					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Branch)
+
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "failed to checkout branch", err.Error())
+				assert.Equal(t, 1, checkoutCallCount)
+			})
+		})
+	})
+}
+
+var CheckoutToBranchSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+ repository:
+   remote:
+     url: https://github.com/ZachiNachshon/dummy-repo.git
+     branch: some-branch
+     clonePath: /path/to/clone
+`
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				checkoutCallCount := 0
+				fakeGit := git.CreateFakeGit()
+				fakeGit.CheckoutMock = func(path string, branch string) error {
+					checkoutCallCount++
+					return nil
+				}
+				actions := NewRemoteActions(fakeGit)
+				err := actions.TryCheckoutToBranch(
+					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Branch)
+
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 1, checkoutCallCount)
 			})
 		})
 	})
