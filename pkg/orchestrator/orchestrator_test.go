@@ -89,7 +89,7 @@ var PerformBasicPromptFromAppToInstructionSuccessfully = func(t *testing.T) {
 			fakePrompter.PromptAppsMock = func(appsArr []*models.AppContent) (*models.AppContent, error) {
 				return appsArr[1], nil
 			}
-			fakePrompter.PromptInstructionsMock = func(instructions *models.Instructions) (*models.PromptItem, error) {
+			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
 				return instTestData.Items[1], nil
 			}
 			prompter.ToRegistry(registry, fakePrompter)
@@ -141,7 +141,7 @@ var GoBackFromInstructionsToAppsPrompMenuSuccessfully = func(t *testing.T) {
 					return appsArr[0], nil
 				}
 			}
-			fakePrompter.PromptInstructionsMock = func(instructions *models.Instructions) (*models.PromptItem, error) {
+			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
 				return instTestData.Items[0], nil
 			}
 			prompter.ToRegistry(registry, fakePrompter)

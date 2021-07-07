@@ -29,6 +29,7 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 			rr.RemoteConfig.Revision); err != nil {
 			return "", err
 		}
+		logger.Infof("Updated anchorfiles repo to revision. hash: %s", rr.RemoteConfig.Revision)
 
 		if rr.RemoteConfig.AutoUpdate {
 			msg := fmt.Sprintf("Mutually exclusive config values found: autoUpdate / revision. "+
@@ -39,6 +40,7 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 		}
 
 	} else if rr.RemoteConfig.AutoUpdate {
+		logger.Info("Checking latest anchorfiles HEAD revision...")
 		if err := rr.RemoteActions.TryFetchHeadRevision(clonePath, branch); err != nil {
 			return "", err
 		}

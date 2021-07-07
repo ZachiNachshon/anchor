@@ -411,7 +411,7 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getHeadRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.GetHeadCommitHashMock = func(branch string) (string, error) {
+				fakeGit.GetHeadCommitHashMock = func(path string, branch string) (string, error) {
 					getHeadRevCallCount++
 					return "", fmt.Errorf("failed to get latest HEAD rev")
 				}
@@ -442,7 +442,7 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getHeadRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.GetHeadCommitHashMock = func(branch string) (string, error) {
+				fakeGit.GetHeadCommitHashMock = func(path string, branch string) (string, error) {
 					getHeadRevCallCount++
 					return "l33tf4k3c0mm1757r1n6", nil
 				}
@@ -487,7 +487,7 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getHeadRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.GetHeadCommitHashMock = func(branch string) (string, error) {
+				fakeGit.GetHeadCommitHashMock = func(path string, branch string) (string, error) {
 					getHeadRevCallCount++
 					return "l33tf4k3c0mm1757r1n6", nil
 				}

@@ -6,6 +6,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"io/ioutil"
+	"sort"
 )
 
 type extractorImpl struct{}
@@ -24,79 +25,17 @@ func (e *extractorImpl) ExtractPromptItems(instructionsPath string, p parser.Par
 	} else {
 		var text = string(contentByte)
 
-		if items, err := p.ParseInstructions(text); err != nil {
+		if instructions, err := p.ParseInstructions(text); err != nil {
 			return nil, err
 		} else {
-			return items, nil
+			return sortInstructions(instructions), nil
 		}
 	}
 }
 
-//
-//func replaceDockerCommandPlaceholders(content string, path string) string {
-//	// In case the Dockerfile is referenced by a custom path
-//	if strings.Contains(content, "/Dockerfile") {
-//		return content
-//	} else {
-//		content = strings.ReplaceAll(content, "Dockerfile", path)
-//		return content
-//	}
-//}
-//
-//func missingDockerCmdMsg(dirname string) string {
-//	//return fmt.Sprintf("Missing '%v' on %v Dockerfile instructions\n", dirname)
-//	return ""
-//}
-//
-//func (e *extractorImpl) ManifestCmd(identifier string) (string, error) {
-//	if manifestFilePath, err := locator.DirLocator.Manifest(identifier); err != nil {
-//		return "", err
-//	} else {
-//		var result = ""
-//		if contentByte, err := ioutil.ReadFile(manifestFilePath); err != nil {
-//			return "", err
-//		} else {
-//			// Load .env file
-//			//config.LoadEnvVars(identifier)
-//
-//			var manifestContent = string(contentByte)
-//
-//			p := parser.NewHashtagParser()
-//			if err := p.ParseInstructions(manifestContent); err != nil {
-//				return "", errors.Errorf("Failed to parse: %v, err: %v", manifestFilePath, err.Error())
-//			}
-//
-//			//if result = p.Find(string(manifestCommand)); result != "" {
-//			//	result = strings.TrimSuffix(result, "\n")
-//			//}
-//			//
-//			//if len(result) == 0 {
-//			//	return "", errors.Errorf(missingManifestCmdMsg(manifestCommand, identifier))
-//			//}
-//		}
-//		return result, nil
-//	}
-//}
-//
-//func missingManifestCmdMsg(dirname string) string {
-//	//return fmt.Sprintf("Missing '%v' on %v K8s manifest\n", manifestCommand, dirname)
-//	return ""
-//}
-//
-//func (e *extractorImpl) ManifestContent(identifier string) (bool, error) {
-//	if _, err := locator.DirLocator.Manifest(identifier); err != nil {
-//		return false, err
-//	} else {
-//		return false, nil
-//		//if contentByte, err := ioutil.ReadFile(manifestFilePath); err != nil {
-//		//	return false, err
-//		//} else {
-//		//	// Load .env file
-//		//	config.LoadEnvVars(identifier)
-//		//
-//		//	var manifestContent = string(contentByte)
-//		//	stateful := strings.Contains(manifestContent, string(manifestCommand))
-//		//	return stateful, nil
-//		//}
-//	}
-//}
+func sortInstructions(instructions *models.Instructions) *models.Instructions {
+	sort.Slice(instructions.Items, func(i, j int) bool {
+		return instructions.Items[i].Id < instructions.Items[j].Id
+	})
+	return instructions
+}

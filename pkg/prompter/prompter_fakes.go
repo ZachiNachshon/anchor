@@ -9,7 +9,7 @@ var CreateFakePrompter = func() *fakePrompterImpl {
 type fakePrompterImpl struct {
 	Prompter
 	PromptAppsMock         func(appsArr []*models.AppContent) (*models.AppContent, error)
-	PromptInstructionsMock func(instructions *models.Instructions) (*models.PromptItem, error)
+	PromptInstructionsMock func(appName string, instructions *models.Instructions) (*models.PromptItem, error)
 }
 
 func (p *fakePrompterImpl) PromptApps(appsArr []*models.AppContent) (*models.AppContent, error) {
@@ -17,7 +17,7 @@ func (p *fakePrompterImpl) PromptApps(appsArr []*models.AppContent) (*models.App
 	return p.PromptAppsMock(appsArr)
 }
 
-func (p *fakePrompterImpl) PromptInstructions(instructions *models.Instructions) (*models.PromptItem, error) {
+func (p *fakePrompterImpl) PromptInstructions(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
 	appendInstructionCustomOptions(instructions)
-	return p.PromptInstructionsMock(instructions)
+	return p.PromptInstructionsMock(appName, instructions)
 }

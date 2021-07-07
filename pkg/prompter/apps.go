@@ -2,6 +2,7 @@ package prompter
 
 import (
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/manifoldco/promptui"
 	"strings"
 )
@@ -24,15 +25,15 @@ func appendAppsCustomOptions(apps []*models.AppContent) []*models.AppContent {
 }
 
 func setSearchAppPrompt() {
-	promptui.SearchPrompt = "Search App: "
+	promptui.SearchPrompt = colors.Blue + "Search: " + colors.Reset
 }
 
 func prepareAppsTemplate() *promptui.SelectTemplates {
 	return &promptui.SelectTemplates{
-		Label:    "{{ . }}:",
-		Active:   promptui.IconSelect + " {{ .Name | cyan }}",
+		Label:    "{{ . }}",
+		Active:   selectorEmoji + " {{ .Name | cyan }}",
 		Inactive: "  {{ .Name | cyan }}",
-		Selected: promptui.IconSelect + " {{ .Name | red | cyan }}",
+		Selected: selectorEmoji + " {{ .Name | red | cyan }}",
 		Details:  appsPromptTemplateDetails,
 	}
 }
@@ -52,7 +53,7 @@ func prepareAppsSelector(
 	searcher func(input string, index int) bool) promptui.Select {
 
 	return promptui.Select{
-		Label:             "Available Applications",
+		Label:             "",
 		Items:             apps,
 		Templates:         templates,
 		Size:              10,

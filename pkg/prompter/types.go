@@ -8,7 +8,7 @@ import (
 
 type Prompter interface {
 	PromptApps(appsArr []*models.AppContent) (*models.AppContent, error)
-	PromptInstructions(instructions *models.Instructions) (*models.PromptItem, error)
+	PromptInstructions(appName string, instructions *models.Instructions) (*models.PromptItem, error)
 }
 
 const (
@@ -30,19 +30,21 @@ func FromRegistry(reg *registry.InjectionsRegistry) (Prompter, error) {
 	return item.(Prompter), nil
 }
 
-var appsPromptTemplateDetails = `{{ if not (eq .Name "cancel") }}
---------- Information ----------
+var appsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
+{{ "Information:" | blue }}
+
 {{ "Name:" | faint }}	{{ .Name }}
 {{ "Overview:" | faint }}	{{ .DirPath }}
 {{ else }}
 Cancel application selector
-{{ end }}`
+{{ end }}`, CancelButtonName)
 
-var instructionsPromptTemplateDetails = `{{ if not (eq .Id "back") }}
---------- Information ----------
+var instructionsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Id "%s") }}
+{{ "Information:" | blue }}
+
 {{ "Id:" | faint }}	{{ .Id }}
 {{ "Title:" | faint }}	{{ .Title }}
 {{ "File:" | faint }}	{{ .File }}
 {{ else }}
 Go back to previous step
-{{ end }}`
+{{ end }}`, BackButtonName)

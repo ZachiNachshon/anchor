@@ -3,6 +3,7 @@ package resolver
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/config"
+	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/git"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 )
@@ -45,6 +46,7 @@ func (ra *remoteActionsImpl) CloneRepositoryIfMissing(
 	branch string) error {
 
 	if !ioutils.IsValidPath(clonePath) {
+		logger.Infof("Fetching anchorfiles repository for the first time...")
 		if err := ra.git.Clone(url, branch, clonePath); err != nil {
 			return err
 		}
@@ -74,7 +76,7 @@ func (ra *remoteActionsImpl) TryFetchHeadRevision(
 	clonePath string,
 	branch string) error {
 
-	if headRevision, err := ra.git.GetHeadCommitHash(branch); err != nil {
+	if headRevision, err := ra.git.GetHeadCommitHash(clonePath, branch); err != nil {
 		return err
 	} else {
 		if err = ra.TryResetToRevision(

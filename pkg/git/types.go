@@ -10,7 +10,7 @@ type Git interface {
 	Reset(path string, revision string) error
 	Checkout(path string, branch string) error
 	Clean(path string) error
-	GetHeadCommitHash(branch string) (string, error)
+	GetHeadCommitHash(path string, branch string) (string, error)
 }
 
 type gitImpl struct {

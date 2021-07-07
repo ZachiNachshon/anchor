@@ -14,7 +14,7 @@ const (
 	DefaultAuthor                  = "Zachi Nachshon <zachi.nachshon@gmail.com>"
 	DefaultLicense                 = "Apache"
 	DefaultRemoteBranch            = "master"
-	defaultConfigFileName          = "anchorConfig"
+	defaultConfigFileName          = "config"
 	defaultConfigFileType          = "yaml"
 	defaultConfigFolderPathFormat  = "%s/.config/anchor"
 	defaultRepoClonePathFormat     = "%s/.config/anchor/anchorfiles"

@@ -103,6 +103,17 @@ func (s *shellExecutor) Execute(script string) error {
 	return nil
 }
 
+func (s *shellExecutor) ExecuteSilently(script string) error {
+	cmd := exec.Command(string(s.shellType), "-c", script)
+
+	// Execute the command
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *shellExecutor) ExecuteInBackground(script string) error {
 	cmd := exec.Command(string(s.shellType), "-c", script)
 	// Temporary prevent logs verbosity from background process

@@ -1,20 +1,38 @@
 package prompter
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/manifoldco/promptui"
 	"strings"
 )
 
 func preparePromptInstructionsItems(instructions *models.Instructions) promptui.Select {
 	appendInstructionCustomOptions(instructions)
-	instTemplate := prepareInstructionsTemplate()
+	instTemplate := prepareInstructionsTemplate(calculatePadding(instructions))
 	instSearcher := prepareInstructionsSearcher(instructions.Items)
 	return prepareInstructionsSelector(instructions, instTemplate, instSearcher)
 }
 
-func setSearchInstructionsPrompt() {
-	promptui.SearchPrompt = "Search Instruction: "
+func calculatePadding(instructions *models.Instructions) (string, string) {
+	length := findLongestInstructionNameLength(instructions)
+	return createPaddingString(length), createPaddingString(length + 2)
+}
+
+func findLongestInstructionNameLength(instructions *models.Instructions) int {
+	maxNameLen := 0
+	for _, v := range instructions.Items {
+		instNameLen := len(v.Id)
+		if instNameLen > maxNameLen {
+			maxNameLen = instNameLen
+		}
+	}
+	return maxNameLen
+}
+
+func setSearchInstructionsPrompt(appName string) {
+	promptui.SearchPrompt = fmt.Sprintf("%sSearch%s %s%s :%s ", colors.Blue, colors.Green, appName, colors.Blue, colors.Reset)
 }
 
 func appendInstructionCustomOptions(instructions *models.Instructions) {
@@ -27,12 +45,12 @@ func appendInstructionCustomOptions(instructions *models.Instructions) {
 	instructions.Items = instItems
 }
 
-func prepareInstructionsTemplate() *promptui.SelectTemplates {
+func prepareInstructionsTemplate(activeSpacePadding string, inactiveSpacePadding string) *promptui.SelectTemplates {
 	return &promptui.SelectTemplates{
-		Label:    "{{ . }}:",
-		Active:   promptui.IconSelect + ` {{ .Id | cyan }} {{ if not (eq .Id "back") }} ({{ .Title | red }}) {{ end }}`,
-		Inactive: `  {{ .Id | cyan }} {{ if not (eq .Id "back") }} ({{ .Title | red }}) {{ end }}`,
-		Selected: promptui.IconSelect + " {{ .Id | red | cyan }}",
+		Label:    "{{ . }}",
+		Active:   selectorEmoji + ` {{ printf ` + activeSpacePadding + ` .Id | cyan }} {{ if not (eq .Id "back") }} ({{ .Title | green }}) {{ end }}`,
+		Inactive: ` {{ printf ` + inactiveSpacePadding + ` .Id | cyan }} {{ if not (eq .Id "back") }} ({{ .Title | faint }}) {{ end }}`,
+		Selected: selectorEmoji + " {{ .Id | red | cyan }}",
 		Details:  instructionsPromptTemplateDetails,
 	}
 }
@@ -52,7 +70,7 @@ func prepareInstructionsSelector(
 	searcher func(input string, index int) bool) promptui.Select {
 
 	return promptui.Select{
-		Label:             "Available Instructions",
+		Label:             "",
 		Items:             instructions.Items,
 		Templates:         templates,
 		Size:              10,

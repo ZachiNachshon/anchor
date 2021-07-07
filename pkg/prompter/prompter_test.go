@@ -15,7 +15,7 @@ func Test_PrompterShould(t *testing.T) {
 			Func: AddBackOptionToAppsPromptSelector,
 		},
 		{
-			Name: "create a valid apps prompt selector",
+			Name: "create valid apps prompt selector",
 			Func: CreateValidAppsPromptSelector,
 		},
 		{
@@ -39,7 +39,7 @@ var AddBackOptionToAppsPromptSelector = func(t *testing.T) {
 var CreateValidAppsPromptSelector = func(t *testing.T) {
 	appData := stubs.GenerateApplicationTestData()
 	appsSelector := preparePromptAppsItems(appData)
-	assert.EqualValues(t, "Available Applications", appsSelector.Label)
+	assert.EqualValues(t, "", appsSelector.Label)
 	assert.EqualValues(t, "first-application", appsSelector.Items.([]*models.AppContent)[1].Name)
 	assert.EqualValues(t, "second-application", appsSelector.Items.([]*models.AppContent)[2].Name)
 	assert.EqualValues(t, appsSelector.Templates.Details, appsPromptTemplateDetails)
@@ -54,7 +54,7 @@ var AddBackOptionToInstructionsPromptSelector = func(t *testing.T) {
 var CreateValidInstructionsPromptSelector = func(t *testing.T) {
 	instData := stubs.GenerateInstructionsTestData()
 	instSelector := preparePromptInstructionsItems(instData)
-	assert.EqualValues(t, "Available Instructions", instSelector.Label)
+	assert.EqualValues(t, "", instSelector.Label)
 	assert.EqualValues(t, "hello-world", instSelector.Items.([]*models.PromptItem)[1].Id)
 	assert.EqualValues(t, "1st instruction", instSelector.Items.([]*models.PromptItem)[1].Title)
 	assert.EqualValues(t, "/path/to/hello-world", instSelector.Items.([]*models.PromptItem)[1].File)

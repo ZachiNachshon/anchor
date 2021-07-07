@@ -71,7 +71,7 @@ var InitSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			repoName := "my-repo"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				assert.Equal(t, fmt.Sprintf("git init %s", repoName), script)
 				return nil
 			}
@@ -87,7 +87,7 @@ var AddOriginSuccessfully = func(t *testing.T) {
 			clonePath := "/some/path"
 			url := "git@some-repo"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				expected := fmt.Sprintf("git -C %s remote add origin %s", clonePath, url)
 				assert.Equal(t, expected, script)
 				return nil
@@ -104,7 +104,7 @@ var FetchShallowSuccessfully = func(t *testing.T) {
 			clonePath := "/some/path"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				expected := fmt.Sprintf(`git -C %s fetch --shallow-since="4 weeks ago" --force origin refs/heads/%s:refs/remotes/origin/%s`, clonePath, branch, branch)
 				assert.Equal(t, expected, script)
 				return nil
@@ -121,7 +121,7 @@ var ResetSuccessfully = func(t *testing.T) {
 			clonePath := "/some/path"
 			revision := "l33tf4k3c0mm1757r1n6"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				expected := fmt.Sprintf(`git -C %s reset --hard "%s"`, clonePath, revision)
 				assert.Equal(t, expected, script)
 				return nil
@@ -138,7 +138,7 @@ var CheckoutSuccessfully = func(t *testing.T) {
 			clonePath := "/some/path"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				expected := fmt.Sprintf(`git -C %s checkout %s`, clonePath, branch)
 				assert.Equal(t, expected, script)
 				return nil
@@ -154,7 +154,7 @@ var CleanSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			clonePath := "/some/path"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				expected := fmt.Sprintf(`git -C %s clean -xdf`, clonePath)
 				assert.Equal(t, expected, script)
 				return nil
@@ -168,16 +168,17 @@ var CleanSuccessfully = func(t *testing.T) {
 var GetHeadCommitHashSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
+			clonePath := "/some/path"
 			branch := "my-branch"
 			revision := "l33tf4k3c0mm1757r1n6"
 			fakeShell := shell.CreateFakeShell()
 			fakeShell.ExecuteWithOutputMock = func(script string) (string, error) {
-				expected := fmt.Sprintf(`git ls-remote origin -h refs/heads/%s`, branch)
+				expected := fmt.Sprintf(`git -C %s rev-parse origin/%s`, clonePath, branch)
 				assert.Equal(t, expected, script)
 				return revision, nil
 			}
 			git := New(fakeShell)
-			rev, _ := git.GetHeadCommitHash(branch)
+			rev, _ := git.GetHeadCommitHash(clonePath, branch)
 			assert.Equal(t, rev, revision)
 		})
 	})
@@ -190,7 +191,7 @@ var GitCloneFailsOnInit = func(t *testing.T) {
 			url := "git@some-repo"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				if strings.Contains(script, "git init") {
 					return fmt.Errorf("failed to init")
 				}
@@ -211,7 +212,7 @@ var GitCloneFailsOnAddOrigin = func(t *testing.T) {
 			url := "git@some-repo"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				if strings.Contains(script, "git init") {
 					return nil
 				} else if strings.Contains(script, "add origin") {
@@ -234,7 +235,7 @@ var GitCloneFailsOnFetchShallow = func(t *testing.T) {
 			url := "git@some-repo"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				if strings.Contains(script, "git init") {
 					return nil
 				} else if strings.Contains(script, "add origin") {
@@ -259,7 +260,7 @@ var GitCloneFailsOnClean = func(t *testing.T) {
 			url := "git@some-repo"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				if strings.Contains(script, "git init") {
 					return nil
 				} else if strings.Contains(script, "add origin") {
@@ -286,7 +287,7 @@ var CloneSuccessfully = func(t *testing.T) {
 			url := "git@some-repo"
 			branch := "my-branch"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteMock = func(script string) error {
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				return nil
 			}
 			git := New(fakeShell)

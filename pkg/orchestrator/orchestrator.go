@@ -44,9 +44,10 @@ func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptI
 		} else {
 			path := app.InstructionsPath
 			if instructions, err := o.extractor.ExtractPromptItems(path, o.parser); err != nil {
-				return nil, err
+				logger.Warningf("Missing instructions file. path: %s", path)
+				return o.OrchestrateAppInstructionSelection()
 			} else {
-				if item, err := o.prompter.PromptInstructions(instructions); err != nil {
+				if item, err := o.prompter.PromptInstructions(app.Name, instructions); err != nil {
 					return nil, err
 				} else {
 					if item.Id == prompter.BackButtonName {

@@ -13,7 +13,7 @@ type fakeGitImpl struct {
 	ResetMock             func(path string, revision string) error
 	CheckoutMock          func(path string, branch string) error
 	CleanMock             func(path string) error
-	GetHeadCommitHashMock func(branch string) (string, error)
+	GetHeadCommitHashMock func(path string, branch string) (string, error)
 }
 
 func (g *fakeGitImpl) Clone(url string, branch string, clonePath string) error {
@@ -44,6 +44,6 @@ func (g *fakeGitImpl) Clean(path string) error {
 	return g.CleanMock(path)
 }
 
-func (g *fakeGitImpl) GetHeadCommitHash(branch string) (string, error) {
-	return g.GetHeadCommitHashMock(branch)
+func (g *fakeGitImpl) GetHeadCommitHash(path string, branch string) (string, error) {
+	return g.GetHeadCommitHashMock(path, branch)
 }

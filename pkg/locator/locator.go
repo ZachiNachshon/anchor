@@ -8,6 +8,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -42,6 +43,7 @@ type locatorImpl struct {
 	initialized          atomics.AtomicBool
 	anchorfilesLocalPath string
 	appDirs              map[string]*models.AppContent
+	longestAppNameLength int
 }
 
 func newAppContent(name string, path string) *models.AppContent {
@@ -124,7 +126,7 @@ func (l *locatorImpl) Applications() []*models.AppContent {
 	for _, v := range l.appDirs {
 		res = append(res, v)
 	}
-	return res
+	return sortApplications(res)
 }
 
 func (l *locatorImpl) ApplicationsAsMap() map[string]*models.AppContent {
@@ -146,11 +148,19 @@ func (l *locatorImpl) markInitialized() {
 	l.initialized.Set(true)
 }
 
+// Longest application name is Used for prompter left padding
+func setLongestApplicationName(l *locatorImpl, name string) {
+	if l.longestAppNameLength < len(name) {
+		l.longestAppNameLength = len(name)
+	}
+}
+
 func tryResolveApplication(l *locatorImpl, path string, name string) bool {
 	if isApp := isApplication(path); isApp {
 		logger.Debugf("locate application. Name: %s", name)
 		appContent := newAppContent(name, path)
 		l.appDirs[name] = appContent
+		setLongestApplicationName(l, name)
 		return true
 	}
 	return false
@@ -174,6 +184,13 @@ func hasAnchorIgnoreIdentifier(path string) (string, bool) {
 		return "", false
 	}
 	return anchorIgnorePath, true
+}
+
+func sortApplications(apps []*models.AppContent) []*models.AppContent {
+	sort.Slice(apps, func(i, j int) bool {
+		return apps[i].Name < apps[j].Name
+	})
+	return apps
 }
 
 //func (l *locator) Print() {

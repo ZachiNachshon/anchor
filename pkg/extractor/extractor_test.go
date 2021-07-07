@@ -5,7 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
-	parser2 "github.com/ZachiNachshon/anchor/pkg/parser"
+	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -41,14 +41,15 @@ var ExtractPromptItemsFromInstructions = func(t *testing.T) {
 				// And I create a new extractor
 				ext := New()
 				// When I extract prompt items
-				prompItems, err := ext.ExtractPromptItems(path, parser2.New())
+				prompItems, err := ext.ExtractPromptItems(path, parser.New())
 				// Then I expect to extract 3 items successfully
 				assert.Nil(t, err, "expected prompt item extraction to succeed")
 				assert.Equal(t, 3, len(prompItems.Items), "expected 3 instructions but found %v", len(prompItems.Items))
 				// And their names should match the items from the first-app application
-				assert.Equal(t, prompItems.Items[0].Id, "hello-world")
+				// TODO: Rename ids to alphanumeric characters to test ordering
+				assert.Equal(t, prompItems.Items[0].Id, "global-hello-world")
 				assert.Equal(t, prompItems.Items[1].Id, "goodbye-world")
-				assert.Equal(t, prompItems.Items[2].Id, "global-hello-world")
+				assert.Equal(t, prompItems.Items[2].Id, "hello-world")
 			})
 		})
 	})
