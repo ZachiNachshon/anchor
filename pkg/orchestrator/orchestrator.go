@@ -43,7 +43,7 @@ func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptI
 			}, nil
 		} else {
 			path := app.InstructionsPath
-			if instructions, err := o.extractor.ExtractPromptItems(path, o.parser); err != nil {
+			if instructions, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
 				logger.Warningf("Missing instructions file. path: %s", path)
 				return o.OrchestrateAppInstructionSelection()
 			} else {

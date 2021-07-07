@@ -15,7 +15,7 @@ func New() Extractor {
 	return &extractorImpl{}
 }
 
-func (e *extractorImpl) ExtractPromptItems(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
 	if !ioutils.IsValidPath(instructionsPath) {
 		return nil, fmt.Errorf("invalid instructions path. path: %s", instructionsPath)
 	}

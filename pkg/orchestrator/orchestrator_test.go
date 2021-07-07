@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
@@ -29,6 +30,18 @@ func Test_OrchestratorShould(t *testing.T) {
 			Name: "go back from instructions to apps prompt menu successfully",
 			Func: GoBackFromInstructionsToAppsPrompMenuSuccessfully,
 		},
+		{
+			Name: "fail to prompt for application selection",
+			Func: FailToPromptForApplicationSelection,
+		},
+		{
+			Name: "fail to extract instructions and prompt applications selection again",
+			Func: FailToExtractInstructionAndPromptAppSelectionAgain,
+		},
+		{
+			Name: "fail to prompt for instruction selection",
+			Func: FailToPromptForInstructionSelection,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -36,36 +49,29 @@ func Test_OrchestratorShould(t *testing.T) {
 var ExitAppsPromptMenuOnCancelButton = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			registry := ctx.Registry()
-
-			// Given I create a locator to return test data
 			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
+			locateAppsCallCount := 0
 			fakeLocator.ApplicationsMock = func() []*models.AppContent {
+				locateAppsCallCount++
 				return stubs.GenerateApplicationTestData()
 			}
-			locator.ToRegistry(registry, fakeLocator)
 
-			// And I create an apps prompter
 			fakePrompter := prompter.CreateFakePrompter()
+			appsPromptCallCount := 0
 			fakePrompter.PromptAppsMock = func(appsArr []*models.AppContent) (*models.AppContent, error) {
-				return appsArr[0], nil
+				appsPromptCallCount++
+				return prompter.GetAppByName(appsArr, prompter.CancelButtonName), nil
 			}
-			prompter.ToRegistry(registry, fakePrompter)
 
-			// And I create a dummy extractor
-			fakeExtractor := extractor.CreateFakeExtractor()
-			extractor.ToRegistry(registry, fakeExtractor)
+			orchestrator := New(fakePrompter,
+				fakeLocator,
+				extractor.CreateFakeExtractor(),
+				parser.CreateFakeParser())
 
-			// And I create a dummy parser
-			fakeParser := parser.CreateFakeParser()
-			parser.ToRegistry(registry, fakeParser)
-
-			// When I create a new orchestrator
-			orchestrator := New(fakePrompter, fakeLocator, fakeExtractor, fakeParser)
 			item, err := orchestrator.OrchestrateAppInstructionSelection()
-
-			// Then I expect the result item to represent a cancel selection
 			assert.Nil(t, err, "expected orchestrator to exit successfully")
+			assert.Equal(t, 1, locateAppsCallCount)
+			assert.Equal(t, 1, appsPromptCallCount)
 			assert.EqualValues(t, prompter.CancelButtonName, item.Id)
 		})
 	})
@@ -74,44 +80,47 @@ var ExitAppsPromptMenuOnCancelButton = func(t *testing.T) {
 var PerformBasicPromptFromAppToInstructionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			registry := ctx.Registry()
 			instTestData := stubs.GenerateInstructionsTestData()
 
-			// Given I create a locator to return test data
 			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
+			locateAppsCallCount := 0
 			fakeLocator.ApplicationsMock = func() []*models.AppContent {
+				locateAppsCallCount++
 				return stubs.GenerateApplicationTestData()
 			}
-			locator.ToRegistry(registry, fakeLocator)
 
-			// And I create an apps prompter that selects the 1st test app and 1st test instruction
 			fakePrompter := prompter.CreateFakePrompter()
+			appsPromptCallCount := 0
 			fakePrompter.PromptAppsMock = func(appsArr []*models.AppContent) (*models.AppContent, error) {
-				return appsArr[1], nil
+				appsPromptCallCount++
+				return prompter.GetAppByName(appsArr, stubs.App1Name), nil
 			}
-			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
-				return instTestData.Items[1], nil
-			}
-			prompter.ToRegistry(registry, fakePrompter)
 
-			// And I create a dummy extractor
+			instructionsPromptCallCount := 0
+			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
+				instructionsPromptCallCount++
+				return prompter.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id), nil
+			}
+
 			fakeExtractor := extractor.CreateFakeExtractor()
-			fakeExtractor.ExtractPromptItemsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+			extractorCallCount := 0
+			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+				extractorCallCount++
 				return instTestData, nil
 			}
-			extractor.ToRegistry(registry, fakeExtractor)
 
-			// And I create a dummy parser
-			fakeParser := parser.CreateFakeParser()
-			parser.ToRegistry(registry, fakeParser)
+			orchestrator := New(fakePrompter,
+				fakeLocator,
+				fakeExtractor,
+				parser.CreateFakeParser())
 
-			// When I create a new orchestrator
-			orchestrator := New(fakePrompter, fakeLocator, fakeExtractor, fakeParser)
 			item, err := orchestrator.OrchestrateAppInstructionSelection()
-
-			// Then I expect the result item to represent a mocked selection
 			assert.Nil(t, err, "expected orchestrator to exit successfully")
-			assert.EqualValues(t, item, instTestData.Items[1])
+			assert.Equal(t, 1, locateAppsCallCount)
+			assert.Equal(t, 1, appsPromptCallCount)
+			assert.Equal(t, 1, instructionsPromptCallCount)
+			assert.Equal(t, 1, extractorCallCount)
+			assert.EqualValues(t, item, prompter.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id))
 		})
 	})
 }
@@ -119,51 +128,177 @@ var PerformBasicPromptFromAppToInstructionSuccessfully = func(t *testing.T) {
 var GoBackFromInstructionsToAppsPrompMenuSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			registry := ctx.Registry()
 			instTestData := stubs.GenerateInstructionsTestData()
 
-			// Given I create a locator to return test data
 			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
+			locateAppsCallCount := 0
 			fakeLocator.ApplicationsMock = func() []*models.AppContent {
+				locateAppsCallCount++
 				return stubs.GenerateApplicationTestData()
 			}
-			locator.ToRegistry(registry, fakeLocator)
 
-			// And I create an apps prompter that selects the 1st test app and 1st test instruction
 			fakePrompter := prompter.CreateFakePrompter()
-			appsPromptMenuCount := 1
+			appsPromptCallCount := 0
 			fakePrompter.PromptAppsMock = func(appsArr []*models.AppContent) (*models.AppContent, error) {
-				if appsPromptMenuCount == 1 {
-					appsPromptMenuCount++
-					return appsArr[1], nil
-				} else {
-					// The 2nd apps prompt menu should choose cancel option
-					return appsArr[0], nil
+				appsPromptCallCount++
+				if appsPromptCallCount == 1 {
+					return prompter.GetAppByName(appsArr, stubs.App1Name), nil
+				} else if appsPromptCallCount == 2 {
+					return prompter.GetAppByName(appsArr, prompter.CancelButtonName), nil
 				}
+				return nil, fmt.Errorf("bad test flow")
 			}
-			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
-				return instTestData.Items[0], nil
-			}
-			prompter.ToRegistry(registry, fakePrompter)
 
-			// And I create a dummy extractor
+			instructionsPromptCallCount := 0
+			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
+				instructionsPromptCallCount++
+				return prompter.GetInstructionItemById(instTestData, prompter.BackButtonName), nil
+			}
+
 			fakeExtractor := extractor.CreateFakeExtractor()
-			fakeExtractor.ExtractPromptItemsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+			extractorCallCount := 0
+			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+				extractorCallCount++
 				return instTestData, nil
 			}
-			extractor.ToRegistry(registry, fakeExtractor)
 
-			// And I create a dummy parser
-			fakeParser := parser.CreateFakeParser()
-			parser.ToRegistry(registry, fakeParser)
+			orchestrator := New(fakePrompter,
+				fakeLocator,
+				fakeExtractor,
+				parser.CreateFakeParser())
 
-			// When I create a new orchestrator
-			orchestrator := New(fakePrompter, fakeLocator, fakeExtractor, fakeParser)
 			item, err := orchestrator.OrchestrateAppInstructionSelection()
-
-			// Then I expect to go back successfully from instructions to apps prompt menu and select the cancel option
 			assert.Nil(t, err, "expected orchestrator to exit successfully")
+			assert.Equal(t, 2, locateAppsCallCount)
+			assert.Equal(t, 2, appsPromptCallCount)
+			assert.Equal(t, 1, instructionsPromptCallCount)
+			assert.Equal(t, 1, extractorCallCount)
 			assert.EqualValues(t, item.Id, prompter.CancelButtonName)
+		})
+	})
+}
+
+var FailToPromptForApplicationSelection = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
+			locateAppsCallCount := 0
+			fakeLocator.ApplicationsMock = func() []*models.AppContent {
+				locateAppsCallCount++
+				return stubs.GenerateApplicationTestData()
+			}
+
+			fakePrompter := prompter.CreateFakePrompter()
+			appsPromptCallCount := 0
+			fakePrompter.PromptAppsMock = func(appsArr []*models.AppContent) (*models.AppContent, error) {
+				appsPromptCallCount++
+				return nil, fmt.Errorf("failed to prompt for app selection")
+			}
+
+			orchestrator := New(fakePrompter,
+				fakeLocator,
+				extractor.CreateFakeExtractor(),
+				parser.CreateFakeParser())
+
+			item, err := orchestrator.OrchestrateAppInstructionSelection()
+			assert.NotNil(t, err, "expected orchestrator to fail")
+			assert.Equal(t, "failed to prompt for app selection", err.Error())
+			assert.Equal(t, 1, locateAppsCallCount)
+			assert.Equal(t, 1, appsPromptCallCount)
+			assert.Nil(t, item, "expected not to have return value")
+		})
+	})
+}
+
+var FailToExtractInstructionAndPromptAppSelectionAgain = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
+			locateAppsCallCount := 0
+			fakeLocator.ApplicationsMock = func() []*models.AppContent {
+				locateAppsCallCount++
+				return stubs.GenerateApplicationTestData()
+			}
+
+			fakePrompter := prompter.CreateFakePrompter()
+			appsPromptCallCount := 0
+			fakePrompter.PromptAppsMock = func(appsArr []*models.AppContent) (*models.AppContent, error) {
+				appsPromptCallCount++
+				if appsPromptCallCount == 1 {
+					return prompter.GetAppByName(appsArr, stubs.App1Name), nil
+				} else if appsPromptCallCount == 2 {
+					return prompter.GetAppByName(appsArr, prompter.CancelButtonName), nil
+				}
+				return nil, fmt.Errorf("bad test flow")
+			}
+
+			fakeExtractor := extractor.CreateFakeExtractor()
+			extractorCallCount := 0
+			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+				extractorCallCount++
+				return nil, fmt.Errorf("failed to extract instructions")
+			}
+
+			orchestrator := New(fakePrompter,
+				fakeLocator,
+				fakeExtractor,
+				parser.CreateFakeParser())
+
+			item, err := orchestrator.OrchestrateAppInstructionSelection()
+			assert.Nil(t, err, "expected orchestrator to exit successfully")
+			assert.Equal(t, 2, locateAppsCallCount)
+			assert.Equal(t, 2, appsPromptCallCount)
+			assert.Equal(t, 1, extractorCallCount)
+			assert.EqualValues(t, item.Id, prompter.CancelButtonName)
+		})
+	})
+}
+
+var FailToPromptForInstructionSelection = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instTestData := stubs.GenerateInstructionsTestData()
+
+			fakeLocator := locator.CreateFakeLocator(ctx.AnchorFilesPath())
+			locateAppsCallCount := 0
+			fakeLocator.ApplicationsMock = func() []*models.AppContent {
+				locateAppsCallCount++
+				return stubs.GenerateApplicationTestData()
+			}
+
+			fakePrompter := prompter.CreateFakePrompter()
+			appsPromptCallCount := 0
+			fakePrompter.PromptAppsMock = func(appsArr []*models.AppContent) (*models.AppContent, error) {
+				appsPromptCallCount++
+				return prompter.GetAppByName(appsArr, stubs.App1Name), nil
+			}
+
+			instructionsPromptCallCount := 0
+			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
+				instructionsPromptCallCount++
+				return nil, fmt.Errorf("failed to prompt for instructions")
+			}
+
+			fakeExtractor := extractor.CreateFakeExtractor()
+			extractorCallCount := 0
+			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+				extractorCallCount++
+				return instTestData, nil
+			}
+
+			orchestrator := New(fakePrompter,
+				fakeLocator,
+				fakeExtractor,
+				parser.CreateFakeParser())
+
+			item, err := orchestrator.OrchestrateAppInstructionSelection()
+			assert.Nil(t, item, "expected not to have return value")
+			assert.NotNil(t, err, "expected orchestrator to fail")
+			assert.Equal(t, "failed to prompt for instructions", err.Error())
+			assert.Equal(t, 1, locateAppsCallCount)
+			assert.Equal(t, 1, appsPromptCallCount)
+			assert.Equal(t, 1, instructionsPromptCallCount)
+			assert.Equal(t, 1, extractorCallCount)
 		})
 	})
 }
