@@ -30,8 +30,8 @@ const (
 	App2InstructionsItem2File  = "/path/to/app-2-b"
 )
 
-func GenerateApplicationTestData() []*models.AppContent {
-	appDirs := make([]*models.AppContent, 2)
+func GenerateApplicationTestData() []*models.ApplicationInfo {
+	appDirs := make([]*models.ApplicationInfo, 2)
 	appDirs[0] = &app1
 	appDirs[1] = &app2
 	return appDirs
@@ -39,43 +39,61 @@ func GenerateApplicationTestData() []*models.AppContent {
 
 func GenerateInstructionsTestData() *models.Instructions {
 	return &models.Instructions{
-		Items:       []*models.PromptItem{&app1InstructionsItem1, &app1InstructionsItem2},
+		Items:       []*models.InstructionItem{&app1InstructionsItem1, &app1InstructionsItem2},
 		AutoRun:     []string{App1InstructionsItem1Id},
 		AutoCleanup: []string{App1InstructionsItem2Id},
 	}
 }
 
-var app1 = models.AppContent{
+func GetAppByName(appsArr []*models.ApplicationInfo, name string) *models.ApplicationInfo {
+	for _, v := range appsArr {
+		if v.Name == name {
+			return v
+		}
+	}
+	return nil
+}
+
+func GetInstructionItemById(instructions *models.Instructions, id string) *models.InstructionItem {
+	for _, v := range instructions.Items {
+		if v.Id == id {
+			return v
+		}
+	}
+	return nil
+}
+
+var app1 = models.ApplicationInfo{
 	Name:             App1Name,
 	DirPath:          App1DirPath,
 	InstructionsPath: App1InstructionsPath,
 }
 
-var app1InstructionsItem1 = models.PromptItem{
+var app1InstructionsItem1 = models.InstructionItem{
 	Id:    App1InstructionsItem1Id,
 	Title: App1InstructionsItem1Title,
 	File:  App1InstructionsItem1File,
 }
 
-var app1InstructionsItem2 = models.PromptItem{
+var app1InstructionsItem2 = models.InstructionItem{
 	Id:    App1InstructionsItem2Id,
 	Title: App1InstructionsItem2Title,
 	File:  App1InstructionsItem2File,
 }
 
-var app2 = models.AppContent{
+var app2 = models.ApplicationInfo{
 	Name:             App2Name,
 	DirPath:          App2DirPath,
 	InstructionsPath: App2InstructionsPath,
 }
 
-var app2InstructionsItem1 = models.PromptItem{
+var app2InstructionsItem1 = models.InstructionItem{
 	Id:    App2InstructionsItem1Id,
 	Title: App2InstructionsItem1Title,
 	File:  App2InstructionsItem1File,
 }
 
-var app2InstructionsItem2 = models.PromptItem{
+var app2InstructionsItem2 = models.InstructionItem{
 	Id:    App2InstructionsItem2Id,
 	Title: App2InstructionsItem2Title,
 	File:  App2InstructionsItem2File,

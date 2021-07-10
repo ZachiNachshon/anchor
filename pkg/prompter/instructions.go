@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+func GenerateRunInstructionMessage(id string, title string) string {
+	return fmt.Sprintf("Run instruction %s'%s'%s %s(%s)%s?",
+		colors.Cyan, id, colors.Reset, colors.Purple, title, colors.Reset)
+}
+
 func preparePromptInstructionsItems(instructions *models.Instructions) promptui.Select {
 	appendInstructionCustomOptions(instructions)
 	instTemplate := prepareInstructionsTemplate(calculatePadding(instructions))
@@ -36,8 +41,8 @@ func setSearchInstructionsPrompt(appName string) {
 }
 
 func appendInstructionCustomOptions(instructions *models.Instructions) {
-	instItems := make([]*models.PromptItem, 0, len(instructions.Items)+1)
-	back := &models.PromptItem{
+	instItems := make([]*models.InstructionItem, 0, len(instructions.Items)+1)
+	back := &models.InstructionItem{
 		Id: BackButtonName,
 	}
 	instItems = append(instItems, back)
@@ -55,7 +60,7 @@ func prepareInstructionsTemplate(activeSpacePadding string, inactiveSpacePadding
 	}
 }
 
-func prepareInstructionsSearcher(items []*models.PromptItem) func(input string, index int) bool {
+func prepareInstructionsSearcher(items []*models.InstructionItem) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := items[index]
 		name := strings.Replace(strings.ToLower(item.Id), " ", "", -1)

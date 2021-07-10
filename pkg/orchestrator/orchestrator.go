@@ -3,14 +3,18 @@ package orchestrator
 import (
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/errors"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
+	"github.com/ZachiNachshon/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
 type orchestratorImpl struct {
 	Orchestrator
+	// TODO: these could get removed and added as a method argument
 	prompter  prompter.Prompter
 	locator   locator.Locator
 	extractor extractor.Extractor
@@ -31,33 +35,47 @@ func New(
 	}
 }
 
-func (o *orchestratorImpl) OrchestrateAppInstructionSelection() (*models.PromptItem, error) {
+func (o *orchestratorImpl) OrchestrateApplicationSelection() (*models.ApplicationInfo, *errors.PromptError) {
 	apps := o.locator.Applications()
 	if app, err := o.prompter.PromptApps(apps); err != nil {
-		return nil, err
+		return nil, errors.New(err)
 	} else {
 		logger.Debugf("Selected application. app: %v", app)
 		if app.Name == prompter.CancelButtonName {
-			return &models.PromptItem{
-				Id: prompter.CancelButtonName,
+			return &models.ApplicationInfo{
+				Name: prompter.CancelButtonName,
 			}, nil
 		} else {
-			path := app.InstructionsPath
-			if instructions, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
-				logger.Warningf("Missing instructions file. path: %s", path)
-				return o.OrchestrateAppInstructionSelection()
-			} else {
-				if item, err := o.prompter.PromptInstructions(app.Name, instructions); err != nil {
-					return nil, err
-				} else {
-					if item.Id == prompter.BackButtonName {
-						return o.OrchestrateAppInstructionSelection()
-					} else {
-						logger.Debugf("Selected instruction to run. id: %v", item.Id)
-						return item, nil
-					}
-				}
-			}
+			return app, nil
 		}
 	}
+}
+
+func (o *orchestratorImpl) OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+	path := app.InstructionsPath
+	if instructions, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
+		logger.Warningf("Missing instructions file. path: %s", path)
+		return nil, errors.NewInstructionMissingError(err)
+	} else {
+		item, err := o.prompter.PromptInstructions(app.Name, instructions)
+		if err != nil {
+			return nil, errors.New(err)
+		}
+		return item, nil
+	}
+}
+
+func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.InstructionItem, in input.UserInput) (bool, *errors.PromptError) {
+	question := prompter.GenerateRunInstructionMessage(item.Id, item.Title)
+	if res, err := in.AskYesNoQuestion(question); err != nil {
+		return false, errors.New(err)
+	} else {
+		return res, nil
+	}
+}
+
+func (o *orchestratorImpl) RunInstruction(item *models.InstructionItem, s shell.Shell) *errors.PromptError {
+	// TODO: log to file script output
+	logger.Infof("Running: %v...", item.Id)
+	return nil
 }

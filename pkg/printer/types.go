@@ -8,7 +8,7 @@ import (
 )
 
 type Printer interface {
-	PrintApplications(apps []*models.AppContent)
+	PrintApplications(apps []*models.ApplicationInfo)
 	PrintConfiguration(ctx common.Context, cfgFilePath string, cfgText string)
 }
 

@@ -22,14 +22,13 @@ func New() Prompter {
 	return &prompterImpl{}
 }
 
-func (p *prompterImpl) PromptApps(apps []*models.AppContent) (*models.AppContent, error) {
+func (p *prompterImpl) PromptApps(apps []*models.ApplicationInfo) (*models.ApplicationInfo, error) {
 	setSearchAppPrompt()
 	appsSelector := preparePromptAppsItems(apps)
-	appsEnhanced := appsSelector.Items.([]*models.AppContent)
+	appsEnhanced := appsSelector.Items.([]*models.ApplicationInfo)
 
 	i, _, err := appsSelector.Run()
 	if err != nil {
-		clearScreen(appsSelector)
 		return nil, err
 	}
 
@@ -37,13 +36,12 @@ func (p *prompterImpl) PromptApps(apps []*models.AppContent) (*models.AppContent
 	return appsEnhanced[i], nil
 }
 
-func (p *prompterImpl) PromptInstructions(appName string, instructions *models.Instructions) (*models.PromptItem, error) {
+func (p *prompterImpl) PromptInstructions(appName string, instructions *models.Instructions) (*models.InstructionItem, error) {
 	setSearchInstructionsPrompt(appName)
 	instSelector := preparePromptInstructionsItems(instructions)
 
 	i, _, err := instSelector.Run()
 	if err != nil {
-		clearScreen(instSelector)
 		return nil, err
 	}
 
@@ -51,7 +49,7 @@ func (p *prompterImpl) PromptInstructions(appName string, instructions *models.I
 	return instructions.Items[i], nil
 }
 
-func clearScreen(selector promptui.Select) {
+func ClearScreen(selector promptui.Select) {
 	buf := screenbuf.New(selector.Stdout)
 	err := buf.Clear()
 	if err != nil {

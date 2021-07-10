@@ -7,8 +7,8 @@ import (
 )
 
 type Prompter interface {
-	PromptApps(appsArr []*models.AppContent) (*models.AppContent, error)
-	PromptInstructions(appName string, instructions *models.Instructions) (*models.PromptItem, error)
+	PromptApps(appsArr []*models.ApplicationInfo) (*models.ApplicationInfo, error)
+	PromptInstructions(appName string, instructions *models.Instructions) (*models.InstructionItem, error)
 }
 
 const (

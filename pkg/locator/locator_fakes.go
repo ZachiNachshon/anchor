@@ -12,7 +12,7 @@ type fakeLocatorImpl struct {
 	Locator
 	localRepoPath    string
 	ScanMock         func(anchorFilesLocalPath string) error
-	ApplicationsMock func() []*models.AppContent
+	ApplicationsMock func() []*models.ApplicationInfo
 }
 
 func (l *fakeLocatorImpl) LocalRepoPath() string {
@@ -23,6 +23,6 @@ func (l *fakeLocatorImpl) Scan(anchorFilesLocalPath string) error {
 	return l.ScanMock(anchorFilesLocalPath)
 }
 
-func (l *fakeLocatorImpl) Applications() []*models.AppContent {
+func (l *fakeLocatorImpl) Applications() []*models.ApplicationInfo {
 	return l.ApplicationsMock()
 }

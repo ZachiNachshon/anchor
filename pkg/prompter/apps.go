@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
-func preparePromptAppsItems(apps []*models.AppContent) promptui.Select {
+func preparePromptAppsItems(apps []*models.ApplicationInfo) promptui.Select {
 	appsEnhanced := appendAppsCustomOptions(apps)
 	appsTemplate := prepareAppsTemplate()
 	appsSearcher := prepareAppsSearcher(appsEnhanced)
 	return prepareAppsSelector(appsEnhanced, appsTemplate, appsSearcher)
 }
 
-func appendAppsCustomOptions(apps []*models.AppContent) []*models.AppContent {
-	appDirs := make([]*models.AppContent, 0, len(apps)+1)
-	cancel := &models.AppContent{
+func appendAppsCustomOptions(apps []*models.ApplicationInfo) []*models.ApplicationInfo {
+	appDirs := make([]*models.ApplicationInfo, 0, len(apps)+1)
+	cancel := &models.ApplicationInfo{
 		Name: CancelButtonName,
 	}
 	appDirs = append(appDirs, cancel)
@@ -38,7 +38,7 @@ func prepareAppsTemplate() *promptui.SelectTemplates {
 	}
 }
 
-func prepareAppsSearcher(apps []*models.AppContent) func(input string, index int) bool {
+func prepareAppsSearcher(apps []*models.ApplicationInfo) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := apps[index]
 		name := strings.Replace(strings.ToLower(item.Name), " ", "", -1)
@@ -48,7 +48,7 @@ func prepareAppsSearcher(apps []*models.AppContent) func(input string, index int
 }
 
 func prepareAppsSelector(
-	apps []*models.AppContent,
+	apps []*models.ApplicationInfo,
 	templates *promptui.SelectTemplates,
 	searcher func(input string, index int) bool) promptui.Select {
 

@@ -8,14 +8,23 @@ import (
 	"strconv"
 )
 
-type YesNoInput struct{}
-
-func NewYesNoInput() *YesNoInput {
-	return &YesNoInput{}
+type userInputImpl struct {
+	UserInput
 }
 
-func (input *YesNoInput) WaitForInput(question string) (bool, error) {
-	fmt.Print("\n  " + question + " (y/n): ")
+func New() UserInput {
+	return &userInputImpl{}
+}
+
+func (input *userInputImpl) PressAnyKeyToContinue() error {
+	fmt.Print("\nPress any key to continue...\n")
+	reader := bufio.NewReader(os.Stdin)
+	_, _, err := reader.ReadRune()
+	return err
+}
+
+func (input *userInputImpl) AskYesNoQuestion(question string) (bool, error) {
+	fmt.Print(question + " (y/n): ")
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -50,21 +59,15 @@ func (input *YesNoInput) WaitForInput(question string) (bool, error) {
 	return selection, nil
 }
 
-type NumericInput struct{}
-
-func NewNumericInput() *NumericInput {
-	return &NumericInput{}
-}
-
-func (input *NumericInput) WaitForInput() (int, error) {
+func (input *userInputImpl) AskForNumber() (int, error) {
 	return input.waitForInputInner(false)
 }
 
-func (input *NumericInput) WaitForInputAllowDefault() (int, error) {
+func (input *userInputImpl) AskForNumberWithDefault() (int, error) {
 	return input.waitForInputInner(true)
 }
 
-func (input *NumericInput) waitForInputInner(allowDefault bool) (int, error) {
+func (input *userInputImpl) waitForInputInner(allowDefault bool) (int, error) {
 	fmt.Print("  Enter a value: ")
 
 	//_ = exec.Command(string(shell.BASH), "-c", "stty sane")

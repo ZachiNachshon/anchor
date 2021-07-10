@@ -42,12 +42,12 @@ type locatorImpl struct {
 	Locator
 	initialized          atomics.AtomicBool
 	anchorfilesLocalPath string
-	appDirs              map[string]*models.AppContent
+	appDirs              map[string]*models.ApplicationInfo
 	longestAppNameLength int
 }
 
-func newAppContent(name string, path string) *models.AppContent {
-	return &models.AppContent{
+func newAppContent(name string, path string) *models.ApplicationInfo {
+	return &models.ApplicationInfo{
 		Name:             name,
 		DirPath:          path,
 		InstructionsPath: fmt.Sprintf("%s/%s", path, instructionsFileName),
@@ -56,7 +56,7 @@ func newAppContent(name string, path string) *models.AppContent {
 
 func New() Locator {
 	return &locatorImpl{
-		appDirs: make(map[string]*models.AppContent),
+		appDirs: make(map[string]*models.ApplicationInfo),
 	}
 }
 
@@ -121,19 +121,19 @@ func (l *locatorImpl) Scan(anchorfilesLocalPath string) error {
 	return nil
 }
 
-func (l *locatorImpl) Applications() []*models.AppContent {
-	res := make([]*models.AppContent, 0, len(l.appDirs))
+func (l *locatorImpl) Applications() []*models.ApplicationInfo {
+	res := make([]*models.ApplicationInfo, 0, len(l.appDirs))
 	for _, v := range l.appDirs {
 		res = append(res, v)
 	}
 	return sortApplications(res)
 }
 
-func (l *locatorImpl) ApplicationsAsMap() map[string]*models.AppContent {
+func (l *locatorImpl) ApplicationsAsMap() map[string]*models.ApplicationInfo {
 	return l.appDirs
 }
 
-func (l *locatorImpl) Application(name string) *models.AppContent {
+func (l *locatorImpl) Application(name string) *models.ApplicationInfo {
 	if value, exists := l.appDirs[name]; exists {
 		return value
 	}
@@ -186,7 +186,7 @@ func hasAnchorIgnoreIdentifier(path string) (string, bool) {
 	return anchorIgnorePath, true
 }
 
-func sortApplications(apps []*models.AppContent) []*models.AppContent {
+func sortApplications(apps []*models.ApplicationInfo) []*models.ApplicationInfo {
 	sort.Slice(apps, func(i, j int) bool {
 		return apps[i].Name < apps[j].Name
 	})

@@ -120,8 +120,7 @@ func (s *shellExecutor) ExecuteInBackground(script string) error {
 	//cmd.Stdout = os.Stdout
 	err := cmd.Start()
 	if err != nil {
-		// TODO: Change to warn once implemented
-		logger.Info(err.Error())
+		logger.Error(err.Error())
 		return err
 	}
 	logger.Infof("Starting background process, PID: %d", cmd.Process.Pid)

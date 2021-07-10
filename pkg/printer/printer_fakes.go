@@ -11,11 +11,11 @@ var CreateFakePrinter = func() *fakePrinter {
 
 type fakePrinter struct {
 	Printer
-	PrintApplicationsMock  func(apps []*models.AppContent)
+	PrintApplicationsMock  func(apps []*models.ApplicationInfo)
 	PrintConfigurationMock func(ctx common.Context, cfgFilePath string, cfgText string)
 }
 
-func (l *fakePrinter) PrintApplications(apps []*models.AppContent) {
+func (l *fakePrinter) PrintApplications(apps []*models.ApplicationInfo) {
 	l.PrintApplicationsMock(apps)
 }
 

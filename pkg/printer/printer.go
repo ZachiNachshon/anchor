@@ -29,7 +29,7 @@ func New() Printer {
 	return &printerImpl{}
 }
 
-func (p *printerImpl) PrintApplications(apps []*models.AppContent) {
+func (p *printerImpl) PrintApplications(apps []*models.ApplicationInfo) {
 	logger.Info("------ Applications ------")
 	for _, app := range apps {
 		logger.Infof("Name: %s", app)

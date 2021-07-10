@@ -8,9 +8,9 @@ import (
 
 type Locator interface {
 	Scan(anchorFilesLocalPath string) error
-	Applications() []*models.AppContent
-	ApplicationsAsMap() map[string]*models.AppContent
-	Application(name string) *models.AppContent
+	Applications() []*models.ApplicationInfo
+	ApplicationsAsMap() map[string]*models.ApplicationInfo
+	Application(name string) *models.ApplicationInfo
 }
 
 const (
