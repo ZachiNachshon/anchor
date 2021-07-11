@@ -72,11 +72,7 @@ var FailToPromptForApplicationSelection = func(t *testing.T) {
 				return nil, fmt.Errorf("failed to prompt for app selection")
 			}
 
-			orchestrator := New(fakePrompter,
-				fakeLocator,
-				extractor.CreateFakeExtractor(),
-				parser.CreateFakeParser())
-
+			orchestrator := New(fakePrompter, fakeLocator, nil, nil, nil, nil)
 			item, err := orchestrator.OrchestrateApplicationSelection()
 			assert.NotNil(t, err, "expected orchestrator to fail")
 			assert.Equal(t, "failed to prompt for app selection", err.GoError().Error())
@@ -104,11 +100,7 @@ var ExitAppsPromptMenuOnCancelButton = func(t *testing.T) {
 				return stubs.GetAppByName(appsArr, prompter.CancelButtonName), nil
 			}
 
-			orchestrator := New(fakePrompter,
-				fakeLocator,
-				extractor.CreateFakeExtractor(),
-				parser.CreateFakeParser())
-
+			orchestrator := New(fakePrompter, fakeLocator, nil, nil, nil, nil)
 			item, err := orchestrator.OrchestrateApplicationSelection()
 			assert.Nil(t, err, "expected orchestrator to exit successfully")
 			assert.Equal(t, 1, locateAppsCallCount)
@@ -138,7 +130,7 @@ var SelectApplicationSuccessfully = func(t *testing.T) {
 				return app1, nil
 			}
 
-			orchestrator := New(fakePrompter, fakeLocator, nil, nil)
+			orchestrator := New(fakePrompter, fakeLocator, nil, nil, nil, nil)
 			item, err := orchestrator.OrchestrateApplicationSelection()
 			assert.Nil(t, err, "expected orchestrator to exit successfully")
 			assert.Equal(t, 1, locateAppsCallCount)
@@ -162,7 +154,7 @@ var FailToExtractInstruction = func(t *testing.T) {
 				return nil, fmt.Errorf("failed to extract instructions")
 			}
 
-			orchestrator := New(nil, nil, fakeExtractor, nil)
+			orchestrator := New(nil, nil, fakeExtractor, nil, nil, nil)
 			instItem, err := orchestrator.OrchestrateInstructionSelection(app1)
 			assert.Nil(t, instItem, "expected instruction to be empty")
 			assert.NotNil(t, err, "expected instruction selection to fail")
@@ -193,7 +185,7 @@ var FailToPromptForInstructions = func(t *testing.T) {
 				return nil, fmt.Errorf("failed to prompt for instructions")
 			}
 
-			orchestrator := New(fakePrompter, nil, fakeExtractor, nil)
+			orchestrator := New(fakePrompter, nil, fakeExtractor, nil, nil, nil)
 			instItem, err := orchestrator.OrchestrateInstructionSelection(app1)
 			assert.Nil(t, instItem, "expected instruction to be empty")
 			assert.NotNil(t, err, "expected instruction selection to fail")
@@ -226,7 +218,7 @@ var SelectInstructionSuccessfully = func(t *testing.T) {
 				return inst1, nil
 			}
 
-			orchestrator := New(fakePrompter, nil, fakeExtractor, nil)
+			orchestrator := New(fakePrompter, nil, fakeExtractor, nil, nil, nil)
 			instItem, err := orchestrator.OrchestrateInstructionSelection(app1)
 			assert.NotNil(t, instItem, "expected instruction not to be empty")
 			assert.Nil(t, err, "expected instruction selection not to fail")
@@ -249,8 +241,8 @@ var FailToAskBeforeRunningInstruction = func(t *testing.T) {
 				return false, fmt.Errorf("failed to ask yes/no question")
 			}
 
-			orchestrator := New(nil, nil, nil, nil)
-			shouldRun, err := orchestrator.AskBeforeRunningInstruction(inst1, fakeUserInput)
+			orchestrator := New(nil, nil, nil, nil, nil, fakeUserInput)
+			shouldRun, err := orchestrator.AskBeforeRunningInstruction(inst1)
 			assert.Equal(t, false, shouldRun)
 			assert.NotNil(t, err, "expected instruction selection to fail")
 			assert.Equal(t, 1, userInputCallCount)
@@ -271,8 +263,8 @@ var AskForUserInputForRunningInstructionSuccessfully = func(t *testing.T) {
 				return true, nil
 			}
 
-			orchestrator := New(nil, nil, nil, nil)
-			shouldRun, err := orchestrator.AskBeforeRunningInstruction(inst1, fakeUserInput)
+			orchestrator := New(nil, nil, nil, nil, nil, fakeUserInput)
+			shouldRun, err := orchestrator.AskBeforeRunningInstruction(inst1)
 			assert.Equal(t, true, shouldRun)
 			assert.Nil(t, err, "expected instruction selection to succeed")
 			assert.Equal(t, 1, userInputCallCount)

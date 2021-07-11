@@ -8,8 +8,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/banner"
-	"github.com/ZachiNachshon/anchor/pkg/utils/input"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/manifoldco/promptui"
 )
 
@@ -18,50 +16,37 @@ func StartApplicationInstallFlow(ctx common.Context) error {
 	if err != nil {
 		return err
 	}
-	s, err := shell.FromRegistry(ctx.Registry())
-	if err != nil {
-		return err
-	}
-	in, err := input.FromRegistry(ctx.Registry())
-	if err != nil {
-		return err
-	}
 	b, err := banner.FromRegistry(ctx.Registry())
 	if err != nil {
 		return err
 	}
 	b.PrintAnchor()
-	promptErr := runApplicationSelectionFlow(o, s, in)
+	promptErr := runApplicationSelectionFlow(o, ctx.AnchorFilesPath())
 	if promptErr != nil {
 		return managePromptError(promptErr)
 	}
 	return nil
 }
 
-func runApplicationSelectionFlow(o orchestrator.Orchestrator, s shell.Shell, in input.UserInput) *errors.PromptError {
+func runApplicationSelectionFlow(o orchestrator.Orchestrator, repoPath string) *errors.PromptError {
 	if app, promptErr := o.OrchestrateApplicationSelection(); promptErr != nil {
 		return promptErr
 	} else if app.Name == prompter.CancelButtonName {
 		return nil
 	} else {
-		if instructionItem, promptErr := runInstructionSelectionFlow(app, o, s, in); promptErr != nil {
+		if instructionItem, promptErr := runInstructionSelectionFlow(app, o, repoPath); promptErr != nil {
 			if promptErr.Code() == errors.InstructionMissingError {
-				return runApplicationSelectionFlow(o, s, in)
+				return runApplicationSelectionFlow(o, repoPath)
 			}
 			return promptErr
 		} else if instructionItem.Id == prompter.BackButtonName {
-			return runApplicationSelectionFlow(o, s, in)
+			return runApplicationSelectionFlow(o, repoPath)
 		}
 		return nil
 	}
 }
 
-func runInstructionSelectionFlow(
-	app *models.ApplicationInfo,
-	o orchestrator.Orchestrator,
-	s shell.Shell,
-	in input.UserInput) (*models.InstructionItem, *errors.PromptError) {
-
+func runInstructionSelectionFlow(app *models.ApplicationInfo, o orchestrator.Orchestrator, repoPath string) (*models.InstructionItem, *errors.PromptError) {
 	if instructionItem, promptErr := o.OrchestrateInstructionSelection(app); promptErr != nil {
 		return nil, promptErr
 	} else if instructionItem.Id == prompter.BackButtonName {
@@ -69,29 +54,22 @@ func runInstructionSelectionFlow(
 		return instructionItem, nil
 	} else {
 		logger.Debugf("Selected instruction to run. id: %v", instructionItem.Id)
-		if _, promptErr := runInstructionExecutionFlow(instructionItem, o, s, in); promptErr != nil {
+		if _, promptErr := runInstructionExecutionFlow(instructionItem, o, repoPath); promptErr != nil {
 			return nil, promptErr
-		}
-		if inputErr := in.PressAnyKeyToContinue(); inputErr != nil {
-			logger.Debugf("Failed to prompt user to press any key after instruction run")
-			return nil, errors.New(inputErr)
 		} else {
-			return runInstructionSelectionFlow(app, o, s, in)
+			return runInstructionSelectionFlow(app, o, repoPath)
 		}
 	}
 }
 
-func runInstructionExecutionFlow(
-	item *models.InstructionItem,
-	o orchestrator.Orchestrator,
-	s shell.Shell,
-	in input.UserInput) (*models.InstructionItem, *errors.PromptError) {
-
-	if shouldRun, promptError := o.AskBeforeRunningInstruction(item, in); promptError != nil {
+func runInstructionExecutionFlow(item *models.InstructionItem, o orchestrator.Orchestrator, repoPath string) (*models.InstructionItem, *errors.PromptError) {
+	if shouldRun, promptError := o.AskBeforeRunningInstruction(item); promptError != nil {
 		logger.Debugf("failed to ask before running an instruction. error: %s", promptError.GoError().Error())
 		return nil, promptError
 	} else if shouldRun {
-		o.RunInstruction(item, s)
+		if promptErr := o.RunInstruction(item, repoPath); promptErr != nil {
+			return nil, promptErr
+		}
 	}
 	return item, nil
 }

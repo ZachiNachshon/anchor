@@ -14,24 +14,29 @@ import (
 
 type orchestratorImpl struct {
 	Orchestrator
-	// TODO: these could get removed and added as a method argument
 	prompter  prompter.Prompter
 	locator   locator.Locator
 	extractor extractor.Extractor
 	parser    parser.Parser
+	shell     shell.Shell
+	input     input.UserInput
 }
 
 func New(
 	pr prompter.Prompter,
 	l locator.Locator,
 	e extractor.Extractor,
-	pa parser.Parser) Orchestrator {
+	pa parser.Parser,
+	s shell.Shell,
+	in input.UserInput) Orchestrator {
 
 	return &orchestratorImpl{
 		prompter:  pr,
 		locator:   l,
 		extractor: e,
 		parser:    pa,
+		shell:     s,
+		input:     in,
 	}
 }
 
@@ -65,17 +70,26 @@ func (o *orchestratorImpl) OrchestrateInstructionSelection(app *models.Applicati
 	}
 }
 
-func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.InstructionItem, in input.UserInput) (bool, *errors.PromptError) {
+func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.InstructionItem) (bool, *errors.PromptError) {
 	question := prompter.GenerateRunInstructionMessage(item.Id, item.Title)
-	if res, err := in.AskYesNoQuestion(question); err != nil {
+	if res, err := o.input.AskYesNoQuestion(question); err != nil {
 		return false, errors.New(err)
 	} else {
 		return res, nil
 	}
 }
 
-func (o *orchestratorImpl) RunInstruction(item *models.InstructionItem, s shell.Shell) *errors.PromptError {
-	// TODO: log to file script output
+func (o *orchestratorImpl) RunInstruction(item *models.InstructionItem, repoPath string) *errors.PromptError {
 	logger.Infof("Running: %v...", item.Id)
-	return nil
+	if output, err := o.shell.ExecuteScriptRealtimeWithOutput(repoPath, item.File); err != nil {
+		return errors.New(err)
+	} else {
+		// Log to file as debug
+		logger.Debugf(output)
+		if inputErr := o.input.PressAnyKeyToContinue(); inputErr != nil {
+			logger.Debugf("Failed to prompt user to press any key after instruction run")
+			return errors.New(inputErr)
+		}
+		return nil
+	}
 }

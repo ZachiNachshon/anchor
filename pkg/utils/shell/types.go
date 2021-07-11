@@ -6,6 +6,7 @@ import (
 )
 
 type Shell interface {
+	ExecuteScriptRealtimeWithOutput(dir string, relativeScriptPath string, args ...string) (string, error)
 	ExecuteScript(dir string, relativeScriptPath string, args ...string) error
 	ExecuteWithOutput(script string) (string, error)
 	Execute(script string) error

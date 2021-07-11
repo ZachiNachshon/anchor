@@ -5,8 +5,6 @@ import (
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/errors"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
-	"github.com/ZachiNachshon/anchor/pkg/utils/input"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
 const (
@@ -16,8 +14,8 @@ const (
 type Orchestrator interface {
 	OrchestrateApplicationSelection() (*models.ApplicationInfo, *errors.PromptError)
 	OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError)
-	AskBeforeRunningInstruction(item *models.InstructionItem, in input.UserInput) (bool, *errors.PromptError)
-	RunInstruction(item *models.InstructionItem, s shell.Shell) *errors.PromptError
+	AskBeforeRunningInstruction(item *models.InstructionItem) (bool, *errors.PromptError)
+	RunInstruction(item *models.InstructionItem, repoPath string) *errors.PromptError
 }
 
 func ToRegistry(reg *registry.InjectionsRegistry, locator Orchestrator) {

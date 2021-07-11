@@ -38,11 +38,11 @@ func injectComponents(ctx common.Context) {
 	prntr := printer.New()
 	printer.ToRegistry(ctx.Registry(), prntr)
 
-	o := orchestrator.New(pr, l, e, pa)
-	orchestrator.ToRegistry(ctx.Registry(), o)
-
 	in := input.New()
 	input.ToRegistry(ctx.Registry(), in)
+
+	o := orchestrator.New(pr, l, e, pa, s, in)
+	orchestrator.ToRegistry(ctx.Registry(), o)
 
 	b := banner.New()
 	banner.ToRegistry(ctx.Registry(), b)

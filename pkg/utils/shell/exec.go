@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/ZachiNachshon/anchor/logger"
@@ -26,6 +27,43 @@ func New() Shell {
 	return &shellExecutor{
 		shellType: sh, // is bin/sh enough?
 	}
+}
+
+func (s *shellExecutor) ExecuteScriptRealtimeWithOutput(dir string, relativeScriptPath string, args ...string) (string, error) {
+	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
+	// Args must include the command as Args[0]
+	slice := append([]string{path}, args...)
+
+	cmd := &exec.Cmd{
+		Path:   path,
+		Args:   slice,
+		Dir:    dir,
+		Stdout: os.Stdout,
+		Stderr: os.Stdout,
+	}
+
+	// Execute
+	stdout, _ := cmd.StdoutPipe()
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+
+	// Collect std out script execution logs
+	builder := strings.Builder{}
+	oneByte := make([]byte, 100)
+	for {
+		_, err := stdout.Read(oneByte)
+		if err != nil {
+			logger.Warning("failed to read script output from stdout")
+			break
+		}
+		r := bufio.NewReader(stdout)
+		line, _, _ := r.ReadLine()
+		builder.WriteString(string(line))
+	}
+
+	cmd.Wait()
+	return builder.String(), nil
 }
 
 func (s *shellExecutor) ExecuteScript(dir string, relativeScriptPath string, args ...string) error {
