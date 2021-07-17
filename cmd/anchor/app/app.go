@@ -1,9 +1,8 @@
 package app
 
 import (
-	"github.com/ZachiNachshon/anchor/cmd/anchor/app/install"
+	_select "github.com/ZachiNachshon/anchor/cmd/anchor/app/select"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/app/status"
-	"github.com/ZachiNachshon/anchor/cmd/anchor/app/uninstall"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/app/versions"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
@@ -48,8 +47,7 @@ func (cmd *appCmd) InitFlags() {
 
 func (cmd *appCmd) InitSubCommands() {
 	actions := app.DefineApplicationActions()
-	cmd.cobraCmd.AddCommand(install.NewCommand(cmd.ctx, actions).GetCobraCmd())
-	cmd.cobraCmd.AddCommand(uninstall.NewCommand(cmd.ctx).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(_select.NewCommand(cmd.ctx, actions).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(status.NewCommand(cmd.ctx).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(versions.NewCommand(cmd.ctx).GetCobraCmd())
 }

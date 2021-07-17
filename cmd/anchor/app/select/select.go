@@ -1,4 +1,4 @@
-package install
+package _select
 
 import (
 	"github.com/ZachiNachshon/anchor/common"
@@ -7,35 +7,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type installCmd struct {
+type selectCmd struct {
 	models.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, appActions *app.ApplicationActions) *installCmd {
+func NewCommand(ctx common.Context, appActions *app.ApplicationActions) *selectCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "install",
-		Short: "Install an application",
-		Long:  `Install an application`,
+		Use:   "select",
+		Short: "Select an application",
+		Long:  `Select an application`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return appActions.Install(ctx)
 		},
 	}
 
-	return &installCmd{
+	return &selectCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
 	}
 }
 
-func (cmd *installCmd) GetCobraCmd() *cobra.Command {
+func (cmd *selectCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *installCmd) InitFlags() {
+func (cmd *selectCmd) InitFlags() {
 }
 
-func (cmd *installCmd) InitSubCommands() {
+func (cmd *selectCmd) InitSubCommands() {
 }

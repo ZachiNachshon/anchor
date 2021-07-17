@@ -1,4 +1,4 @@
-package install
+package _select
 
 import (
 	"fmt"
@@ -13,21 +13,21 @@ import (
 	"testing"
 )
 
-func Test_InstallCommandShould(t *testing.T) {
+func Test_SelectCommandShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "start the installation flow successfully",
-			Func: StartTheInstallationFlowSuccessfully,
+			Name: "start the selection flow successfully",
+			Func: StartTheSelectFlowSuccessfully,
 		},
 		{
-			Name: "fail command when install action failed",
-			Func: FailCommandWhenInstallActionFailed,
+			Name: "fail command when select action failed",
+			Func: FailCommandWhenSelectActionFailed,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var StartTheInstallationFlowSuccessfully = func(t *testing.T) {
+var StartTheSelectFlowSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
@@ -46,7 +46,7 @@ var StartTheInstallationFlowSuccessfully = func(t *testing.T) {
 	})
 }
 
-var FailCommandWhenInstallActionFailed = func(t *testing.T) {
+var FailCommandWhenSelectActionFailed = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
