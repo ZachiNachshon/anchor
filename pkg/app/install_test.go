@@ -136,7 +136,7 @@ var StartApplicationInstallFlowSuccessfully = func(t *testing.T) {
 			input.ToRegistry(ctx.Registry(), fakeUserInput)
 
 			fakeBanner := banner.CreateFakeBanner()
-			fakeBanner.PrintAnchorMock = func() {}
+			fakeBanner.PrintAnchorBannerMock = func() {}
 			banner.ToRegistry(ctx.Registry(), fakeBanner)
 
 			err := StartApplicationInstallFlow(ctx)

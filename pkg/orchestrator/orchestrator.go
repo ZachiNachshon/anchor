@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/errors"
@@ -80,15 +81,18 @@ func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.InstructionI
 }
 
 func (o *orchestratorImpl) RunInstruction(item *models.InstructionItem, repoPath string) *errors.PromptError {
-	logger.Infof("Running: %v...", item.Id)
-	if output, err := o.shell.ExecuteScriptRealtimeWithOutput(repoPath, item.File); err != nil {
+	logger.Debugf("Running: %v...", item.Id)
+	scriptRunPath, _ := config.GetDefaultScriptRunLogFilePath()
+	if err := o.shell.ExecuteScriptWithOutputToFile(repoPath, item.File, scriptRunPath); err != nil {
 		return errors.New(err)
 	} else {
-		// Log to file as debug
-		logger.Debugf(output)
 		if inputErr := o.input.PressAnyKeyToContinue(); inputErr != nil {
 			logger.Debugf("Failed to prompt user to press any key after instruction run")
 			return errors.New(inputErr)
+		}
+		if err = o.shell.ClearScreen(); err != nil {
+			logger.Debugf("Failed to clear screen post instruction run")
+			return errors.New(err)
 		}
 		return nil
 	}

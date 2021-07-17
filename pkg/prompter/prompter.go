@@ -32,7 +32,7 @@ func (p *prompterImpl) PromptApps(apps []*models.ApplicationInfo) (*models.Appli
 		return nil, err
 	}
 
-	logger.Debugf("selected app value. index: %d, name: %s", i, appsEnhanced[i].Name)
+	logger.Debugf("Selected app value. index: %d, name: %s", i, appsEnhanced[i].Name)
 	return appsEnhanced[i], nil
 }
 

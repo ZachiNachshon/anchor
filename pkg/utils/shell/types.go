@@ -6,13 +6,19 @@ import (
 )
 
 type Shell interface {
-	ExecuteScriptRealtimeWithOutput(dir string, relativeScriptPath string, args ...string) (string, error)
+	ExecuteScriptWithOutputToFile(
+		dir string,
+		relativeScriptPath string,
+		outputFilePath string,
+		args ...string) error
+
 	ExecuteScript(dir string, relativeScriptPath string, args ...string) error
 	ExecuteWithOutput(script string) (string, error)
 	Execute(script string) error
 	ExecuteSilently(script string) error
 	ExecuteTTY(script string) error
 	ExecuteInBackground(script string) error
+	ClearScreen() error
 }
 
 const (

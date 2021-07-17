@@ -19,6 +19,7 @@ const (
 	defaultConfigFolderPathFormat  = "%s/.config/anchor"
 	defaultRepoClonePathFormat     = "%s/.config/anchor/anchorfiles"
 	defaultLoggerLogFilePathFormat = "%s/.config/anchor/anchor.log"
+	defaultScriptRunFilePathFormat = "%s/.config/anchor/scripts-output.log"
 )
 
 func GetConfigFilePath() (string, error) {
@@ -46,6 +47,15 @@ func GetDefaultLoggerLogFilePath() (string, error) {
 		return "", err
 	} else {
 		return fmt.Sprintf(defaultLoggerLogFilePathFormat, homeFolder), nil
+	}
+}
+
+func GetDefaultScriptRunLogFilePath() (string, error) {
+	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
+		return "", err
+	} else {
+		return fmt.Sprintf(defaultScriptRunFilePathFormat, homeFolder), nil
 	}
 }
 

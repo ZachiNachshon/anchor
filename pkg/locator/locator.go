@@ -157,7 +157,7 @@ func setLongestApplicationName(l *locatorImpl, name string) {
 
 func tryResolveApplication(l *locatorImpl, path string, name string) bool {
 	if isApp := isApplication(path); isApp {
-		logger.Debugf("locate application. Name: %s", name)
+		logger.Debugf("Locate application. Name: %s", name)
 		appContent := newAppContent(name, path)
 		l.appDirs[name] = appContent
 		setLongestApplicationName(l, name)

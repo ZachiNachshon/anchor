@@ -20,7 +20,7 @@ func StartApplicationInstallFlow(ctx common.Context) error {
 	if err != nil {
 		return err
 	}
-	b.PrintAnchor()
+	b.PrintAnchorBanner()
 	promptErr := runApplicationSelectionFlow(o, ctx.AnchorFilesPath())
 	if promptErr != nil {
 		return managePromptError(promptErr)
@@ -57,6 +57,7 @@ func runInstructionSelectionFlow(app *models.ApplicationInfo, o orchestrator.Orc
 		if _, promptErr := runInstructionExecutionFlow(instructionItem, o, repoPath); promptErr != nil {
 			return nil, promptErr
 		} else {
+			// Clear screen
 			return runInstructionSelectionFlow(app, o, repoPath)
 		}
 	}

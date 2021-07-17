@@ -1,10 +1,10 @@
 package shell
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	gotty "github.com/mattn/go-tty"
 	"io"
 	"os"
@@ -29,41 +29,37 @@ func New() Shell {
 	}
 }
 
-func (s *shellExecutor) ExecuteScriptRealtimeWithOutput(dir string, relativeScriptPath string, args ...string) (string, error) {
+func (s *shellExecutor) ExecuteScriptWithOutputToFile(
+	dir string,
+	relativeScriptPath string,
+	outputFilePath string,
+	args ...string) error {
+
 	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
 	// Args must include the command as Args[0]
 	slice := append([]string{path}, args...)
 
 	cmd := &exec.Cmd{
-		Path:   path,
-		Args:   slice,
-		Dir:    dir,
-		Stdout: os.Stdout,
-		Stderr: os.Stdout,
+		Path: path,
+		Args: slice,
+		Dir:  dir,
 	}
 
-	// Execute
-	stdout, _ := cmd.StdoutPipe()
-	if err := cmd.Start(); err != nil {
-		return "", err
+	file, err := ioutils.CreateOrOpenFile(outputFilePath)
+	if err != nil {
+		return err
 	}
 
-	// Collect std out script execution logs
-	builder := strings.Builder{}
-	oneByte := make([]byte, 100)
-	for {
-		_, err := stdout.Read(oneByte)
-		if err != nil {
-			logger.Warning("failed to read script output from stdout")
-			break
-		}
-		r := bufio.NewReader(stdout)
-		line, _, _ := r.ReadLine()
-		builder.WriteString(string(line))
-	}
+	var _, stderrBuf bytes.Buffer
+	// Script execution sends output to stderr instead of stdout
+	cmd.Stderr = io.MultiWriter(os.Stderr, file)
 
-	cmd.Wait()
-	return builder.String(), nil
+	err = cmd.Run()
+	if err != nil {
+		errStr := string(stderrBuf.Bytes())
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
+	}
+	return nil
 }
 
 func (s *shellExecutor) ExecuteScript(dir string, relativeScriptPath string, args ...string) error {
@@ -162,5 +158,16 @@ func (s *shellExecutor) ExecuteInBackground(script string) error {
 		return err
 	}
 	logger.Infof("Starting background process, PID: %d", cmd.Process.Pid)
+	return nil
+}
+
+func (s *shellExecutor) ClearScreen() error {
+	// TODO: if windows support should be available in the future,
+	//       adjust to cls by verifying os first
+	c := exec.Command("clear")
+	c.Stdout = os.Stdout
+	if err := c.Run(); err != nil {
+		return err
+	}
 	return nil
 }

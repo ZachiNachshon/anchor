@@ -13,7 +13,7 @@ func New() Banner {
 	return &bannerImpl{}
 }
 
-func (b *bannerImpl) PrintAnchor() {
+func (b *bannerImpl) PrintAnchorBanner() {
 	fmt.Printf(colors.Blue + `
      \                  |                  
     _ \    __ \    __|  __ \    _ \    __| 

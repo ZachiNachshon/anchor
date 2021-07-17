@@ -6,7 +6,7 @@ import (
 )
 
 type Banner interface {
-	PrintAnchor()
+	PrintAnchorBanner()
 }
 
 const (

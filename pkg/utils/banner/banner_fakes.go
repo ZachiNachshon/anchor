@@ -6,9 +6,9 @@ var CreateFakeBanner = func() *fakeBannerImpl {
 
 type fakeBannerImpl struct {
 	Banner
-	PrintAnchorMock func()
+	PrintAnchorBannerMock func()
 }
 
-func (b *fakeBannerImpl) PrintAnchor() {
-	b.PrintAnchorMock()
+func (b *fakeBannerImpl) PrintAnchorBanner() {
+	b.PrintAnchorBannerMock()
 }

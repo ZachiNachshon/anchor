@@ -45,3 +45,19 @@ func GetUserHomeFolder() (string, error) {
 		return dirname, nil
 	}
 }
+
+func CreateOrOpenFile(path string) (*os.File, error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if file, err := os.Create(path); err != nil {
+			return nil, err
+		} else {
+			return file, nil
+		}
+	} else {
+		if file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
+			return nil, err
+		} else {
+			return file, err
+		}
+	}
+}
