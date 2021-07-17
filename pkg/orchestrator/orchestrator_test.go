@@ -10,6 +10,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -44,12 +45,28 @@ func Test_OrchestratorShould(t *testing.T) {
 			Func: SelectInstructionSuccessfully,
 		},
 		{
-			Name: "fail to ask before running instruction",
-			Func: FailToAskBeforeRunningInstruction,
+			Name: "fail to ask for user input before running instruction",
+			Func: FailToAskForUserInputBeforeRunningInstruction,
 		},
 		{
-			Name: "ask for user input for running instructions successfully",
-			Func: AskForUserInputForRunningInstructionSuccessfully,
+			Name: "ask for user input before running instructions successfully",
+			Func: AskForUserInputBeforeRunningInstructionSuccessfully,
+		},
+		{
+			Name: "run instruction successfully",
+			Func: RunInstructionSuccessfully,
+		},
+		{
+			Name: "failed to run instruction due to script execution",
+			Func: FailedToRunInstructionDueToScriptExecution,
+		},
+		{
+			Name: "failed to prompt for key press after instruction run",
+			Func: FailedToPromptForKeyPressAfterInstructionRun,
+		},
+		{
+			Name: "failed to clear screen after instruction run",
+			Func: FailedToClearScreenAfterInstructionRun,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -228,7 +245,7 @@ var SelectInstructionSuccessfully = func(t *testing.T) {
 	})
 }
 
-var FailToAskBeforeRunningInstruction = func(t *testing.T) {
+var FailToAskForUserInputBeforeRunningInstruction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instTestData := stubs.GenerateInstructionsTestData()
@@ -250,7 +267,7 @@ var FailToAskBeforeRunningInstruction = func(t *testing.T) {
 	})
 }
 
-var AskForUserInputForRunningInstructionSuccessfully = func(t *testing.T) {
+var AskForUserInputBeforeRunningInstructionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instTestData := stubs.GenerateInstructionsTestData()
@@ -268,6 +285,135 @@ var AskForUserInputForRunningInstructionSuccessfully = func(t *testing.T) {
 			assert.Equal(t, true, shouldRun)
 			assert.Nil(t, err, "expected instruction selection to succeed")
 			assert.Equal(t, 1, userInputCallCount)
+		})
+	})
+}
+
+var RunInstructionSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+
+			fakeShell := shell.CreateFakeShell()
+			execScriptCallCount := 0
+			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execScriptCallCount++
+				assert.Equal(t, relativeScriptPath, inst1.File)
+				return nil
+			}
+
+			clearScreenCallCount := 0
+			fakeShell.ClearScreenMock = func() error {
+				clearScreenCallCount++
+				return nil
+			}
+
+			fakeUserInput := input.CreateFakeUserInput()
+			pressAnyKeyCallCount := 0
+			fakeUserInput.PressAnyKeyToContinueMock = func() error {
+				pressAnyKeyCallCount++
+				return nil
+			}
+
+			orchestrator := New(nil, nil, nil, nil, fakeShell, fakeUserInput)
+			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
+			assert.Nil(t, err, "expected instruction run to succeed")
+			assert.Equal(t, 1, execScriptCallCount)
+			assert.Equal(t, 1, pressAnyKeyCallCount)
+			assert.Equal(t, 1, clearScreenCallCount)
+		})
+	})
+}
+
+var FailedToRunInstructionDueToScriptExecution = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+
+			fakeShell := shell.CreateFakeShell()
+			execScriptCallCount := 0
+			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execScriptCallCount++
+				assert.Equal(t, relativeScriptPath, inst1.File)
+				return fmt.Errorf("failed to execute script")
+			}
+
+			orchestrator := New(nil, nil, nil, nil, fakeShell, nil)
+			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
+			assert.NotNil(t, err, "expected instruction run to fail")
+			assert.Equal(t, "failed to execute script", err.GoError().Error())
+			assert.Equal(t, 1, execScriptCallCount)
+		})
+	})
+}
+
+var FailedToPromptForKeyPressAfterInstructionRun = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+
+			fakeShell := shell.CreateFakeShell()
+			execScriptCallCount := 0
+			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execScriptCallCount++
+				assert.Equal(t, relativeScriptPath, inst1.File)
+				return nil
+			}
+
+			fakeUserInput := input.CreateFakeUserInput()
+			pressAnyKeyCallCount := 0
+			fakeUserInput.PressAnyKeyToContinueMock = func() error {
+				pressAnyKeyCallCount++
+				return fmt.Errorf("failed to prompt for key press")
+			}
+
+			orchestrator := New(nil, nil, nil, nil, fakeShell, fakeUserInput)
+			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
+			assert.NotNil(t, err, "expected instruction run to fail")
+			assert.Equal(t, "failed to prompt for key press", err.GoError().Error())
+			assert.Equal(t, 1, execScriptCallCount)
+			assert.Equal(t, 1, pressAnyKeyCallCount)
+		})
+	})
+}
+
+var FailedToClearScreenAfterInstructionRun = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+
+			fakeShell := shell.CreateFakeShell()
+			execScriptCallCount := 0
+			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execScriptCallCount++
+				assert.Equal(t, relativeScriptPath, inst1.File)
+				return nil
+			}
+
+			clearScreenCallCount := 0
+			fakeShell.ClearScreenMock = func() error {
+				clearScreenCallCount++
+				return fmt.Errorf("failed to clear screen")
+			}
+
+			fakeUserInput := input.CreateFakeUserInput()
+			pressAnyKeyCallCount := 0
+			fakeUserInput.PressAnyKeyToContinueMock = func() error {
+				pressAnyKeyCallCount++
+				return nil
+			}
+
+			orchestrator := New(nil, nil, nil, nil, fakeShell, fakeUserInput)
+			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
+			assert.NotNil(t, err, "expected instruction run to fail")
+			assert.Equal(t, "failed to clear screen", err.GoError().Error())
+			assert.Equal(t, 1, execScriptCallCount)
+			assert.Equal(t, 1, pressAnyKeyCallCount)
+			assert.Equal(t, 1, clearScreenCallCount)
 		})
 	})
 }
