@@ -72,7 +72,20 @@ func (g *gitImpl) Clean(path string) error {
 	return g.shell.ExecuteSilently(script)
 }
 
-func (g *gitImpl) GetHeadCommitHash(path string, branch string) (string, error) {
+func (g *gitImpl) GetRemoteHeadCommitHash(path string, repoUrl string, branch string) (string, error) {
+	logger.Debugf("Git reading HEAD latest commit hash. branch: %s", branch)
+	script := fmt.Sprintf(`git -C %s ls-remote %s %s`, path, repoUrl, branch)
+	output, err := g.shell.ExecuteWithOutput(script)
+	if err == nil {
+		fields := strings.Fields(output)
+		if len(fields) > 0 {
+			return strings.TrimSuffix(fields[0], "\n"), nil
+		}
+	}
+	return output, err
+}
+
+func (g *gitImpl) GetLocalOriginCommitHash(path string, branch string) (string, error) {
 	logger.Debugf("Git reading HEAD latest commit hash. branch: %s", branch)
 	script := fmt.Sprintf(`git -C %s rev-parse origin/%s`, path, branch)
 	output, err := g.shell.ExecuteWithOutput(script)
@@ -80,4 +93,19 @@ func (g *gitImpl) GetHeadCommitHash(path string, branch string) (string, error) 
 		output = strings.TrimSuffix(output, "\n")
 	}
 	return output, err
+}
+
+func (g *gitImpl) LogRevisionsDiffPretty(path string, prevRevision string, newRevision string) error {
+	logger.Debugf("Git logging revisions changed (pretty). prevRev: %s, newRev: %s", prevRevision, newRevision)
+	script := fmt.Sprintf(`git -C %s --no-pager log \
+--oneline \
+--graph \
+--pretty='%%C(Yellow)%%h%%Creset %%<(5) %%C(auto)%%s%%Creset %%Cgreen(%%ad) %%C(bold blue)<%%an>%%Creset' \
+--date=short %s..%s`, path, prevRevision, newRevision)
+	fmt.Print("\nCommits:\n\n")
+	err := g.shell.Execute(script)
+	if err != nil {
+		return err
+	}
+	return nil
 }

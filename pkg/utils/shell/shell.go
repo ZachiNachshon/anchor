@@ -122,12 +122,8 @@ func (s *shellExecutor) ExecuteWithOutput(script string) (string, error) {
 
 func (s *shellExecutor) Execute(script string) error {
 	cmd := exec.Command(string(s.shellType), "-c", script)
-
-	var stdBuffer bytes.Buffer
-	mw := io.MultiWriter(os.Stdout, &stdBuffer)
-
-	cmd.Stdout = mw
-	cmd.Stderr = mw
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	// Execute the command
 	if err := cmd.Run(); err != nil {

@@ -10,7 +10,9 @@ type Git interface {
 	Reset(path string, revision string) error
 	Checkout(path string, branch string) error
 	Clean(path string) error
-	GetHeadCommitHash(path string, branch string) (string, error)
+	GetRemoteHeadCommitHash(path string, repoUrl string, branch string) (string, error)
+	GetLocalOriginCommitHash(path string, branch string) (string, error)
+	LogRevisionsDiffPretty(path string, prevRevision string, newRevision string) error
 }
 
 type gitImpl struct {

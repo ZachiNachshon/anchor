@@ -59,16 +59,24 @@ func Test_ResolverActionsShould(t *testing.T) {
 			Func: FailToResetToRevisionOnSecondTry,
 		},
 		{
-			Name: "fail to fetch HEAD revision",
-			Func: FailedToFetchHeadRevision,
+			Name: "fetch remote HEAD revision successfully",
+			Func: FetchRemoteHeadRevisionSuccessfully,
 		},
 		{
-			Name: "fail to reset to HEAD revision",
-			Func: FailedToResetToHeadRevision,
+			Name: "fail to fetch remote HEAD revision",
+			Func: FailedToFetchRemoteHeadRevision,
 		},
 		{
-			Name: "fetch latest HEAD revision successfully",
-			Func: FetchLatestHeadRevisionSuccessfully,
+			Name: "fetch local origin revision successfully",
+			Func: FetchLocalOriginRevisionSuccessfully,
+		},
+		{
+			Name: "fail to fetch local origin revision",
+			Func: FailedToFetchLocalOriginRevision,
+		},
+		{
+			Name: "print revisions diff successfully",
+			Func: PrintRevisionsDiffSuccessfully,
 		},
 		{
 			Name: "fail to checkout a branch",
@@ -397,7 +405,7 @@ config:
 	})
 }
 
-var FailedToFetchHeadRevision = func(t *testing.T) {
+var FailedToFetchRemoteHeadRevision = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
@@ -411,24 +419,26 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getHeadRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.GetHeadCommitHashMock = func(path string, branch string) (string, error) {
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
 					getHeadRevCallCount++
 					return "", fmt.Errorf("failed to get latest HEAD rev")
 				}
 				actions := NewRemoteActions(fakeGit)
-				err := actions.TryFetchHeadRevision(
+				revision, err := actions.TryFetchRemoteHeadRevision(
 					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch)
 
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "failed to get latest HEAD rev", err.Error())
+				assert.Equal(t, "", revision, "expected to receive empty revision")
 				assert.Equal(t, 1, getHeadRevCallCount)
 			})
 		})
 	})
 }
 
-var FailedToResetToHeadRevision = func(t *testing.T) {
+var FetchRemoteHeadRevisionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
@@ -442,69 +452,115 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getHeadRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
-				fakeGit.GetHeadCommitHashMock = func(path string, branch string) (string, error) {
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
 					getHeadRevCallCount++
 					return "l33tf4k3c0mm1757r1n6", nil
 				}
-				// Used for inner call to actions.TryResetToRevision
-				gitResetCallCount := 0
-				fakeGit.ResetMock = func(path string, revision string) error {
-					gitResetCallCount++
-					return fmt.Errorf("failed to reset on 1st attempt")
-				}
-				// Used for inner call to actions.TryResetToRevision
-				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, branch string) error {
-					gitFetchCallCount++
-					return fmt.Errorf("failed to fetch")
-				}
-				actions := NewRemoteActions(fakeGit)
-				err := actions.TryFetchHeadRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch)
 
-				assert.NotNil(t, err, "expected to fail")
-				assert.Equal(t, "failed to fetch", err.Error())
-				assert.Equal(t, 1, getHeadRevCallCount)
-				assert.Equal(t, 1, gitResetCallCount)
-				assert.Equal(t, 1, gitFetchCallCount)
-			})
-		})
-	})
-}
-
-var FetchLatestHeadRevisionSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := `
-config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
-`
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				getHeadRevCallCount := 0
-				fakeGit := git.CreateFakeGit()
-				fakeGit.GetHeadCommitHashMock = func(path string, branch string) (string, error) {
-					getHeadRevCallCount++
-					return "l33tf4k3c0mm1757r1n6", nil
-				}
-				// Used for inner call to actions.TryResetToRevision
-				gitResetCallCount := 0
-				fakeGit.ResetMock = func(path string, revision string) error {
-					gitResetCallCount++
-					return nil
-				}
 				actions := NewRemoteActions(fakeGit)
-				err := actions.TryFetchHeadRevision(
+				revision, err := actions.TryFetchRemoteHeadRevision(
 					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Url,
 					cfg.Config.Repository.Remote.Branch)
 
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 1, getHeadRevCallCount)
-				assert.Equal(t, 1, gitResetCallCount)
+				assert.Equal(t, "l33tf4k3c0mm1757r1n6", revision, "expected to receive valid revision")
+			})
+		})
+	})
+}
+
+var FetchLocalOriginRevisionSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+ repository:
+   remote:
+     url: https://github.com/ZachiNachshon/dummy-repo.git
+     branch: some-branch
+     clonePath: /path/to/clone
+`
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				getLocalOriginRevCallCount := 0
+				fakeGit := git.CreateFakeGit()
+				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
+					getLocalOriginRevCallCount++
+					return "l33tf4k3c0mm1757r1n6", nil
+				}
+				actions := NewRemoteActions(fakeGit)
+				revision, err := actions.TryFetchLocalOriginRevision(
+					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Branch)
+
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 1, getLocalOriginRevCallCount)
+				assert.Equal(t, "l33tf4k3c0mm1757r1n6", revision, "expected to receive valid revision")
+			})
+		})
+	})
+}
+
+var FailedToFetchLocalOriginRevision = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+ repository:
+   remote:
+     url: https://github.com/ZachiNachshon/dummy-repo.git
+     branch: some-branch
+     clonePath: /path/to/clone
+`
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				getLocalOriginRevCallCount := 0
+				fakeGit := git.CreateFakeGit()
+				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
+					getLocalOriginRevCallCount++
+					return "", fmt.Errorf("failed to get local origin rev")
+				}
+				actions := NewRemoteActions(fakeGit)
+				revision, err := actions.TryFetchLocalOriginRevision(
+					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.Repository.Remote.Branch)
+
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "failed to get local origin rev", err.Error())
+				assert.Equal(t, "", revision, "expected to receive empty revision")
+				assert.Equal(t, 1, getLocalOriginRevCallCount)
+			})
+		})
+	})
+}
+
+var PrintRevisionsDiffSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+ repository:
+   remote:
+     url: https://github.com/ZachiNachshon/dummy-repo.git
+     branch: some-branch
+     clonePath: /path/to/clone
+`
+			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+				prevRevision := "l33tf4k3c0mm1757r1n6"
+				headRevision := "head-revision"
+				logRevDiffPrettyCallCount := 0
+				fakeGit := git.CreateFakeGit()
+				fakeGit.LogRevisionsDiffPrettyMock = func(path string, prevRevision string, newRevision string) error {
+					logRevDiffPrettyCallCount++
+					return nil
+				}
+				actions := NewRemoteActions(fakeGit)
+				err := actions.PrintRevisionsDiff(
+					cfg.Config.Repository.Remote.ClonePath,
+					prevRevision, headRevision)
+
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 1, logRevDiffPrettyCallCount)
 			})
 		})
 	})

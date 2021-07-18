@@ -6,14 +6,16 @@ var CreateFakeGit = func() *fakeGitImpl {
 
 type fakeGitImpl struct {
 	Git
-	CloneMock             func(url string, branch string, clonePath string) error
-	InitMock              func(path string) error
-	AddOriginMock         func(path string, url string) error
-	FetchShallowMock      func(path string, branch string) error
-	ResetMock             func(path string, revision string) error
-	CheckoutMock          func(path string, branch string) error
-	CleanMock             func(path string) error
-	GetHeadCommitHashMock func(path string, branch string) (string, error)
+	CloneMock                    func(url string, branch string, clonePath string) error
+	InitMock                     func(path string) error
+	AddOriginMock                func(path string, url string) error
+	FetchShallowMock             func(path string, branch string) error
+	ResetMock                    func(path string, revision string) error
+	CheckoutMock                 func(path string, branch string) error
+	CleanMock                    func(path string) error
+	GetRemoteHeadCommitHashMock  func(path string, repoUrl string, branch string) (string, error)
+	GetLocalOriginCommitHashMock func(path string, branch string) (string, error)
+	LogRevisionsDiffPrettyMock   func(path string, prevRevision string, newRevision string) error
 }
 
 func (g *fakeGitImpl) Clone(url string, branch string, clonePath string) error {
@@ -44,6 +46,14 @@ func (g *fakeGitImpl) Clean(path string) error {
 	return g.CleanMock(path)
 }
 
-func (g *fakeGitImpl) GetHeadCommitHash(path string, branch string) (string, error) {
-	return g.GetHeadCommitHashMock(path, branch)
+func (g *fakeGitImpl) GetRemoteHeadCommitHash(path string, repoUrl string, branch string) (string, error) {
+	return g.GetRemoteHeadCommitHashMock(path, repoUrl, branch)
+}
+
+func (g *fakeGitImpl) GetLocalOriginCommitHash(path string, branch string) (string, error) {
+	return g.GetLocalOriginCommitHashMock(path, branch)
+}
+
+func (g *fakeGitImpl) LogRevisionsDiffPretty(path string, prevRevision string, newRevision string) error {
+	return g.LogRevisionsDiffPrettyMock(path, prevRevision, newRevision)
 }

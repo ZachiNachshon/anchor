@@ -43,6 +43,14 @@ func Test_GitShould(t *testing.T) {
 			Func: GetHeadCommitHashSuccessfully,
 		},
 		{
+			Name: "get local origin commit hash successfully",
+			Func: GetLocalOriginCommitHashSuccessfully,
+		},
+		{
+			Name: "log revisions diff pretty successfully",
+			Func: LogRevisionsDiffPrettySuccessfully,
+		},
+		{
 			Name: "fail clone due to init failure",
 			Func: GitCloneFailsOnInit,
 		},
@@ -170,6 +178,26 @@ var GetHeadCommitHashSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			clonePath := "/some/path"
 			branch := "my-branch"
+			url := "git@some-repo"
+			revision := "l33tf4k3c0mm1757r1n6"
+			fakeShell := shell.CreateFakeShell()
+			fakeShell.ExecuteWithOutputMock = func(script string) (string, error) {
+				expected := fmt.Sprintf(`git -C %s ls-remote %s %s`, clonePath, url, branch)
+				assert.Equal(t, expected, script)
+				return revision, nil
+			}
+			git := New(fakeShell)
+			rev, _ := git.GetRemoteHeadCommitHash(clonePath, url, branch)
+			assert.Equal(t, rev, revision)
+		})
+	})
+}
+
+var GetLocalOriginCommitHashSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			clonePath := "/some/path"
+			branch := "my-branch"
 			revision := "l33tf4k3c0mm1757r1n6"
 			fakeShell := shell.CreateFakeShell()
 			fakeShell.ExecuteWithOutputMock = func(script string) (string, error) {
@@ -178,8 +206,30 @@ var GetHeadCommitHashSuccessfully = func(t *testing.T) {
 				return revision, nil
 			}
 			git := New(fakeShell)
-			rev, _ := git.GetHeadCommitHash(clonePath, branch)
+			rev, _ := git.GetLocalOriginCommitHash(clonePath, branch)
 			assert.Equal(t, rev, revision)
+		})
+	})
+}
+
+var LogRevisionsDiffPrettySuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			clonePath := "/some/path"
+			prevRevision := "l33tf4k3c0mm1757r1n6"
+			headRevision := "head-revision"
+			fakeShell := shell.CreateFakeShell()
+			fakeShell.ExecuteMock = func(script string) error {
+				expected := fmt.Sprintf(`git -C %s --no-pager log \
+--oneline \
+--graph \
+--pretty='%%C(Yellow)%%h%%Creset %%<(5) %%C(auto)%%s%%Creset %%Cgreen(%%ad) %%C(bold blue)<%%an>%%Creset' \
+--date=short %s..%s`, clonePath, prevRevision, headRevision)
+				assert.Equal(t, expected, script)
+				return nil
+			}
+			git := New(fakeShell)
+			_ = git.LogRevisionsDiffPretty(clonePath, prevRevision, headRevision)
 		})
 	})
 }

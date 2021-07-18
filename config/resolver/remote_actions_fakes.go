@@ -20,9 +20,14 @@ type fakeRemoteActionsImpl struct {
 		branch string,
 		revision string) error
 
-	TryFetchHeadRevisionMock func(
+	TryFetchRemoteHeadRevisionMock func(
 		clonePath string,
-		branch string) error
+		repoUrl string,
+		branch string) (string, error)
+
+	TryFetchLocalOriginRevisionMock func(
+		clonePath string,
+		branch string) (string, error)
 
 	TryCheckoutToBranchMock func(
 		clonePath string,
@@ -34,6 +39,8 @@ type fakeRemoteActionsImpl struct {
 		branch string) error
 
 	VerifyRemoteRepositoryConfigMock func(remoteCfg *config.Remote) error
+
+	PrintRevisionsDiffMock func(path string, prevRevision string, newRevision string) error
 }
 
 func (ra *fakeRemoteActionsImpl) VerifyRemoteRepositoryConfig(remoteCfg *config.Remote) error {
@@ -48,11 +55,19 @@ func (ra *fakeRemoteActionsImpl) TryResetToRevision(
 	return ra.TryResetToRevisionMock(clonePath, branch, revision)
 }
 
-func (ra *fakeRemoteActionsImpl) TryFetchHeadRevision(
+func (ra *fakeRemoteActionsImpl) TryFetchRemoteHeadRevision(
 	clonePath string,
-	branch string) error {
+	repoUrl string,
+	branch string) (string, error) {
 
-	return ra.TryFetchHeadRevisionMock(clonePath, branch)
+	return ra.TryFetchRemoteHeadRevisionMock(clonePath, repoUrl, branch)
+}
+
+func (ra *fakeRemoteActionsImpl) TryFetchLocalOriginRevision(
+	clonePath string,
+	branch string) (string, error) {
+
+	return ra.TryFetchLocalOriginRevisionMock(clonePath, branch)
 }
 
 func (ra *fakeRemoteActionsImpl) TryCheckoutToBranch(
@@ -68,4 +83,8 @@ func (ra *fakeRemoteActionsImpl) CloneRepositoryIfMissing(
 	branch string) error {
 
 	return ra.CloneRepositoryIfMissingMock(clonePath, url, branch)
+}
+
+func (ra *fakeRemoteActionsImpl) PrintRevisionsDiff(path string, prevRevision string, newRevision string) error {
+	return ra.PrintRevisionsDiffMock(path, prevRevision, newRevision)
 }

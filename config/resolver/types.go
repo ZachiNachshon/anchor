@@ -26,9 +26,14 @@ type RemoteResolverActions interface {
 		branch string,
 		revision string) error
 
-	TryFetchHeadRevision(
+	TryFetchRemoteHeadRevision(
 		clonePath string,
-		branch string) error
+		repoUrl string,
+		branch string) (string, error)
+
+	TryFetchLocalOriginRevision(
+		clonePath string,
+		branch string) (string, error)
 
 	TryCheckoutToBranch(
 		clonePath string,
@@ -40,4 +45,6 @@ type RemoteResolverActions interface {
 		branch string) error
 
 	VerifyRemoteRepositoryConfig(remoteCfg *config.Remote) error
+
+	PrintRevisionsDiff(path string, prevRevision string, newRevision string) error
 }

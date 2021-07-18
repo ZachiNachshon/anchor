@@ -36,7 +36,7 @@ var appsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
 {{ "Name:" | faint }}	{{ .Name }}
 {{ "Overview:" | faint }}	{{ .DirPath }}
 {{ else }}
-Cancel application selector
+Exit Application
 {{ end }}`, CancelButtonName)
 
 var instructionsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Id "%s") }}
@@ -46,5 +46,5 @@ var instructionsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Id "%s") }}
 {{ "Title:" | faint }}	{{ .Title }}
 {{ "File:" | faint }}	{{ .File }}
 {{ else }}
-Go back to previous step
+Go Back (App Selector)
 {{ end }}`, BackButtonName)

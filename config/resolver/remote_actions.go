@@ -72,26 +72,33 @@ func (ra *remoteActionsImpl) TryResetToRevision(
 	return nil
 }
 
-func (ra *remoteActionsImpl) TryFetchHeadRevision(
+func (ra *remoteActionsImpl) TryFetchRemoteHeadRevision(
 	clonePath string,
-	branch string) error {
+	repoUrl string,
+	branch string) (string, error) {
 
-	if headRevision, err := ra.git.GetHeadCommitHash(clonePath, branch); err != nil {
-		return err
+	if headRevision, err := ra.git.GetRemoteHeadCommitHash(clonePath, repoUrl, branch); err != nil {
+		return "", err
 	} else {
-		if err = ra.TryResetToRevision(
-			clonePath,
-			branch,
-			headRevision); err != nil {
-			return err
-		}
+		return headRevision, nil
 	}
-	return nil
 }
 
-func (ra *remoteActionsImpl) TryCheckoutToBranch(
+func (ra *remoteActionsImpl) TryFetchLocalOriginRevision(
 	clonePath string,
-	branch string) error {
+	branch string) (string, error) {
 
+	if originRevision, err := ra.git.GetLocalOriginCommitHash(clonePath, branch); err != nil {
+		return "", err
+	} else {
+		return originRevision, nil
+	}
+}
+
+func (ra *remoteActionsImpl) TryCheckoutToBranch(clonePath string, branch string) error {
 	return ra.git.Checkout(clonePath, branch)
+}
+
+func (ra *remoteActionsImpl) PrintRevisionsDiff(path string, prevRevision string, newRevision string) error {
+	return ra.git.LogRevisionsDiffPretty(path, prevRevision, newRevision)
 }

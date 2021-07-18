@@ -3,6 +3,7 @@ package resolver
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
+	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 )
 
@@ -40,9 +41,37 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 		}
 
 	} else if rr.RemoteConfig.AutoUpdate {
-		logger.Info("Checking latest anchorfiles HEAD revision...")
-		if err := rr.RemoteActions.TryFetchHeadRevision(clonePath, branch); err != nil {
+		logger.Debug("Checking anchorfiles local origin revision...")
+		originRevision, err := rr.RemoteActions.TryFetchLocalOriginRevision(clonePath, branch)
+		if err != nil {
 			return "", err
+		}
+
+		anchorConfig := config.FromContext(ctx)
+		repoUrl := anchorConfig.Config.Repository.Remote.Url
+		logger.Info("Checking anchorfiles remote HEAD revision...")
+		headRevision, err := rr.RemoteActions.TryFetchRemoteHeadRevision(clonePath, repoUrl, branch)
+		if err != nil {
+			return "", err
+		}
+
+		if err = rr.RemoteActions.TryResetToRevision(
+			clonePath,
+			branch,
+			headRevision); err != nil {
+			return "", err
+		}
+
+		if originRevision != headRevision {
+			logger.Infof("Fetched remote HEAD revision. hash: %s", headRevision)
+			err = rr.RemoteActions.PrintRevisionsDiff(clonePath, originRevision, headRevision)
+			if err != nil {
+				logger.Debugf("failed to print revisions diff. error: %s", err.Error())
+				// Do not return an error if print fails
+				//return "", err
+			}
+		} else {
+			logger.Info("Already up to date")
 		}
 	}
 
