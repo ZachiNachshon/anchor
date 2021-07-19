@@ -45,7 +45,11 @@ func appendInstructionCustomOptions(instructions *models.Instructions) {
 	back := &models.InstructionItem{
 		Id: BackButtonName,
 	}
+	workflows := &models.InstructionItem{
+		Id: "workflows...",
+	}
 	instItems = append(instItems, back)
+	instItems = append(instItems, workflows)
 	instItems = append(instItems, instructions.Items...)
 	instructions.Items = instItems
 }

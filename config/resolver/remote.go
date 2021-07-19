@@ -71,7 +71,7 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 				//return "", err
 			}
 		} else {
-			logger.Info("Already up to date")
+			logger.Info("Already up to date !")
 		}
 	}
 

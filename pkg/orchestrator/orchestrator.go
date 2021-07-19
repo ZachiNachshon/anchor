@@ -60,7 +60,7 @@ func (o *orchestratorImpl) OrchestrateApplicationSelection() (*models.Applicatio
 func (o *orchestratorImpl) OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
 	path := app.InstructionsPath
 	if instructions, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
-		logger.Warningf("Failed to extract instructions from file. path: %s, error: %s", path, err.Error())
+		logger.Warningf("Failed to extract instructions from file. error: %s", err.Error())
 		return nil, errors.NewInstructionMissingError(err)
 	} else {
 		item, err := o.prompter.PromptInstructions(app.Name, instructions)
