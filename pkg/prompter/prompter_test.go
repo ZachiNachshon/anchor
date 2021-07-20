@@ -11,8 +11,8 @@ import (
 func Test_PrompterShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "add back option to apps prompt selector",
-			Func: AddBackOptionToAppsPromptSelector,
+			Name: "add cancel option to apps prompt selector",
+			Func: AddCancelOptionToAppsPromptSelector,
 		},
 		{
 			Name: "create valid apps prompt selector",
@@ -23,22 +23,30 @@ func Test_PrompterShould(t *testing.T) {
 			Func: AddBackOptionToInstructionsPromptSelector,
 		},
 		{
-			Name: "create a valid instructions prompt selector",
-			Func: CreateValidInstructionsPromptSelector,
+			Name: "add workflow option when instructions contain workflows",
+			Func: AddWorkflowOptionWhenInstructionsContainWorkflows,
+		},
+		{
+			Name: "do not add workflow option when instructions missing workflows",
+			Func: DoNotAddWorkflowOptionWhenInstructionsMissingWorkflows,
+		},
+		{
+			Name: "create a valid instructions actions prompt selector",
+			Func: CreateValidInstructionsActionsPromptSelector,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var AddBackOptionToAppsPromptSelector = func(t *testing.T) {
-	appData := stubs.GenerateApplicationTestData()
-	appsSelector := preparePromptAppsItems(appData)
-	assert.EqualValues(t, CancelButtonName, appsSelector.Items.([]*models.ApplicationInfo)[0].Name)
+var AddCancelOptionToAppsPromptSelector = func(t *testing.T) {
+	appTestData := stubs.GenerateApplicationTestData()
+	appsSelector := preparePromptAppsItems(appTestData)
+	assert.EqualValues(t, CancelActionName, appsSelector.Items.([]*models.ApplicationInfo)[0].Name)
 }
 
 var CreateValidAppsPromptSelector = func(t *testing.T) {
-	appData := stubs.GenerateApplicationTestData()
-	appsSelector := preparePromptAppsItems(appData)
+	appTestData := stubs.GenerateApplicationTestData()
+	appsSelector := preparePromptAppsItems(appTestData)
 	assert.EqualValues(t, "", appsSelector.Label)
 	assert.EqualValues(t, stubs.App1Name, appsSelector.Items.([]*models.ApplicationInfo)[1].Name)
 	assert.EqualValues(t, stubs.App2Name, appsSelector.Items.([]*models.ApplicationInfo)[2].Name)
@@ -46,20 +54,32 @@ var CreateValidAppsPromptSelector = func(t *testing.T) {
 }
 
 var AddBackOptionToInstructionsPromptSelector = func(t *testing.T) {
-	instData := stubs.GenerateInstructionsTestData()
-	instSelector := preparePromptInstructionsItems(instData)
-	assert.EqualValues(t, BackButtonName, instSelector.Items.([]*models.InstructionItem)[0].Id)
+	instRootTestData := stubs.GenerateInstructionsTestData()
+	instSelector := preparePromptInstructionsActions(instRootTestData.Instructions)
+	assert.EqualValues(t, BackActionName, instSelector.Items.([]*models.Action)[0].Id)
 }
 
-var CreateValidInstructionsPromptSelector = func(t *testing.T) {
-	instData := stubs.GenerateInstructionsTestData()
-	instSelector := preparePromptInstructionsItems(instData)
+var AddWorkflowOptionWhenInstructionsContainWorkflows = func(t *testing.T) {
+	instRootTestData := stubs.GenerateInstructionsTestData()
+	instSelector := preparePromptInstructionsActions(instRootTestData.Instructions)
+	assert.EqualValues(t, WorkflowsActionName, instSelector.Items.([]*models.Action)[1].Id)
+}
+
+var DoNotAddWorkflowOptionWhenInstructionsMissingWorkflows = func(t *testing.T) {
+	instRootTestData := stubs.GenerateInstructionsTestDataWithoutWorkflows()
+	instSelector := preparePromptInstructionsActions(instRootTestData.Instructions)
+	assert.NotContains(t, WorkflowsActionName, instSelector.Items)
+}
+
+var CreateValidInstructionsActionsPromptSelector = func(t *testing.T) {
+	instRootTestData := stubs.GenerateInstructionsTestDataWithoutWorkflows()
+	instSelector := preparePromptInstructionsActions(instRootTestData.Instructions)
 	assert.EqualValues(t, "", instSelector.Label)
-	assert.EqualValues(t, stubs.App1InstructionsItem1Id, instSelector.Items.([]*models.InstructionItem)[1].Id)
-	assert.EqualValues(t, stubs.App1InstructionsItem1Title, instSelector.Items.([]*models.InstructionItem)[1].Title)
-	assert.EqualValues(t, stubs.App1InstructionsItem1File, instSelector.Items.([]*models.InstructionItem)[1].File)
-	assert.EqualValues(t, stubs.App1InstructionsItem2Id, instSelector.Items.([]*models.InstructionItem)[2].Id)
-	assert.EqualValues(t, stubs.App1InstructionsItem2Title, instSelector.Items.([]*models.InstructionItem)[2].Title)
-	assert.EqualValues(t, stubs.App1InstructionsItem2File, instSelector.Items.([]*models.InstructionItem)[2].File)
+	assert.EqualValues(t, stubs.App1Action1Id, instSelector.Items.([]*models.Action)[1].Id)
+	assert.EqualValues(t, stubs.App1Action1Title, instSelector.Items.([]*models.Action)[1].Title)
+	assert.EqualValues(t, stubs.App1Action1ScriptFile, instSelector.Items.([]*models.Action)[1].File)
+	assert.EqualValues(t, stubs.App1Action2Id, instSelector.Items.([]*models.Action)[2].Id)
+	assert.EqualValues(t, stubs.App1Action2Title, instSelector.Items.([]*models.Action)[2].Title)
+	assert.EqualValues(t, stubs.App1Action2File, instSelector.Items.([]*models.Action)[2].File)
 	assert.EqualValues(t, instructionsPromptTemplateDetails, instSelector.Templates.Details)
 }

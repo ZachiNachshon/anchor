@@ -13,9 +13,9 @@ const (
 
 type Orchestrator interface {
 	OrchestrateApplicationSelection() (*models.ApplicationInfo, *errors.PromptError)
-	OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError)
-	AskBeforeRunningInstruction(item *models.InstructionItem) (bool, *errors.PromptError)
-	RunInstruction(item *models.InstructionItem, repoPath string) *errors.PromptError
+	OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.Action, *errors.PromptError)
+	AskBeforeRunningInstruction(item *models.Action) (bool, *errors.PromptError)
+	RunInstruction(item *models.Action, repoPath string) *errors.PromptError
 }
 
 func ToRegistry(reg *registry.InjectionsRegistry, locator Orchestrator) {

@@ -8,7 +8,7 @@ import (
 
 type Prompter interface {
 	PromptApps(appsArr []*models.ApplicationInfo) (*models.ApplicationInfo, error)
-	PromptInstructions(appName string, instructions *models.Instructions) (*models.InstructionItem, error)
+	PromptInstructions(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error)
 }
 
 const (
@@ -37,7 +37,7 @@ var appsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
 {{ "Overview:" | faint }}	{{ .DirPath }}
 {{ else }}
 Exit Application
-{{ end }}`, CancelButtonName)
+{{ end }}`, CancelActionName)
 
 var instructionsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Id "%s") }}
 {{ "Information:" | blue }}
@@ -47,4 +47,4 @@ var instructionsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Id "%s") }}
 {{ "File:" | faint }}	{{ .File }}
 {{ else }}
 Go Back (App Selector)
-{{ end }}`, BackButtonName)
+{{ end }}`, BackActionName)

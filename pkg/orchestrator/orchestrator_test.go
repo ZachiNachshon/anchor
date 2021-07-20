@@ -114,7 +114,7 @@ var ExitAppsPromptMenuOnCancelButton = func(t *testing.T) {
 			appsPromptCallCount := 0
 			fakePrompter.PromptAppsMock = func(appsArr []*models.ApplicationInfo) (*models.ApplicationInfo, error) {
 				appsPromptCallCount++
-				return stubs.GetAppByName(appsArr, prompter.CancelButtonName), nil
+				return stubs.GetAppByName(appsArr, prompter.CancelActionName), nil
 			}
 
 			orchestrator := New(fakePrompter, fakeLocator, nil, nil, nil, nil)
@@ -122,7 +122,7 @@ var ExitAppsPromptMenuOnCancelButton = func(t *testing.T) {
 			assert.Nil(t, err, "expected orchestrator to exit successfully")
 			assert.Equal(t, 1, locateAppsCallCount)
 			assert.Equal(t, 1, appsPromptCallCount)
-			assert.EqualValues(t, prompter.CancelButtonName, item.Name)
+			assert.EqualValues(t, prompter.CancelActionName, item.Name)
 		})
 	})
 }
@@ -165,7 +165,7 @@ var FailToExtractInstruction = func(t *testing.T) {
 
 			fakeExtractor := extractor.CreateFakeExtractor()
 			extractorCallCount := 0
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
 				extractorCallCount++
 				assert.Equal(t, instructionsPath, app1.InstructionsPath)
 				return nil, fmt.Errorf("failed to extract instructions")
@@ -189,7 +189,7 @@ var FailToPromptForInstructions = func(t *testing.T) {
 
 			fakeExtractor := extractor.CreateFakeExtractor()
 			extractorCallCount := 0
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
 				extractorCallCount++
 				assert.Equal(t, instructionsPath, app1.InstructionsPath)
 				return instTestData, nil
@@ -197,7 +197,7 @@ var FailToPromptForInstructions = func(t *testing.T) {
 
 			fakePrompter := prompter.CreateFakePrompter()
 			instPromptCallCount := 0
-			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.InstructionItem, error) {
+			fakePrompter.PromptInstructionsMock = func(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error) {
 				instPromptCallCount++
 				return nil, fmt.Errorf("failed to prompt for instructions")
 			}
@@ -217,20 +217,20 @@ var SelectInstructionSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			apps := stubs.GenerateApplicationTestData()
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
-			instTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeExtractor := extractor.CreateFakeExtractor()
 			extractorCallCount := 0
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
 				extractorCallCount++
 				assert.Equal(t, instructionsPath, app1.InstructionsPath)
-				return instTestData, nil
+				return instRootTestData, nil
 			}
 
 			fakePrompter := prompter.CreateFakePrompter()
 			instPromptCallCount := 0
-			fakePrompter.PromptInstructionsMock = func(appName string, instructions *models.Instructions) (*models.InstructionItem, error) {
+			fakePrompter.PromptInstructionsMock = func(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error) {
 				instPromptCallCount++
 				return inst1, nil
 			}
@@ -248,8 +248,8 @@ var SelectInstructionSuccessfully = func(t *testing.T) {
 var FailToAskForUserInputBeforeRunningInstruction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeUserInput := input.CreateFakeUserInput()
 			userInputCallCount := 0
@@ -270,8 +270,8 @@ var FailToAskForUserInputBeforeRunningInstruction = func(t *testing.T) {
 var AskForUserInputBeforeRunningInstructionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeUserInput := input.CreateFakeUserInput()
 			userInputCallCount := 0
@@ -292,8 +292,8 @@ var AskForUserInputBeforeRunningInstructionSuccessfully = func(t *testing.T) {
 var RunInstructionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeShell := shell.CreateFakeShell()
 			execScriptCallCount := 0
@@ -329,8 +329,8 @@ var RunInstructionSuccessfully = func(t *testing.T) {
 var FailedToRunInstructionDueToScriptExecution = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeShell := shell.CreateFakeShell()
 			execScriptCallCount := 0
@@ -352,8 +352,8 @@ var FailedToRunInstructionDueToScriptExecution = func(t *testing.T) {
 var FailedToPromptForKeyPressAfterInstructionRun = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeShell := shell.CreateFakeShell()
 			execScriptCallCount := 0
@@ -383,8 +383,8 @@ var FailedToPromptForKeyPressAfterInstructionRun = func(t *testing.T) {
 var FailedToClearScreenAfterInstructionRun = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionItemById(instTestData, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeShell := shell.CreateFakeShell()
 			execScriptCallCount := 0

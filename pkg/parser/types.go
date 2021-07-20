@@ -7,7 +7,7 @@ import (
 )
 
 type Parser interface {
-	ParseInstructions(text string) (*models.Instructions, error)
+	ParseInstructions(text string) (*models.InstructionsRoot, error)
 	//Find(text string) string
 }
 

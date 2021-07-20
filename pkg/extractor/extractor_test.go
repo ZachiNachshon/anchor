@@ -24,14 +24,14 @@ func prepareInstructionTestFilePath() string {
 func Test_ExtractorShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "extract prompt items from instructions successfully",
-			Func: ExtractPromptItemsFromInstructions,
+			Name: "extract actions from instructions successfully",
+			Func: ExtractActionsFromInstructionsSuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var ExtractPromptItemsFromInstructions = func(t *testing.T) {
+var ExtractActionsFromInstructionsSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
@@ -41,15 +41,16 @@ var ExtractPromptItemsFromInstructions = func(t *testing.T) {
 				// And I create a new extractor
 				ext := New()
 				// When I extract prompt items
-				prompItems, err := ext.ExtractInstructions(path, parser.New())
+				instRoot, err := ext.ExtractInstructions(path, parser.New())
+				actions := instRoot.Instructions.Actions
 				// Then I expect to extract 3 items successfully
 				assert.Nil(t, err, "expected prompt item extraction to succeed")
-				assert.Equal(t, 3, len(prompItems.Items), "expected 3 instructions but found %v", len(prompItems.Items))
+				assert.Equal(t, 3, len(actions), "expected 3 instructions but found %v", len(actions))
 				// And their names should match the items from the first-app application
 				// TODO: Rename ids to alphanumeric characters to test ordering
-				assert.Equal(t, prompItems.Items[0].Id, "global-hello-world")
-				assert.Equal(t, prompItems.Items[1].Id, "goodbye-world")
-				assert.Equal(t, prompItems.Items[2].Id, "hello-world")
+				assert.Equal(t, "global-hello-world", actions[0].Id)
+				assert.Equal(t, "goodbye-world", actions[1].Id)
+				assert.Equal(t, "hello-world", actions[2].Id)
 			})
 		})
 	})

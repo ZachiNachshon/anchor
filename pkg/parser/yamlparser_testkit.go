@@ -1,18 +1,47 @@
 package parser
 
-var instructionsYamlText = `
-promptItems:
-  - id: hello-world
-    title: "Hello World"
-    file: /path/to/hello_world.sh
+var instructionsOnlyActionsYamlText = `
+instructions:
+  actions:
+    - id: hello-world
+      title: "Hello World"
+      description: "Print 'Hello World' to stdout"
+      script: |
+        echo "Hello"
+        echo "World"
 
-  - id: goodbye-world
-    title: "Goodbye World"
-    file: /path/to/goodbye_world.sh
+    - id: goodbye-world
+      title: "Goodbye World"
+      scriptFile: app/first-app/sub-folder/goodbye_world.sh
 
-autoRun:
-  - hello-world
+    - id: global-hello-world
+      title: "Global Hello World"
+      scriptFile: k8s/scripts/global_hello_world.sh
+`
 
-autoCleanup:
-  - goodbye-world
+var instructionsWithWorkflowsYamlText = `
+instructions:
+  actions:
+    - id: hello-world
+      title: "Hello World"
+      description: "Print 'Hello World' to stdout"
+      script: |
+        echo "Hello"
+        echo "World"
+
+    - id: goodbye-world
+      title: "Goodbye World"
+      scriptFile: app/first-app/sub-folder/goodbye_world.sh
+
+    - id: global-hello-world
+      title: "Global Hello World"
+      scriptFile: k8s/scripts/global_hello_world.sh
+
+  workflows:
+    - id: talk-to-the-world
+      description: "Talk to the world, starting from hello up to goodbye"
+      tolerateFailures: false
+      actionIds:
+        - hello-world
+        - goodbye-world
 `

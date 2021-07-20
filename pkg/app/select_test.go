@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-func Test_InstallActionShould(t *testing.T) {
+func Test_SelectActionShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
 			Name: "fail due to missing orchestrator from registry",
@@ -61,8 +61,8 @@ func Test_InstallActionShould(t *testing.T) {
 			Func: ReturnFromInstructionSelectionUsingTheBackOption,
 		},
 		{
-			Name: "fail to execute instruction it was after selected",
-			Func: FailToExecuteInstructionAfterItWasSelected,
+			Name: "fail to execute instruction upon selection",
+			Func: FailToExecuteInstructionUponSelection,
 		},
 		{
 			Name: "fail to run instruction execution flow",
@@ -171,7 +171,7 @@ var CancelApplicationSelectionFlowSuccessfully = func(t *testing.T) {
 			o.OrchestrateApplicationSelectionMock = func() (*models.ApplicationInfo, *errors.PromptError) {
 				selectionCallCount++
 				return &models.ApplicationInfo{
-					Name: prompter.CancelButtonName,
+					Name: prompter.CancelActionName,
 				}, nil
 			}
 			err := runApplicationSelectionFlow(o, ctx.AnchorFilesPath())
@@ -193,7 +193,7 @@ var RunInstructionFlowAfterApplicationSelectedSuccessfully = func(t *testing.T) 
 				return selectedApp, nil
 			}
 			instructionSelectCallCount := 0
-			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 				instructionSelectCallCount++
 				assert.Equal(t, app.Name, selectedApp.Name)
 				return nil, errors.NewInterruptError(fmt.Errorf("keyboard interrupt the test flow"))
@@ -224,7 +224,7 @@ var RunAppSelectionAgainIfInstructionsAreMissing = func(t *testing.T) {
 				}
 			}
 			instructionSelectCallCount := 0
-			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 				instructionSelectCallCount++
 				assert.Equal(t, app.Name, app1.Name)
 				return nil, errors.NewInstructionMissingError(fmt.Errorf("missing instructions"))
@@ -255,11 +255,11 @@ var RunAppSelectionAgainWhenSelectingInstructionsBackOption = func(t *testing.T)
 				}
 			}
 			instructionSelectCallCount := 0
-			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 				instructionSelectCallCount++
 				assert.Equal(t, app.Name, app1.Name)
-				return &models.InstructionItem{
-					Id: prompter.BackButtonName,
+				return &models.Action{
+					Id: prompter.BackActionName,
 				}, nil
 			}
 			err := runApplicationSelectionFlow(o, ctx.AnchorFilesPath())
@@ -278,7 +278,7 @@ var FailInstructionSelectionDueToError = func(t *testing.T) {
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
 			o := orchestrator.CreateFakeOrchestrator()
 			instructionSelectCallCount := 0
-			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 				instructionSelectCallCount++
 				assert.Equal(t, app.Name, app1.Name)
 				return nil, errors.New(fmt.Errorf("failed to select instruction item"))
@@ -299,37 +299,37 @@ var ReturnFromInstructionSelectionUsingTheBackOption = func(t *testing.T) {
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
 			o := orchestrator.CreateFakeOrchestrator()
 			instructionSelectCallCount := 0
-			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 				instructionSelectCallCount++
 				assert.Equal(t, app.Name, app1.Name)
-				return &models.InstructionItem{
-					Id: prompter.BackButtonName,
+				return &models.Action{
+					Id: prompter.BackActionName,
 				}, nil
 			}
 			item, promptError := runInstructionSelectionFlow(app1, o, ctx.AnchorFilesPath())
 			assert.NotNil(t, item, "expected to receive an input")
 			assert.Nil(t, promptError, "expected instruction selection not to fail")
-			assert.Equal(t, prompter.BackButtonName, item.Id)
+			assert.Equal(t, prompter.BackActionName, item.Id)
 			assert.Equal(t, 1, instructionSelectCallCount)
 		})
 	})
 }
 
-var FailToExecuteInstructionAfterItWasSelected = func(t *testing.T) {
+var FailToExecuteInstructionUponSelection = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			apps := stubs.GenerateApplicationTestData()
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
-			instructions := stubs.GenerateInstructionsTestData()
-			instructions1 := stubs.GetInstructionItemById(instructions, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			instructions1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 			o := orchestrator.CreateFakeOrchestrator()
 			instructionSelectCallCount := 0
-			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 				instructionSelectCallCount++
 				assert.Equal(t, app.Name, app1.Name)
 				return instructions1, nil
 			}
-			o.AskBeforeRunningInstructionMock = func(item *models.InstructionItem) (bool, *errors.PromptError) {
+			o.AskBeforeRunningInstructionMock = func(item *models.Action) (bool, *errors.PromptError) {
 				return false, errors.New(fmt.Errorf("failed to ask before running instruction"))
 			}
 			item, promptError := runInstructionSelectionFlow(app1, o, ctx.AnchorFilesPath())
@@ -344,11 +344,11 @@ var FailToExecuteInstructionAfterItWasSelected = func(t *testing.T) {
 var FailToRunInstructionExecutionFlow = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instructions := stubs.GenerateInstructionsTestData()
-			instructions1 := stubs.GetInstructionItemById(instructions, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			instructions1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 			o := orchestrator.CreateFakeOrchestrator()
 			askBeforeRunCallCount := 0
-			o.AskBeforeRunningInstructionMock = func(item *models.InstructionItem) (bool, *errors.PromptError) {
+			o.AskBeforeRunningInstructionMock = func(item *models.Action) (bool, *errors.PromptError) {
 				askBeforeRunCallCount++
 				// Do not run the instruction
 				return false, errors.New(fmt.Errorf("failed to ask user to press any key"))
@@ -366,11 +366,11 @@ var FailToRunInstructionExecutionFlow = func(t *testing.T) {
 var RunInstructionExecutionFlowWithoutRunningInstruction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instructions := stubs.GenerateInstructionsTestData()
-			instructions1 := stubs.GetInstructionItemById(instructions, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			instructions1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 			o := orchestrator.CreateFakeOrchestrator()
 			askBeforeRunCallCount := 0
-			o.AskBeforeRunningInstructionMock = func(item *models.InstructionItem) (bool, *errors.PromptError) {
+			o.AskBeforeRunningInstructionMock = func(item *models.Action) (bool, *errors.PromptError) {
 				askBeforeRunCallCount++
 				// Do not run the instruction
 				return false, nil
@@ -388,17 +388,17 @@ var RunInstructionExecutionFlowWithoutRunningInstruction = func(t *testing.T) {
 var RunInstructionExecutionFlowAndRunInstructionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			instructions := stubs.GenerateInstructionsTestData()
-			instructions1 := stubs.GetInstructionItemById(instructions, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			instructions1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 			o := orchestrator.CreateFakeOrchestrator()
 			askBeforeRunCallCount := 0
-			o.AskBeforeRunningInstructionMock = func(item *models.InstructionItem) (bool, *errors.PromptError) {
+			o.AskBeforeRunningInstructionMock = func(item *models.Action) (bool, *errors.PromptError) {
 				askBeforeRunCallCount++
 				// Do not run the instruction
 				return true, nil
 			}
 			runInstructionCallCount := 0
-			o.RunInstructionMock = func(item *models.InstructionItem, repoPath string) *errors.PromptError {
+			o.RunInstructionMock = func(item *models.Action, repoPath string) *errors.PromptError {
 				runInstructionCallCount++
 				return nil
 			}
@@ -417,17 +417,17 @@ var RunExecutionFlowAfterInstructionSelectionSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			apps := stubs.GenerateApplicationTestData()
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
-			instructions := stubs.GenerateInstructionsTestData()
-			instructions1 := stubs.GetInstructionItemById(instructions, stubs.App1InstructionsItem1Id)
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			instructions1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 			o := orchestrator.CreateFakeOrchestrator()
 			instructionSelectCallCount := 0
-			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+			o.OrchestrateInstructionSelectionMock = func(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 				instructionSelectCallCount++
 				assert.Equal(t, app.Name, app1.Name)
 				return instructions1, nil
 			}
 			askBeforeRunCallCount := 0
-			o.AskBeforeRunningInstructionMock = func(item *models.InstructionItem) (bool, *errors.PromptError) {
+			o.AskBeforeRunningInstructionMock = func(item *models.Action) (bool, *errors.PromptError) {
 				askBeforeRunCallCount++
 				// Use programmatic keyboard interrupt to stop the selection flow
 				return false, errors.NewInterruptError(fmt.Errorf("keyboard interrupt the test flow"))

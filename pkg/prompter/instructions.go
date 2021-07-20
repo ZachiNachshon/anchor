@@ -13,10 +13,10 @@ func GenerateRunInstructionMessage(id string, title string) string {
 		colors.Cyan, id, colors.Reset, colors.Purple, title, colors.Reset)
 }
 
-func preparePromptInstructionsItems(instructions *models.Instructions) promptui.Select {
+func preparePromptInstructionsActions(instructions *models.Instructions) promptui.Select {
 	appendInstructionCustomOptions(instructions)
 	instTemplate := prepareInstructionsTemplate(calculatePadding(instructions))
-	instSearcher := prepareInstructionsSearcher(instructions.Items)
+	instSearcher := prepareInstructionsSearcher(instructions.Actions)
 	return prepareInstructionsSelector(instructions, instTemplate, instSearcher)
 }
 
@@ -27,7 +27,7 @@ func calculatePadding(instructions *models.Instructions) (string, string) {
 
 func findLongestInstructionNameLength(instructions *models.Instructions) int {
 	maxNameLen := 0
-	for _, v := range instructions.Items {
+	for _, v := range instructions.Actions {
 		instNameLen := len(v.Id)
 		if instNameLen > maxNameLen {
 			maxNameLen = instNameLen
@@ -41,17 +41,23 @@ func setSearchInstructionsPrompt(appName string) {
 }
 
 func appendInstructionCustomOptions(instructions *models.Instructions) {
-	instItems := make([]*models.InstructionItem, 0, len(instructions.Items)+1)
-	back := &models.InstructionItem{
-		Id: BackButtonName,
+	actions := instructions.Actions
+
+	enrichedActionsList := make([]*models.Action, 0, len(actions)+2)
+	backAction := &models.Action{
+		Id: BackActionName,
 	}
-	workflows := &models.InstructionItem{
-		Id: "workflows...",
+	enrichedActionsList = append(enrichedActionsList, backAction)
+
+	if len(instructions.Workflows) > 0 {
+		workflowsAction := &models.Action{
+			Id: WorkflowsActionName,
+		}
+		enrichedActionsList = append(enrichedActionsList, workflowsAction)
 	}
-	instItems = append(instItems, back)
-	instItems = append(instItems, workflows)
-	instItems = append(instItems, instructions.Items...)
-	instructions.Items = instItems
+
+	enrichedActionsList = append(enrichedActionsList, actions...)
+	instructions.Actions = enrichedActionsList
 }
 
 func prepareInstructionsTemplate(activeSpacePadding string, inactiveSpacePadding string) *promptui.SelectTemplates {
@@ -64,7 +70,7 @@ func prepareInstructionsTemplate(activeSpacePadding string, inactiveSpacePadding
 	}
 }
 
-func prepareInstructionsSearcher(items []*models.InstructionItem) func(input string, index int) bool {
+func prepareInstructionsSearcher(items []*models.Action) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := items[index]
 		name := strings.Replace(strings.ToLower(item.Id), " ", "", -1)
@@ -80,7 +86,7 @@ func prepareInstructionsSelector(
 
 	return promptui.Select{
 		Label:             "",
-		Items:             instructions.Items,
+		Items:             instructions.Actions,
 		Templates:         templates,
 		Size:              10,
 		Searcher:          searcher,

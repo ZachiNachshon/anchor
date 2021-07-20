@@ -15,7 +15,7 @@ func New() Extractor {
 	return &extractorImpl{}
 }
 
-func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
 	if !ioutils.IsValidPath(instructionsPath) {
 		return nil, fmt.Errorf("invalid instructions path. path: %s", instructionsPath)
 	}
@@ -28,14 +28,27 @@ func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Pa
 		if instructions, err := p.ParseInstructions(text); err != nil {
 			return nil, err
 		} else {
-			return sortInstructions(instructions), nil
+			sortInstructions(instructions.Instructions)
+			sortWorkflows(instructions.Instructions)
+			return instructions, nil
 		}
 	}
 }
 
-func sortInstructions(instructions *models.Instructions) *models.Instructions {
-	sort.Slice(instructions.Items, func(i, j int) bool {
-		return instructions.Items[i].Id < instructions.Items[j].Id
+func sortInstructions(instructions *models.Instructions) {
+	if instructions == nil || instructions.Actions == nil {
+		return
+	}
+	sort.Slice(instructions.Actions, func(i, j int) bool {
+		return instructions.Actions[i].Id < instructions.Actions[j].Id
 	})
-	return instructions
+}
+
+func sortWorkflows(instructions *models.Instructions) {
+	if instructions == nil || instructions.Workflows == nil {
+		return
+	}
+	sort.Slice(instructions.Workflows, func(i, j int) bool {
+		return instructions.Workflows[i].Id < instructions.Workflows[j].Id
+	})
 }

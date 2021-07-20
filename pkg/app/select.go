@@ -31,7 +31,7 @@ func StartApplicationInstallFlow(ctx common.Context) error {
 func runApplicationSelectionFlow(o orchestrator.Orchestrator, repoPath string) *errors.PromptError {
 	if app, promptErr := o.OrchestrateApplicationSelection(); promptErr != nil {
 		return promptErr
-	} else if app.Name == prompter.CancelButtonName {
+	} else if app.Name == prompter.CancelActionName {
 		return nil
 	} else {
 		if instructionItem, promptErr := runInstructionSelectionFlow(app, o, repoPath); promptErr != nil {
@@ -39,17 +39,17 @@ func runApplicationSelectionFlow(o orchestrator.Orchestrator, repoPath string) *
 				return runApplicationSelectionFlow(o, repoPath)
 			}
 			return promptErr
-		} else if instructionItem.Id == prompter.BackButtonName {
+		} else if instructionItem.Id == prompter.BackActionName {
 			return runApplicationSelectionFlow(o, repoPath)
 		}
 		return nil
 	}
 }
 
-func runInstructionSelectionFlow(app *models.ApplicationInfo, o orchestrator.Orchestrator, repoPath string) (*models.InstructionItem, *errors.PromptError) {
+func runInstructionSelectionFlow(app *models.ApplicationInfo, o orchestrator.Orchestrator, repoPath string) (*models.Action, *errors.PromptError) {
 	if instructionItem, promptErr := o.OrchestrateInstructionSelection(app); promptErr != nil {
 		return nil, promptErr
-	} else if instructionItem.Id == prompter.BackButtonName {
+	} else if instructionItem.Id == prompter.BackActionName {
 		logger.Debugf("Selected to go back from instruction menu. id: %v", instructionItem.Id)
 		return instructionItem, nil
 	} else {
@@ -63,7 +63,7 @@ func runInstructionSelectionFlow(app *models.ApplicationInfo, o orchestrator.Orc
 	}
 }
 
-func runInstructionExecutionFlow(item *models.InstructionItem, o orchestrator.Orchestrator, repoPath string) (*models.InstructionItem, *errors.PromptError) {
+func runInstructionExecutionFlow(item *models.Action, o orchestrator.Orchestrator, repoPath string) (*models.Action, *errors.PromptError) {
 	if shouldRun, promptError := o.AskBeforeRunningInstruction(item); promptError != nil {
 		logger.Debugf("failed to ask before running an instruction. error: %s", promptError.GoError().Error())
 		return nil, promptError

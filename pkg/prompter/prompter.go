@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	BackButtonName   = "back"
-	CancelButtonName = "cancel"
-	selectorEmoji    = "\U0001F449"
+	BackActionName      = "back"
+	WorkflowsActionName = "workflows..."
+	CancelActionName    = "cancel"
+	selectorEmoji       = "\U0001F449"
 )
 
 type prompterImpl struct {
@@ -36,17 +37,18 @@ func (p *prompterImpl) PromptApps(apps []*models.ApplicationInfo) (*models.Appli
 	return appsEnhanced[i], nil
 }
 
-func (p *prompterImpl) PromptInstructions(appName string, instructions *models.Instructions) (*models.InstructionItem, error) {
+func (p *prompterImpl) PromptInstructions(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error) {
+	instructions := instructionsRoot.Instructions
 	setSearchInstructionsPrompt(appName)
-	instSelector := preparePromptInstructionsItems(instructions)
+	instSelector := preparePromptInstructionsActions(instructions)
 
 	i, _, err := instSelector.Run()
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debugf("selected instruction value. index: %d, name: %s", i, instructions.Items[i].Id)
-	return instructions.Items[i], nil
+	logger.Debugf("selected instruction value. index: %d, name: %s", i, instructions.Actions[i].Id)
+	return instructions.Actions[i], nil
 }
 
 func ClearScreen(selector promptui.Select) {

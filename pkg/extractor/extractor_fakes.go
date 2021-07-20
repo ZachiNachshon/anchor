@@ -11,9 +11,9 @@ var CreateFakeExtractor = func() *fakeExtractorImpl {
 
 type fakeExtractorImpl struct {
 	Extractor
-	ExtractInstructionsMock func(instructionsPath string, p parser.Parser) (*models.Instructions, error)
+	ExtractInstructionsMock func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error)
 }
 
-func (e *fakeExtractorImpl) ExtractInstructions(instructionsPath string, p parser.Parser) (*models.Instructions, error) {
+func (e *fakeExtractorImpl) ExtractInstructions(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
 	return e.ExtractInstructionsMock(instructionsPath, p)
 }

@@ -47,9 +47,9 @@ func (o *orchestratorImpl) OrchestrateApplicationSelection() (*models.Applicatio
 		return nil, errors.New(err)
 	} else {
 		logger.Debugf("Selected application. app: %v", app)
-		if app.Name == prompter.CancelButtonName {
+		if app.Name == prompter.CancelActionName {
 			return &models.ApplicationInfo{
-				Name: prompter.CancelButtonName,
+				Name: prompter.CancelActionName,
 			}, nil
 		} else {
 			return app, nil
@@ -57,13 +57,17 @@ func (o *orchestratorImpl) OrchestrateApplicationSelection() (*models.Applicatio
 	}
 }
 
-func (o *orchestratorImpl) OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.InstructionItem, *errors.PromptError) {
+func (o *orchestratorImpl) OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
 	path := app.InstructionsPath
-	if instructions, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
+	if instRoot, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
 		logger.Warningf("Failed to extract instructions from file. error: %s", err.Error())
 		return nil, errors.NewInstructionMissingError(err)
 	} else {
-		item, err := o.prompter.PromptInstructions(app.Name, instructions)
+		if instRoot == nil || instRoot.Instructions == nil {
+			// Perform the same flow (back action etc..) on empty instructions
+			instRoot = models.EmptyInstructionsRoot()
+		}
+		item, err := o.prompter.PromptInstructions(app.Name, instRoot)
 		if err != nil {
 			return nil, errors.New(err)
 		}
@@ -71,7 +75,7 @@ func (o *orchestratorImpl) OrchestrateInstructionSelection(app *models.Applicati
 	}
 }
 
-func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.InstructionItem) (bool, *errors.PromptError) {
+func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.Action) (bool, *errors.PromptError) {
 	question := prompter.GenerateRunInstructionMessage(item.Id, item.Title)
 	if res, err := o.input.AskYesNoQuestion(question); err != nil {
 		return false, errors.New(err)
@@ -80,7 +84,7 @@ func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.InstructionI
 	}
 }
 
-func (o *orchestratorImpl) RunInstruction(item *models.InstructionItem, repoPath string) *errors.PromptError {
+func (o *orchestratorImpl) RunInstruction(item *models.Action, repoPath string) *errors.PromptError {
 	logger.Debugf("Running: %v...", item.Id)
 	scriptRunPath, _ := config.GetDefaultScriptRunLogFilePath()
 	if err := o.shell.ExecuteScriptWithOutputToFile(repoPath, item.File, scriptRunPath); err != nil {
