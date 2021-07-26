@@ -8,7 +8,8 @@ import (
 
 type Prompter interface {
 	PromptApps(appsArr []*models.ApplicationInfo) (*models.ApplicationInfo, error)
-	PromptInstructions(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error)
+	PromptInstructionActions(appName string, actions []*models.Action) (*models.Action, error)
+	PromptInstructionWorkflows(appName string, workflows []*models.Workflow) (*models.Workflow, error)
 }
 
 const (
@@ -39,12 +40,49 @@ var appsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
 Exit Application
 {{ end }}`, CancelActionName)
 
-var instructionsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Id "%s") }}
-{{ "Information:" | blue }}
+var actionLengthiestOption = len("Description:")
+var leftPadding = 3
+var instructionsActionPromptTemplateDetails = `{{ if not (eq .Id "` + BackActionName + `") }}
+{{ "Information:\n" | blue }}
 
-{{ "Id:" | faint }}	{{ .Id }}
-{{ "Title:" | faint }}	{{ .Title }}
-{{ "File:" | faint }}	{{ .File }}
+{{- if not (eq .Id "") }}
+  {{ "Id:" | faint }}` + createCustomSpacesString(actionLengthiestOption-3+leftPadding) + `{{ .Id }}
+{{- end }}
+{{- if not (eq .Title "") }}
+  {{ "Title:" | faint }}` + createCustomSpacesString(actionLengthiestOption-6+leftPadding) + `{{ .Title }}
+{{- end }}
+{{- if not (eq .Script "") }} 
+  {{ "Script:" | faint }}` + createCustomSpacesString(actionLengthiestOption-7+leftPadding) + `{{ "(hidden)" }} 
+{{- end }}
+{{- if not (eq .ScriptFile "") }}
+  {{ "ScriptFile:" | faint }}` + createCustomSpacesString(actionLengthiestOption-11+leftPadding) + `{{ .ScriptFile }} 
+{{- end }}
+{{- if not (eq .Description "") }}
+  {{ "Description:" | faint }}` + createCustomSpacesString(leftPadding) + `{{ .Description }}
+{{- end }}
 {{ else }}
-Go Back (App Selector)
-{{ end }}`, BackActionName)
+  Go Back (App Selector)
+{{- end }}`
+
+var workflowLengthiestOption = len("Tolerate Failures:")
+var instructionsWorkflowPromptTemplateDetails = `{{ if not (eq .Id "` + BackActionName + `") }}
+{{ "Information:\n" | blue }}
+
+{{- if not (eq .Id "") }}
+  {{ "Id:" | faint }}` + createCustomSpacesString(workflowLengthiestOption-3+leftPadding) + `{{ .Id }}
+{{- end }}
+{{- if true }}
+  {{ "Tolerate Failures:" | faint }}` + createCustomSpacesString(leftPadding) + `{{ .TolerateFailures }}
+{{- end }}
+{{- if not (eq .Description "") }}
+  {{ "Description:" | faint }}` + createCustomSpacesString(workflowLengthiestOption-12+leftPadding) + `{{ .Description }}
+{{- end }}
+{{- if true }}
+  {{ "Action Ids:" | faint }}
+  {{ range $element := .ActionIds }}` +
+	createCustomSpacesString(workflowLengthiestOption+leftPadding) + `• {{ $element }}
+  {{ end }}
+{{- end }}
+{{ else }}
+  Go Back (Actions Selector)
+{{- end }}`

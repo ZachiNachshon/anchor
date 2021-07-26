@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
@@ -46,7 +47,6 @@ func (o *orchestratorImpl) OrchestrateApplicationSelection() (*models.Applicatio
 	if app, err := o.prompter.PromptApps(apps); err != nil {
 		return nil, errors.New(err)
 	} else {
-		logger.Debugf("Selected application. app: %v", app)
 		if app.Name == prompter.CancelActionName {
 			return &models.ApplicationInfo{
 				Name: prompter.CancelActionName,
@@ -57,26 +57,49 @@ func (o *orchestratorImpl) OrchestrateApplicationSelection() (*models.Applicatio
 	}
 }
 
-func (o *orchestratorImpl) OrchestrateInstructionSelection(app *models.ApplicationInfo) (*models.Action, *errors.PromptError) {
+func (o *orchestratorImpl) ExtractInstructions(
+	app *models.ApplicationInfo,
+	anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
+
 	path := app.InstructionsPath
-	if instRoot, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
+	if instructionsRoot, err := o.extractor.ExtractInstructions(path, o.parser); err != nil {
 		logger.Warningf("Failed to extract instructions from file. error: %s", err.Error())
 		return nil, errors.NewInstructionMissingError(err)
 	} else {
-		if instRoot == nil || instRoot.Instructions == nil {
-			// Perform the same flow (back action etc..) on empty instructions
-			instRoot = models.EmptyInstructionsRoot()
+		if instructionsRoot == nil || instructionsRoot.Instructions == nil {
+			// Perform the same prompt selection flow (back action etc..) on empty instructions due to invalid schema
+			instructionsRoot = models.EmptyInstructionsRoot()
+		} else {
+			enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath, instructionsRoot.Instructions.Actions)
 		}
-		item, err := o.prompter.PromptInstructions(app.Name, instRoot)
-		if err != nil {
-			return nil, errors.New(err)
-		}
-		return item, nil
+		return instructionsRoot, nil
 	}
 }
 
-func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.Action) (bool, *errors.PromptError) {
-	question := prompter.GenerateRunInstructionMessage(item.Id, item.Title)
+func (o *orchestratorImpl) OrchestrateInstructionActionSelection(
+	app *models.ApplicationInfo,
+	actions []*models.Action) (*models.Action, *errors.PromptError) {
+
+	item, err := o.prompter.PromptInstructionActions(app.Name, actions)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	return item, nil
+}
+
+func (o *orchestratorImpl) OrchestrateInstructionWorkflowSelection(
+	app *models.ApplicationInfo,
+	workflows []*models.Workflow) (*models.Workflow, *errors.PromptError) {
+
+	item, err := o.prompter.PromptInstructionWorkflows(app.Name, workflows)
+	if err != nil {
+		return nil, errors.New(err)
+	}
+	return item, nil
+}
+
+func (o *orchestratorImpl) AskBeforeRunningInstructionAction(action *models.Action) (bool, *errors.PromptError) {
+	question := prompter.GenerateRunInstructionMessage(action.Id, "action", action.Title)
 	if res, err := o.input.AskYesNoQuestion(question); err != nil {
 		return false, errors.New(err)
 	} else {
@@ -84,20 +107,77 @@ func (o *orchestratorImpl) AskBeforeRunningInstruction(item *models.Action) (boo
 	}
 }
 
-func (o *orchestratorImpl) RunInstruction(item *models.Action, repoPath string) *errors.PromptError {
-	logger.Debugf("Running: %v...", item.Id)
-	scriptRunPath, _ := config.GetDefaultScriptRunLogFilePath()
-	if err := o.shell.ExecuteScriptWithOutputToFile(repoPath, item.File, scriptRunPath); err != nil {
-		return errors.New(err)
+func (o *orchestratorImpl) AskBeforeRunningInstructionWorkflow(workflow *models.Workflow) (bool, *errors.PromptError) {
+	// TODO: Change description since it might be too long
+	question := prompter.GenerateRunInstructionMessage(workflow.Id, "workflow", workflow.Description)
+	if res, err := o.input.AskYesNoQuestion(question); err != nil {
+		return false, errors.New(err)
 	} else {
-		if inputErr := o.input.PressAnyKeyToContinue(); inputErr != nil {
-			logger.Debugf("Failed to prompt user to press any key after instruction run")
-			return errors.New(inputErr)
-		}
-		if err = o.shell.ClearScreen(); err != nil {
-			logger.Debugf("Failed to clear screen post instruction run")
+		return res, nil
+	}
+}
+
+func (o *orchestratorImpl) RunInstructionAction(action *models.Action) *errors.PromptError {
+	logger.Debugf("Running action: %v...", action.Id)
+	scriptOutputPath, _ := config.GetDefaultScriptOutputLogFilePath()
+
+	if len(action.Script) > 0 && len(action.ScriptFile) > 0 {
+		return errors.New(fmt.Errorf("script / scriptFile are mutual exclusive, please use either one"))
+	} else if len(action.Script) == 0 && len(action.ScriptFile) == 0 {
+		return errors.New(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
+	}
+
+	if len(action.Script) > 0 {
+		if err := o.shell.ExecuteWithOutputToFile(action.Script, scriptOutputPath); err != nil {
 			return errors.New(err)
 		}
-		return nil
+	} else if len(action.ScriptFile) > 0 {
+		if err := o.shell.ExecuteScriptFileWithOutputToFile(
+			action.AnchorfilesRepoPath,
+			action.ScriptFile,
+			scriptOutputPath); err != nil {
+
+			return errors.New(err)
+		}
+	}
+	return nil
+}
+
+func (o *orchestratorImpl) RunInstructionWorkflow(
+	workflow *models.Workflow,
+	actions []*models.Action) *errors.PromptError {
+
+	logger.Debugf("Running workflow: %v...", workflow.Id)
+	for _, actionId := range workflow.ActionIds {
+		action := models.GetInstructionActionById(actions, actionId)
+		if promptErr := o.RunInstructionAction(action); promptErr != nil && !workflow.TolerateFailures {
+			logger.Debugf("failed to run workflow and failures are not tolerable. "+
+				"workflow: %s, action: %s", workflow.Id, action.Id)
+			return promptErr
+		}
+	}
+	return nil
+}
+
+func (o *orchestratorImpl) WrapAfterActionRun() *errors.PromptError {
+	if inputErr := o.input.PressAnyKeyToContinue(); inputErr != nil {
+		logger.Debugf("Failed to prompt user to press any key after instruction action run")
+		return errors.New(inputErr)
+	}
+	if err := o.shell.ClearScreen(); err != nil {
+		logger.Debugf("Failed to clear screen post instruction action run")
+		return errors.New(err)
+	}
+	return nil
+}
+
+func enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath string, actions []*models.Action) {
+	if actions == nil {
+		return
+	}
+	for _, action := range actions {
+		if action.ScriptFile != "" {
+			action.AnchorfilesRepoPath = anchorfilesRepoPath
+		}
 	}
 }

@@ -6,30 +6,40 @@ var CreateFakeShell = func() *fakeShell {
 
 type fakeShell struct {
 	Shell
-	ExecuteMock                       func(script string) error
-	ExecuteSilentlyMock               func(script string) error
-	ExecuteScriptMock                 func(dir string, relativeScriptPath string, args ...string) error
-	ExecuteScriptWithOutputToFileMock func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error
-	ExecuteWithOutputMock             func(script string) (string, error)
-	ExecuteTTYMock                    func(script string) error
-	ExecuteInBackgroundMock           func(script string) error
-	ClearScreenMock                   func() error
+	ExecuteMock                           func(script string) error
+	ExecuteWithOutputToFileMock           func(script string, outputFilePath string) error
+	ExecuteSilentlyMock                   func(script string) error
+	ExecuteScriptFileMock                 func(dir string, relativeScriptPath string, args ...string) error
+	ExecuteScriptFileWithOutputToFileMock func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error
+	ExecuteWithOutputMock                 func(script string) (string, error)
+	ExecuteTTYMock                        func(script string) error
+	ExecuteInBackgroundMock               func(script string) error
+	ClearScreenMock                       func() error
 }
 
 func (s *fakeShell) Execute(script string) error {
 	return s.ExecuteMock(script)
 }
 
+func (s *fakeShell) ExecuteWithOutputToFile(script string, outputFilePath string) error {
+	return s.ExecuteWithOutputToFileMock(script, outputFilePath)
+}
+
 func (s *fakeShell) ExecuteSilently(script string) error {
 	return s.ExecuteSilentlyMock(script)
 }
 
-func (s *fakeShell) ExecuteScript(dir string, relativeScriptPath string, args ...string) error {
-	return s.ExecuteScriptMock(dir, relativeScriptPath, args...)
+func (s *fakeShell) ExecuteScriptFile(dir string, relativeScriptPath string, args ...string) error {
+	return s.ExecuteScriptFileMock(dir, relativeScriptPath, args...)
 }
 
-func (s *fakeShell) ExecuteScriptWithOutputToFile(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
-	return s.ExecuteScriptWithOutputToFileMock(dir, relativeScriptPath, outputFilePath, args...)
+func (s *fakeShell) ExecuteScriptFileWithOutputToFile(
+	workingDirectory string,
+	relativeScriptPath string,
+	outputFilePath string,
+	args ...string) error {
+
+	return s.ExecuteScriptFileWithOutputToFileMock(workingDirectory, relativeScriptPath, outputFilePath, args...)
 }
 
 func (s *fakeShell) ExecuteWithOutput(script string) (string, error) {

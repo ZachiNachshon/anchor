@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	BackActionName      = "back"
-	WorkflowsActionName = "workflows..."
-	CancelActionName    = "cancel"
-	selectorEmoji       = "\U0001F449"
+	BackActionName          = "back"
+	WorkflowsActionName     = "workflows..."
+	CancelActionName        = "cancel"
+	selectorEmoji           = "\U0001F449"
+	selectorEmojiCharLength = 3
 )
 
 type prompterImpl struct {
@@ -37,21 +38,33 @@ func (p *prompterImpl) PromptApps(apps []*models.ApplicationInfo) (*models.Appli
 	return appsEnhanced[i], nil
 }
 
-func (p *prompterImpl) PromptInstructions(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error) {
-	instructions := instructionsRoot.Instructions
+func (p *prompterImpl) PromptInstructionActions(appName string, actions []*models.Action) (*models.Action, error) {
 	setSearchInstructionsPrompt(appName)
-	instSelector := preparePromptInstructionsActions(instructions)
+	instSelector := preparePromptInstructionsActions(actions)
 
 	i, _, err := instSelector.Run()
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debugf("selected instruction value. index: %d, name: %s", i, instructions.Actions[i].Id)
-	return instructions.Actions[i], nil
+	logger.Debugf("selected instruction action. index: %d, name: %s", i, actions[i].Id)
+	return actions[i], nil
 }
 
-func ClearScreen(selector promptui.Select) {
+func (p *prompterImpl) PromptInstructionWorkflows(appName string, workflows []*models.Workflow) (*models.Workflow, error) {
+	setSearchInstructionsPrompt(appName + " (workflows)")
+	instSelector := preparePromptInstructionsWorkflows(workflows)
+
+	i, _, err := instSelector.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debugf("selected instruction workflow. index: %d, name: %s", i, workflows[i].Id)
+	return workflows[i], nil
+}
+
+func ClearPrompter(selector promptui.Select) {
 	buf := screenbuf.New(selector.Stdout)
 	err := buf.Clear()
 	if err != nil {
@@ -59,7 +72,15 @@ func ClearScreen(selector promptui.Select) {
 	}
 }
 
-func createPaddingString(length int) string {
+func createPaddingLeftString(length int) string {
 	// This is an example output "\"%-23s\""
-	return "\"%-" + fmt.Sprintf("%v", length) + "s\""
+	return "\"%-" + fmt.Sprintf("%d", length) + "s\""
+}
+
+func createCustomSpacesString(length int) string {
+	spaces := ""
+	for i := 0; i < length; i++ {
+		spaces += " "
+	}
+	return spaces
 }

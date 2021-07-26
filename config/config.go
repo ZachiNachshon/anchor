@@ -11,15 +11,15 @@ import (
 )
 
 const (
-	DefaultAuthor                  = "Zachi Nachshon <zachi.nachshon@gmail.com>"
-	DefaultLicense                 = "Apache"
-	DefaultRemoteBranch            = "master"
-	defaultConfigFileName          = "config"
-	defaultConfigFileType          = "yaml"
-	defaultConfigFolderPathFormat  = "%s/.config/anchor"
-	defaultRepoClonePathFormat     = "%s/.config/anchor/anchorfiles"
-	defaultLoggerLogFilePathFormat = "%s/.config/anchor/anchor.log"
-	defaultScriptRunFilePathFormat = "%s/.config/anchor/scripts-output.log"
+	DefaultAuthor                     = "Zachi Nachshon <zachi.nachshon@gmail.com>"
+	DefaultLicense                    = "Apache"
+	DefaultRemoteBranch               = "master"
+	defaultConfigFileName             = "config"
+	defaultConfigFileType             = "yaml"
+	defaultConfigFolderPathFormat     = "%s/.config/anchor"
+	defaultRepoClonePathFormat        = "%s/.config/anchor/anchorfiles"
+	defaultLoggerLogFilePathFormat    = "%s/.config/anchor/anchor.log"
+	defaultScriptOutputFilePathFormat = "%s/.config/anchor/scripts-output.log"
 )
 
 func GetConfigFilePath() (string, error) {
@@ -50,12 +50,12 @@ func GetDefaultLoggerLogFilePath() (string, error) {
 	}
 }
 
-func GetDefaultScriptRunLogFilePath() (string, error) {
+func GetDefaultScriptOutputLogFilePath() (string, error) {
 	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
 	} else {
-		return fmt.Sprintf(defaultScriptRunFilePathFormat, homeFolder), nil
+		return fmt.Sprintf(defaultScriptOutputFilePathFormat, homeFolder), nil
 	}
 }
 

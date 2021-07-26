@@ -6,15 +6,17 @@ import (
 )
 
 type Shell interface {
-	ExecuteScriptWithOutputToFile(
-		dir string,
+	ExecuteScriptFile(dir string, relativeScriptPath string, args ...string) error
+	ExecuteScriptFileWithOutputToFile(
+		workingDirectory string,
 		relativeScriptPath string,
 		outputFilePath string,
 		args ...string) error
 
-	ExecuteScript(dir string, relativeScriptPath string, args ...string) error
-	ExecuteWithOutput(script string) (string, error)
 	Execute(script string) error
+	ExecuteWithOutputToFile(script string, outputFilePath string) error
+
+	ExecuteWithOutput(script string) (string, error)
 	ExecuteSilently(script string) error
 	ExecuteTTY(script string) error
 	ExecuteInBackground(script string) error

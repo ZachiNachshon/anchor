@@ -6,7 +6,7 @@ instructions:
       script: |
         echo "Hello"
         echo "World"
-      scriptFile: app/first-app/sub-folder/hello_world.sh
+#      scriptFile: app/first-app/sub-folder/hello_world.sh
 
     - id: goodbye-world
       title: "Goodbye World"

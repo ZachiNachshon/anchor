@@ -11,7 +11,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-func StartApplicationInstallFlow(ctx common.Context) error {
+func StartApplicationSelectionFlow(ctx common.Context) error {
 	o, err := orchestrator.FromRegistry(ctx.Registry())
 	if err != nil {
 		return err
@@ -28,51 +28,117 @@ func StartApplicationInstallFlow(ctx common.Context) error {
 	return nil
 }
 
-func runApplicationSelectionFlow(o orchestrator.Orchestrator, repoPath string) *errors.PromptError {
+func runApplicationSelectionFlow(o orchestrator.Orchestrator, anchorfilesRepoPath string) *errors.PromptError {
 	if app, promptErr := o.OrchestrateApplicationSelection(); promptErr != nil {
 		return promptErr
 	} else if app.Name == prompter.CancelActionName {
 		return nil
 	} else {
-		if instructionItem, promptErr := runInstructionSelectionFlow(app, o, repoPath); promptErr != nil {
+		instRoot, promptError := o.ExtractInstructions(app, anchorfilesRepoPath)
+		if promptError != nil {
+			return runApplicationSelectionFlow(o, anchorfilesRepoPath)
+		}
+
+		if instructionItem, promptErr := runInstructionActionSelectionFlow(o, app, instRoot); promptErr != nil {
 			if promptErr.Code() == errors.InstructionMissingError {
-				return runApplicationSelectionFlow(o, repoPath)
+				return runApplicationSelectionFlow(o, anchorfilesRepoPath)
 			}
 			return promptErr
 		} else if instructionItem.Id == prompter.BackActionName {
-			return runApplicationSelectionFlow(o, repoPath)
+			return runApplicationSelectionFlow(o, anchorfilesRepoPath)
 		}
 		return nil
 	}
 }
 
-func runInstructionSelectionFlow(app *models.ApplicationInfo, o orchestrator.Orchestrator, repoPath string) (*models.Action, *errors.PromptError) {
-	if instructionItem, promptErr := o.OrchestrateInstructionSelection(app); promptErr != nil {
+func runInstructionActionSelectionFlow(
+	o orchestrator.Orchestrator,
+	app *models.ApplicationInfo,
+	instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError) {
+
+	appendInstructionActionsCustomOptions(instructionRoot.Instructions)
+	actions := instructionRoot.Instructions.Actions
+
+	if action, promptErr := o.OrchestrateInstructionActionSelection(app, actions); promptErr != nil {
 		return nil, promptErr
-	} else if instructionItem.Id == prompter.BackActionName {
-		logger.Debugf("Selected to go back from instruction menu. id: %v", instructionItem.Id)
-		return instructionItem, nil
-	} else {
-		logger.Debugf("Selected instruction to run. id: %v", instructionItem.Id)
-		if _, promptErr := runInstructionExecutionFlow(instructionItem, o, repoPath); promptErr != nil {
+	} else if action.Id == prompter.BackActionName {
+		logger.Debugf("Selected to go back from instruction actions menu. id: %v", action.Id)
+		return action, nil
+	} else if action.Id == prompter.WorkflowsActionName {
+		appendInstructionWorkflowsCustomOptions(instructionRoot.Instructions)
+		workflows := instructionRoot.Instructions.Workflows
+		logger.Debugf("Selected to prompt for instruction workflows menu. id: %v", action.Id)
+		if _, promptErr := runInstructionWorkflowSelectionFlow(o, app, workflows, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
-			// Clear screen
-			return runInstructionSelectionFlow(app, o, repoPath)
+			return runInstructionActionSelectionFlow(o, app, instructionRoot)
+		}
+	} else {
+		logger.Debugf("Selected instruction action to run. id: %v", action.Id)
+		if _, promptErr := runInstructionActionExecutionFlow(o, action); promptErr != nil {
+			return nil, promptErr
+		} else {
+			return runInstructionActionSelectionFlow(o, app, instructionRoot)
 		}
 	}
 }
 
-func runInstructionExecutionFlow(item *models.Action, o orchestrator.Orchestrator, repoPath string) (*models.Action, *errors.PromptError) {
-	if shouldRun, promptError := o.AskBeforeRunningInstruction(item); promptError != nil {
-		logger.Debugf("failed to ask before running an instruction. error: %s", promptError.GoError().Error())
+func runInstructionWorkflowSelectionFlow(
+	o orchestrator.Orchestrator,
+	app *models.ApplicationInfo,
+	workflows []*models.Workflow,
+	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
+
+	if workflow, promptError := o.OrchestrateInstructionWorkflowSelection(app, workflows); promptError != nil {
+		return nil, promptError
+	} else if workflow.Id == prompter.BackActionName {
+		logger.Debugf("Selected to go back from instruction workflow menu. id: %v", workflow.Id)
+		return workflow, nil
+	} else {
+		logger.Debugf("Selected instruction workflow to run. id: %v", workflow.Id)
+		if _, promptErr := runInstructionWorkflowExecutionFlow(o, workflow, actions); promptErr != nil {
+			return nil, promptErr
+		} else {
+			return runInstructionWorkflowSelectionFlow(o, app, workflows, actions)
+		}
+	}
+}
+
+func runInstructionActionExecutionFlow(
+	o orchestrator.Orchestrator,
+	action *models.Action) (*models.Action, *errors.PromptError) {
+
+	if shouldRun, promptError := o.AskBeforeRunningInstructionAction(action); promptError != nil {
+		logger.Debugf("failed to ask before running an instruction action. error: %s", promptError.GoError().Error())
 		return nil, promptError
 	} else if shouldRun {
-		if promptErr := o.RunInstruction(item, repoPath); promptErr != nil {
+		if promptErr := o.RunInstructionAction(action); promptErr != nil {
+			return nil, promptErr
+		}
+		if promptErr := o.WrapAfterActionRun(); promptErr != nil {
 			return nil, promptErr
 		}
 	}
-	return item, nil
+	return action, nil
+}
+
+func runInstructionWorkflowExecutionFlow(
+	o orchestrator.Orchestrator,
+	workflow *models.Workflow,
+	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
+
+	if shouldRun, promptError := o.AskBeforeRunningInstructionWorkflow(workflow); promptError != nil {
+		logger.Debugf("failed to ask before running an instruction workflow. error: %s", promptError.GoError().Error())
+		return nil, promptError
+	} else if shouldRun {
+		if promptErr := o.RunInstructionWorkflow(workflow, actions); promptErr != nil {
+			return nil, promptErr
+		}
+		if promptErr := o.WrapAfterActionRun(); promptErr != nil {
+			return nil, promptErr
+		}
+	}
+	return workflow, nil
 }
 
 func managePromptError(promptErr *errors.PromptError) error {
@@ -88,4 +154,44 @@ func managePromptError(promptErr *errors.PromptError) error {
 		logger.Debug(err.Error())
 		return err
 	}
+}
+
+func appendInstructionActionsCustomOptions(instructions *models.Instructions) {
+	actions := instructions.Actions
+
+	if ac := models.GetInstructionActionById(actions, prompter.BackActionName); ac != nil {
+		return
+	}
+
+	enrichedActionsList := make([]*models.Action, 0, len(actions)+2)
+	backAction := &models.Action{
+		Id: prompter.BackActionName,
+	}
+	enrichedActionsList = append(enrichedActionsList, backAction)
+
+	if len(instructions.Workflows) > 0 {
+		workflowsAction := &models.Action{
+			Id: prompter.WorkflowsActionName,
+		}
+		enrichedActionsList = append(enrichedActionsList, workflowsAction)
+	}
+
+	enrichedActionsList = append(enrichedActionsList, actions...)
+	instructions.Actions = enrichedActionsList
+}
+
+func appendInstructionWorkflowsCustomOptions(instructions *models.Instructions) {
+	workflows := instructions.Workflows
+
+	if wf := models.GetInstructionWorkflowById(workflows, prompter.BackActionName); wf != nil {
+		return
+	}
+
+	enrichedWorkflowsList := make([]*models.Workflow, 0, len(workflows)+1)
+	backAction := &models.Workflow{
+		Id: prompter.BackActionName,
+	}
+	enrichedWorkflowsList = append(enrichedWorkflowsList, backAction)
+	enrichedWorkflowsList = append(enrichedWorkflowsList, workflows...)
+	instructions.Workflows = enrichedWorkflowsList
 }

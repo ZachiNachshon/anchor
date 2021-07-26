@@ -29,20 +29,40 @@ func New() Shell {
 	}
 }
 
-func (s *shellExecutor) ExecuteScriptWithOutputToFile(
-	dir string,
+func (s *shellExecutor) ExecuteScriptFile(dir string, relativeScriptPath string, args ...string) error {
+	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
+	// Args must include the command as Args[0]
+	slice := append([]string{path}, args...)
+
+	cmd := &exec.Cmd{
+		Path:   path,
+		Args:   slice,
+		Dir:    dir,
+		Stdout: os.Stdout,
+		Stderr: os.Stdout,
+	}
+
+	// Execute
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
+	workingDirectory string,
 	relativeScriptPath string,
 	outputFilePath string,
 	args ...string) error {
 
-	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
+	path := fmt.Sprintf("%s/%s", workingDirectory, relativeScriptPath)
 	// Args must include the command as Args[0]
 	slice := append([]string{path}, args...)
 
 	cmd := &exec.Cmd{
 		Path: path,
 		Args: slice,
-		Dir:  dir,
+		Dir:  workingDirectory,
 	}
 
 	file, err := ioutils.CreateOrOpenFile(outputFilePath)
@@ -62,22 +82,35 @@ func (s *shellExecutor) ExecuteScriptWithOutputToFile(
 	return nil
 }
 
-func (s *shellExecutor) ExecuteScript(dir string, relativeScriptPath string, args ...string) error {
-	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
-	// Args must include the command as Args[0]
-	slice := append([]string{path}, args...)
+func (s *shellExecutor) Execute(script string) error {
+	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	cmd := &exec.Cmd{
-		Path:   path,
-		Args:   slice,
-		Dir:    dir,
-		Stdout: os.Stdout,
-		Stderr: os.Stdout,
-	}
-
-	// Execute
+	// Execute the command
 	if err := cmd.Run(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath string) error {
+	cmd := exec.Command(string(s.shellType), "-c", script)
+
+	file, err := ioutils.CreateOrOpenFile(outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	var _, stderrBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(os.Stdout, file)
+	cmd.Stderr = io.MultiWriter(os.Stderr, file)
+
+	err = cmd.Run()
+	if err != nil {
+		errStr := string(stderrBuf.Bytes())
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
 	}
 	return nil
 }
@@ -118,19 +151,6 @@ func (s *shellExecutor) ExecuteWithOutput(script string) (string, error) {
 		output = string(out)
 	}
 	return output, nil
-}
-
-func (s *shellExecutor) Execute(script string) error {
-	cmd := exec.Command(string(s.shellType), "-c", script)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	// Execute the command
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *shellExecutor) ExecuteSilently(script string) error {

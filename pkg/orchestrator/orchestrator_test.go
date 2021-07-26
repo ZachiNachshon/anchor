@@ -37,12 +37,12 @@ func Test_OrchestratorShould(t *testing.T) {
 			Func: FailToExtractInstruction,
 		},
 		{
-			Name: "fail to prompt for instructions",
-			Func: FailToPromptForInstructions,
+			Name: "fail to prompt for instructions actions",
+			Func: FailToPromptForInstructionsActions,
 		},
 		{
-			Name: "select instruction successfully",
-			Func: SelectInstructionSuccessfully,
+			Name: "select instruction action successfully",
+			Func: SelectInstructionActionSuccessfully,
 		},
 		{
 			Name: "fail to ask for user input before running instruction",
@@ -53,20 +53,20 @@ func Test_OrchestratorShould(t *testing.T) {
 			Func: AskForUserInputBeforeRunningInstructionSuccessfully,
 		},
 		{
-			Name: "run instruction successfully",
-			Func: RunInstructionSuccessfully,
+			Name: "run instruction action by script file successfully",
+			Func: RunInstructionActionByScriptFileSuccessfully,
 		},
 		{
-			Name: "failed to run instruction due to script execution",
-			Func: FailedToRunInstructionDueToScriptExecution,
+			Name: "failed to run script file for instruction action",
+			Func: FailedToRunScriptFileForInstructionAction,
 		},
 		{
-			Name: "failed to prompt for key press after instruction run",
-			Func: FailedToPromptForKeyPressAfterInstructionRun,
+			Name: "failed to run action due to script and script file mutual exclusivity",
+			Func: FailedToRunActionDueToScriptAndScriptFileMutualExclusivity,
 		},
 		{
 			Name: "failed to clear screen after instruction run",
-			Func: FailedToClearScreenAfterInstructionRun,
+			Func: FailedToRunActionDueToMissingScriptAndScriptFile,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -172,7 +172,7 @@ var FailToExtractInstruction = func(t *testing.T) {
 			}
 
 			orchestrator := New(nil, nil, fakeExtractor, nil, nil, nil)
-			instItem, err := orchestrator.OrchestrateInstructionSelection(app1)
+			instItem, err := orchestrator.ExtractInstructions(app1, ctx.AnchorFilesPath())
 			assert.Nil(t, instItem, "expected instruction to be empty")
 			assert.NotNil(t, err, "expected instruction selection to fail")
 			assert.Equal(t, 1, extractorCallCount)
@@ -180,66 +180,50 @@ var FailToExtractInstruction = func(t *testing.T) {
 	})
 }
 
-var FailToPromptForInstructions = func(t *testing.T) {
+var FailToPromptForInstructionsActions = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			apps := stubs.GenerateApplicationTestData()
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
 			instTestData := stubs.GenerateInstructionsTestData()
-
-			fakeExtractor := extractor.CreateFakeExtractor()
-			extractorCallCount := 0
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-				extractorCallCount++
-				assert.Equal(t, instructionsPath, app1.InstructionsPath)
-				return instTestData, nil
-			}
+			actions := instTestData.Instructions.Actions
 
 			fakePrompter := prompter.CreateFakePrompter()
 			instPromptCallCount := 0
-			fakePrompter.PromptInstructionsMock = func(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error) {
+			fakePrompter.PromptInstructionActionsMock = func(appName string, actions []*models.Action) (*models.Action, error) {
 				instPromptCallCount++
 				return nil, fmt.Errorf("failed to prompt for instructions")
 			}
 
-			orchestrator := New(fakePrompter, nil, fakeExtractor, nil, nil, nil)
-			instItem, err := orchestrator.OrchestrateInstructionSelection(app1)
+			orchestrator := New(fakePrompter, nil, nil, nil, nil, nil)
+			instItem, err := orchestrator.OrchestrateInstructionActionSelection(app1, actions)
 			assert.Nil(t, instItem, "expected instruction to be empty")
 			assert.NotNil(t, err, "expected instruction selection to fail")
-			assert.Equal(t, 1, extractorCallCount)
 			assert.Equal(t, 1, instPromptCallCount)
 		})
 	})
 }
 
-var SelectInstructionSuccessfully = func(t *testing.T) {
+var SelectInstructionActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			apps := stubs.GenerateApplicationTestData()
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
+			actions := instRootTestData.Instructions.Actions
 			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
-
-			fakeExtractor := extractor.CreateFakeExtractor()
-			extractorCallCount := 0
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-				extractorCallCount++
-				assert.Equal(t, instructionsPath, app1.InstructionsPath)
-				return instRootTestData, nil
-			}
 
 			fakePrompter := prompter.CreateFakePrompter()
 			instPromptCallCount := 0
-			fakePrompter.PromptInstructionsMock = func(appName string, instructionsRoot *models.InstructionsRoot) (*models.Action, error) {
+			fakePrompter.PromptInstructionActionsMock = func(appName string, actions []*models.Action) (*models.Action, error) {
 				instPromptCallCount++
 				return inst1, nil
 			}
 
-			orchestrator := New(fakePrompter, nil, fakeExtractor, nil, nil, nil)
-			instItem, err := orchestrator.OrchestrateInstructionSelection(app1)
+			orchestrator := New(fakePrompter, nil, nil, nil, nil, nil)
+			instItem, err := orchestrator.OrchestrateInstructionActionSelection(app1, actions)
 			assert.NotNil(t, instItem, "expected instruction not to be empty")
 			assert.Nil(t, err, "expected instruction selection not to fail")
-			assert.Equal(t, 1, extractorCallCount)
 			assert.Equal(t, 1, instPromptCallCount)
 		})
 	})
@@ -259,7 +243,7 @@ var FailToAskForUserInputBeforeRunningInstruction = func(t *testing.T) {
 			}
 
 			orchestrator := New(nil, nil, nil, nil, nil, fakeUserInput)
-			shouldRun, err := orchestrator.AskBeforeRunningInstruction(inst1)
+			shouldRun, err := orchestrator.AskBeforeRunningInstructionAction(inst1)
 			assert.Equal(t, false, shouldRun)
 			assert.NotNil(t, err, "expected instruction selection to fail")
 			assert.Equal(t, 1, userInputCallCount)
@@ -281,7 +265,7 @@ var AskForUserInputBeforeRunningInstructionSuccessfully = func(t *testing.T) {
 			}
 
 			orchestrator := New(nil, nil, nil, nil, nil, fakeUserInput)
-			shouldRun, err := orchestrator.AskBeforeRunningInstruction(inst1)
+			shouldRun, err := orchestrator.AskBeforeRunningInstructionAction(inst1)
 			assert.Equal(t, true, shouldRun)
 			assert.Nil(t, err, "expected instruction selection to succeed")
 			assert.Equal(t, 1, userInputCallCount)
@@ -289,59 +273,44 @@ var AskForUserInputBeforeRunningInstructionSuccessfully = func(t *testing.T) {
 	})
 }
 
-var RunInstructionSuccessfully = func(t *testing.T) {
+var RunInstructionActionByScriptFileSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			action := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeShell := shell.CreateFakeShell()
 			execScriptCallCount := 0
-			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
+			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
 				execScriptCallCount++
-				assert.Equal(t, relativeScriptPath, inst1.File)
+				assert.Equal(t, relativeScriptPath, action.ScriptFile)
 				return nil
 			}
 
-			clearScreenCallCount := 0
-			fakeShell.ClearScreenMock = func() error {
-				clearScreenCallCount++
-				return nil
-			}
-
-			fakeUserInput := input.CreateFakeUserInput()
-			pressAnyKeyCallCount := 0
-			fakeUserInput.PressAnyKeyToContinueMock = func() error {
-				pressAnyKeyCallCount++
-				return nil
-			}
-
-			orchestrator := New(nil, nil, nil, nil, fakeShell, fakeUserInput)
-			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
+			orchestrator := New(nil, nil, nil, nil, fakeShell, nil)
+			err := orchestrator.RunInstructionAction(action)
 			assert.Nil(t, err, "expected instruction run to succeed")
 			assert.Equal(t, 1, execScriptCallCount)
-			assert.Equal(t, 1, pressAnyKeyCallCount)
-			assert.Equal(t, 1, clearScreenCallCount)
 		})
 	})
 }
 
-var FailedToRunInstructionDueToScriptExecution = func(t *testing.T) {
+var FailedToRunScriptFileForInstructionAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			action := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
 			fakeShell := shell.CreateFakeShell()
 			execScriptCallCount := 0
-			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
+			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
 				execScriptCallCount++
-				assert.Equal(t, relativeScriptPath, inst1.File)
+				assert.Equal(t, relativeScriptPath, action.ScriptFile)
 				return fmt.Errorf("failed to execute script")
 			}
 
 			orchestrator := New(nil, nil, nil, nil, fakeShell, nil)
-			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
+			err := orchestrator.RunInstructionAction(action)
 			assert.NotNil(t, err, "expected instruction run to fail")
 			assert.Equal(t, "failed to execute script", err.GoError().Error())
 			assert.Equal(t, 1, execScriptCallCount)
@@ -349,71 +318,33 @@ var FailedToRunInstructionDueToScriptExecution = func(t *testing.T) {
 	})
 }
 
-var FailedToPromptForKeyPressAfterInstructionRun = func(t *testing.T) {
+var FailedToRunActionDueToScriptAndScriptFileMutualExclusivity = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			action := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			action.Script = "echo hello world"
 
-			fakeShell := shell.CreateFakeShell()
-			execScriptCallCount := 0
-			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
-				execScriptCallCount++
-				assert.Equal(t, relativeScriptPath, inst1.File)
-				return nil
-			}
-
-			fakeUserInput := input.CreateFakeUserInput()
-			pressAnyKeyCallCount := 0
-			fakeUserInput.PressAnyKeyToContinueMock = func() error {
-				pressAnyKeyCallCount++
-				return fmt.Errorf("failed to prompt for key press")
-			}
-
-			orchestrator := New(nil, nil, nil, nil, fakeShell, fakeUserInput)
-			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
-			assert.NotNil(t, err, "expected instruction run to fail")
-			assert.Equal(t, "failed to prompt for key press", err.GoError().Error())
-			assert.Equal(t, 1, execScriptCallCount)
-			assert.Equal(t, 1, pressAnyKeyCallCount)
+			orchestrator := New(nil, nil, nil, nil, nil, nil)
+			err := orchestrator.RunInstructionAction(action)
+			assert.NotNil(t, err, "expected instruction action run to fail")
+			assert.Contains(t, err.GoError().Error(), "script / scriptFile are mutual exclusive")
 		})
 	})
 }
 
-var FailedToClearScreenAfterInstructionRun = func(t *testing.T) {
+var FailedToRunActionDueToMissingScriptAndScriptFile = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			inst1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			action := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			action.Script = ""
+			action.ScriptFile = ""
 
-			fakeShell := shell.CreateFakeShell()
-			execScriptCallCount := 0
-			fakeShell.ExecuteScriptWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
-				execScriptCallCount++
-				assert.Equal(t, relativeScriptPath, inst1.File)
-				return nil
-			}
-
-			clearScreenCallCount := 0
-			fakeShell.ClearScreenMock = func() error {
-				clearScreenCallCount++
-				return fmt.Errorf("failed to clear screen")
-			}
-
-			fakeUserInput := input.CreateFakeUserInput()
-			pressAnyKeyCallCount := 0
-			fakeUserInput.PressAnyKeyToContinueMock = func() error {
-				pressAnyKeyCallCount++
-				return nil
-			}
-
-			orchestrator := New(nil, nil, nil, nil, fakeShell, fakeUserInput)
-			err := orchestrator.RunInstruction(inst1, ctx.AnchorFilesPath())
-			assert.NotNil(t, err, "expected instruction run to fail")
-			assert.Equal(t, "failed to clear screen", err.GoError().Error())
-			assert.Equal(t, 1, execScriptCallCount)
-			assert.Equal(t, 1, pressAnyKeyCallCount)
-			assert.Equal(t, 1, clearScreenCallCount)
+			orchestrator := New(nil, nil, nil, nil, nil, nil)
+			err := orchestrator.RunInstructionAction(action)
+			assert.NotNil(t, err, "expected instruction action run to fail")
+			assert.Contains(t, err.GoError().Error(), "missing script or scriptFile")
 		})
 	})
 }

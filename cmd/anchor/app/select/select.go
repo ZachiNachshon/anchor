@@ -20,7 +20,7 @@ func NewCommand(ctx common.Context, appActions *app.ApplicationActions) *selectC
 		Long:  `Select an application`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appActions.Install(ctx)
+			return appActions.Select(ctx)
 		},
 	}
 

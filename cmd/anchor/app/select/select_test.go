@@ -33,7 +33,7 @@ var StartTheSelectFlowSuccessfully = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &app.ApplicationActions{
-					Install: func(ctx common.Context) error {
+					Select: func(ctx common.Context) error {
 						callCount++
 						return nil
 					},
@@ -52,7 +52,7 @@ var FailCommandWhenSelectActionFailed = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &app.ApplicationActions{
-					Install: func(ctx common.Context) error {
+					Select: func(ctx common.Context) error {
 						callCount++
 						return fmt.Errorf("an error occurred")
 					},

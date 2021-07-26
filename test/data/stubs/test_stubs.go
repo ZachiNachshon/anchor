@@ -17,9 +17,9 @@ const (
 	App1Action1Title      = "app-1-a title"
 	App1Action1ScriptFile = "/path/to/app-1-a"
 
-	App1Action2Id    = "app-1-b"
-	App1Action2Title = "app-1-b title"
-	App1Action2File  = "/path/to/app-1-b"
+	App1Action2Id         = "app-1-b"
+	App1Action2Title      = "app-1-b title"
+	App1Action2ScriptFile = "/path/to/app-1-b"
 
 	App2Action1Id    = "app-2-a"
 	App2Action1Title = "app-2-a title"
@@ -87,15 +87,15 @@ var app1 = models.ApplicationInfo{
 }
 
 var app1Action1 = models.Action{
-	Id:    App1Action1Id,
-	Title: App1Action1Title,
-	File:  App1Action1ScriptFile,
+	Id:         App1Action1Id,
+	Title:      App1Action1Title,
+	ScriptFile: App1Action1ScriptFile,
 }
 
 var app1Action2 = models.Action{
-	Id:    App1Action2Id,
-	Title: App1Action2Title,
-	File:  App1Action2File,
+	Id:         App1Action2Id,
+	Title:      App1Action2Title,
+	ScriptFile: App1Action2ScriptFile,
 }
 
 var app1Workflow1 = models.Workflow{
@@ -112,15 +112,15 @@ var app2 = models.ApplicationInfo{
 }
 
 var app2Action1 = models.Action{
-	Id:    App2Action1Id,
-	Title: App2Action1Title,
-	File:  App2Action1File,
+	Id:         App2Action1Id,
+	Title:      App2Action1Title,
+	ScriptFile: App2Action1File,
 }
 
 var app2Action2 = models.Action{
-	Id:    App2Action2Id,
-	Title: App2Action2Title,
-	File:  App2Action2File,
+	Id:         App2Action2Id,
+	Title:      App2Action2Title,
+	ScriptFile: App2Action2File,
 }
 
 var app2Workflow1 = models.Workflow{
