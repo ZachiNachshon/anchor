@@ -38,7 +38,7 @@ func GetDefaultRepoClonePath(contextName string) (string, error) {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
 	} else {
-		return fmt.Sprintf(defaultRepoClonePathFormat+"%s", homeFolder, contextName), nil
+		return fmt.Sprintf(defaultRepoClonePathFormat+"/%s", homeFolder, contextName), nil
 	}
 }
 

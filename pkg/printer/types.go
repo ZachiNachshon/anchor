@@ -2,7 +2,6 @@ package printer
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
@@ -10,7 +9,7 @@ import (
 type Printer interface {
 	PrintAnchorBanner()
 	PrintApplications(apps []*models.ApplicationInfo)
-	PrintConfiguration(ctx common.Context, cfgFilePath string, cfgText string)
+	PrintConfiguration(cfgFilePath string, cfgText string)
 }
 
 const (

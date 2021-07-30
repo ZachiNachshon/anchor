@@ -2,24 +2,27 @@ package printer
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/ZachiNachshon/anchor/pkg/utils/templates"
 )
 
-var configPrintTemplate = `---
-Repository in-use: {{ .AnchorfilesRepoPath }}
----
-Configuration file path: {{ .ConfigFilePath }} 
----
-{{ .ConfigText }}`
+var configPrintTemplate = `{{ "Configuration Path:" | cyan }} 
+{{ .ConfigFilePath | yellow }} 
+
+{{ "Configuration:" | cyan }}
+{{ .ConfigText | yellow }}
+`
+
+var appsPrintTemplate = `{{ "Available Applications (" | cyan }}{{ .Count | red }}{{ "):" | cyan }}{{ range $element := .AppsInfo }}
+  • {{ $element.Name }}{{ end }}
+
+`
 
 type PrintConfigTemplateItems struct {
-	AnchorfilesRepoPath string
-	ConfigFilePath      string
-	ConfigText          string
+	ConfigFilePath string
+	ConfigText     string
 }
 
 type printerImpl struct {
@@ -30,7 +33,7 @@ func New() Printer {
 	return &printerImpl{}
 }
 
-func (b *printerImpl) PrintAnchorBanner() {
+func (p *printerImpl) PrintAnchorBanner() {
 	fmt.Printf(colors.Blue + `
      \                  |                  
     _ \    __ \    __|  __ \    _ \    __| 
@@ -41,20 +44,27 @@ func (b *printerImpl) PrintAnchorBanner() {
 }
 
 func (p *printerImpl) PrintApplications(apps []*models.ApplicationInfo) {
-	logger.Info("------ Applications ------")
-	for _, app := range apps {
-		logger.Infof("Name: %s", app)
+	data := struct {
+		AppsInfo []*models.ApplicationInfo
+		Count    int
+	}{
+		apps,
+		len(apps),
+	}
+	if text, err := templates.TemplateToText(appsPrintTemplate, data); err != nil {
+		logger.Error("Failed to prepare applications template string")
+	} else {
+		fmt.Print(text)
 	}
 }
 
-func (p *printerImpl) PrintConfiguration(ctx common.Context, cfgFilePath string, cfgText string) {
+func (p *printerImpl) PrintConfiguration(cfgFilePath string, cfgText string) {
 	var items = PrintConfigTemplateItems{
-		AnchorfilesRepoPath: ctx.AnchorFilesPath(),
-		ConfigFilePath:      cfgFilePath,
-		ConfigText:          cfgText,
+		ConfigFilePath: cfgFilePath,
+		ConfigText:     cfgText,
 	}
 	if text, err := templates.TemplateToText(configPrintTemplate, items); err != nil {
-		logger.Error("Failed to prepare configuration string")
+		logger.Error("Failed to prepare configuration template string")
 	} else {
 		fmt.Print(text)
 	}

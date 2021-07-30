@@ -23,7 +23,7 @@ func printConfiguration(ctx common.Context, cfgFilePath string, cfgText string) 
 	if p, err := printer.FromRegistry(ctx.Registry()); err != nil {
 		return err
 	} else {
-		p.PrintConfiguration(ctx, cfgFilePath, cfgText)
+		p.PrintConfiguration(cfgFilePath, cfgText)
 	}
 	return nil
 }

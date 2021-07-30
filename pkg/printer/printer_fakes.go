@@ -1,7 +1,6 @@
 package printer
 
 import (
-	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
 )
 
@@ -13,7 +12,7 @@ type fakePrinter struct {
 	Printer
 	PrintAnchorBannerMock  func()
 	PrintApplicationsMock  func(apps []*models.ApplicationInfo)
-	PrintConfigurationMock func(ctx common.Context, cfgFilePath string, cfgText string)
+	PrintConfigurationMock func(cfgFilePath string, cfgText string)
 }
 
 func (p *fakePrinter) PrintAnchorBanner() {
@@ -24,6 +23,6 @@ func (p *fakePrinter) PrintApplications(apps []*models.ApplicationInfo) {
 	p.PrintApplicationsMock(apps)
 }
 
-func (p *fakePrinter) PrintConfiguration(ctx common.Context, cfgFilePath string, cfgText string) {
-	p.PrintConfigurationMock(ctx, cfgFilePath, cfgText)
+func (p *fakePrinter) PrintConfiguration(cfgFilePath string, cfgText string) {
+	p.PrintConfigurationMock(cfgFilePath, cfgText)
 }

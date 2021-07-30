@@ -27,7 +27,7 @@ func structToMap(input interface{}) (map[string]interface{}, error) {
 }
 
 func parseConfigTemplate(templateText string, data interface{}) (string, error) {
-	if t, err := template.New("testkit").Parse(templateText); err != nil {
+	if t, err := template.New("anchorTemplates").Funcs(FuncMap).Parse(templateText); err != nil {
 		return "", err
 	} else {
 		templateItemsMap, convertErr := structToMap(data)
