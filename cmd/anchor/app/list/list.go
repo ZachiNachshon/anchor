@@ -19,8 +19,8 @@ func NewCommand(ctx common.Context, appActions *app.ApplicationActions) *listCmd
 		Short: "List all supported applications",
 		Long:  `List all supported applications`,
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
-			appActions.List(ctx)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return appActions.List(ctx)
 		},
 	}
 

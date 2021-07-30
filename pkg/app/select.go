@@ -6,8 +6,8 @@ import (
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/errors"
 	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
-	"github.com/ZachiNachshon/anchor/pkg/utils/banner"
 	"github.com/manifoldco/promptui"
 )
 
@@ -16,11 +16,11 @@ func StartApplicationSelectionFlow(ctx common.Context) error {
 	if err != nil {
 		return err
 	}
-	b, err := banner.FromRegistry(ctx.Registry())
+	p, err := printer.FromRegistry(ctx.Registry())
 	if err != nil {
 		return err
 	}
-	b.PrintAnchorBanner()
+	p.PrintAnchorBanner()
 	promptErr := runApplicationSelectionFlow(o, ctx.AnchorFilesPath())
 	if promptErr != nil {
 		return managePromptError(promptErr)

@@ -8,6 +8,7 @@ import (
 )
 
 type Printer interface {
+	PrintAnchorBanner()
 	PrintApplications(apps []*models.ApplicationInfo)
 	PrintConfiguration(ctx common.Context, cfgFilePath string, cfgText string)
 }

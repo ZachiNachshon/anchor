@@ -13,7 +13,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
-	"github.com/ZachiNachshon/anchor/pkg/utils/banner"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"os"
@@ -43,9 +42,6 @@ func injectComponents(ctx common.Context) {
 
 	o := orchestrator.New(pr, l, e, pa, s, in)
 	orchestrator.ToRegistry(ctx.Registry(), o)
-
-	b := banner.New()
-	banner.ToRegistry(ctx.Registry(), b)
 
 	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().shell)
 }

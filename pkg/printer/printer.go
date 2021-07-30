@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/ZachiNachshon/anchor/pkg/utils/templates"
 )
 
@@ -27,6 +28,16 @@ type printerImpl struct {
 
 func New() Printer {
 	return &printerImpl{}
+}
+
+func (b *printerImpl) PrintAnchorBanner() {
+	fmt.Printf(colors.Blue + `
+     \                  |                  
+    _ \    __ \    __|  __ \    _ \    __| 
+   ___ \   |   |  (     | | |  (   |  |    
+ _/    _\ _|  _| \___| _| |_| \___/  _|
+
+		` + colors.Reset)
 }
 
 func (p *printerImpl) PrintApplications(apps []*models.ApplicationInfo) {

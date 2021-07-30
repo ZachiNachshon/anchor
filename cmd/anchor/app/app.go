@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/ZachiNachshon/anchor/cmd/anchor/app/list"
 	_select "github.com/ZachiNachshon/anchor/cmd/anchor/app/select"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/app/status"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/app/versions"
@@ -48,6 +49,7 @@ func (cmd *appCmd) InitFlags() {
 func (cmd *appCmd) InitSubCommands() {
 	actions := app.DefineApplicationActions()
 	cmd.cobraCmd.AddCommand(_select.NewCommand(cmd.ctx, actions).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(list.NewCommand(cmd.ctx, actions).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(status.NewCommand(cmd.ctx).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(versions.NewCommand(cmd.ctx).GetCobraCmd())
 }

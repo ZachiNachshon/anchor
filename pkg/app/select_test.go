@@ -7,8 +7,8 @@ import (
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/errors"
 	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
-	"github.com/ZachiNachshon/anchor/pkg/utils/banner"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/ZachiNachshon/anchor/test/data/stubs"
@@ -26,7 +26,7 @@ func Test_SelectActionShould(t *testing.T) {
 		},
 		{
 			Name: "fail due to missing banner from registry",
-			Func: FailDueToMissingBannerFromRegistry,
+			Func: FailDueToMissingPrinterFromRegistry,
 		},
 		{
 			Name: "start application selection successfully",
@@ -106,7 +106,7 @@ var FailDueToMissingOrchestratorFromRegistry = func(t *testing.T) {
 	})
 }
 
-var FailDueToMissingBannerFromRegistry = func(t *testing.T) {
+var FailDueToMissingPrinterFromRegistry = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			fakeOrchestrator := orchestrator.CreateFakeOrchestrator()
@@ -120,7 +120,7 @@ var FailDueToMissingBannerFromRegistry = func(t *testing.T) {
 
 			err := StartApplicationSelectionFlow(ctx)
 			assert.NotNil(t, err, "expected to fail app install flow")
-			assert.Contains(t, err.Error(), "banner")
+			assert.Contains(t, err.Error(), "printer")
 		})
 	})
 }
@@ -143,9 +143,9 @@ var StartApplicationSelectionSuccessfully = func(t *testing.T) {
 			fakeUserInput := input.CreateFakeUserInput()
 			input.ToRegistry(ctx.Registry(), fakeUserInput)
 
-			fakeBanner := banner.CreateFakeBanner()
+			fakeBanner := printer.CreateFakePrinter()
 			fakeBanner.PrintAnchorBannerMock = func() {}
-			banner.ToRegistry(ctx.Registry(), fakeBanner)
+			printer.ToRegistry(ctx.Registry(), fakeBanner)
 
 			err := StartApplicationSelectionFlow(ctx)
 			assert.NotNil(t, err, "expected graceful failure due to keyboard interrupt")
