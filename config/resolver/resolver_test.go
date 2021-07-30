@@ -32,16 +32,10 @@ func Test_ResolverShould(t *testing.T) {
 var FailToGetResolverDueToInvalidConfig = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := `
-config:
-  repository:
-`
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				res, err := GetResolverBasedOnConfig(cfg.Config.Repository)
-				assert.Nil(t, res, "expected invalid resolver")
-				assert.NotNil(t, err, "expected to fail getting a repository resolver")
-				assert.Contains(t, err.Error(), "missing required config value")
-			})
+			res, err := GetResolverBasedOnConfig(nil)
+			assert.Nil(t, res, "expected invalid resolver")
+			assert.NotNil(t, err, "expected to fail getting a repository resolver")
+			assert.Contains(t, err.Error(), "missing required config value")
 		})
 	})
 }
@@ -51,17 +45,21 @@ var GetLocalResolverFromConfigSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
-  repository:
-    remote:
-      url: https://github.com/ZachiNachshon/dummy-repo.git      
-      revision: l33tf4k3c0mm1757r1n6 
-      branch: some-branch
-      clonePath: /best/path/ever
-    local:
-      path: /local/path/wins
+  currentContext: test-cfg-ctx
+  contexts:
+    - name: test-cfg-ctx
+      context:
+        repository: 
+          remote:
+            url: https://github.com/ZachiNachshon/dummy-repo.git      
+            revision: l33tf4k3c0mm1757r1n6 
+            branch: some-branch
+            clonePath: /best/path/ever
+          local:
+            path: /local/path/wins
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				res, err := GetResolverBasedOnConfig(cfg.Config.Repository)
+				res, err := GetResolverBasedOnConfig(cfg.Config.ActiveContext.Context.Repository)
 				assert.Equal(t, fmt.Sprintf("%T", &LocalResolver{}), fmt.Sprintf("%T", res), "expected a local resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
 			})
@@ -74,17 +72,21 @@ var GetRemoteResolverFromConfigSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
-  repository:
-    remote:
-      url: https://github.com/ZachiNachshon/dummy-repo.git      
-      revision: l33tf4k3c0mm1757r1n6 
-      branch: some-branch
-      clonePath: /best/path/ever
-    local:
-      path: ""
+  currentContext: test-cfg-ctx
+  contexts:
+    - name: test-cfg-ctx
+      context:
+        repository: 
+          remote:
+            url: https://github.com/ZachiNachshon/dummy-repo.git      
+            revision: l33tf4k3c0mm1757r1n6 
+            branch: some-branch
+            clonePath: /best/path/ever
+          local:
+            path: ""
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				res, err := GetResolverBasedOnConfig(cfg.Config.Repository)
+				res, err := GetResolverBasedOnConfig(cfg.Config.ActiveContext.Context.Repository)
 				assert.Equal(t, fmt.Sprintf("%T", &RemoteResolver{}), fmt.Sprintf("%T", res), "expected a remote resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
 			})

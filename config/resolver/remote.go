@@ -3,7 +3,6 @@ package resolver
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 )
 
@@ -47,10 +46,8 @@ func (rr *RemoteResolver) ResolveRepository(ctx common.Context) (string, error) 
 			return "", err
 		}
 
-		anchorConfig := config.FromContext(ctx)
-		repoUrl := anchorConfig.Config.Repository.Remote.Url
 		logger.Info("Checking anchorfiles remote HEAD revision...")
-		headRevision, err := rr.RemoteActions.TryFetchRemoteHeadRevision(clonePath, repoUrl, branch)
+		headRevision, err := rr.RemoteActions.TryFetchRemoteHeadRevision(clonePath, rr.RemoteConfig.Url, branch)
 		if err != nil {
 			return "", err
 		}

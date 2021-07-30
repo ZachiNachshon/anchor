@@ -95,10 +95,10 @@ var FailDueToInvalidRemoteRepoConfig = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				cfg.Config.Repository.Remote = nil
+				cfg.Config.ActiveContext.Context.Repository.Remote = nil
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
-				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.Repository.Remote)
+				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.ActiveContext.Context.Repository.Remote)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, "invalid remote repository configuration", err.Error())
 			})
@@ -111,10 +111,10 @@ var FailToVerifyRemoteRepoConfigDueToInvalidUrl = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				cfg.Config.Repository.Remote.Url = ""
+				cfg.Config.ActiveContext.Context.Repository.Remote.Url = ""
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
-				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.Repository.Remote)
+				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.ActiveContext.Context.Repository.Remote)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, "remote repository config is missing value. name: url", err.Error())
 			})
@@ -127,10 +127,10 @@ var FailToVerifyRemoteRepoConfigDueToInvalidBranch = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				cfg.Config.Repository.Remote.Branch = ""
+				cfg.Config.ActiveContext.Context.Repository.Remote.Branch = ""
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
-				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.Repository.Remote)
+				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.ActiveContext.Context.Repository.Remote)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, "remote repository config is missing value. name: branch", err.Error())
 			})
@@ -143,10 +143,10 @@ var FailToVerifyRemoteRepoConfigDueToInvalidClonePath = func(t *testing.T) {
 		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				cfg.Config.Repository.Remote.ClonePath = ""
+				cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath = ""
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
-				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.Repository.Remote)
+				err := actions.VerifyRemoteRepositoryConfig(cfg.Config.ActiveContext.Context.Repository.Remote)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, "remote repository config is missing value. name: clonePath", err.Error())
 			})
@@ -159,11 +159,15 @@ var FailToCloneRemoteRepositoryDueToGitCloneFailure = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
-  repository:
-    remote:
-      url: https://github.com/ZachiNachshon/dummy-repo.git
-      branch: some-branch
-      clonePath: /new/clone/path
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository:  
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /new/clone/path
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitCloneCallCount := 0
@@ -174,9 +178,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.CloneRepositoryIfMissing(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Url,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, 1, gitCloneCallCount)
@@ -191,11 +195,15 @@ var CloneRemoteRepositorySuccessfullyWhenClonePathIsMissing = func(t *testing.T)
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
-  repository:
-    remote:
-      url: https://github.com/ZachiNachshon/dummy-repo.git
-      branch: some-branch
-      clonePath: /new/clone/path
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /new/clone/path
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitCloneCallCount := 0
@@ -206,9 +214,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.CloneRepositoryIfMissing(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Url,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.Nil(t, err, "expected not to fail")
 				assert.Equal(t, 1, gitCloneCallCount)
@@ -223,11 +231,15 @@ var DoNotCloneNewRepositoryWhenClonePathExists = func(t *testing.T) {
 			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
-  repository:
-    remote:
-      url: https://github.com/ZachiNachshon/dummy-repo.git
-      branch: some-branch
-      clonePath: %s
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository:
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: %s
 `, ctx.AnchorFilesPath())
 
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
@@ -239,9 +251,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.CloneRepositoryIfMissing(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Url,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.Nil(t, err, "expected not to fail")
 				assert.Equal(t, 0, gitCloneCallCount)
@@ -255,14 +267,17 @@ var ResetToRevisionOnFirstTrySuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     revision: l33tf4k3c0mm1757r1n6
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       revision: l33tf4k3c0mm1757r1n6
+       clonePath: /path/to/clone
 `
-
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitResetCallCount := 0
 				fakeGit := git.CreateFakeGit()
@@ -272,9 +287,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch,
-					cfg.Config.Repository.Remote.Revision)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Revision)
 
 				assert.Nil(t, err, "expected not to fail")
 				assert.Equal(t, 1, gitResetCallCount)
@@ -288,12 +303,16 @@ var FailToFetchAfterFirstTryToResetFails = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     revision: l33tf4k3c0mm1757r1n6
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       revision: l33tf4k3c0mm1757r1n6
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitResetCallCount := 0
@@ -309,9 +328,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch,
-					cfg.Config.Repository.Remote.Revision)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Revision)
 
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to fetch", err.Error())
@@ -327,12 +346,16 @@ var ResetToRevisionOnSecondTrySuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     revision: l33tf4k3c0mm1757r1n6
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       revision: l33tf4k3c0mm1757r1n6
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitResetCallCount := 0
@@ -351,9 +374,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch,
-					cfg.Config.Repository.Remote.Revision)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Revision)
 
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 2, gitResetCallCount)
@@ -368,12 +391,16 @@ var FailToResetToRevisionOnSecondTry = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     revision: l33tf4k3c0mm1757r1n6
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       revision: l33tf4k3c0mm1757r1n6
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				gitResetCallCount := 0
@@ -392,9 +419,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryResetToRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch,
-					cfg.Config.Repository.Remote.Revision)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Revision)
 
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to reset to revision 2nd try", err.Error())
@@ -410,11 +437,15 @@ var FailedToFetchRemoteHeadRevision = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getHeadRevCallCount := 0
@@ -425,9 +456,9 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				revision, err := actions.TryFetchRemoteHeadRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Url,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "failed to get latest HEAD rev", err.Error())
@@ -443,11 +474,15 @@ var FetchRemoteHeadRevisionSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getHeadRevCallCount := 0
@@ -459,9 +494,9 @@ config:
 
 				actions := NewRemoteActions(fakeGit)
 				revision, err := actions.TryFetchRemoteHeadRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Url,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Url,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 1, getHeadRevCallCount)
@@ -476,11 +511,15 @@ var FetchLocalOriginRevisionSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getLocalOriginRevCallCount := 0
@@ -491,8 +530,8 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				revision, err := actions.TryFetchLocalOriginRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 1, getLocalOriginRevCallCount)
@@ -507,11 +546,15 @@ var FailedToFetchLocalOriginRevision = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				getLocalOriginRevCallCount := 0
@@ -522,8 +565,8 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				revision, err := actions.TryFetchLocalOriginRevision(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "failed to get local origin rev", err.Error())
@@ -539,11 +582,15 @@ var PrintRevisionsDiffSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				prevRevision := "l33tf4k3c0mm1757r1n6"
@@ -556,7 +603,7 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.PrintRevisionsDiff(
-					cfg.Config.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
 					prevRevision, headRevision)
 
 				assert.Nil(t, err, "expected to succeed")
@@ -571,11 +618,15 @@ var FailToCheckoutBranch = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				checkoutCallCount := 0
@@ -586,8 +637,8 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryCheckoutToBranch(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "failed to checkout branch", err.Error())
@@ -602,11 +653,15 @@ var CheckoutToBranchSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
- repository:
-   remote:
-     url: https://github.com/ZachiNachshon/dummy-repo.git
-     branch: some-branch
-     clonePath: /path/to/clone
+ currentContext: test-cfg-ctx
+ contexts:
+  - name: test-cfg-ctx
+    context:
+     repository: 
+      remote:
+       url: https://github.com/ZachiNachshon/dummy-repo.git
+       branch: some-branch
+       clonePath: /path/to/clone
 `
 			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 				checkoutCallCount := 0
@@ -617,8 +672,8 @@ config:
 				}
 				actions := NewRemoteActions(fakeGit)
 				err := actions.TryCheckoutToBranch(
-					cfg.Config.Repository.Remote.ClonePath,
-					cfg.Config.Repository.Remote.Branch)
+					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath,
+					cfg.Config.ActiveContext.Context.Repository.Remote.Branch)
 
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 1, checkoutCallCount)

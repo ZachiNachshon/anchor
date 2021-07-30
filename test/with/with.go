@@ -38,6 +38,8 @@ func Config(ctx common.Context, content string, f func(config config.AnchorConfi
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
 		config.SetInContext(ctx, *cfg)
+		// set current config context as the active config context
+		_ = config.LoadActiveConfigByName(cfg, cfg.Config.CurrentContext)
 		f(*cfg)
 	}
 }

@@ -2,6 +2,7 @@ package prompter
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/manifoldco/promptui"
@@ -24,18 +25,34 @@ func New() Prompter {
 	return &prompterImpl{}
 }
 
+func (p *prompterImpl) PromptConfigContext(cfgContexts []*config.Context) (*config.Context, error) {
+	setSearchConfigContextPrompt()
+	ctxSelector := preparePromptConfigContextItems(cfgContexts)
+	cfgContextsOptions := ctxSelector.Items.([]*config.Context)
+
+	generateConfigContextSelectionMessage()
+
+	i, _, err := ctxSelector.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debugf("Selected config context value. index: %d, name: %s", i, cfgContextsOptions[i].Name)
+	return cfgContextsOptions[i], nil
+}
+
 func (p *prompterImpl) PromptApps(apps []*models.ApplicationInfo) (*models.ApplicationInfo, error) {
 	setSearchAppPrompt()
 	appsSelector := preparePromptAppsItems(apps)
-	appsEnhanced := appsSelector.Items.([]*models.ApplicationInfo)
+	appsOptions := appsSelector.Items.([]*models.ApplicationInfo)
 
 	i, _, err := appsSelector.Run()
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debugf("Selected app value. index: %d, name: %s", i, appsEnhanced[i].Name)
-	return appsEnhanced[i], nil
+	logger.Debugf("Selected app value. index: %d, name: %s", i, appsOptions[i].Name)
+	return appsOptions[i], nil
 }
 
 func (p *prompterImpl) PromptInstructionActions(appName string, actions []*models.Action) (*models.Action, error) {

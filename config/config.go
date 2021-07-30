@@ -8,6 +8,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"strings"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	defaultConfigFileName             = "config"
 	defaultConfigFileType             = "yaml"
 	defaultConfigFolderPathFormat     = "%s/.config/anchor"
-	defaultRepoClonePathFormat        = "%s/.config/anchor/anchorfiles"
+	defaultRepoClonePathFormat        = "%s/.config/anchor/repositories"
 	defaultLoggerLogFilePathFormat    = "%s/.config/anchor/anchor.log"
 	defaultScriptOutputFilePathFormat = "%s/.config/anchor/scripts-output.log"
 )
@@ -32,12 +33,12 @@ func GetConfigFilePath() (string, error) {
 	}
 }
 
-func GetDefaultRepoClonePath() (string, error) {
+func GetDefaultRepoClonePath(contextName string) (string, error) {
 	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
 	} else {
-		return fmt.Sprintf(defaultRepoClonePathFormat, homeFolder), nil
+		return fmt.Sprintf(defaultRepoClonePathFormat+"%s", homeFolder, contextName), nil
 	}
 }
 
@@ -67,31 +68,20 @@ func SetInContext(ctx common.Context, config AnchorConfig) {
 	ctx.(common.ConfigSetter).SetConfig(config)
 }
 
-type AnchorConfig struct {
-	Config  *Config `yaml:"config"`
-	Author  string  `yaml:"author"`
-	License string  `yaml:"license"`
-}
+func LoadActiveConfigByName(cfg *AnchorConfig, cfgCtxName string) error {
+	loadedActiveCfgCtx := false
+	for _, cfgCtx := range cfg.Config.Contexts {
+		if strings.EqualFold(cfgCtx.Name, cfgCtxName) {
+			logger.Debugf("Loaded active config context. name: %s", cfgCtxName)
+			cfg.Config.ActiveContext = cfgCtx
+			loadedActiveCfgCtx = true
+		}
+	}
 
-type Config struct {
-	Repository *Repository `yaml:"repository"`
-}
-
-type Repository struct {
-	Remote *Remote `yaml:"remote"`
-	Local  *Local  `yaml:"local"`
-}
-
-type Remote struct {
-	Url        string `yaml:"url"`
-	Revision   string `yaml:"revision"`
-	Branch     string `yaml:"branch"`
-	ClonePath  string `yaml:"clonePath"`
-	AutoUpdate bool   `yaml:"autoUpdate"`
-}
-
-type Local struct {
-	Path string `yaml:"path"`
+	if !loadedActiveCfgCtx {
+		return fmt.Errorf("could not identify config context. name: %s", cfgCtxName)
+	}
+	return nil
 }
 
 func initConfigPath() error {
@@ -126,10 +116,15 @@ func listenOnConfigFileChanges() {
 	})
 }
 
-func createConfigObject() *AnchorConfig {
+func createConfigObject() (*AnchorConfig, error) {
 	var config Config
 	if err := viper.UnmarshalKey("config", &config); err != nil {
-		logger.Fatal(fmt.Sprintf("Failed to unmarshal configuration file. error: %s \n", err))
+		return nil, fmt.Errorf("Failed to unmarshal configuration file. error: %s \n", err)
+	}
+
+	err := validateConfigurations(&config)
+	if err != nil {
+		return nil, err
 	}
 
 	setDefaultsPostCreation(&config)
@@ -138,21 +133,50 @@ func createConfigObject() *AnchorConfig {
 		Config:  &config,
 		Author:  viper.GetString("author"),
 		License: viper.GetString("license"),
+	}, nil
+}
+
+func validateConfigurations(cfg *Config) error {
+	if cfg.Contexts == nil || len(cfg.Contexts) == 0 {
+		return fmt.Errorf("invalid configuration attribute. name: contexts")
 	}
+
+	for _, ctx := range cfg.Contexts {
+		if ctx.Context == nil {
+			return fmt.Errorf("invalid configuration attribute. context cannot be empty")
+		}
+
+		if ctx.Context.Repository == nil {
+			return fmt.Errorf("invalid configuration attribute. context repository cannot be empty")
+		}
+
+		if ctx.Context.Repository.Remote == nil &&
+			ctx.Context.Repository.Local == nil {
+			return fmt.Errorf("invalid configuration attribute. context repository must have valid remote/local attributes")
+		}
+	}
+	return nil
 }
 
 func setDefaultsPostCreation(cfg *Config) {
-	if cfg.Repository != nil && cfg.Repository.Remote != nil {
-		if cfg.Repository.Remote.ClonePath == "" {
-			clonePath, err := GetDefaultRepoClonePath()
-			if err != nil {
-				logger.Fatal("failed to resolve default repo clone path")
+	for _, ctx := range cfg.Contexts {
+		if ctx.Context != nil {
+			repository := ctx.Context.Repository
+			if repository.Remote == nil {
+				// Local must be set else validation would fail
+				return
 			}
-			cfg.Repository.Remote.ClonePath = clonePath
-		}
+			if repository.Remote.ClonePath == "" {
+				clonePath, err := GetDefaultRepoClonePath(ctx.Name)
+				if err != nil {
+					logger.Fatal("failed to resolve default repo clone path")
+				}
+				repository.Remote.ClonePath = clonePath
+			}
 
-		if cfg.Repository.Remote.Branch == "" {
-			cfg.Repository.Remote.Branch = DefaultRemoteBranch
+			if repository.Remote.Branch == "" {
+				repository.Remote.Branch = DefaultRemoteBranch
+			}
 		}
 	}
 }
@@ -166,7 +190,7 @@ var ViperConfigInMemoryLoader = func(yaml string) (*AnchorConfig, error) {
 		return nil, err
 	}
 
-	return createConfigObject(), nil
+	return createConfigObject()
 }
 
 var ViperConfigFileLoader = func() (*AnchorConfig, error) {
@@ -193,5 +217,5 @@ var ViperConfigFileLoader = func() (*AnchorConfig, error) {
 	viper.SetEnvPrefix("ANCHOR")
 	viper.AutomaticEnv()
 
-	return createConfigObject(), nil
+	return createConfigObject()
 }

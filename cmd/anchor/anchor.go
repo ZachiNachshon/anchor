@@ -1,17 +1,20 @@
 package anchor
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/app"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/completion"
-	"github.com/ZachiNachshon/anchor/cmd/anchor/config"
+	configCmd "github.com/ZachiNachshon/anchor/cmd/anchor/config"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/controller"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/common"
-	cfgModels "github.com/ZachiNachshon/anchor/config"
+	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/config/resolver"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
+	"github.com/ZachiNachshon/anchor/pkg/prompter"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +67,7 @@ func (cmd *anchorCmd) InitSubCommands() {
 	cmd.cobraCmd.AddCommand(controller.NewCommand(cmd.ctx, loadRepoOrFail).GetCobraCmd())
 
 	// Config Commands
-	cmd.cobraCmd.AddCommand(config.NewCommand(cmd.ctx).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(configCmd.NewCommand(cmd.ctx).GetCobraCmd())
 
 	// Version
 	cmd.cobraCmd.AddCommand(version.NewCommand(cmd.ctx).GetCobraCmd())
@@ -86,9 +89,38 @@ func (cmd *anchorCmd) Execute() {
 	}
 }
 
+func loadConfigContextOrPrompt(ctx common.Context, cfg *config.AnchorConfig) error {
+	contextName := cfg.Config.CurrentContext
+	if len(contextName) == 0 {
+		if prompt, err := prompter.FromRegistry(ctx.Registry()); err != nil {
+			return err
+		} else {
+			if selectedCfgCtx, err := prompt.PromptConfigContext(cfg.Config.Contexts); err != nil {
+				return err
+			} else if selectedCfgCtx.Name == prompter.CancelActionName {
+				return fmt.Errorf("cannot proceed without selecting a configuration context, aborting")
+			} else {
+				// Do not fail if screen cannot be cleared
+				if s, err := shell.FromRegistry(ctx.Registry()); err == nil {
+					_ = s.ClearScreen()
+				}
+				contextName = selectedCfgCtx.Name
+			}
+		}
+	}
+	return config.LoadActiveConfigByName(cfg, contextName)
+}
+
 func loadRepoOrFail(ctx common.Context) {
-	cfg := ctx.Config().(cfgModels.AnchorConfig)
-	rslvr, err := resolver.GetResolverBasedOnConfig(cfg.Config.Repository)
+	cfg := ctx.Config().(config.AnchorConfig)
+
+	err := loadConfigContextOrPrompt(ctx, &cfg)
+	if err != nil {
+		logger.Fatalf(err.Error())
+		return
+	}
+
+	rslvr, err := resolver.GetResolverBasedOnConfig(cfg.Config.ActiveContext.Context.Repository)
 	if err != nil {
 		logger.Fatalf(err.Error())
 		return
