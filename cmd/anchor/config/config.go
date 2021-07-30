@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/ZachiNachshon/anchor/cmd/anchor/config/edit"
 	printcmd "github.com/ZachiNachshon/anchor/cmd/anchor/config/print"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
@@ -43,4 +44,5 @@ func (cmd *configCmd) InitFlags() {
 func (cmd *configCmd) InitSubCommands() {
 	actions := cfg.DefineConfigurationActions()
 	cmd.cobraCmd.AddCommand(printcmd.NewCommand(cmd.ctx, actions).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(edit.NewCommand(cmd.ctx, actions).GetCobraCmd())
 }

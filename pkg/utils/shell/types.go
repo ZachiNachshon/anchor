@@ -18,6 +18,10 @@ type Shell interface {
 
 	ExecuteWithOutput(script string) (string, error)
 	ExecuteSilently(script string) error
+
+	// ExecuteTTY executes a script as a TeleTYpewrite, this allow us to run interactive commands
+	// by creating a unix pseudo-terminals.
+	// Used for cases of starting applications programmatically such as vi, sublime etc..
 	ExecuteTTY(script string) error
 	ExecuteInBackground(script string) error
 	ClearScreen() error

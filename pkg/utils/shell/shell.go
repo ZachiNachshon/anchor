@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
-	gotty "github.com/mattn/go-tty"
+	"github.com/creack/pty"
+	"golang.org/x/term"
 	"io"
 	"os"
 	"os/exec"
-	"strings"
+	"os/signal"
+	"syscall"
 )
 
 type ShellType string
@@ -115,25 +117,42 @@ func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath st
 	return nil
 }
 
+// ExecuteTTY example was inspired by - https://github.com/creack/pty#shell
 func (s *shellExecutor) ExecuteTTY(script string) error {
-	tty, err := gotty.Open()
+	c := exec.Command(string(s.shellType), "-c", script)
+
+	// Start the command with a pty
+	ptmx, err := pty.Start(c)
 	if err != nil {
 		return err
 	}
-	defer tty.Close()
+	// Make sure to close the pty at the end
+	defer func() { _ = ptmx.Close() }() // Best effort
 
-	args := strings.Fields(script)
-	cmd := exec.Command(args[0], args[1:]...)
+	// Handle pty size
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGWINCH)
+	go func() {
+		for range ch {
+			if err := pty.InheritSize(os.Stdin, ptmx); err != nil {
+				logger.Debugf("error resizing pty: %s", err)
+			}
+		}
+	}()
+	ch <- syscall.SIGWINCH                        // Initial resize
+	defer func() { signal.Stop(ch); close(ch) }() // Cleanup signals when done
 
-	// Setup the command's standard input/output/error
-	cmd.Stdin = tty.Input()
-	cmd.Stdout = tty.Output()
-	cmd.Stderr = tty.Output()
-
-	// Execute
-	if err := cmd.Run(); err != nil {
-		return err
+	// Set stdin in raw mode
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
 	}
+	defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }() // Best effort
+
+	// Copy stdin to the pty and the pty to stdout
+	// NOTE: The goroutine will keep reading until the next keystroke before returning
+	go func() { _, _ = io.Copy(ptmx, os.Stdin) }()
+	_, _ = io.Copy(os.Stdout, ptmx)
 
 	return nil
 }
