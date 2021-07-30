@@ -5,7 +5,7 @@ import "fmt"
 var configContextPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
 {{ "Hint:" | blue }}
 {{ "Lock the selected config context as the active one using:" | faint }}
-  • {{ "anchor" | green }} config set-context {{ .Name | cyan }}
+  • {{ "anchor" | green }} config use-context {{ .Name | cyan }}
 
 {{ else }}
 {{ "Exit Application" | faint }}

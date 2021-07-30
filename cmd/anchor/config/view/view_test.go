@@ -1,4 +1,4 @@
-package printcmd
+package view
 
 import (
 	"fmt"

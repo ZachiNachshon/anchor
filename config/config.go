@@ -60,6 +60,18 @@ func GetDefaultScriptOutputLogFilePath() (string, error) {
 	}
 }
 
+func OverrideConfigEntry(entryName string, value interface{}) error {
+	viper.Set(entryName, value)
+	if !viper.IsSet(entryName) {
+		return fmt.Errorf("failed to set configuration entry. name: %s, value: %s", entryName, value)
+	}
+	err := viper.WriteConfig()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func FromContext(ctx common.Context) AnchorConfig {
 	return ctx.Config().(AnchorConfig)
 }
@@ -68,20 +80,23 @@ func SetInContext(ctx common.Context, config AnchorConfig) {
 	ctx.(common.ConfigSetter).SetConfig(config)
 }
 
-func LoadActiveConfigByName(cfg *AnchorConfig, cfgCtxName string) error {
-	loadedActiveCfgCtx := false
+func TryGetConfigContext(cfg *AnchorConfig, cfgCtxName string) *Context {
 	for _, cfgCtx := range cfg.Config.Contexts {
 		if strings.EqualFold(cfgCtx.Name, cfgCtxName) {
-			logger.Debugf("Loaded active config context. name: %s", cfgCtxName)
-			cfg.Config.ActiveContext = cfgCtx
-			loadedActiveCfgCtx = true
+			return cfgCtx
 		}
 	}
-
-	if !loadedActiveCfgCtx {
-		return fmt.Errorf("could not identify config context. name: %s", cfgCtxName)
-	}
 	return nil
+}
+
+func LoadActiveConfigByName(cfg *AnchorConfig, cfgCtxName string) error {
+	if cfgCtx := TryGetConfigContext(cfg, cfgCtxName); cfgCtx == nil {
+		return fmt.Errorf("could not identify config context. name: %s", cfgCtxName)
+	} else {
+		logger.Debugf("Loaded active config context. name: %s", cfgCtxName)
+		cfg.Config.ActiveContext = cfgCtx
+		return nil
+	}
 }
 
 func initConfigPath() error {
@@ -112,7 +127,7 @@ func listenOnConfigFileChanges() {
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		// Suggest to git fetch the repository
-		logger.Infof("Config file changed:", e.Name)
+		logger.Debugf("Config file changed. event: %s", e.Name)
 	})
 }
 
@@ -206,12 +221,13 @@ var ViperConfigFileLoader = func() (*AnchorConfig, error) {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			setDefaults()
 			createConfigFileWithDefaults()
-			listenOnConfigFileChanges()
 		} else {
 			logger.Errorf("Config file was found but an error occurred. error: %s", err)
 			return nil, err
 		}
 	}
+
+	listenOnConfigFileChanges()
 
 	// Every viper.Get request auto checks for ANCHOR_<flag-name> before reading from config file
 	viper.SetEnvPrefix("ANCHOR")

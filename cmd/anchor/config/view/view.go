@@ -1,4 +1,4 @@
-package printcmd
+package view
 
 import (
 	"github.com/ZachiNachshon/anchor/common"
@@ -7,35 +7,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type printCmd struct {
+type viewCmd struct {
 	models.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, configActions *cfg.ConfigurationActions) *printCmd {
+func NewCommand(ctx common.Context, configActions *cfg.ConfigurationActions) *viewCmd {
 	var cobraCmd = &cobra.Command{
-		Use:   "print",
-		Short: "Print configuration content",
-		Long:  `Print configuration content`,
+		Use:   "view",
+		Short: "Display configuration file settings",
+		Long:  `Display configuration file settings`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return configActions.Print(ctx)
 		},
 	}
 
-	return &printCmd{
+	return &viewCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
 	}
 }
 
-func (cmd *printCmd) GetCobraCmd() *cobra.Command {
+func (cmd *viewCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *printCmd) InitFlags() {
+func (cmd *viewCmd) InitFlags() {
 }
 
-func (cmd *printCmd) InitSubCommands() {
+func (cmd *viewCmd) InitSubCommands() {
 }
