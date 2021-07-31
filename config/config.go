@@ -8,6 +8,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 	"strings"
 )
 
@@ -60,11 +61,31 @@ func GetDefaultScriptOutputLogFilePath() (string, error) {
 	}
 }
 
+// OverrideConfig merge the configuration from disk with the in-memory configuration
+func OverrideConfig(cfgToUpdate AnchorConfig) error {
+	out, err := yaml.Marshal(cfgToUpdate)
+	if err != nil {
+		return err
+	}
+	err = viper.MergeConfig(bytes.NewBuffer(out))
+	if err != nil {
+		return err
+	}
+
+	return writeConfigEntry()
+}
+
+// OverrideConfigEntry allows to update delimited config values
+// Note that updating dynamic config context values is not supported
 func OverrideConfigEntry(entryName string, value interface{}) error {
 	viper.Set(entryName, value)
 	if !viper.IsSet(entryName) {
 		return fmt.Errorf("failed to set configuration entry. name: %s, value: %s", entryName, value)
 	}
+	return writeConfigEntry()
+}
+
+func writeConfigEntry() error {
 	err := viper.WriteConfig()
 	if err != nil {
 		return err
@@ -80,8 +101,11 @@ func SetInContext(ctx common.Context, config AnchorConfig) {
 	ctx.(common.ConfigSetter).SetConfig(config)
 }
 
-func TryGetConfigContext(cfg *AnchorConfig, cfgCtxName string) *Context {
-	for _, cfgCtx := range cfg.Config.Contexts {
+func TryGetConfigContext(contexts []*Context, cfgCtxName string) *Context {
+	if contexts == nil {
+		return nil
+	}
+	for _, cfgCtx := range contexts {
 		if strings.EqualFold(cfgCtx.Name, cfgCtxName) {
 			return cfgCtx
 		}
@@ -90,7 +114,7 @@ func TryGetConfigContext(cfg *AnchorConfig, cfgCtxName string) *Context {
 }
 
 func LoadActiveConfigByName(cfg *AnchorConfig, cfgCtxName string) error {
-	if cfgCtx := TryGetConfigContext(cfg, cfgCtxName); cfgCtx == nil {
+	if cfgCtx := TryGetConfigContext(cfg.Config.Contexts, cfgCtxName); cfgCtx == nil {
 		return fmt.Errorf("could not identify config context. name: %s", cfgCtxName)
 	} else {
 		logger.Debugf("Loaded active config context. name: %s", cfgCtxName)
@@ -123,11 +147,15 @@ func createConfigFileWithDefaults() {
 	}
 }
 
-func listenOnConfigFileChanges() {
+func ListenOnConfigFileChanges(ctx common.Context) {
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		// Suggest to git fetch the repository
-		logger.Debugf("Config file changed. event: %s", e.Name)
+		var cfg Config
+		if err := viper.UnmarshalKey("config", &cfg); err != nil {
+			logger.Fatalf("Failed to reload in-memory configuration file after change was identified. error: %s", err.Error())
+		}
+		ctx.(common.ConfigSetter).SetConfig(&cfg)
+		logger.Debugf("Config file changed, in-memory config state updated. event: %s", e.Name)
 	})
 }
 
@@ -226,8 +254,6 @@ var ViperConfigFileLoader = func() (*AnchorConfig, error) {
 			return nil, err
 		}
 	}
-
-	listenOnConfigFileChanges()
 
 	// Every viper.Get request auto checks for ANCHOR_<flag-name> before reading from config file
 	viper.SetEnvPrefix("ANCHOR")

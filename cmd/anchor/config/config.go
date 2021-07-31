@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/config/edit"
+	"github.com/ZachiNachshon/anchor/cmd/anchor/config/set_context_entry"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/config/use_context"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/config/view"
 	"github.com/ZachiNachshon/anchor/common"
@@ -47,4 +48,5 @@ func (cmd *configCmd) InitSubCommands() {
 	cmd.cobraCmd.AddCommand(view.NewCommand(cmd.ctx, actions).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(edit.NewCommand(cmd.ctx, actions).GetCobraCmd())
 	cmd.cobraCmd.AddCommand(use_context.NewCommand(cmd.ctx, actions).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(set_context_entry.NewCommand(cmd.ctx, actions).GetCobraCmd())
 }

@@ -5,6 +5,15 @@ import (
 	"github.com/ZachiNachshon/anchor/config"
 )
 
+const (
+	RemoteUrlFlagName        = "repository.remote.url"
+	RemoteBranchFlagName     = "repository.remote.branch"
+	RemoteRevisionFlagName   = "repository.remote.revision"
+	RemoteClonePathFlagName  = "repository.remote.clonePath"
+	RemoteAutoUpdateFlagName = "repository.remote.autoUpdate"
+	LocalPathFlagName        = "repository.local.path"
+)
+
 type Resolver interface {
 	ResolveRepository(ctx common.Context) (string, error)
 }

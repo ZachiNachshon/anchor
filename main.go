@@ -63,8 +63,10 @@ func main() {
 	if err != nil {
 		logger.Fatalf("Failed to load configuration. error: %s", err.Error())
 		return
+	} else {
+		config.ListenOnConfigFileChanges(ctx)
+		ctx.(common.ConfigSetter).SetConfig(*cfg)
 	}
-	ctx.(common.ConfigSetter).SetConfig(*cfg)
 
 	injectComponents(ctx)
 	anchor.Main(ctx)
