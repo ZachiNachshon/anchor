@@ -3,8 +3,20 @@
 <h3 align="center" id="anchor-logo"><img src="assets/anchor-logo-130px.png"></h3>
 
 <p align="center">
-  <a href="https://travis-ci.com/ZachiNachshon/anchor">
-    <img src="https://travis-ci.com/ZachiNachshon/anchor.svg" alt="Travis CI status"/>
+  <a href="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor">
+    <img src="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor" alt="Go Version"/>
+  </a>
+  <a href="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=pivot">
+    <img src="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=pivot" alt="GitHub CI status"/>
+  </a>
+  <a href="https://goreportcard.com/badge/ZachiNachshon/anchor">
+    <img src="https://goreportcard.com/badge/ZachiNachshon/anchor" alt="Go Report Card"/>
+  </a>
+  <a href="https://coveralls.io/repos/github/ZachiNachshon/anchor/badge.svg?branch=pivot">
+    <img src="https://coveralls.io/repos/github/ZachiNachshon/anchor/badge.svg?branch=pivot" alt="Go Coverage"/>
+  </a>
+  <a href="https://github.com/ZachiNachshon/anchor/releases">
+    <img src="https://img.shields.io/github/v/release/ZachiNachshon/anchor?include_prereleases&style=flat-square" alt="Go Releases"/>
   </a>
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
