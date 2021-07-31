@@ -9,7 +9,7 @@ build: fmtcheck ## Build project, format check and install to bin folder
 
 .PHONY: run-tests-ci
 run-tests-ci: ## Run tests suites on CI containerized environment
-	@go test -v $(TEST) -json -cover | tparse -all
+	@go test -v $(TEST) -json -cover | tparse -all -top
 	@#go test -v $(TEST) -json -cover | tparse -all -notests
 	#go test -v $(TEST) -cover time config/*.go
 
