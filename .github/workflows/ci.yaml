@@ -24,7 +24,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
-      - name: Setup tparse formatter
+      - name: Set up tparse formatter
         run: go get github.com/mfridman/tparse
 
       - name: Checkout repo code

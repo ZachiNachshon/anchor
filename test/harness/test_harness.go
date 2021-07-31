@@ -27,12 +27,3 @@ func HarnessAnchorfilesTestRepo(ctx common.Context) {
 	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
 	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
 }
-
-func HarnessAnchorfilesRemoteGitTestRepo(ctx common.Context) {
-	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath()
-	if repoRootPath == "" {
-		logger.Fatalf("failed to resolve the absolute path of the repository root.")
-	}
-	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles-git-based", repoRootPath)
-	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
-}

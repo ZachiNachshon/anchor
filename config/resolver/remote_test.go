@@ -174,7 +174,7 @@ var FailToCloneFreshRemoteRepositoryIntoClonePath = func(t *testing.T) {
 var PerformInitialFreshRemoteRepositoryCloneIntoClonePathSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -223,7 +223,7 @@ config:
 var CloneRepositoryAndFailOnCheckout = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -273,7 +273,7 @@ config:
 var ResetToRevisionOnExistingClonedRepoSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -379,7 +379,7 @@ config:
 var AutoUpdateToRemoteHeadRevisionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -454,7 +454,7 @@ config:
 var AvoidPrintingCommitLogSinceRevisionIsAlreadyUpToDate = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -529,7 +529,7 @@ config:
 var AutoUpdateFailsToFetchLocalOriginRevision = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -580,7 +580,7 @@ config:
 var AutoUpdateFailsToFetchRemoteHeadRevision = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -638,7 +638,7 @@ config:
 var AutoUpdateFailsToResetToRevision = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
@@ -702,7 +702,7 @@ config:
 var AutoUpdateFailsToPrintRevisionDiffDoesNotGenerateAnError = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			harness.HarnessAnchorfilesRemoteGitTestRepo(ctx)
+			harness.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
