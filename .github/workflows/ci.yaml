@@ -25,7 +25,7 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Setup tparse formatter
-        uses: go get github.com/mfridman/tparse
+        run: go get github.com/mfridman/tparse
 
       - name: Checkout repo code
         uses: actions/checkout@v2
