@@ -1,6 +1,6 @@
 module github.com/ZachiNachshon/anchor
 
-go 1.14
+go 1.16
 
 require (
 	github.com/spf13/cobra v0.0.5
