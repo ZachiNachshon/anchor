@@ -42,8 +42,9 @@ func createStdoutLogger(level string) (*logrus.Logger, error) {
 	}
 
 	textFormatter := logrus.TextFormatter{}
-	textFormatter.FullTimestamp = true
-	textFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	//textFormatter.FullTimestamp = true
+	//textFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	textFormatter.DisableTimestamp = true
 	log.Formatter = &textFormatter
 
 	return log, nil
