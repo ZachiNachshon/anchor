@@ -42,7 +42,7 @@ func (s *fakeShell) ExecuteScriptFileWithOutputToFile(
 	return s.ExecuteScriptFileWithOutputToFileMock(workingDirectory, relativeScriptPath, outputFilePath, args...)
 }
 
-func (s *fakeShell) ExecuteWithOutput(script string) (string, error) {
+func (s *fakeShell) ExecuteReturnOutput(script string) (string, error) {
 	return s.ExecuteWithOutputMock(script)
 }
 

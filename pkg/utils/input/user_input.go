@@ -73,7 +73,7 @@ func (input *userInputImpl) waitForInputInner(allowDefault bool) (int, error) {
 	//_ = exec.Command(string(shell.BASH), "-c", "stty sane")
 
 	// Check is shell is zsh and execute 'stty sane' to fix the ^M char for enter key press
-	//_, _ = common.ShellExec.ExecuteWithOutput("stty sane")
+	//_, _ = common.ShellExec.ExecuteReturnOutput("stty sane")
 
 	reader := bufio.NewReader(os.Stdin)
 

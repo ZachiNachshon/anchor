@@ -157,7 +157,7 @@ func (s *shellExecutor) ExecuteTTY(script string) error {
 	return nil
 }
 
-func (s *shellExecutor) ExecuteWithOutput(script string) (string, error) {
+func (s *shellExecutor) ExecuteReturnOutput(script string) (string, error) {
 	cmd := exec.Command(string(s.shellType), "-c", script)
 
 	var output string

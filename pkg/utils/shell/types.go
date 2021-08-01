@@ -16,7 +16,7 @@ type Shell interface {
 	Execute(script string) error
 	ExecuteWithOutputToFile(script string, outputFilePath string) error
 
-	ExecuteWithOutput(script string) (string, error)
+	ExecuteReturnOutput(script string) (string, error)
 	ExecuteSilently(script string) error
 
 	// ExecuteTTY executes a script as a TeleTYpewrite, this allow us to run interactive commands

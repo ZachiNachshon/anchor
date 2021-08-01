@@ -75,7 +75,7 @@ func (g *gitImpl) Clean(path string) error {
 func (g *gitImpl) GetRemoteHeadCommitHash(path string, repoUrl string, branch string) (string, error) {
 	logger.Debugf("Git reading HEAD latest commit hash. branch: %s", branch)
 	script := fmt.Sprintf(`git -C %s ls-remote %s %s`, path, repoUrl, branch)
-	output, err := g.shell.ExecuteWithOutput(script)
+	output, err := g.shell.ExecuteReturnOutput(script)
 	if err == nil {
 		fields := strings.Fields(output)
 		if len(fields) > 0 {
@@ -88,7 +88,7 @@ func (g *gitImpl) GetRemoteHeadCommitHash(path string, repoUrl string, branch st
 func (g *gitImpl) GetLocalOriginCommitHash(path string, branch string) (string, error) {
 	logger.Debugf("Git reading HEAD latest commit hash. branch: %s", branch)
 	script := fmt.Sprintf(`git -C %s rev-parse origin/%s`, path, branch)
-	output, err := g.shell.ExecuteWithOutput(script)
+	output, err := g.shell.ExecuteReturnOutput(script)
 	if err == nil {
 		output = strings.TrimSuffix(output, "\n")
 	}
