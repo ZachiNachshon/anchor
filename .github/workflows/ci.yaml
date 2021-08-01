@@ -36,10 +36,13 @@ jobs:
       - name: Run tests
         run: make run-tests-ci
 
-      - name: Code Coverage
+      - name: Coverage
+        uses: jandelgado/gcov2lcov-action@v1.0.6
+
+      - name: Coverage Reporter
         uses: coverallsapp/github-action@v1.1.2
         with:
-          github-token: ${{ github.token }}
-#          path-to-lcov: coverage.lcov
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: coverage.lcov
 
 
