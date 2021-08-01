@@ -3,8 +3,8 @@
 <h3 align="center" id="anchor-logo"><img src="assets/anchor-logo-130px.png"></h3>
 
 <p align="center">
-  <a href="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor">
-    <img src="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor" alt="Go Version"/>
+  <a href="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor/pivot">
+    <img src="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor/pivot" alt="Go Version"/>
   </a>
   <a href="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=pivot">
     <img src="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=pivot" alt="GitHub CI status"/>
