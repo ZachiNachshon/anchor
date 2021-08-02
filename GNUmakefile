@@ -18,7 +18,8 @@ release: fmtcheck ## Create release artifacts with format check
 
 .PHONY: run-tests
 run-tests: ## Run tests suites locally
-	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out | tparse -all
+	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -notests
+	@cat coverage.out.temp | grep -v '_testkit\|_fakes' > coverage.out
 	@go tool cover -func coverage.out | grep total | awk '{print $3}'
 	@# go test -v $(TEST) -json -cover | tparse -all -notests
 	@# go test -v $(TEST) -cover time config/*.go
@@ -26,6 +27,7 @@ run-tests: ## Run tests suites locally
 .PHONY: run-tests-ci
 run-tests-ci: ## Run tests suites on CI containerized environment
 	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out | tparse -all -top
+	@cat coverage.out.temp | grep -v '_testkit\|_fakes' > coverage.out
 	@# -coverprofile=coverage.out was added for GitHub workflow integration with jandelgado/gcov2lcov-action
 	@# Error:
 	@#   /tmp/gcov2lcov-linux-amd64 -infile coverage.out -outfile coverage.lcov
