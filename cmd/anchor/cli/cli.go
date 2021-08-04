@@ -4,6 +4,7 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/cli/versions"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,7 @@ func NewCommand(ctx common.Context, loadRepoOrFail func(ctx common.Context)) *cl
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			loadRepoOrFail(ctx)
 		},
+		Run: func(cmd *cobra.Command, args []string) {},
 	}
 
 	var cmd = &cliCmd{
@@ -43,6 +45,6 @@ func (cmd *cliCmd) InitFlags() {
 }
 
 func (cmd *cliCmd) InitSubCommands() {
-	//actions := app.DefineApplicationActions()
-	cmd.cobraCmd.AddCommand(versions.NewCommand(cmd.ctx).GetCobraCmd())
+	actions := cli.DefineCliActions()
+	cmd.cobraCmd.AddCommand(versions.NewCommand(cmd.ctx, actions).GetCobraCmd())
 }
