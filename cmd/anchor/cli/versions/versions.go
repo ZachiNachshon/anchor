@@ -13,8 +13,8 @@ type versionsCmd struct {
 func NewCommand(ctx common.Context) *versionsCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "versions",
-		Short: "Print versions of all application installed components",
-		Long:  `Print versions of all application installed components`,
+		Short: "Print versions of all CLI application",
+		Long:  `Print versions of all CLI application`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 		},

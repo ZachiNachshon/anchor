@@ -3,6 +3,7 @@ package anchor
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/app"
+	"github.com/ZachiNachshon/anchor/cmd/anchor/cli"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/completion"
 	configCmd "github.com/ZachiNachshon/anchor/cmd/anchor/config"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/controller"
@@ -62,6 +63,9 @@ func (cmd *anchorCmd) InitSubCommands() {
 
 	// Apps Commands
 	cmd.cobraCmd.AddCommand(app.NewCommand(cmd.ctx, loadRepoOrFail).GetCobraCmd())
+
+	// CLI Commands
+	cmd.cobraCmd.AddCommand(cli.NewCommand(cmd.ctx, loadRepoOrFail).GetCobraCmd())
 
 	// Controller Commands
 	cmd.cobraCmd.AddCommand(controller.NewCommand(cmd.ctx, loadRepoOrFail).GetCobraCmd())

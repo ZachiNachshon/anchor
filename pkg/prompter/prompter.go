@@ -14,6 +14,8 @@ const (
 	WorkflowsActionName     = "workflows..."
 	CancelActionName        = "cancel"
 	selectorEmoji           = "\U0001F449"
+	CheckMarkEmoji          = "\U00002705"
+	CrossMarkEmoji          = "\U0000274C"
 	selectorEmojiCharLength = 3
 )
 

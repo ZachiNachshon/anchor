@@ -475,6 +475,7 @@ var ExecuteActionAfterItWasSelectedSuccessfully = func(t *testing.T) {
 		})
 	})
 }
+
 var DoNotAddWorkflowOptionWhenInstructionsMissingWorkflows = func(t *testing.T) {
 	instRootTestData := stubs.GenerateInstructionsTestData()
 	instRootTestData.Instructions.Workflows = nil

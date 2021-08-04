@@ -2,13 +2,12 @@ package printer
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
 type Printer interface {
 	PrintAnchorBanner()
-	PrintApplications(apps []*models.ApplicationInfo)
+	PrintApplications(appsStatus []*AppStatusTemplateItem)
 	PrintConfiguration(cfgFilePath string, cfgText string)
 }
 
@@ -29,4 +28,15 @@ func FromRegistry(reg *registry.InjectionsRegistry) (Printer, error) {
 		return nil, fmt.Errorf("failed to retrieve from registry. name: %s", identifier)
 	}
 	return item.(Printer), nil
+}
+
+type AppStatusTemplateItem struct {
+	Name                     string
+	IsValid                  bool
+	MissingInstructionFile   bool
+	InvalidInstructionFormat bool
+}
+
+func (as *AppStatusTemplateItem) CalculateValidity() {
+	as.IsValid = !as.MissingInstructionFile && !as.InvalidInstructionFormat
 }

@@ -1,9 +1,5 @@
 package printer
 
-import (
-	"github.com/ZachiNachshon/anchor/models"
-)
-
 var CreateFakePrinter = func() *fakePrinter {
 	return &fakePrinter{}
 }
@@ -11,7 +7,7 @@ var CreateFakePrinter = func() *fakePrinter {
 type fakePrinter struct {
 	Printer
 	PrintAnchorBannerMock  func()
-	PrintApplicationsMock  func(apps []*models.ApplicationInfo)
+	PrintApplicationsMock  func(apps []*AppStatusTemplateItem)
 	PrintConfigurationMock func(cfgFilePath string, cfgText string)
 }
 
@@ -19,7 +15,7 @@ func (p *fakePrinter) PrintAnchorBanner() {
 	p.PrintAnchorBannerMock()
 }
 
-func (p *fakePrinter) PrintApplications(apps []*models.ApplicationInfo) {
+func (p *fakePrinter) PrintApplications(apps []*AppStatusTemplateItem) {
 	p.PrintApplicationsMock(apps)
 }
 

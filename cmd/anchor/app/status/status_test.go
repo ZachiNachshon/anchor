@@ -1,4 +1,4 @@
-package _select
+package status
 
 import (
 	"fmt"
@@ -13,52 +13,52 @@ import (
 	"testing"
 )
 
-func Test_SelectCommandShould(t *testing.T) {
+func Test_StatusCommandShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "start select action successfully",
-			Func: StartSelectActionSuccessfully,
+			Name: "start status action successfully",
+			Func: StartStatusActionSuccessfully,
 		},
 		{
-			Name: "fail select action",
-			Func: FailSelectAction,
+			Name: "fail status action",
+			Func: FailStatusAction,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var StartSelectActionSuccessfully = func(t *testing.T) {
+var StartStatusActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &app.ApplicationActions{
-					Select: func(ctx common.Context) error {
+					Status: func(ctx common.Context) error {
 						callCount++
 						return nil
 					},
 				}
 				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
-				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: select")
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: status")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
 		})
 	})
 }
 
-var FailSelectAction = func(t *testing.T) {
+var FailStatusAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &app.ApplicationActions{
-					Select: func(ctx common.Context) error {
+					Status: func(ctx common.Context) error {
 						callCount++
 						return fmt.Errorf("an error occurred")
 					},
 				}
 				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
-				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: select")
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: status")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, err.Error(), "an error occurred")
 			})

@@ -20,7 +20,7 @@ var validArgs = []string{""}
 func NewCommand(ctx common.Context, loadRepoOrFail func(ctx common.Context)) *controllerCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "controller",
-		Short:     "kubernetes controllers commands",
+		Short:     "Kubernetes controllers commands",
 		Aliases:   []string{"kc"},
 		ValidArgs: validArgs,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
