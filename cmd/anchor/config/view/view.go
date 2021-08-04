@@ -20,7 +20,7 @@ func NewCommand(ctx common.Context, configActions *cfg.ConfigurationActions) *vi
 		Long:  `Display configuration file settings`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return configActions.Print(ctx)
+			return configActions.View(ctx)
 		},
 	}
 

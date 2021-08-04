@@ -1,4 +1,4 @@
-package view
+package edit
 
 import (
 	"fmt"
@@ -13,53 +13,52 @@ import (
 	"testing"
 )
 
-func Test_ViewCommandShould(t *testing.T) {
+func Test_EditCommandShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "start view action successfully",
-			Func: StartViewActionSuccessfully,
+			Name: "start edit action successfully",
+			Func: StartEditActionSuccessfully,
 		},
 		{
-			Name: "fail view action",
-			Func: FailViewAction,
+			Name: "fail edit action",
+			Func: FailEditAction,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var StartViewActionSuccessfully = func(t *testing.T) {
+var StartEditActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &cfg.ConfigurationActions{
-					View: func(ctx common.Context) error {
+					Edit: func(ctx common.Context) error {
 						callCount++
 						return nil
 					},
 				}
-				out, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
-				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: print")
-				assert.Nil(t, err, "expected cli action to succeed")
-				logger.Info(out)
+				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: edit")
+				assert.Nil(t, err, "expected cli action to have no errors")
 			})
 		})
 	})
 }
 
-var FailViewAction = func(t *testing.T) {
+var FailEditAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				callCount := 0
 				actions := &cfg.ConfigurationActions{
-					View: func(ctx common.Context) error {
+					Edit: func(ctx common.Context) error {
 						callCount++
 						return fmt.Errorf("an error occurred")
 					},
 				}
 				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
-				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: print")
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: edit")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, err.Error(), "an error occurred")
 			})

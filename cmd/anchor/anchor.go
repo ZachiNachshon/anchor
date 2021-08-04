@@ -85,6 +85,8 @@ func (cmd *anchorCmd) GetCobraCmd() *cobra.Command {
 }
 
 func (cmd *anchorCmd) Execute() {
+	// Cannot run on the command Run() method itself since we must initialize the logger
+	// logger must be available at the PersistentPreRun() stage
 	cmd.InitFlags()
 	cmd.InitSubCommands()
 

@@ -17,7 +17,7 @@ type configCmd struct {
 	ctx      common.Context
 }
 
-var validArgs = []string{"print"}
+var validArgs = []string{"edit", "set-context-entry", "use-context", "view"}
 
 func NewCommand(ctx common.Context) *configCmd {
 	var cobraCmd = &cobra.Command{

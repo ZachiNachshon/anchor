@@ -20,8 +20,8 @@ func CLI() CLIActions {
 }
 
 func (cli *cliRunnerImpl) RunCommand(cmd models.AnchorCommand, args ...string) (string, error) {
-	cmd.InitFlags()
-	cmd.InitSubCommands()
+	//cmd.InitFlags()
+	//cmd.InitSubCommands()
 
 	cobraCmd := cmd.GetCobraCmd()
 	b := bytes.NewBufferString("")
