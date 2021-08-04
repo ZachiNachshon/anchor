@@ -1,11 +1,13 @@
 package zsh
 
 import (
+	"github.com/ZachiNachshon/anchor/models"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 type zshCmd struct {
+	models.AnchorCommand
 	cobraCmd *cobra.Command
 }
 
@@ -14,8 +16,8 @@ func NewCommand(root *cobra.Command) *zshCmd {
 		Use:   "zsh",
 		Short: "Generate auto completion script for zsh",
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
-			_ = root.GenZshCompletion(os.Stdout)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return root.GenZshCompletion(os.Stdout)
 		},
 	}
 
@@ -26,4 +28,10 @@ func NewCommand(root *cobra.Command) *zshCmd {
 
 func (cmd *zshCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
+}
+
+func (cmd *zshCmd) InitFlags() {
+}
+
+func (cmd *zshCmd) InitSubCommands() {
 }
