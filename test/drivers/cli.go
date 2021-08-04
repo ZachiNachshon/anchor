@@ -31,6 +31,12 @@ func (cli *cliRunnerImpl) RunCommand(cmd models.AnchorCommand, args ...string) (
 	} else {
 		cobraCmd.SetArgs([]string{})
 	}
+	// In order to catch all run phases we must have Run/RunE implemented on the cmd
+	//  * PersistentPreRun()
+	//  * PreRun()
+	//  * Run()
+	//  * PostRun()
+	//  * PersistentPostRun()
 	err := cobraCmd.Execute()
 	if err != nil {
 		return "", err

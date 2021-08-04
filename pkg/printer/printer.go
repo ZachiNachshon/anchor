@@ -15,7 +15,7 @@ var configViewTemplate = `{{ "Configuration Path:" | cyan }}
 {{ .ConfigText | yellow }}
 `
 
-var appStatusTemplate = `{{ "Available Applications (" | cyan }}{{ .Count | green }}{{ "):" | cyan }}
+var appStatusTemplate = `{{ "There are " | cyan }}{{ .Count | green }}{{ " available applications:" | cyan }}
 
 {{ range $element := .AppsStatusItems }}
   {{- if (eq $element.IsValid true) }} ` +
@@ -23,13 +23,13 @@ var appStatusTemplate = `{{ "Available Applications (" | cyan }}{{ .Count | gree
   {{- else }} ` +
 	prompter.CrossMarkEmoji + ` {{ $element.Name }}
     {{- if (eq $element.MissingInstructionFile true) }}
-    • {{ "Missing instructions.yaml file" | red }} {{- end }}
+    • {{ "Missing instructions.yaml file" | red }} 
+    {{ end }}
     {{- if (eq $element.InvalidInstructionFormat true) }} 
     • {{ "Invalid instructions.yaml file format" | red }} 
-    {{- end }}
+    {{ end }}
   {{- end }}
-{{ end }}
-`
+{{ end }}`
 
 type ConfigViewTemplateItem struct {
 	ConfigFilePath string
