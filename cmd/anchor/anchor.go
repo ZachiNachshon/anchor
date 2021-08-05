@@ -16,6 +16,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
+	version_pkg "github.com/ZachiNachshon/anchor/pkg/version"
 	"github.com/spf13/cobra"
 )
 
@@ -74,7 +75,7 @@ func (cmd *anchorCmd) InitSubCommands() {
 	cmd.cobraCmd.AddCommand(configCmd.NewCommand(cmd.ctx).GetCobraCmd())
 
 	// Version
-	cmd.cobraCmd.AddCommand(version.NewCommand(cmd.ctx).GetCobraCmd())
+	cmd.cobraCmd.AddCommand(version.NewCommand(cmd.ctx, version_pkg.DefineVersionActions()).GetCobraCmd())
 
 	// Auto completion
 	cmd.cobraCmd.AddCommand(completion.NewCommand(cmd.cobraCmd, cmd.ctx).GetCobraCmd())

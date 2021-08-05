@@ -1,26 +1,25 @@
 package version
 
 import (
-	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
+	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/version"
 	"github.com/spf13/cobra"
 )
 
 type versionCmd struct {
+	models.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
 }
 
-// TODO: take from config
-const Version = "v0.0.1"
-
-func NewCommand(ctx common.Context) *versionCmd {
+func NewCommand(ctx common.Context, verActions *version.VersionActions) *versionCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print anchor CLI version",
 		Long:  `Print anchor CLI version`,
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(Version)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return verActions.Version(ctx)
 		},
 	}
 
@@ -32,4 +31,10 @@ func NewCommand(ctx common.Context) *versionCmd {
 
 func (cmd *versionCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
+}
+
+func (cmd *versionCmd) InitFlags() {
+}
+
+func (cmd *versionCmd) InitSubCommands() {
 }

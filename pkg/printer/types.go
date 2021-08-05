@@ -7,6 +7,7 @@ import (
 
 type Printer interface {
 	PrintAnchorBanner()
+	PrintAnchorVersion(version string)
 	PrintApplications(appsStatus []*AppStatusTemplateItem)
 	PrintConfiguration(cfgFilePath string, cfgText string)
 }

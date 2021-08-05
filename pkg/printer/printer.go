@@ -54,6 +54,10 @@ func (p *printerImpl) PrintAnchorBanner() {
 ` + colors.Reset)
 }
 
+func (p *printerImpl) PrintAnchorVersion(version string) {
+	fmt.Println(version)
+}
+
 func (p *printerImpl) PrintApplications(appsStatus []*AppStatusTemplateItem) {
 	data := struct {
 		AppsStatusItems []*AppStatusTemplateItem
