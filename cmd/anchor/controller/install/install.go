@@ -19,7 +19,8 @@ func NewCommand(ctx common.Context, ctlActions *controller.ControllerActions) *i
 		Short: "Install a controller",
 		Long:  `Install a controller`,
 		Args:  cobra.NoArgs,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return ctlActions.Install(ctx)
 		},
 	}
 

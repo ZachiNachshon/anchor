@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
+	"github.com/spf13/cobra"
 	"io/ioutil"
 )
 
@@ -37,6 +38,10 @@ func (cli *cliRunnerImpl) RunCommand(cmd models.AnchorCommand, args ...string) (
 	//  * Run()
 	//  * PostRun()
 	//  * PersistentPostRun()
+	if cobraCmd.Run == nil {
+		cobraCmd.Run = func(cmd *cobra.Command, args []string) {}
+	}
+
 	err := cobraCmd.Execute()
 	if err != nil {
 		return "", err

@@ -25,7 +25,6 @@ func NewCommand(ctx common.Context, loadRepoOrFail func(ctx common.Context)) *cl
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			loadRepoOrFail(ctx)
 		},
-		Run: func(cmd *cobra.Command, args []string) {},
 	}
 
 	var cmd = &cliCmd{
