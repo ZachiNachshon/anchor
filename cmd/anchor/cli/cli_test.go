@@ -4,6 +4,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/root"
 	"github.com/ZachiNachshon/anchor/test/drivers"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -29,12 +30,14 @@ var LoadRepoOrFailSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
-				loadRepoOrFailCallCount := 0
-				loadRepoOrFail := func(ctx common.Context) {
-					loadRepoOrFailCallCount++
+				callCount := 0
+				actions := &root.RootCommandActions{
+					LoadRepoOrFail: func(ctx common.Context) {
+						callCount++
+					},
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, loadRepoOrFail))
-				assert.Equal(t, 1, loadRepoOrFailCallCount, "expected action to be called exactly once. name: loadRepoOrFail")
+				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: loadRepoOrFail")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
 		})
@@ -45,12 +48,12 @@ var ContainExpectedSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
-				loadRepoOrFail := func(ctx common.Context) {}
-				cmd := NewCommand(ctx, loadRepoOrFail)
+				actions := &root.RootCommandActions{}
+				cmd := NewCommand(ctx, actions)
 				assert.True(t, cmd.cobraCmd.HasSubCommands())
 				cmds := cmd.cobraCmd.Commands()
-				assert.Equal(t, len(cmds), 1)
-				assert.Equal(t, cmds[0].Use, "versions")
+				assert.Equal(t, 1, len(cmds))
+				assert.Equal(t, "versions", cmds[0].Use)
 			})
 		})
 	})

@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/controller"
+	"github.com/ZachiNachshon/anchor/pkg/root"
 	"github.com/spf13/cobra"
 )
 
@@ -16,14 +17,14 @@ type controllerCmd struct {
 
 var validArgs = []string{""}
 
-func NewCommand(ctx common.Context, loadRepoOrFail func(ctx common.Context)) *controllerCmd {
+func NewCommand(ctx common.Context, rootActions *root.RootCommandActions) *controllerCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "controller",
 		Short:     "Kubernetes controllers commands",
 		Aliases:   []string{"kc"},
 		ValidArgs: validArgs,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			loadRepoOrFail(ctx)
+			rootActions.LoadRepoOrFail(ctx)
 		},
 	}
 

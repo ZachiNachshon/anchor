@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/cli"
+	"github.com/ZachiNachshon/anchor/pkg/root"
 	"github.com/spf13/cobra"
 )
 
@@ -16,14 +17,14 @@ type cliCmd struct {
 
 var validArgs = []string{"versions"}
 
-func NewCommand(ctx common.Context, loadRepoOrFail func(ctx common.Context)) *cliCmd {
+func NewCommand(ctx common.Context, rootActions *root.RootCommandActions) *cliCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "cli",
 		Short:     "CLI applications",
 		Aliases:   []string{"a"},
 		ValidArgs: validArgs,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			loadRepoOrFail(ctx)
+			rootActions.LoadRepoOrFail(ctx)
 		},
 	}
 

@@ -43,7 +43,7 @@ func GetDefaultRepoClonePath(contextName string) (string, error) {
 	}
 }
 
-func GetDefaultLoggerLogFilePath() (string, error) {
+var GetDefaultLoggerLogFilePath = func() (string, error) {
 	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
@@ -147,7 +147,7 @@ func createConfigFileWithDefaults() {
 	}
 }
 
-func ListenOnConfigFileChanges(ctx common.Context) {
+var ListenOnConfigFileChanges = func(ctx common.Context) {
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		var cfg Config

@@ -18,7 +18,62 @@ import (
 	"os"
 )
 
-func injectComponents(ctx common.Context) {
+type MainCollaborators struct {
+	Logger           func()
+	Configuration    func(ctx common.Context)
+	Registry         func(ctx common.Context)
+	StartCliCommands func(ctx common.Context)
+}
+
+var collaborators = &MainCollaborators{
+	Logger: func() {
+		initLogger(config.GetDefaultLoggerLogFilePath, logger.LogrusLoggerLoader)
+	},
+	Configuration: func(ctx common.Context) {
+		initConfiguration(ctx, config.ViperConfigFileLoader, config.ListenOnConfigFileChanges)
+	},
+	Registry: func(ctx common.Context) {
+		initRegistry(ctx)
+	},
+	StartCliCommands: func(ctx common.Context) {
+		startCliCommands(ctx)
+	},
+}
+
+var exitApplication = func(code int, message string) {
+	fmt.Printf(message)
+	os.Exit(code)
+}
+
+func initLogger(
+	logFileResolver func() (string, error),
+	loggerCreator func(verbose bool, logFilePath string) error) {
+
+	logFilePath, err := logFileResolver()
+	if err != nil {
+		exitApplication(1, fmt.Sprintf("failed to resolve logger file path. error: %s", err))
+	}
+
+	if err = loggerCreator(false, logFilePath); err != nil {
+		exitApplication(1, fmt.Sprintf("Failed to initialize logger. error: %s", err.Error()))
+	}
+}
+
+func initConfiguration(
+	ctx common.Context,
+	configLoader func() (*config.AnchorConfig, error),
+	configChangesListener func(ctx common.Context)) {
+
+	cfg, err := configLoader()
+	if err != nil {
+		exitApplication(1, fmt.Sprintf("failed to load configuration. error: %s", err.Error()))
+	} else {
+		configChangesListener(ctx)
+		ctx.(common.ConfigSetter).SetConfig(*cfg)
+	}
+}
+
+func initRegistry(ctx common.Context) {
 	l := locator.New()
 	locator.ToRegistry(ctx.Registry(), l)
 
@@ -46,28 +101,18 @@ func injectComponents(ctx common.Context) {
 	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().shell)
 }
 
+func startCliCommands(ctx common.Context) {
+	anchor.Main(ctx)
+}
+
+func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators) {
+	collaborators.Logger()
+	collaborators.Configuration(ctx)
+	collaborators.Registry(ctx)
+	collaborators.StartCliCommands(ctx)
+}
+
 func main() {
 	ctx := common.EmptyAnchorContext(registry.Initialize())
-
-	logFilePath, err := config.GetDefaultLoggerLogFilePath()
-	if err != nil {
-		fmt.Printf("failed to resolve logger file path. error: %s", err)
-		os.Exit(1)
-	}
-
-	if err = logger.LogrusLoggerLoader(false, logFilePath); err != nil {
-		fmt.Printf("Failed to initialize logger. error: %s", err.Error())
-	}
-
-	cfg, err := config.ViperConfigFileLoader()
-	if err != nil {
-		logger.Fatalf("Failed to load configuration. error: %s", err.Error())
-		return
-	} else {
-		config.ListenOnConfigFileChanges(ctx)
-		ctx.(common.ConfigSetter).SetConfig(*cfg)
-	}
-
-	injectComponents(ctx)
-	anchor.Main(ctx)
+	runCollaboratorsInSequence(ctx, collaborators)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/app"
+	"github.com/ZachiNachshon/anchor/pkg/root"
 	"github.com/spf13/cobra"
 )
 
@@ -17,14 +18,14 @@ type appCmd struct {
 
 var validArgs = []string{"select", "status"}
 
-func NewCommand(ctx common.Context, loadRepoOrFail func(ctx common.Context)) *appCmd {
+func NewCommand(ctx common.Context, rootActions *root.RootCommandActions) *appCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "app",
 		Short:     "Application commands",
 		Aliases:   []string{"a"},
 		ValidArgs: validArgs,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			loadRepoOrFail(ctx)
+			rootActions.LoadRepoOrFail(ctx)
 		},
 	}
 

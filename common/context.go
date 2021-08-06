@@ -24,14 +24,6 @@ type AnchorFilesPathSetter interface {
 	SetAnchorFilesPath(path string)
 }
 
-type Globals struct {
-	Verbose bool
-}
-
-var GlobalOptions = Globals{
-	Verbose: false,
-}
-
 type anchorContext struct {
 	goContext                context.Context
 	config                   interface{}
