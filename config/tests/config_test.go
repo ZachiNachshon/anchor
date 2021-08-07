@@ -1,4 +1,4 @@
-package test
+package tests
 
 import (
 	"github.com/ZachiNachshon/anchor/common"
@@ -47,7 +47,7 @@ var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
-				harness.HarnessAnchorfilesTestRepo(ctx)
+				with.HarnessAnchorfilesTestRepo(ctx)
 				assert.True(t, ioutils.IsValidPath(ctx.AnchorFilesPath()),
 					"cannot resolve anchorfiles test repo. path: %s", ctx.AnchorFilesPath())
 			})

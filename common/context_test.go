@@ -1,7 +1,6 @@
 package common
 
 import (
-	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 	"github.com/ZachiNachshon/anchor/test/harness"
@@ -41,11 +40,13 @@ var CreateValidEmptyContext = func(t *testing.T) {
 var SetConfigSuccessfully = func(t *testing.T) {
 	reg := registry.New()
 	ctx := EmptyAnchorContext(reg)
-	cfg := &config.AnchorConfig{
+	dummyConfig := struct {
+		Author string
+	}{
 		Author: "Zachi Nachshon",
 	}
-	ctx.(ConfigSetter).SetConfig(cfg)
-	assert.Equal(t, cfg, ctx.Config())
+	ctx.(ConfigSetter).SetConfig(dummyConfig)
+	assert.Equal(t, dummyConfig, ctx.Config())
 }
 
 var SetLoggerSuccessfully = func(t *testing.T) {

@@ -1,10 +1,12 @@
 package with
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
+	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
 	"testing"
 )
@@ -42,4 +44,13 @@ func Config(ctx common.Context, content string, f func(config config.AnchorConfi
 		_ = config.LoadActiveConfigByName(cfg, cfg.Config.CurrentContext)
 		f(*cfg)
 	}
+}
+
+func HarnessAnchorfilesTestRepo(ctx common.Context) {
+	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath()
+	if repoRootPath == "" {
+		logger.Fatalf("failed to resolve the absolute path of the repository root.")
+	}
+	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
+	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
 }
