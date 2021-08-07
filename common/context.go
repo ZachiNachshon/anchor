@@ -18,10 +18,6 @@ type ConfigSetter interface {
 	SetConfig(cfg interface{})
 }
 
-type RegistryResolver interface {
-	Register(registry.InjectionsRegistry)
-}
-
 type LoggerSetter interface {
 	SetLogger(logger logger.Logger)
 }
