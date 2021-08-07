@@ -28,8 +28,8 @@ func Test_AnchorCommandShould(t *testing.T) {
 			Func: InitFlagsAndSubCommandsUponInitialization,
 		},
 		{
-			Name: "have valid completion commands as the sub-commands",
-			Func: HaveValidCompletionCommandsAsTheSubCommands,
+			Name: "have valid completion args as the sub-commands",
+			Func: HaveValidCompletionArgsAsTheSubCommands,
 		},
 		{
 			Name: "fail to set logger verbosity",
@@ -38,6 +38,10 @@ func Test_AnchorCommandShould(t *testing.T) {
 		{
 			Name: "set logger verbosity successfully",
 			Func: SetLoggerVerbositySuccessfully,
+		},
+		{
+			Name: "run CLI root command successfully",
+			Func: RunCliRootCommandSuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -117,7 +121,7 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 	})
 }
 
-var HaveValidCompletionCommandsAsTheSubCommands = func(t *testing.T) {
+var HaveValidCompletionArgsAsTheSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
@@ -169,6 +173,17 @@ var SetLoggerVerbositySuccessfully = func(t *testing.T) {
 				assert.Equal(t, 1, setLoggerCallCount, "expected action to be called exactly once. name: set-logger-verbosity")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Equal(t, "failed to set verbosity", err.Error())
+			})
+		})
+	})
+}
+
+var RunCliRootCommandSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+				err := RunCliRootCommand(ctx)
+				assert.Nil(t, err, "expected cli action to succeed")
 			})
 		})
 	})

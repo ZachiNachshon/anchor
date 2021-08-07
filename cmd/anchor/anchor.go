@@ -8,7 +8,6 @@ import (
 	"github.com/ZachiNachshon/anchor/cmd/anchor/controller"
 	"github.com/ZachiNachshon/anchor/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/models"
 	"github.com/ZachiNachshon/anchor/pkg/root"
 	version_pkg "github.com/ZachiNachshon/anchor/pkg/version"
@@ -92,10 +91,8 @@ func (cmd *anchorCmd) Initialize() *anchorCmd {
 	return cmd
 }
 
-func RunCliRootCommand(ctx common.Context) {
+func RunCliRootCommand(ctx common.Context) error {
 	rootActions := root.DefineRootCommandActions()
 	cmd := NewCommand(ctx, rootActions).Initialize()
-	if err := cmd.cobraCmd.Execute(); err != nil {
-		logger.Fatal(err.Error())
-	}
+	return cmd.GetCobraCmd().Execute()
 }

@@ -105,7 +105,9 @@ func initRegistry(ctx common.Context) {
 }
 
 func startCliCommands(ctx common.Context) {
-	anchor.RunCliRootCommand(ctx)
+	if err := anchor.RunCliRootCommand(ctx); err != nil {
+		logger.Fatal(err.Error())
+	}
 }
 
 func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators) {
