@@ -1,76 +1,76 @@
 package logger
 
 import (
-	"github.com/ZachiNachshon/anchor/common"
 	"testing"
 )
 
-var FakeTestingLogger = func(ctx common.Context, t *testing.T, verbose bool) (Logger, error) {
-	fakeLogger := &FakeLogger{
+var FakeTestingLogger = func(t *testing.T, verbose bool) (Logger, error) {
+	fakeLogger := &fakeLogger{
 		testing: t,
 		verbose: verbose,
 	}
 	return fakeLogger, nil
 }
 
-type FakeLogger struct {
+type fakeLogger struct {
+	Logger
 	testing *testing.T
 	verbose bool
 }
 
-func (f *FakeLogger) Debug(msg string) {
+func (f *fakeLogger) Debug(msg string) {
 	if f.verbose {
 		f.testing.Log(msg)
 	}
 }
 
-func (f *FakeLogger) Debugf(format string, args ...interface{}) {
+func (f *fakeLogger) Debugf(format string, args ...interface{}) {
 	if f.verbose {
 		f.testing.Logf(format, args...)
 	}
 }
 
-func (f *FakeLogger) Info(msg string) {
+func (f *fakeLogger) Info(msg string) {
 	if f.verbose {
 		f.testing.Log(msg)
 	}
 }
 
-func (f *FakeLogger) Infof(format string, args ...interface{}) {
+func (f *fakeLogger) Infof(format string, args ...interface{}) {
 	if f.verbose {
 		f.testing.Logf(format, args...)
 	}
 }
 
-func (f *FakeLogger) Warning(msg string) {
+func (f *fakeLogger) Warning(msg string) {
 	if f.verbose {
 		f.testing.Log(msg)
 	}
 }
 
-func (f *FakeLogger) Warningf(format string, args ...interface{}) {
+func (f *fakeLogger) Warningf(format string, args ...interface{}) {
 	if f.verbose {
 		f.testing.Logf(format, args...)
 	}
 }
 
-func (f *FakeLogger) Error(msg string) {
+func (f *fakeLogger) Error(msg string) {
 	f.testing.Error(msg)
 }
 
-func (f *FakeLogger) Errorf(format string, args ...interface{}) {
+func (f *fakeLogger) Errorf(format string, args ...interface{}) {
 	f.testing.Errorf(format, args...)
 }
 
-func (f *FakeLogger) Fatal(msg string) {
+func (f *fakeLogger) Fatal(msg string) {
 	f.testing.Fatal(msg)
 }
 
-func (f *FakeLogger) Fatalf(format string, args ...interface{}) {
+func (f *fakeLogger) Fatalf(format string, args ...interface{}) {
 	f.testing.Fatalf(format, args...)
 }
 
-func (f *FakeLogger) setVerbosityLevel(level string) error {
+func (f *fakeLogger) SetVerbosityLevel(level string) error {
 	f.verbose = level == "debug"
 	return nil
 }

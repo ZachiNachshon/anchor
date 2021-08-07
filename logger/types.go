@@ -11,5 +11,5 @@ type Logger interface {
 	Errorf(format string, a ...interface{})
 	Fatal(msg string)
 	Fatalf(format string, a ...interface{})
-	setVerbosityLevel(level string) error
+	SetVerbosityLevel(level string) error
 }

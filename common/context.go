@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/registry"
 )
 
@@ -9,6 +10,7 @@ type Context interface {
 	GoContext() context.Context
 	Config() interface{}
 	Registry() *registry.InjectionsRegistry
+	Logger() logger.Logger
 	AnchorFilesPath() string
 }
 
@@ -20,6 +22,10 @@ type RegistryResolver interface {
 	Register(registry.InjectionsRegistry)
 }
 
+type LoggerSetter interface {
+	SetLogger(logger logger.Logger)
+}
+
 type AnchorFilesPathSetter interface {
 	SetAnchorFilesPath(path string)
 }
@@ -27,8 +33,9 @@ type AnchorFilesPathSetter interface {
 type anchorContext struct {
 	goContext                context.Context
 	config                   interface{}
-	anchorFilesRepoLocalPath string
 	registry                 *registry.InjectionsRegistry
+	logger                   logger.Logger
+	anchorFilesRepoLocalPath string
 }
 
 func (a *anchorContext) GoContext() context.Context {
@@ -41,6 +48,14 @@ func (a *anchorContext) Config() interface{} {
 
 func (a *anchorContext) SetConfig(cfg interface{}) {
 	a.config = cfg
+}
+
+func (a *anchorContext) Logger() logger.Logger {
+	return a.logger
+}
+
+func (a *anchorContext) SetLogger(logger logger.Logger) {
+	a.logger = logger
 }
 
 func (a *anchorContext) AnchorFilesPath() string {

@@ -19,15 +19,15 @@ import (
 )
 
 type MainCollaborators struct {
-	Logger           func()
+	Logger           func(ctx common.Context)
 	Configuration    func(ctx common.Context)
 	Registry         func(ctx common.Context)
 	StartCliCommands func(ctx common.Context)
 }
 
 var collaborators = &MainCollaborators{
-	Logger: func() {
-		initLogger(config.GetDefaultLoggerLogFilePath, logger.LogrusLoggerLoader)
+	Logger: func(ctx common.Context) {
+		initLogger(ctx, config.GetDefaultLoggerLogFilePath, logger.LogrusLoggerLoader)
 	},
 	Configuration: func(ctx common.Context) {
 		initConfiguration(ctx, config.ViperConfigFileLoader, config.ListenOnConfigFileChanges)
@@ -46,16 +46,19 @@ var exitApplication = func(code int, message string) {
 }
 
 func initLogger(
+	ctx common.Context,
 	logFileResolver func() (string, error),
-	loggerCreator func(verbose bool, logFilePath string) error) {
+	loggerCreator func(verbose bool, logFilePath string) (logger.Logger, error)) {
 
 	logFilePath, err := logFileResolver()
 	if err != nil {
 		exitApplication(1, fmt.Sprintf("failed to resolve logger file path. error: %s", err))
 	}
 
-	if err = loggerCreator(false, logFilePath); err != nil {
+	if lgr, err := loggerCreator(false, logFilePath); err != nil {
 		exitApplication(1, fmt.Sprintf("Failed to initialize logger. error: %s", err.Error()))
+	} else {
+		ctx.(common.LoggerSetter).SetLogger(lgr)
 	}
 }
 
@@ -102,11 +105,11 @@ func initRegistry(ctx common.Context) {
 }
 
 func startCliCommands(ctx common.Context) {
-	anchor.Main(ctx)
+	anchor.RunCliRootCommand(ctx)
 }
 
 func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators) {
-	collaborators.Logger()
+	collaborators.Logger(ctx)
 	collaborators.Configuration(ctx)
 	collaborators.Registry(ctx)
 	collaborators.StartCliCommands(ctx)

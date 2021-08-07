@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
+	"github.com/ZachiNachshon/anchor/logger"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
@@ -75,7 +76,7 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 		registryCallCount := 0
 		startCallCount := 0
 		collaborators := &MainCollaborators{
-			Logger: func() {
+			Logger: func(ctx common.Context) {
 				callOrder = append(callOrder, "logger")
 				loggerCallCount++
 			},
@@ -106,59 +107,65 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 }
 
 var InitializeLoggerSuccessfully = func(t *testing.T) {
-	logFileResolverCallCount := 0
-	logFileResolver := func() (string, error) {
-		logFileResolverCallCount++
-		return "/path/to/log/anchor.log", nil
-	}
-	loggerCreatorCallCount := 0
-	loggerCreator := func(verbose bool, logFilePath string) error {
-		loggerCreatorCallCount++
-		return nil
-	}
+	with.Context(func(ctx common.Context) {
+		logFileResolverCallCount := 0
+		logFileResolver := func() (string, error) {
+			logFileResolverCallCount++
+			return "/path/to/log/anchor.log", nil
+		}
+		loggerCreatorCallCount := 0
+		loggerCreator := func(verbose bool, logFilePath string) (logger.Logger, error) {
+			loggerCreatorCallCount++
+			return nil, nil
+		}
 
-	initLogger(logFileResolver, loggerCreator)
-	assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
-	assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
+		initLogger(ctx, logFileResolver, loggerCreator)
+		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
+	})
 }
 
 var FailToResolveLogFilePath = func(t *testing.T) {
-	logFileResolverCallCount := 0
-	logFileResolver := func() (string, error) {
-		logFileResolverCallCount++
-		return "", fmt.Errorf("failed to resolve")
-	}
-	loggerCreator := func(verbose bool, logFilePath string) error {
-		return nil
-	}
-	exitCallCount := 0
-	exitApplication = func(code int, message string) {
-		exitCallCount++
-	}
-	initLogger(logFileResolver, loggerCreator)
-	assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
-	assert.Equal(t, 1, exitCallCount, "expected exit to to be called exactly once")
+	with.Context(func(ctx common.Context) {
+		logFileResolverCallCount := 0
+		logFileResolver := func() (string, error) {
+			logFileResolverCallCount++
+			return "", fmt.Errorf("failed to resolve")
+		}
+		loggerCreator := func(verbose bool, logFilePath string) (logger.Logger, error) {
+			return nil, nil
+		}
+		exitCallCount := 0
+		exitApplication = func(code int, message string) {
+			exitCallCount++
+		}
+		initLogger(ctx, logFileResolver, loggerCreator)
+		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, exitCallCount, "expected exit to to be called exactly once")
+	})
 }
 
 var FailToCreateLogger = func(t *testing.T) {
-	logFileResolverCallCount := 0
-	logFileResolver := func() (string, error) {
-		logFileResolverCallCount++
-		return "/path/to/log/anchor.log", nil
-	}
-	loggerCreatorCallCount := 0
-	loggerCreator := func(verbose bool, logFilePath string) error {
-		loggerCreatorCallCount++
-		return fmt.Errorf("failed to create")
-	}
-	exitCallCount := 0
-	exitApplication = func(code int, message string) {
-		exitCallCount++
-	}
-	initLogger(logFileResolver, loggerCreator)
-	assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
-	assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
-	assert.Equal(t, 1, exitCallCount, "expected exit to to be called exactly once")
+	with.Context(func(ctx common.Context) {
+		logFileResolverCallCount := 0
+		logFileResolver := func() (string, error) {
+			logFileResolverCallCount++
+			return "/path/to/log/anchor.log", nil
+		}
+		loggerCreatorCallCount := 0
+		loggerCreator := func(verbose bool, logFilePath string) (logger.Logger, error) {
+			loggerCreatorCallCount++
+			return nil, fmt.Errorf("failed to create")
+		}
+		exitCallCount := 0
+		exitApplication = func(code int, message string) {
+			exitCallCount++
+		}
+		initLogger(ctx, logFileResolver, loggerCreator)
+		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, exitCallCount, "expected exit to to be called exactly once")
+	})
 }
 
 var InitializeConfigurationSuccessfully = func(t *testing.T) {

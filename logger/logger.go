@@ -6,10 +6,6 @@ func SetLogger(log Logger) {
 	loggerInUse = log
 }
 
-func SetVerbosityLevel(level string) error {
-	return loggerInUse.setVerbosityLevel(level)
-}
-
 func Debug(msg string) {
 	loggerInUse.Debug(msg)
 }

@@ -27,16 +27,14 @@ const verboseFlagName = "verbose"
 
 var verboseFlagValue = false
 
-func NewCommand(ctx common.Context) *anchorCmd {
+func NewCommand(ctx common.Context, rootActions *root.RootCommandActions) *anchorCmd {
 	var rootCmd = &cobra.Command{
 		Use:       "anchor",
 		Short:     "Anchor your Ops environment into a version controlled repository",
 		Long:      `Anchor your Ops environment into a version controlled repository`,
 		ValidArgs: validArgs,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			if err := alignLoggerWithVerboseFlag(); err != nil {
-				logger.Fatal(err.Error())
-			}
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return rootActions.SetLoggerVerbosity(ctx.Logger(), verboseFlagValue)
 		},
 	}
 
@@ -94,19 +92,9 @@ func (cmd *anchorCmd) Initialize() *anchorCmd {
 	return cmd
 }
 
-func alignLoggerWithVerboseFlag() error {
-	level := "info"
-	if verboseFlagValue {
-		level = "debug"
-	}
-	if err := logger.SetVerbosityLevel(level); err != nil {
-		return err
-	}
-	return nil
-}
-
-func Main(ctx common.Context) {
-	cmd := NewCommand(ctx).Initialize()
+func RunCliRootCommand(ctx common.Context) {
+	rootActions := root.DefineRootCommandActions()
+	cmd := NewCommand(ctx, rootActions).Initialize()
 	if err := cmd.cobraCmd.Execute(); err != nil {
 		logger.Fatal(err.Error())
 	}

@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-var LogrusLoggerLoader = func(verbose bool, logFilePath string) error {
+var LogrusLoggerLoader = func(verbose bool, logFilePath string) (Logger, error) {
 	level := "info"
 	if verbose {
 		level = "debug"
@@ -14,14 +14,14 @@ var LogrusLoggerLoader = func(verbose bool, logFilePath string) error {
 
 	stdOutLog, err := createStdoutLogger(level)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO: add retention for xx log files with log rotation to conserve disk space
 	//       currently file based logger use debug level for visibility
 	fileLog, err := createFileBasedLogger(logFilePath, "debug")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	logrusLogger := &logrusLoggerImpl{
@@ -30,7 +30,7 @@ var LogrusLoggerLoader = func(verbose bool, logFilePath string) error {
 	}
 
 	SetLogger(logrusLogger)
-	return nil
+	return logrusLogger, nil
 }
 
 func createStdoutLogger(level string) (*logrus.Logger, error) {
@@ -72,13 +72,12 @@ func createFileBasedLogger(filePath string, level string) (*logrus.Logger, error
 }
 
 func setLogrusVerbosityLevel(level string, logger *logrus.Logger) error {
-	lvl, err := logrus.ParseLevel(level)
-	if err != nil {
+	if lvl, err := logrus.ParseLevel(level); err != nil {
 		return err
+	} else {
+		logger.SetLevel(lvl)
+		return nil
 	}
-
-	logger.SetLevel(lvl)
-	return nil
 }
 
 type logrusLoggerImpl struct {
@@ -97,16 +96,6 @@ func (lr *logrusLoggerImpl) Debugf(format string, args ...interface{}) {
 	lr.fileLogger.Debugf(format, args...)
 }
 
-func (lr *logrusLoggerImpl) Warning(msg string) {
-	lr.stdoutLogger.Warning(msg)
-	lr.fileLogger.Warning(msg)
-}
-
-func (lr *logrusLoggerImpl) Warningf(format string, args ...interface{}) {
-	lr.stdoutLogger.Warningf(format, args...)
-	lr.fileLogger.Warningf(format, args...)
-}
-
 func (lr *logrusLoggerImpl) Info(msg string) {
 	lr.stdoutLogger.Info(msg)
 	lr.fileLogger.Info(msg)
@@ -115,6 +104,16 @@ func (lr *logrusLoggerImpl) Info(msg string) {
 func (lr *logrusLoggerImpl) Infof(format string, args ...interface{}) {
 	lr.stdoutLogger.Infof(format, args...)
 	lr.fileLogger.Infof(format, args...)
+}
+
+func (lr *logrusLoggerImpl) Warning(msg string) {
+	lr.stdoutLogger.Warning(msg)
+	lr.fileLogger.Warning(msg)
+}
+
+func (lr *logrusLoggerImpl) Warningf(format string, args ...interface{}) {
+	lr.stdoutLogger.Warningf(format, args...)
+	lr.fileLogger.Warningf(format, args...)
 }
 
 func (lr *logrusLoggerImpl) Error(msg string) {
@@ -137,11 +136,11 @@ func (lr *logrusLoggerImpl) Fatalf(format string, args ...interface{}) {
 	lr.fileLogger.Fatalf(format, args...)
 }
 
-func (f *logrusLoggerImpl) setVerbosityLevel(level string) error {
-	if err := setLogrusVerbosityLevel(level, f.stdoutLogger); err != nil {
+func (lr *logrusLoggerImpl) SetVerbosityLevel(level string) error {
+	if err := setLogrusVerbosityLevel(level, lr.stdoutLogger); err != nil {
 		return fmt.Errorf("failed to set verbosity on stdout logger")
 	}
-	if err := setLogrusVerbosityLevel(level, f.fileLogger); err != nil {
+	if err := setLogrusVerbosityLevel(level, lr.fileLogger); err != nil {
 		return fmt.Errorf("failed to set verbosity on file based logger")
 	}
 	return nil

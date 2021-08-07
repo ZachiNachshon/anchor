@@ -24,7 +24,7 @@ func LoggingVerbose(ctx common.Context, t *testing.T, f func(logger logger.Logge
 }
 
 func createLogger(ctx common.Context, t *testing.T, verbose bool, f func(logger logger.Logger)) {
-	if out, err := logger.FakeTestingLogger(ctx, t, verbose); err != nil {
+	if out, err := logger.FakeTestingLogger(t, verbose); err != nil {
 		println("Failed to create a fake testing logger. error: %s", err)
 		os.Exit(1)
 	} else {

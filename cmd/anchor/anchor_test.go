@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/common"
 	"github.com/ZachiNachshon/anchor/config"
 	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/pkg/root"
 	"github.com/ZachiNachshon/anchor/test/drivers"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -27,8 +28,16 @@ func Test_AnchorCommandShould(t *testing.T) {
 			Func: InitFlagsAndSubCommandsUponInitialization,
 		},
 		{
-			Name: "fail on invalid logger verbosity level",
-			Func: FailOnInvalidLoggerVerbosityLevel,
+			Name: "have valid completion commands as the sub-commands",
+			Func: HaveValidCompletionCommandsAsTheSubCommands,
+		},
+		{
+			Name: "fail to set logger verbosity",
+			Func: FailToSetLoggerVerbosity,
+		},
+		{
+			Name: "set logger verbosity successfully",
+			Func: SetLoggerVerbositySuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -36,11 +45,16 @@ func Test_AnchorCommandShould(t *testing.T) {
 
 var ExpectVerbosityOnceFlagIsSet = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				// Initialize verbose flags which is a global variable to default
 				verboseFlagValue = false
-				cmd := NewCommand(ctx)
+				actions := &root.RootCommandActions{
+					SetLoggerVerbosity: func(l logger.Logger, verbose bool) error {
+						return nil
+					},
+				}
+				cmd := NewCommand(ctx, actions)
 				cmd.InitFlags()
 				if _, err := drivers.CLI().RunCommand(cmd, fmt.Sprintf("--%s", verboseFlagName)); err != nil {
 					logger.Fatalf("expected test to succeed. error: %s", err.Error())
@@ -56,7 +70,8 @@ var ContainExpectedSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
-				cmd := NewCommand(ctx)
+				actions := &root.RootCommandActions{}
+				cmd := NewCommand(ctx, actions)
 				cmd.InitSubCommands()
 				assert.True(t, cmd.cobraCmd.HasSubCommands())
 				cmds := cmd.cobraCmd.Commands()
@@ -78,7 +93,8 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
 				// Initialize verbose flags which is a global variable to default
 				verboseFlagValue = false
-				cmd := NewCommand(ctx)
+				actions := &root.RootCommandActions{}
+				cmd := NewCommand(ctx, actions)
 				cmd.Initialize()
 
 				assert.True(t, cmd.cobraCmd.HasPersistentFlags())
@@ -101,21 +117,58 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 	})
 }
 
-var FailOnInvalidLoggerVerbosityLevel = func(t *testing.T) {
-	verboseFlagValue = false
-	alignLoggerWithVerboseFlag()
+var HaveValidCompletionCommandsAsTheSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
-				// Initialize verbose flags which is a global variable to default
-				verboseFlagValue = false
-				cmd := NewCommand(ctx)
-				cmd.InitFlags()
-				if _, err := drivers.CLI().RunCommand(cmd, fmt.Sprintf("--%s", verboseFlagName)); err != nil {
-					logger.Fatalf("expected test to succeed. error: %s", err.Error())
-				} else {
-					assert.True(t, verboseFlagValue)
+				actions := &root.RootCommandActions{}
+				cmd := NewCommand(ctx, actions)
+				cmd.InitSubCommands()
+				assert.NotNil(t, cmd.cobraCmd.ValidArgs)
+				assert.True(t, cmd.cobraCmd.HasSubCommands())
+				assert.Equal(t, len(cmd.cobraCmd.Commands()), len(cmd.cobraCmd.ValidArgs))
+				for _, subCmd := range cmd.cobraCmd.Commands() {
+					assert.Contains(t, cmd.cobraCmd.ValidArgs, subCmd.Use)
 				}
+			})
+		})
+	})
+}
+
+var FailToSetLoggerVerbosity = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+				setLoggerCallCount := 0
+				actions := &root.RootCommandActions{
+					SetLoggerVerbosity: func(l logger.Logger, verbose bool) error {
+						setLoggerCallCount++
+						return nil
+					},
+				}
+				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
+				assert.Equal(t, 1, setLoggerCallCount, "expected action to be called exactly once. name: set-logger-verbosity")
+				assert.Nil(t, err, "expected cli action to have no errors")
+			})
+		})
+	})
+}
+
+var SetLoggerVerbositySuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+				setLoggerCallCount := 0
+				actions := &root.RootCommandActions{
+					SetLoggerVerbosity: func(l logger.Logger, verbose bool) error {
+						setLoggerCallCount++
+						return fmt.Errorf("failed to set verbosity")
+					},
+				}
+				_, err := drivers.CLI().RunCommand(NewCommand(ctx, actions))
+				assert.Equal(t, 1, setLoggerCallCount, "expected action to be called exactly once. name: set-logger-verbosity")
+				assert.NotNil(t, err, "expected cli action to fail")
+				assert.Equal(t, "failed to set verbosity", err.Error())
 			})
 		})
 	})
