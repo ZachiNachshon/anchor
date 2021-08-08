@@ -26,6 +26,34 @@ func Test_MainShould(t *testing.T) {
 			Func: SetValidInitializationsToCollaborators,
 		},
 		{
+			Name: "init logger collaborator successfully",
+			Func: InitLoggerCollaboratorSuccessfully,
+		},
+		{
+			Name: "init configuration collaborator successfully",
+			Func: InitConfigurationCollaboratorSuccessfully,
+		},
+		{
+			Name: "init registry collaborator successfully",
+			Func: InitRegistryCollaboratorSuccessfully,
+		},
+		{
+			Name: "init start cli commands collaborator successfully",
+			Func: InitStartCliCommandsCollaboratorSuccessfully,
+		},
+		//{
+		//	Name: "exit application successfully",
+		//	Func: ExitApplicationSuccessfully,
+		//},
+		{
+			Name: "start cli commands successfully",
+			Func: StartCliCommandsSuccessfully,
+		},
+		{
+			Name: "start main entry point successfully",
+			Func: StartMainEntryPointSuccessfully,
+		},
+		{
 			Name: "run collaborators in a specific order",
 			Func: RunCollaboratorsInASpecificOrder,
 		},
@@ -66,6 +94,56 @@ var SetValidInitializationsToCollaborators = func(t *testing.T) {
 	assert.NotNil(t, collaborators.Configuration, "expected collaborator not to be empty. name: Configuration")
 	assert.NotNil(t, collaborators.Registry, "expected collaborator not to be empty. name: Registry")
 	assert.NotNil(t, collaborators.StartCliCommands, "expected collaborator not to be empty. name: StartCliCommands")
+}
+
+var InitLoggerCollaboratorSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		collaborators.Logger(ctx)
+	})
+}
+
+var InitConfigurationCollaboratorSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		collaborators.Configuration(ctx)
+	})
+}
+
+var InitRegistryCollaboratorSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		collaborators.Registry(ctx)
+	})
+}
+
+var InitStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		collaborators.StartCliCommands(ctx)
+	})
+}
+
+// testing os.exit based on:
+// https://stackoverflow.com/questions/26225513/how-to-test-os-exit-scenarios-in-go
+//var ExitApplicationSuccessfully = func(t *testing.T) {
+//	if os.Getenv("EXIT_APPLICATION") == "1" {
+//		exitApplication(1, "an error occurred")
+//		return
+//	}
+//	cmd := exec.Command(os.Args[0], "-test.run=ExitApplicationSuccessfully")
+//	cmd.Env = append(os.Environ(), "EXIT_APPLICATION=1")
+//	err := cmd.Run()
+//	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+//		return
+//	}
+//	t.Fatalf("process ran with err %v, want exit status 1", err)
+//}
+
+var StartCliCommandsSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		startCliCommands(ctx)
+	})
+}
+
+var StartMainEntryPointSuccessfully = func(t *testing.T) {
+	main()
 }
 
 var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
