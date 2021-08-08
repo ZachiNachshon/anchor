@@ -5,14 +5,13 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
-	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
 )
 
 type ConfigViewFunc func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error
 
 var ConfigView = func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error {
 	cfg := config.FromContext(ctx)
-	if cfgText, err := converters.ConfigObjToYaml(cfg); err != nil {
+	if cfgText, err := config.ConfigObjToYaml(cfg); err != nil {
 		logger.Error(err.Error())
 		return err
 	} else {

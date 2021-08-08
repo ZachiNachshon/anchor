@@ -1,23 +1,20 @@
-package testing
+package config
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
-	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
-	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
+	"github.com/ZachiNachshon/anchor/internal/registry"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/test/harness"
-	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
 var TestAuthor = "author: Dummy Name <dummy.name@gmail.com>"
 var TestLicense = "license: TestsLicense"
 var TestClonePath = "/test/clone/path"
-
-// Duplicate this method from the with.go test utility to prevent 'import cycle not allowed in test'
-// config package is the only exception for this use case
 
 func Test_ConfigShould(t *testing.T) {
 	tests := []harness.TestsHarness{
@@ -46,11 +43,11 @@ func Test_ConfigShould(t *testing.T) {
 }
 
 var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
-				with.HarnessAnchorfilesTestRepo(ctx)
+	withContext(func(ctx common.Context) {
+		withLogging(ctx, t, false, func(logger logger.Logger) {
+			yamlConfigText := GetDefaultTestConfigText()
+			withConfig(ctx, yamlConfigText, func(config AnchorConfig) {
+				harnessAnchorfilesTestRepo(ctx)
 				assert.True(t, ioutils.IsValidPath(ctx.AnchorFilesPath()),
 					"cannot resolve anchorfiles test repo. path: %s", ctx.AnchorFilesPath())
 			})
@@ -59,10 +56,10 @@ var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
 }
 
 var ResolveConfigFromYamlTextSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
+	withContext(func(ctx common.Context) {
+		withLogging(ctx, t, false, func(logger logger.Logger) {
 			// Override default values explicitly
-			var items = config.TemplateItems{
+			var items = TemplateItems{
 				Author:                        TestAuthor,
 				License:                       TestLicense,
 				CurrentContext:                "1st-anchorfiles",
@@ -73,10 +70,10 @@ var ResolveConfigFromYamlTextSuccessfully = func(t *testing.T) {
 				SecondContextClonePath:        TestClonePath,
 				SecondContextRemoteRepoBranch: "2nd-test-branch",
 			}
-			yamlConfigText := config.GetCustomTestConfigText(items)
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			yamlConfigText := GetCustomTestConfigText(items)
+			withConfig(ctx, yamlConfigText, func(cfg AnchorConfig) {
 				cfg.Config.ActiveContext = nil
-				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
+				nonViperConfig := YamlToConfigObj(yamlConfigText)
 				assert.EqualValues(t, nonViperConfig.Author, cfg.Author)
 				assert.EqualValues(t, nonViperConfig.License, cfg.License)
 				assert.EqualValues(t, nonViperConfig.Config, cfg.Config)
@@ -86,17 +83,17 @@ var ResolveConfigFromYamlTextSuccessfully = func(t *testing.T) {
 }
 
 var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
+	withContext(func(ctx common.Context) {
+		withLogging(ctx, t, false, func(logger logger.Logger) {
 			// Omit config items that should get default values
-			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			yamlConfigText := GetDefaultTestConfigText()
+			withConfig(ctx, yamlConfigText, func(cfg AnchorConfig) {
 				cfgCtxName := "1st-anchorfiles"
-				defaultClonePath, _ := config.GetDefaultRepoClonePath(cfgCtxName)
-				nonViperConfig := converters.YamlToConfigObj(yamlConfigText)
+				defaultClonePath, _ := GetDefaultRepoClonePath(cfgCtxName)
+				nonViperConfig := YamlToConfigObj(yamlConfigText)
 				assert.NotNil(t, nonViperConfig, "expected a valid config object")
-				assert.EqualValues(t, config.DefaultAuthor, cfg.Author)
-				assert.EqualValues(t, config.DefaultLicense, cfg.License)
+				assert.EqualValues(t, DefaultAuthor, cfg.Author)
+				assert.EqualValues(t, DefaultLicense, cfg.License)
 				assert.EqualValues(t, defaultClonePath,
 					cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath)
 			})
@@ -109,12 +106,12 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 //		with.Logging(ctx, t, func(logger logger.Logger) {
 //			yamlConfigText := `
 //config:
-//  currentContext: test-cfg-ctx
-//  contexts:
-//    - name: test-cfg-ctx
-//      context:
-//        repository:
-//          remote:
+// currentContext: test-cfg-ctx
+// contexts:
+//   - name: test-cfg-ctx
+//     context:
+//       repository:
+//         remote:
 //`
 //			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 //				verifyConfigCallCount := 0
@@ -137,18 +134,18 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 //		})
 //	})
 //}
-
+//
 //var FailToResolveLocalRepositoryDueToMissingConfig = func(t *testing.T) {
 //	with.Context(func(ctx common.Context) {
 //		with.Logging(ctx, t, func(logger logger.Logger) {
 //			yamlConfigText := `
 //config:
-//  currentContext: test-cfg-ctx
-//  contexts:
-//    - name: test-cfg-ctx
-//      context:
-//        repository:
-//          local:
+// currentContext: test-cfg-ctx
+// contexts:
+//   - name: test-cfg-ctx
+//     context:
+//       repository:
+//         local:
 //`
 //			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
 //				rslvr := &LocalResolver{
@@ -162,3 +159,41 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 //		})
 //	})
 //}
+
+// Duplicate these methods from the with.go test utility to prevent 'import cycle not allowed in test'
+// config package is the only exception for this use case
+func withContext(f func(ctx common.Context)) {
+	// Every context must have a new registry instance
+	ctx := common.EmptyAnchorContext(registry.New())
+	f(ctx)
+}
+
+func withConfig(ctx common.Context, content string, f func(config AnchorConfig)) {
+	if cfg, err := ViperConfigInMemoryLoader(content); err != nil {
+		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
+	} else {
+		SetInContext(ctx, *cfg)
+		// set current config context as the active config context
+		_ = LoadActiveConfigByName(cfg, cfg.Config.CurrentContext)
+		f(*cfg)
+	}
+}
+
+func withLogging(ctx common.Context, t *testing.T, verbose bool, f func(logger logger.Logger)) {
+	if out, err := logger.FakeTestingLogger(t, verbose); err != nil {
+		println("Failed to create a fake testing logger. error: %s", err)
+		os.Exit(1)
+	} else {
+		logger.SetLogger(out)
+		f(out)
+	}
+}
+
+func harnessAnchorfilesTestRepo(ctx common.Context) {
+	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath()
+	if repoRootPath == "" {
+		logger.Fatalf("failed to resolve the absolute path of the repository root.")
+	}
+	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
+	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
+}

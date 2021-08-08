@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -122,6 +123,23 @@ var GetDefaultRepoClonePath = func(contextName string) (string, error) {
 		return "", err
 	} else {
 		return fmt.Sprintf(defaultRepoClonePathFormat+"/%s", homeFolder, contextName), nil
+	}
+}
+
+func YamlToConfigObj(yamlText string) AnchorConfig {
+	cfg := AnchorConfig{}
+	if err := converters.UnmarshalYamlToObj(yamlText, &cfg); err != nil {
+		logger.Fatalf("Failed to generate config template. error: %s", err.Error())
+	}
+	return cfg
+}
+
+func ConfigObjToYaml(cfg AnchorConfig) (string, error) {
+	if out, err := converters.UnmarshalObjToYaml(cfg); err != nil {
+		logger.Errorf("Failed to generate config template. error: %s", err.Error())
+		return "", nil
+	} else {
+		return out, nil
 	}
 }
 
