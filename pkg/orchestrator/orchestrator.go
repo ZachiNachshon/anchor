@@ -2,17 +2,48 @@ package orchestrator
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/models"
-	"github.com/ZachiNachshon/anchor/pkg/errors"
+	"github.com/ZachiNachshon/anchor/internal/errors"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/models"
+
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
+
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
+
+const (
+	Identifier string = "orchestrator"
+)
+
+type Orchestrator interface {
+	OrchestrateApplicationSelection() (*models.ApplicationInfo, *errors.PromptError)
+
+	ExtractInstructions(
+		app *models.ApplicationInfo,
+		anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError)
+
+	OrchestrateInstructionActionSelection(
+		app *models.ApplicationInfo,
+		actions []*models.Action) (*models.Action, *errors.PromptError)
+
+	OrchestrateInstructionWorkflowSelection(
+		app *models.ApplicationInfo,
+		workflows []*models.Workflow) (*models.Workflow, *errors.PromptError)
+
+	AskBeforeRunningInstructionAction(action *models.Action) (bool, *errors.PromptError)
+	AskBeforeRunningInstructionWorkflow(workflow *models.Workflow) (bool, *errors.PromptError)
+
+	RunInstructionAction(action *models.Action) *errors.PromptError
+	RunInstructionWorkflow(
+		workflow *models.Workflow,
+		actions []*models.Action) *errors.PromptError
+
+	WrapAfterActionRun() *errors.PromptError
+}
 
 type orchestratorImpl struct {
 	Orchestrator
@@ -119,7 +150,7 @@ func (o *orchestratorImpl) AskBeforeRunningInstructionWorkflow(workflow *models.
 
 func (o *orchestratorImpl) RunInstructionAction(action *models.Action) *errors.PromptError {
 	logger.Debugf("Running action: %v...", action.Id)
-	scriptOutputPath, _ := config.GetDefaultScriptOutputLogFilePath()
+	scriptOutputPath, _ := logger.GetDefaultScriptOutputLogFilePath()
 
 	if len(action.Script) > 0 && len(action.ScriptFile) > 0 {
 		return errors.New(fmt.Errorf("script / scriptFile are mutual exclusive, please use either one"))

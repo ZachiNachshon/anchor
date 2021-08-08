@@ -2,8 +2,9 @@ package git
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/common"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"

@@ -2,9 +2,9 @@ package extractor
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/common"
+	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/test/harness"

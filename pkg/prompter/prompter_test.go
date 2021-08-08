@@ -1,7 +1,7 @@
 package prompter
 
 import (
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/stretchr/testify/assert"

@@ -2,10 +2,15 @@ package clipboard
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"runtime"
 )
+
+type Clipboard interface {
+	Load(content string) error
+}
 
 type clipboardImpl struct {
 	shell shell.Shell

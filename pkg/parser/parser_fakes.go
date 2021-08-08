@@ -1,6 +1,8 @@
 package parser
 
-import "github.com/ZachiNachshon/anchor/models"
+import (
+	"github.com/ZachiNachshon/anchor/pkg/models"
+)
 
 var CreateFakeParser = func() *fakeParserImpl {
 	return &fakeParserImpl{}

@@ -1,7 +1,7 @@
 package extractor
 
 import (
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 )
 

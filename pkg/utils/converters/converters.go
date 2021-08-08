@@ -2,8 +2,9 @@ package converters
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"gopkg.in/yaml.v3"
 )
 

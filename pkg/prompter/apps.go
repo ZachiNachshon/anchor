@@ -1,7 +1,7 @@
 package prompter
 
 import (
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/manifoldco/promptui"
 	"strings"

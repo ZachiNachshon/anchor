@@ -2,9 +2,10 @@ package prompter
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/models"
+
 	"github.com/manifoldco/promptui"
 	"github.com/manifoldco/promptui/screenbuf"
 )
@@ -18,6 +19,17 @@ const (
 	CrossMarkEmoji          = "\U0000274C"
 	selectorEmojiCharLength = 3
 )
+
+const (
+	Identifier string = "prompter"
+)
+
+type Prompter interface {
+	PromptConfigContext(cfgContexts []*config.Context) (*config.Context, error)
+	PromptApps(appsArr []*models.ApplicationInfo) (*models.ApplicationInfo, error)
+	PromptInstructionActions(appName string, actions []*models.Action) (*models.Action, error)
+	PromptInstructionWorkflows(appName string, workflows []*models.Workflow) (*models.Workflow, error)
+}
 
 type prompterImpl struct {
 	Prompter

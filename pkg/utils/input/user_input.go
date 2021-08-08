@@ -3,10 +3,22 @@ package input
 import (
 	"bufio"
 	"fmt"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"os"
 	"strconv"
 )
+
+const (
+	Identifier string = "user-input"
+)
+
+type UserInput interface {
+	AskYesNoQuestion(question string) (bool, error)
+	AskForNumber() (int, error)
+	AskForNumberWithDefault() (int, error)
+	PressAnyKeyToContinue() error
+}
 
 type userInputImpl struct {
 	UserInput

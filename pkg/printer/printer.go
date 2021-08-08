@@ -2,34 +2,26 @@ package printer
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/pkg/prompter"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/ZachiNachshon/anchor/pkg/utils/templates"
 )
 
-var configViewTemplate = `{{ "Configuration Path:" | cyan }} 
-{{ .ConfigFilePath | yellow }} 
+const (
+	Identifier string = "printer"
+)
 
-{{ "Configuration:" | cyan }}
-{{ .ConfigText | yellow }}
-`
+type Printer interface {
+	PrintAnchorBanner()
+	PrintAnchorVersion(version string)
+	PrintApplications(appsStatus []*AppStatusTemplateItem)
+	PrintConfiguration(cfgFilePath string, cfgText string)
+}
 
-var appStatusTemplate = `{{ "There are " | cyan }}{{ .Count | green }}{{ " available applications:" | cyan }}
-
-{{ range $element := .AppsStatusItems }}
-  {{- if (eq $element.IsValid true) }} ` +
-	prompter.CheckMarkEmoji + ` {{ $element.Name }}
-  {{- else }} ` +
-	prompter.CrossMarkEmoji + ` {{ $element.Name }}
-    {{- if (eq $element.MissingInstructionFile true) }}
-    • {{ "Missing instructions.yaml file" | red }} 
-    {{ end }}
-    {{- if (eq $element.InvalidInstructionFormat true) }} 
-    • {{ "Invalid instructions.yaml file format" | red }} 
-    {{ end }}
-  {{- end }}
-{{ end }}`
+func (as *AppStatusTemplateItem) CalculateValidity() {
+	as.IsValid = !as.MissingInstructionFile && !as.InvalidInstructionFormat
+}
 
 type ConfigViewTemplateItem struct {
 	ConfigFilePath string

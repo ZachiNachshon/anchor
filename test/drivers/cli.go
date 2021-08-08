@@ -2,14 +2,15 @@ package drivers
 
 import (
 	"bytes"
-	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/internal/cmd"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"github.com/spf13/cobra"
 	"io/ioutil"
 )
 
 type CLIActions interface {
-	RunCommand(cmd models.AnchorCommand, args ...string) (string, error)
+	RunCommand(cmd cmd.AnchorCommand, args ...string) (string, error)
 }
 
 type cliRunnerImpl struct {
@@ -20,7 +21,7 @@ func CLI() CLIActions {
 	return &cliRunnerImpl{}
 }
 
-func (cli *cliRunnerImpl) RunCommand(cmd models.AnchorCommand, args ...string) (string, error) {
+func (cli *cliRunnerImpl) RunCommand(cmd cmd.AnchorCommand, args ...string) (string, error) {
 	//cmd.InitFlags()
 	//cmd.InitSubCommands()
 

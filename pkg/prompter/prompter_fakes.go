@@ -1,6 +1,8 @@
 package prompter
 
-import "github.com/ZachiNachshon/anchor/models"
+import (
+	"github.com/ZachiNachshon/anchor/pkg/models"
+)
 
 var CreateFakePrompter = func() *fakePrompterImpl {
 	return &fakePrompterImpl{}

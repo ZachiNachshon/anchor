@@ -2,10 +2,29 @@ package git
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"strings"
 )
+
+type Git interface {
+	Clone(url string, branch string, clonePath string) error
+	Init(path string) error
+	AddOrigin(path string, url string) error
+	FetchShallow(path string, branch string) error
+	Reset(path string, revision string) error
+	Checkout(path string, branch string) error
+	Clean(path string) error
+	GetRemoteHeadCommitHash(path string, repoUrl string, branch string) (string, error)
+	GetLocalOriginCommitHash(path string, branch string) (string, error)
+	LogRevisionsDiffPretty(path string, prevRevision string, newRevision string) error
+}
+
+type gitImpl struct {
+	Git
+	shell shell.Shell
+}
 
 func New(s shell.Shell) Git {
 	return &gitImpl{

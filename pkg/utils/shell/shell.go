@@ -3,7 +3,8 @@ package shell
 import (
 	"bytes"
 	"fmt"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/creack/pty"
 	"golang.org/x/term"
@@ -13,6 +14,32 @@ import (
 	"os/signal"
 	"syscall"
 )
+
+const (
+	Identifier string = "shell"
+)
+
+type Shell interface {
+	ExecuteScriptFile(dir string, relativeScriptPath string, args ...string) error
+	ExecuteScriptFileWithOutputToFile(
+		workingDirectory string,
+		relativeScriptPath string,
+		outputFilePath string,
+		args ...string) error
+
+	Execute(script string) error
+	ExecuteWithOutputToFile(script string, outputFilePath string) error
+
+	ExecuteReturnOutput(script string) (string, error)
+	ExecuteSilently(script string) error
+
+	// ExecuteTTY executes a script as a TeleTYpewrite, this allow us to run interactive commands
+	// by creating a unix pseudo-terminals.
+	// Used for cases of starting applications programmatically such as vi, sublime etc..
+	ExecuteTTY(script string) error
+	ExecuteInBackground(script string) error
+	ClearScreen() error
+}
 
 type ShellType string
 

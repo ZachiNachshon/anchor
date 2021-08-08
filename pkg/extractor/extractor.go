@@ -2,12 +2,21 @@ package extractor
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/models"
+
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"io/ioutil"
 	"sort"
 )
+
+const (
+	Identifier string = "extractor"
+)
+
+type Extractor interface {
+	ExtractInstructions(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error)
+}
 
 type extractorImpl struct{}
 

@@ -2,7 +2,7 @@ package prompter
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/config"
+	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/manifoldco/promptui"
 	"strings"

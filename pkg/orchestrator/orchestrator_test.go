@@ -2,11 +2,13 @@ package orchestrator
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/internal/common"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/models"
+
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
+
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"

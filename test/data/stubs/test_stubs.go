@@ -1,7 +1,7 @@
 package stubs
 
 import (
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 )
 
 const (
@@ -41,7 +41,7 @@ const (
 func GenerateApplicationTestData() []*models.ApplicationInfo {
 	appDirs := make([]*models.ApplicationInfo, 2)
 	appDirs[0] = &app1
-	appDirs[1] = &app2
+	appDirs[1] = &app
 	return appDirs
 }
 
@@ -105,7 +105,7 @@ var app1Workflow1 = models.Workflow{
 	ActionIds:        []string{App1Action1Id, App1Action2Id},
 }
 
-var app2 = models.ApplicationInfo{
+var app = models.ApplicationInfo{
 	Name:             App2Name,
 	DirPath:          App2DirPath,
 	InstructionsPath: App2InstructionsPath,

@@ -1,8 +1,8 @@
 package orchestrator
 
 import (
-	"github.com/ZachiNachshon/anchor/models"
-	"github.com/ZachiNachshon/anchor/pkg/errors"
+	errors "github.com/ZachiNachshon/anchor/internal/errors"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 )
 
 var CreateFakeOrchestrator = func() *fakeOrchestratorImpl {

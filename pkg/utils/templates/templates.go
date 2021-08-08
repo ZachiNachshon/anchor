@@ -3,7 +3,8 @@ package templates
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ZachiNachshon/anchor/logger"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+
 	"text/template"
 )
 

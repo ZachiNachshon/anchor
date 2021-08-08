@@ -2,17 +2,17 @@ package with
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/common"
-	"github.com/ZachiNachshon/anchor/config"
-	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/pkg/registry"
+	"github.com/ZachiNachshon/anchor/internal/common"
+	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/internal/registry"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
 	"testing"
 )
 
 func Context(f func(ctx common.Context)) {
-	// We want a new registry instance on every context
+	// Every context must have a new registry instance
 	ctx := common.EmptyAnchorContext(registry.New())
 	f(ctx)
 }

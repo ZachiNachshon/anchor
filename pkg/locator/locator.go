@@ -2,8 +2,9 @@ package locator
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/logger"
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/models"
+
 	"github.com/ZachiNachshon/anchor/pkg/utils/atomics"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
@@ -11,6 +12,17 @@ import (
 	"sort"
 	"strings"
 )
+
+const (
+	Identifier string = "locator"
+)
+
+type Locator interface {
+	Scan(anchorFilesLocalPath string) error
+	Applications() []*models.ApplicationInfo
+	ApplicationsAsMap() map[string]*models.ApplicationInfo
+	Application(name string) *models.ApplicationInfo
+}
 
 type DirectoryIdentifier string
 
@@ -192,47 +204,3 @@ func sortApplications(apps []*models.ApplicationInfo) []*models.ApplicationInfo 
 	})
 	return apps
 }
-
-//func (l *locator) Print() {
-//size := len(l.dirsNumeric)
-//if size == 0 {
-//	return
-//}
-//
-//var affinityFilter = ""
-//var listK8sOnly = false
-//
-//table := "\n"
-//table += header
-//for lineNumber := 1; lineNumber <= size; {
-//	content := l.dirsNumeric[lineNumber]
-//
-//	if len(affinityFilter) > 0 && content.affinity != affinityFilter {
-//		lineNumber += 1
-//		continue
-//	}
-//
-//	hasDockerfile := "     no"
-//	if content.dockerfile != "" {
-//		hasDockerfile = "   yes"
-//	}
-//
-//	hasK8sManifest := "    no"
-//	hasK8s := false
-//	if content.k8sManifest != "" {
-//		hasK8sManifest = "    yes"
-//		hasK8s = true
-//	}
-//
-//	if listK8sOnly && !hasK8s {
-//		lineNumber += 1
-//		continue
-//	} else {
-//		l := fmt.Sprintf(lineFormat, lineNumber, content.Name, hasDockerfile, hasK8sManifest, content.affinity)
-//		table += l
-//		lineNumber += 1
-//	}
-//}
-//
-//logger.Info(table)
-//}

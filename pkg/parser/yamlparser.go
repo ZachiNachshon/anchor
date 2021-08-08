@@ -1,9 +1,17 @@
 package parser
 
 import (
-	"github.com/ZachiNachshon/anchor/models"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
 )
+
+const (
+	Identifier string = "parser"
+)
+
+type Parser interface {
+	ParseInstructions(text string) (*models.InstructionsRoot, error)
+}
 
 type yamlParser struct{}
 
