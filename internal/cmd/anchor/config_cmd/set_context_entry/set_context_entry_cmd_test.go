@@ -37,9 +37,9 @@ func Test_SetContextEntryCommandShould(t *testing.T) {
 var StartSetContextEntryActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate config.AnchorConfig) error) error {
+				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
 					callCount++
 					return nil
 				}
@@ -54,7 +54,7 @@ var StartSetContextEntryActionSuccessfully = func(t *testing.T) {
 var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				configContextName := "test-cfg-context"
 				url := "git@github.com:test/flags.git"
 				branch := "test-branch"
@@ -64,7 +64,7 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 				localPath := "/test/local/path"
 
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate config.AnchorConfig) error) error {
+				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
 					assert.Equal(t, cfgCtxName, configContextName)
 
 					assert.Contains(t, changes, remoteUrlFlagName)
@@ -108,9 +108,9 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 var FailDueToMissingConfigContextName = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate config.AnchorConfig) error) error {
+				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
 					callCount++
 					return nil
 				}
@@ -126,10 +126,10 @@ var FailDueToMissingConfigContextName = func(t *testing.T) {
 var FailSetContextEntryAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				configContextName := "test-cfg-context"
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate config.AnchorConfig) error) error {
+				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}

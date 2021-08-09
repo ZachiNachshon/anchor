@@ -58,17 +58,18 @@ func (c *anchorCmd) InitFlags() {
 }
 
 func (c *anchorCmd) InitSubCommands() {
+	preRunSequence := AnchorPreRunSequence()
 
 	//cobra.EnableCommandSorting = false
 
 	// Apps Commands
-	c.cobraCmd.AddCommand(app.NewCommand(c.ctx, LoadRepoOrFail).GetCobraCmd())
+	c.cobraCmd.AddCommand(app.NewCommand(c.ctx, preRunSequence.Run).GetCobraCmd())
 
 	// CLI Commands
-	c.cobraCmd.AddCommand(cli.NewCommand(c.ctx, LoadRepoOrFail).GetCobraCmd())
+	c.cobraCmd.AddCommand(cli.NewCommand(c.ctx, preRunSequence.Run).GetCobraCmd())
 
 	// Controller Commands
-	c.cobraCmd.AddCommand(controller.NewCommand(c.ctx, LoadRepoOrFail).GetCobraCmd())
+	c.cobraCmd.AddCommand(controller.NewCommand(c.ctx, preRunSequence.Run).GetCobraCmd())
 
 	// Config Commands
 	c.cobraCmd.AddCommand(config_cmd.NewCommand(c.ctx).GetCobraCmd())

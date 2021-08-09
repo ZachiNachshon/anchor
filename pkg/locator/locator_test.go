@@ -28,7 +28,7 @@ var FailOnInvalidAnchorfilesLocalPath = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				// Given I create a new locator with invalid anchorfiles path
 				l := New()
 				// When I scan the anchorfiles repo
@@ -45,7 +45,7 @@ var ScanAndFindExpectedApplications = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				// Given I prepare an anchorfiles test repo
 				with.HarnessAnchorfilesTestRepo(ctx)
 				// And I create a new locator

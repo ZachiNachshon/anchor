@@ -15,14 +15,14 @@ type controllerCmd struct {
 
 var validArgs = []string{""}
 
-func NewCommand(ctx common.Context, loadRepoOrFail cmd.LoadRepoOrFailFunc) *controllerCmd {
+func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *controllerCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "controller",
 		Short:     "Kubernetes controllers commands",
 		Aliases:   []string{"kc"},
 		ValidArgs: validArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return loadRepoOrFail(ctx)
+			return preRunSequence(ctx)
 		},
 	}
 

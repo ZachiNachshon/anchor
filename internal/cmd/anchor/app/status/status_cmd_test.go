@@ -29,7 +29,7 @@ func Test_StatusCommandShould(t *testing.T) {
 var StartStatusActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context) error {
 					callCount++
@@ -46,7 +46,7 @@ var StartStatusActionSuccessfully = func(t *testing.T) {
 var FailStatusAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context) error {
 					callCount++

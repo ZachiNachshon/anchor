@@ -12,10 +12,13 @@ func GetRepositoryAbsoluteRootPath() string {
 
 	trailingPath := filepath.Base(path)
 	if trailingPath == repositoryName {
-		return path
+		// make sure not to return an internal path with anchor as the folder name (/cmd/anchor for example)
+		if IsValidPath(path + "/go.mod") {
+			return path
+		}
 	}
 
-	for search := true; search; search = trailingPath != repositoryName {
+	for search := true; search; search = trailingPath != repositoryName && !IsValidPath(trailingPath+"/go.mod") {
 		path = filepath.Dir(path)
 		trailingPath = filepath.Base(path)
 		search = false

@@ -32,8 +32,8 @@ func Test_AnchorCommandShould(t *testing.T) {
 			Func: HaveValidCompletionArgsAsTheSubCommands,
 		},
 		{
-			Name: "set logger verbosity successfully",
-			Func: SetLoggerVerbositySuccessfully,
+			Name: "call set logger verbosity",
+			Func: CallSetLoggerVerbosity,
 		},
 		{
 			Name: "fail to set logger verbosity",
@@ -127,7 +127,7 @@ var HaveValidCompletionArgsAsTheSubCommands = func(t *testing.T) {
 	})
 }
 
-var SetLoggerVerbositySuccessfully = func(t *testing.T) {
+var CallSetLoggerVerbosity = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		setLoggerCallCount := 0
 		var fun = func(l logger.Logger, verbose bool) error {
@@ -157,7 +157,7 @@ var FailToSetLoggerVerbosity = func(t *testing.T) {
 var RunCliRootCommandSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(lgr logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				err := RunCliRootCommand(ctx)
 				assert.Nil(t, err, "expected cli action to succeed")
 			})

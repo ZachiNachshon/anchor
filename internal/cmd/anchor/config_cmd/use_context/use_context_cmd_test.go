@@ -33,7 +33,7 @@ func Test_UseContextCommandShould(t *testing.T) {
 var StartUseContextActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				configContextName := "test-cfg-context"
 				callCount := 0
 				var fun = func(ctx common.Context, cfgCtxName string, overrideConfigEntryFunc func(entryName string, value interface{}) error) error {
@@ -51,7 +51,7 @@ var StartUseContextActionSuccessfully = func(t *testing.T) {
 var FailDueToMissingConfigContextName = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context, cfgCtxName string, overrideConfigEntryFunc func(entryName string, value interface{}) error) error {
 					callCount++
@@ -69,7 +69,7 @@ var FailDueToMissingConfigContextName = func(t *testing.T) {
 var FailUseContextAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				configContextName := "test-cfg-context"
 				callCount := 0
 				var fun = func(ctx common.Context, cfgCtxName string, overrideConfigEntryFunc func(entryName string, value interface{}) error) error {

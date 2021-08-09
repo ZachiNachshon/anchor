@@ -71,7 +71,7 @@ var FailToResolveRemoteRepositoryDueToInvalidRemoteActions = func(t *testing.T) 
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				repo := &RemoteRepository{
 					RemoteConfig: cfg.Config.ActiveContext.Context.Repository.Remote,
 				}
@@ -88,7 +88,7 @@ var FailToCloneFreshRemoteRepositoryIntoClonePath = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -130,7 +130,7 @@ config:
            clonePath: %s
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -179,7 +179,7 @@ config:
            clonePath: %s
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -230,7 +230,7 @@ config:
            clonePath: %s
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -284,7 +284,7 @@ config:
            revision: l33tf4k3c0mm1757r1n6
            clonePath: /some/clone/path
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -336,7 +336,7 @@ config:
            autoUpdate: true
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -411,7 +411,7 @@ config:
            autoUpdate: true
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -486,7 +486,7 @@ config:
            autoUpdate: true
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -537,7 +537,7 @@ config:
            autoUpdate: true
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -595,7 +595,7 @@ config:
            autoUpdate: true
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -659,7 +659,7 @@ config:
            autoUpdate: true
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				verifyConfigCallCount := 0
 				fakeRemoteActions := CreateFakeRemoteActions()
 				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {

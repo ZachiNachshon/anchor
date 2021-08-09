@@ -15,14 +15,14 @@ type cliCmd struct {
 
 var validArgs = []string{"versions"}
 
-func NewCommand(ctx common.Context, loadRepoOrFail cmd.LoadRepoOrFailFunc) *cliCmd {
+func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *cliCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "cli",
 		Short:     "CLI applications",
 		Aliases:   []string{"a"},
 		ValidArgs: validArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return loadRepoOrFail(ctx)
+			return preRunSequence(ctx)
 		},
 	}
 

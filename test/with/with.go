@@ -35,14 +35,14 @@ func createLogger(ctx common.Context, t *testing.T, verbose bool, f func(logger 
 	}
 }
 
-func Config(ctx common.Context, content string, f func(config config.AnchorConfig)) {
+func Config(ctx common.Context, content string, f func(config *config.AnchorConfig)) {
 	if cfg, err := config.ViperConfigInMemoryLoader(content); err != nil {
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
-		config.SetInContext(ctx, *cfg)
+		config.SetInContext(ctx, cfg)
 		// set current config context as the active config context
 		_ = config.LoadActiveConfigByName(cfg, cfg.Config.CurrentContext)
-		f(*cfg)
+		f(cfg)
 	}
 }
 

@@ -28,7 +28,7 @@ func Test_CliCommandShould(t *testing.T) {
 var LoadRepoOrFailSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context) error {
 					callCount++
@@ -45,7 +45,7 @@ var LoadRepoOrFailSuccessfully = func(t *testing.T) {
 var ContainExpectedSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				var fun = func(ctx common.Context) error {
 					return nil
 				}

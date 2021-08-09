@@ -25,7 +25,7 @@ func Test_BashCommandShould(t *testing.T) {
 var GenerateBashCompletionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				var rootCmd = &cobra.Command{
 					Use:   "anchor",
 					Short: "root cmd",

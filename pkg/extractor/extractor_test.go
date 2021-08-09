@@ -35,7 +35,7 @@ var ExtractActionsFromInstructionsSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(config config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				// Given I prepare a valid path to anchorfiles test instructions
 				path := prepareInstructionTestFilePath()
 				// And I create a new extractor

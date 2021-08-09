@@ -39,7 +39,7 @@ config:
           local:
             path: %s
 `, ctx.AnchorFilesPath())
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				repo := &LocalRepository{
 					LocalConfig: cfg.Config.ActiveContext.Context.Repository.Local,
 				}
@@ -64,7 +64,7 @@ config:
           local:
             path: /invalid/path
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				repo := &LocalRepository{
 					LocalConfig: cfg.Config.ActiveContext.Context.Repository.Local,
 				}

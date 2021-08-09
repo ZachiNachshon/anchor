@@ -29,7 +29,7 @@ func Test_SelectCommandShould(t *testing.T) {
 var StartSelectActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context) error {
 					callCount++
@@ -46,7 +46,7 @@ var StartSelectActionSuccessfully = func(t *testing.T) {
 var FailSelectAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context) error {
 					callCount++

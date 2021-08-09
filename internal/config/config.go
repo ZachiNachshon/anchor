@@ -72,7 +72,7 @@ var GetConfigFilePath = func() (string, error) {
 }
 
 // OverrideConfig merge the configuration from disk with the in-memory configuration
-var OverrideConfig = func(cfgToUpdate AnchorConfig) error {
+var OverrideConfig = func(cfgToUpdate *AnchorConfig) error {
 	out, err := yaml.Marshal(cfgToUpdate)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func YamlToConfigObj(yamlText string) AnchorConfig {
 	return cfg
 }
 
-func ConfigObjToYaml(cfg AnchorConfig) (string, error) {
+func ConfigObjToYaml(cfg *AnchorConfig) (string, error) {
 	if out, err := converters.UnmarshalObjToYaml(cfg); err != nil {
 		logger.Errorf("Failed to generate config template. error: %s", err.Error())
 		return "", nil
@@ -143,11 +143,11 @@ func ConfigObjToYaml(cfg AnchorConfig) (string, error) {
 	}
 }
 
-func FromContext(ctx common.Context) AnchorConfig {
-	return ctx.Config().(AnchorConfig)
+func FromContext(ctx common.Context) *AnchorConfig {
+	return ctx.Config().(*AnchorConfig)
 }
 
-func SetInContext(ctx common.Context, config AnchorConfig) {
+func SetInContext(ctx common.Context, config *AnchorConfig) {
 	ctx.(common.ConfigSetter).SetConfig(config)
 }
 

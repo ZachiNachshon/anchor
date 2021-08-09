@@ -15,7 +15,7 @@ type Repository interface {
 	Load(ctx common.Context) (string, error)
 }
 
-var GetRepositoryBasedOnConfig = func(repoConfig *config.Repository) (Repository, error) {
+var GetRepositoryOriginByConfig = func(repoConfig *config.Repository) (Repository, error) {
 	// Checks if repository config attribute is empty
 	if repoConfig == nil {
 		return nil, fmt.Errorf("missing required config value. name: repository")

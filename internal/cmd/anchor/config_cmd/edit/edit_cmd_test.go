@@ -29,7 +29,7 @@ func Test_EditCommandShould(t *testing.T) {
 var StartEditActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error {
 					callCount++
@@ -46,7 +46,7 @@ var StartEditActionSuccessfully = func(t *testing.T) {
 var FailEditAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
 				var fun = func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error {
 					callCount++

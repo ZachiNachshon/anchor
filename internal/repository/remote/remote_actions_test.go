@@ -95,7 +95,7 @@ var FailDueToInvalidRemoteRepoConfig = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				cfg.Config.ActiveContext.Context.Repository.Remote = nil
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
@@ -111,7 +111,7 @@ var FailToVerifyRemoteRepoConfigDueToInvalidUrl = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				cfg.Config.ActiveContext.Context.Repository.Remote.Url = ""
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
@@ -127,7 +127,7 @@ var FailToVerifyRemoteRepoConfigDueToInvalidBranch = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				cfg.Config.ActiveContext.Context.Repository.Remote.Branch = ""
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
@@ -143,7 +143,7 @@ var FailToVerifyRemoteRepoConfigDueToInvalidClonePath = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				cfg.Config.ActiveContext.Context.Repository.Remote.ClonePath = ""
 				fakeGit := git.CreateFakeGit()
 				actions := NewRemoteActions(fakeGit)
@@ -170,7 +170,7 @@ config:
        branch: some-branch
        clonePath: /new/clone/path
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				gitCloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
@@ -206,7 +206,7 @@ config:
        branch: some-branch
        clonePath: /new/clone/path
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				gitCloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
@@ -243,7 +243,7 @@ config:
        clonePath: %s
 `, ctx.AnchorFilesPath())
 
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				gitCloneCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
@@ -279,7 +279,7 @@ config:
        revision: l33tf4k3c0mm1757r1n6
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				gitResetCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.ResetMock = func(path string, revision string) error {
@@ -315,7 +315,7 @@ config:
        revision: l33tf4k3c0mm1757r1n6
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				gitResetCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.ResetMock = func(path string, revision string) error {
@@ -358,7 +358,7 @@ config:
        revision: l33tf4k3c0mm1757r1n6
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				gitResetCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.ResetMock = func(path string, revision string) error {
@@ -403,7 +403,7 @@ config:
        revision: l33tf4k3c0mm1757r1n6
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				gitResetCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.ResetMock = func(path string, revision string) error {
@@ -448,7 +448,7 @@ config:
        branch: some-branch
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				getHeadRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
@@ -485,7 +485,7 @@ config:
        branch: some-branch
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				getHeadRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
@@ -522,7 +522,7 @@ config:
        branch: some-branch
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				getLocalOriginRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
@@ -557,7 +557,7 @@ config:
        branch: some-branch
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				getLocalOriginRevCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
@@ -593,7 +593,7 @@ config:
        branch: some-branch
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				prevRevision := "l33tf4k3c0mm1757r1n6"
 				headRevision := "head-revision"
 				logRevDiffPrettyCallCount := 0
@@ -629,7 +629,7 @@ config:
        branch: some-branch
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				checkoutCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.CheckoutMock = func(path string, branch string) error {
@@ -664,7 +664,7 @@ config:
        branch: some-branch
        clonePath: /path/to/clone
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				checkoutCallCount := 0
 				fakeGit := git.CreateFakeGit()
 				fakeGit.CheckoutMock = func(path string, branch string) error {

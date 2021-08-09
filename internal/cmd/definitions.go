@@ -12,5 +12,5 @@ type AnchorCommand interface {
 	InitSubCommands()
 }
 
-type LoadRepoOrFailFunc func(ctx common.Context) error
+type PreRunSequence func(ctx common.Context) error
 type SetLoggerVerbosityFunc func(l logger.Logger, verbose bool) error

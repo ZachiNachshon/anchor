@@ -46,7 +46,7 @@ var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
 	withContext(func(ctx common.Context) {
 		withLogging(ctx, t, false, func(logger logger.Logger) {
 			yamlConfigText := GetDefaultTestConfigText()
-			withConfig(ctx, yamlConfigText, func(config AnchorConfig) {
+			withConfig(ctx, yamlConfigText, func(config *AnchorConfig) {
 				harnessAnchorfilesTestRepo(ctx)
 				assert.True(t, ioutils.IsValidPath(ctx.AnchorFilesPath()),
 					"cannot resolve anchorfiles test repo. path: %s", ctx.AnchorFilesPath())
@@ -71,7 +71,7 @@ var ResolveConfigFromYamlTextSuccessfully = func(t *testing.T) {
 				SecondContextRemoteRepoBranch: "2nd-test-branch",
 			}
 			yamlConfigText := GetCustomTestConfigText(items)
-			withConfig(ctx, yamlConfigText, func(cfg AnchorConfig) {
+			withConfig(ctx, yamlConfigText, func(cfg *AnchorConfig) {
 				cfg.Config.ActiveContext = nil
 				nonViperConfig := YamlToConfigObj(yamlConfigText)
 				assert.EqualValues(t, nonViperConfig.Author, cfg.Author)
@@ -87,7 +87,7 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 		withLogging(ctx, t, false, func(logger logger.Logger) {
 			// Omit config items that should get default values
 			yamlConfigText := GetDefaultTestConfigText()
-			withConfig(ctx, yamlConfigText, func(cfg AnchorConfig) {
+			withConfig(ctx, yamlConfigText, func(cfg *AnchorConfig) {
 				cfgCtxName := "1st-anchorfiles"
 				defaultClonePath, _ := GetDefaultRepoClonePath(cfgCtxName)
 				nonViperConfig := YamlToConfigObj(yamlConfigText)
@@ -113,7 +113,7 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 //       repository:
 //         remote:
 //`
-//			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+//			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 //				verifyConfigCallCount := 0
 //				fakeRemoteActions := CreateFakeRemoteActions()
 //				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
@@ -147,7 +147,7 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 //       repository:
 //         local:
 //`
-//			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
+//			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 //				rslvr := &LocalResolver{
 //					LocalConfig: cfg.Config.ActiveContext.Context.Repository.Local,
 //				}
@@ -168,14 +168,14 @@ func withContext(f func(ctx common.Context)) {
 	f(ctx)
 }
 
-func withConfig(ctx common.Context, content string, f func(config AnchorConfig)) {
+func withConfig(ctx common.Context, content string, f func(config *AnchorConfig)) {
 	if cfg, err := ViperConfigInMemoryLoader(content); err != nil {
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
-		SetInContext(ctx, *cfg)
+		SetInContext(ctx, cfg)
 		// set current config context as the active config context
 		_ = LoadActiveConfigByName(cfg, cfg.Config.CurrentContext)
-		f(*cfg)
+		f(cfg)
 	}
 }
 

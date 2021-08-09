@@ -35,7 +35,7 @@ func Test_ResolverShould(t *testing.T) {
 var FailToGetResolverDueToInvalidConfig = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			res, err := GetRepositoryBasedOnConfig(nil)
+			res, err := GetRepositoryOriginByConfig(nil)
 			assert.Nil(t, res, "expected invalid resolver")
 			assert.NotNil(t, err, "expected to fail getting a repository resolver")
 			assert.Contains(t, err.Error(), "missing required config value")
@@ -61,8 +61,8 @@ config:
           local:
             path: /local/path/wins
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				res, err := GetRepositoryBasedOnConfig(cfg.Config.ActiveContext.Context.Repository)
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
+				res, err := GetRepositoryOriginByConfig(cfg.Config.ActiveContext.Context.Repository)
 				assert.Equal(t, fmt.Sprintf("%T", &local.LocalRepository{}), fmt.Sprintf("%T", res), "expected a local resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
 			})
@@ -88,8 +88,8 @@ config:
           local:
             path: ""
 `
-			with.Config(ctx, yamlConfigText, func(cfg config.AnchorConfig) {
-				res, err := GetRepositoryBasedOnConfig(cfg.Config.ActiveContext.Context.Repository)
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
+				res, err := GetRepositoryOriginByConfig(cfg.Config.ActiveContext.Context.Repository)
 				assert.Equal(t, fmt.Sprintf("%T", &remote.RemoteRepository{}), fmt.Sprintf("%T", res), "expected a remote resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
 			})

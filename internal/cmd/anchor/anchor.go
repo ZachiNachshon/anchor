@@ -11,29 +11,46 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
-var LoadRepoOrFail = func(ctx common.Context) error {
-	cfg := config.FromContext(ctx)
+type AnchorCollaborators struct {
+	resolveConfigContext func(ctx common.Context, prmpt prompter.Prompter, s shell.Shell) error
+	loadRepository       func(ctx common.Context) (string, error)
+	scanAnchorfiles      func(ctx common.Context, repoPath string) error
+}
 
-	err := loadConfigContextOrPrompt(ctx, &cfg)
+var AnchorPreRunSequence = func() *AnchorCollaborators {
+	return &AnchorCollaborators{
+		resolveConfigContext: loadConfigContext,
+		loadRepository:       loadRepository,
+		scanAnchorfiles:      scanAnchorfilesRepositoryTree,
+	}
+}
+
+func (c *AnchorCollaborators) Run(ctx common.Context) error {
+	p, err := ctx.Registry().SafeGet(prompter.Identifier)
 	if err != nil {
-		logger.Fatalf(err.Error())
-		return nil
+		return err
 	}
 
-	repo, err := repository.GetRepositoryBasedOnConfig(cfg.Config.ActiveContext.Context.Repository)
+	s, err := ctx.Registry().SafeGet(shell.Identifier)
 	if err != nil {
-		logger.Fatalf(err.Error())
-		return nil
+		return err
 	}
 
-	repoPath, err := repo.Load(ctx)
+	err = c.resolveConfigContext(ctx, p.(prompter.Prompter), s.(shell.Shell))
 	if err != nil {
-		logger.Fatal(err.Error())
-		return nil
+		return err
 	}
 
-	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(repoPath)
-	scanAnchorfilesRepositoryTree(ctx, repoPath)
+	repoPath, err := c.loadRepository(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.scanAnchorfiles(ctx, repoPath)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -48,41 +65,51 @@ var SetLoggerVerbosity = func(l logger.Logger, verbose bool) error {
 	return nil
 }
 
-func loadConfigContextOrPrompt(ctx common.Context, cfg *config.AnchorConfig) error {
+func loadConfigContext(
+	ctx common.Context,
+	prmpt prompter.Prompter,
+	s shell.Shell) error {
+
+	cfg := config.FromContext(ctx)
 	contextName := cfg.Config.CurrentContext
 	if len(contextName) == 0 {
-		var prompt prompter.Prompter
-		if resolved, err := ctx.Registry().SafeGet(prompter.Identifier); err != nil {
+		if selectedCfgCtx, err := prmpt.PromptConfigContext(cfg.Config.Contexts); err != nil {
 			return err
+		} else if selectedCfgCtx.Name == prompter.CancelActionName {
+			return fmt.Errorf("cannot proceed without selecting a configuration context, aborting")
 		} else {
-			prompt = resolved.(prompter.Prompter)
-			if selectedCfgCtx, err := prompt.PromptConfigContext(cfg.Config.Contexts); err != nil {
-				return err
-			} else if selectedCfgCtx.Name == prompter.CancelActionName {
-				return fmt.Errorf("cannot proceed without selecting a configuration context, aborting")
-			} else {
-				var s shell.Shell
-				if resolved, err := ctx.Registry().SafeGet(shell.Identifier); err == nil {
-					// Do not fail if screen cannot be cleared
-					s = resolved.(shell.Shell)
-					_ = s.ClearScreen()
-				}
-				contextName = selectedCfgCtx.Name
-			}
+			_ = s.ClearScreen()
+			contextName = selectedCfgCtx.Name
 		}
 	}
 	return config.LoadActiveConfigByName(cfg, contextName)
 }
 
-func scanAnchorfilesRepositoryTree(ctx common.Context, repoPath string) {
+func loadRepository(ctx common.Context) (string, error) {
+	cfg := config.FromContext(ctx)
+	if repo, err := repository.GetRepositoryOriginByConfig(cfg.Config.ActiveContext.Context.Repository); err != nil {
+		return "", err
+	} else {
+		if repoPath, err := repo.Load(ctx); err != nil {
+			return "", err
+		} else {
+			ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(repoPath)
+			return repoPath, nil
+		}
+	}
+}
+
+func scanAnchorfilesRepositoryTree(ctx common.Context, repoPath string) error {
 	var l locator.Locator
 	if resolved, err := ctx.Registry().SafeGet(locator.Identifier); err != nil {
-		logger.Fatal(err.Error())
+		return err
 	} else {
 		l = resolved.(locator.Locator)
 		err := l.Scan(repoPath)
 		if err != nil {
-			logger.Fatalf("Failed to locate and scan anchorfiles repository content")
+			errMsg := fmt.Sprintf("failed to scan anchorfiles repository. error: %s", err.Error())
+			return fmt.Errorf(errMsg)
 		}
 	}
+	return nil
 }

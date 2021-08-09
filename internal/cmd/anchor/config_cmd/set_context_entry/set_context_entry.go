@@ -12,13 +12,13 @@ type ConfigSetContextEntryFunc func(
 	ctx common.Context,
 	cfgCtxName string,
 	changes map[string]string,
-	overrideConfigFunc func(cfgToUpdate config.AnchorConfig) error) error
+	overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error
 
 var ConfigSetContextEntry = func(
 	ctx common.Context,
 	cfgCtxName string,
 	changes map[string]string,
-	overrideConfigFunc func(cfgToUpdate config.AnchorConfig) error) error {
+	overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
 
 	cfg := config.FromContext(ctx)
 	if cfgCtx := config.TryGetConfigContext(cfg.Config.Contexts, cfgCtxName); cfgCtx == nil {

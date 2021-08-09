@@ -16,14 +16,14 @@ type appCmd struct {
 
 var validArgs = []string{"select", "status"}
 
-func NewCommand(ctx common.Context, loadRepoOrFail cmd.LoadRepoOrFailFunc) *appCmd {
+func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *appCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "app",
 		Short:     "Application commands",
 		Aliases:   []string{"a"},
 		ValidArgs: validArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return loadRepoOrFail(ctx)
+			return preRunSequence(ctx)
 		},
 	}
 
