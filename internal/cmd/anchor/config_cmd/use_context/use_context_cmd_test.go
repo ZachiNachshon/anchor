@@ -33,14 +33,16 @@ func Test_UseContextCommandShould(t *testing.T) {
 var StartUseContextActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				configContextName := "test-cfg-context"
+				fakeCfgManager := config.CreateFakeConfigManager()
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, overrideConfigEntryFunc func(entryName string, value interface{}) error) error {
+				fun := func(ctx common.Context, cfgCtxName string, cfgManager config.ConfigManager) error {
 					callCount++
 					return nil
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun), configContextName)
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command, configContextName)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: use-context")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
@@ -51,13 +53,15 @@ var StartUseContextActionSuccessfully = func(t *testing.T) {
 var FailDueToMissingConfigContextName = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, overrideConfigEntryFunc func(entryName string, value interface{}) error) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgCtxName string, cfgManager config.ConfigManager) error {
 					callCount++
 					return nil
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Equal(t, 0, callCount, "expected action not to be called. name: use-context")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, "accepts 1 arg(s), received 0", err.Error())
@@ -69,14 +73,16 @@ var FailDueToMissingConfigContextName = func(t *testing.T) {
 var FailUseContextAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				configContextName := "test-cfg-context"
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, overrideConfigEntryFunc func(entryName string, value interface{}) error) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgCtxName string, cfgManager config.ConfigManager) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun), configContextName)
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command, configContextName)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: use-context")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, err.Error(), "an error occurred")

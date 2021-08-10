@@ -12,7 +12,7 @@ type versionCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, versionFunc VersionVersionFunc) *versionCmd {
+func NewCommand(ctx common.Context, versionFunc VersionVersionFunc) (*versionCmd, error) {
 	var cobraCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print anchor CLI version",
@@ -25,15 +25,17 @@ func NewCommand(ctx common.Context, versionFunc VersionVersionFunc) *versionCmd 
 	return &versionCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}
+	}, nil
 }
 
 func (cmd *versionCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *versionCmd) InitFlags() {
+func (cmd *versionCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *versionCmd) InitSubCommands() {
+func (cmd *versionCmd) InitSubCommands() error {
+	return nil
 }

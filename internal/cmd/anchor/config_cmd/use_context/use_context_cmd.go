@@ -13,7 +13,11 @@ type setContextCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, useContextFunc ConfigUseContextFunc) *setContextCmd {
+func NewCommand(
+	ctx common.Context,
+	cfgManager config.ConfigManager,
+	useContextFunc ConfigUseContextFunc) (*setContextCmd, error) {
+
 	var cobraCmd = &cobra.Command{
 		Use:           "use-context",
 		Short:         "Sets the current context in the anchor configuration file",
@@ -23,22 +27,24 @@ func NewCommand(ctx common.Context, useContextFunc ConfigUseContextFunc) *setCon
 		SilenceErrors: true, // Fatal errors are being logged by parent anchor.go
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgCtxName := args[0]
-			return useContextFunc(ctx, cfgCtxName, config.OverrideConfigEntry)
+			return useContextFunc(ctx, cfgCtxName, cfgManager)
 		},
 	}
 
 	return &setContextCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}
+	}, nil
 }
 
 func (cmd *setContextCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *setContextCmd) InitFlags() {
+func (cmd *setContextCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *setContextCmd) InitSubCommands() {
+func (cmd *setContextCmd) InitSubCommands() error {
+	return nil
 }

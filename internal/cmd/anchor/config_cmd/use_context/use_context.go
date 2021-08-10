@@ -10,18 +10,14 @@ import (
 type ConfigUseContextFunc func(
 	ctx common.Context,
 	cfgCtxName string,
-	overrideConfigEntryFunc func(entryName string, value interface{}) error) error
+	cfgManager config.ConfigManager) error
 
-var ConfigUseContext = func(
-	ctx common.Context,
-	cfgCtxName string,
-	overrideConfigEntryFunc func(entryName string, value interface{}) error) error {
-
+var ConfigUseContext = func(ctx common.Context, cfgCtxName string, cfgManager config.ConfigManager) error {
 	cfg := config.FromContext(ctx)
 	if cfgCtx := config.TryGetConfigContext(cfg.Config.Contexts, cfgCtxName); cfgCtx == nil {
 		return fmt.Errorf("could not identify config context. name: %s", cfgCtxName)
 	} else {
-		err := config.OverrideConfigEntry("config.currentContext", cfgCtxName)
+		err := cfgManager.OverrideConfigEntry("config.currentContext", cfgCtxName)
 		if err != nil {
 			return err
 		}

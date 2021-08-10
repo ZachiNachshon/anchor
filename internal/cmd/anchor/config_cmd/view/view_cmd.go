@@ -13,29 +13,35 @@ type viewCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, viewFunc ConfigViewFunc) *viewCmd {
+func NewCommand(
+	ctx common.Context,
+	cfgManager config.ConfigManager,
+	viewFunc ConfigViewFunc) (*viewCmd, error) {
+
 	var cobraCmd = &cobra.Command{
 		Use:   "view",
 		Short: "Display configuration file settings",
 		Long:  `Display configuration file settings`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return viewFunc(ctx, config.GetConfigFilePath)
+			return viewFunc(ctx, cfgManager)
 		},
 	}
 
 	return &viewCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}
+	}, nil
 }
 
 func (cmd *viewCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *viewCmd) InitFlags() {
+func (cmd *viewCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *viewCmd) InitSubCommands() {
+func (cmd *viewCmd) InitSubCommands() error {
+	return nil
 }

@@ -11,7 +11,7 @@ type bashCmd struct {
 	cobraCmd *cobra.Command
 }
 
-func NewCommand(root *cobra.Command) *bashCmd {
+func NewCommand(root *cobra.Command) (*bashCmd, error) {
 	var cobraCmd = &cobra.Command{
 		Use:   "bash",
 		Short: "Generate auto completion script for bash",
@@ -23,15 +23,17 @@ func NewCommand(root *cobra.Command) *bashCmd {
 
 	return &bashCmd{
 		cobraCmd: cobraCmd,
-	}
+	}, nil
 }
 
 func (cmd *bashCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *bashCmd) InitFlags() {
+func (cmd *bashCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *bashCmd) InitSubCommands() {
+func (cmd *bashCmd) InitSubCommands() error {
+	return nil
 }

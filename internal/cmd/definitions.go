@@ -8,8 +8,8 @@ import (
 
 type AnchorCommand interface {
 	GetCobraCmd() *cobra.Command
-	InitFlags()
-	InitSubCommands()
+	InitFlags() error
+	InitSubCommands() error
 }
 
 type PreRunSequence func(ctx common.Context) error

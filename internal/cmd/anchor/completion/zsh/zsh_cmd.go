@@ -11,7 +11,7 @@ type zshCmd struct {
 	cobraCmd *cobra.Command
 }
 
-func NewCommand(root *cobra.Command) *zshCmd {
+func NewCommand(root *cobra.Command) (*zshCmd, error) {
 	var cobraCmd = &cobra.Command{
 		Use:   "zsh",
 		Short: "Generate auto completion script for zsh",
@@ -23,15 +23,17 @@ func NewCommand(root *cobra.Command) *zshCmd {
 
 	return &zshCmd{
 		cobraCmd: cobraCmd,
-	}
+	}, nil
 }
 
 func (cmd *zshCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *zshCmd) InitFlags() {
+func (cmd *zshCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *zshCmd) InitSubCommands() {
+func (cmd *zshCmd) InitSubCommands() error {
+	return nil
 }

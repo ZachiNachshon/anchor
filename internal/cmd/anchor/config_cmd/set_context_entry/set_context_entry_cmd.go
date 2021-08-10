@@ -30,7 +30,11 @@ type setContextValueCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, setContextEntryFunc ConfigSetContextEntryFunc) *setContextValueCmd {
+func NewCommand(
+	ctx common.Context,
+	cfgManager config.ConfigManager,
+	setContextEntryFunc ConfigSetContextEntryFunc) (*setContextValueCmd, error) {
+
 	var cobraCmd = &cobra.Command{
 		Use: fmt.Sprintf(
 			`set-context-entry [CURRENT_CONTEXT_NAME]
@@ -73,7 +77,7 @@ func NewCommand(ctx common.Context, setContextEntryFunc ConfigSetContextEntryFun
 			if len(localPathFlagValue) > 0 {
 				flags[localPathFlagName] = localPathFlagValue
 			}
-			return setContextEntryFunc(ctx, cfgCtxName, flags, config.OverrideConfig)
+			return setContextEntryFunc(ctx, cfgCtxName, flags, cfgManager)
 		},
 	}
 
@@ -82,15 +86,19 @@ func NewCommand(ctx common.Context, setContextEntryFunc ConfigSetContextEntryFun
 		ctx:      ctx,
 	}
 
-	cmd.InitFlags()
-	return cmd
+	err := cmd.InitFlags()
+	if err != nil {
+		return nil, err
+	}
+
+	return cmd, nil
 }
 
 func (cmd *setContextValueCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *setContextValueCmd) InitFlags() {
+func (cmd *setContextValueCmd) InitFlags() error {
 	cmd.cobraCmd.Flags().StringVar(
 		&remoteRevisionFlagValue,
 		remoteRevisionFlagName,
@@ -128,7 +136,9 @@ func (cmd *setContextValueCmd) InitFlags() {
 		fmt.Sprintf("--%s=/repo/local/path", localPathFlagName))
 
 	cmd.cobraCmd.Flags().SortFlags = false
+	return nil
 }
 
-func (cmd *setContextValueCmd) InitSubCommands() {
+func (cmd *setContextValueCmd) InitSubCommands() error {
+	return nil
 }

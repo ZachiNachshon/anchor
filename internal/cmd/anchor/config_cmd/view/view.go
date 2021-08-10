@@ -7,15 +7,15 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 )
 
-type ConfigViewFunc func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error
+type ConfigViewFunc func(ctx common.Context, cfgManager config.ConfigManager) error
 
-var ConfigView = func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error {
+var ConfigView = func(ctx common.Context, cfgManager config.ConfigManager) error {
 	cfg := config.FromContext(ctx)
 	if cfgText, err := config.ConfigObjToYaml(cfg); err != nil {
 		logger.Error(err.Error())
 		return err
 	} else {
-		cfgFilePath, _ := getConfigFilePathFunc()
+		cfgFilePath, _ := cfgManager.GetConfigFilePath()
 		return printConfiguration(ctx, cfgFilePath, cfgText)
 	}
 }

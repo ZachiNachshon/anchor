@@ -70,6 +70,12 @@ func loadConfigContext(
 	prmpt prompter.Prompter,
 	s shell.Shell) error {
 
+	resolved, err := ctx.Registry().SafeGet(config.Identifier)
+	if err != nil {
+		return err
+	}
+	cfgManager := resolved.(config.ConfigManager)
+
 	cfg := config.FromContext(ctx)
 	contextName := cfg.Config.CurrentContext
 	if len(contextName) == 0 {
@@ -82,7 +88,7 @@ func loadConfigContext(
 			contextName = selectedCfgCtx.Name
 		}
 	}
-	return config.LoadActiveConfigByName(cfg, contextName)
+	return cfgManager.SwitchActiveConfigContextByName(cfg, contextName)
 }
 
 func loadRepository(ctx common.Context) (string, error) {

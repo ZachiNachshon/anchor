@@ -13,29 +13,35 @@ type editCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, editFunc ConfigEditFunc) *editCmd {
+func NewCommand(
+	ctx common.Context,
+	cfgManager config.ConfigManager,
+	editFunc ConfigEditFunc) (*editCmd, error) {
+
 	var cobraCmd = &cobra.Command{
 		Use:   "edit",
 		Short: "Edit configuration file",
 		Long:  `Edit configuration file`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return editFunc(ctx, config.GetConfigFilePath)
+			return editFunc(ctx, cfgManager)
 		},
 	}
 
 	return &editCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}
+	}, nil
 }
 
 func (cmd *editCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *editCmd) InitFlags() {
+func (cmd *editCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *editCmd) InitSubCommands() {
+func (cmd *editCmd) InitSubCommands() error {
+	return nil
 }

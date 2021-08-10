@@ -36,7 +36,8 @@ var StartVersionActionSuccessfully = func(t *testing.T) {
 					callCount++
 					return nil
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
+				command, err := NewCommand(ctx, fun)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: version")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
@@ -53,7 +54,8 @@ var FailVersionAction = func(t *testing.T) {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
+				command, err := NewCommand(ctx, fun)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: version")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, err.Error(), "an error occurred")

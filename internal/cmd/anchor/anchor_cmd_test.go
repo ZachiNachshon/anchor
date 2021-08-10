@@ -66,64 +66,73 @@ var ExpectVerbosityOnceFlagIsSet = func(t *testing.T) {
 
 var ContainExpectedSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		var fun = func(l logger.Logger, verbose bool) error {
-			return nil
-		}
-		cmd := NewCommand(ctx, fun)
-		cmd.InitSubCommands()
-		assert.True(t, cmd.cobraCmd.HasSubCommands())
-		cmds := cmd.cobraCmd.Commands()
-		assert.Equal(t, 6, len(cmds))
-		assert.Equal(t, "app", cmds[0].Use)
-		assert.Equal(t, "cli", cmds[1].Use)
-		assert.Equal(t, "completion", cmds[2].Use)
-		assert.Equal(t, "config", cmds[3].Use)
-		assert.Equal(t, "controller", cmds[4].Use)
-		assert.Equal(t, "version", cmds[5].Use)
+		with.Logging(ctx, t, func(lgr logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				var fun = func(l logger.Logger, verbose bool) error {
+					return nil
+				}
+				cmd := NewCommand(ctx, fun)
+				err := cmd.InitSubCommands()
+				assert.Nil(t, err)
+				assert.True(t, cmd.cobraCmd.HasSubCommands())
+				cmds := cmd.cobraCmd.Commands()
+				assert.Equal(t, 6, len(cmds))
+				assert.Equal(t, "app", cmds[0].Use)
+				assert.Equal(t, "cli", cmds[1].Use)
+				assert.Equal(t, "completion", cmds[2].Use)
+				assert.Equal(t, "config", cmds[3].Use)
+				assert.Equal(t, "controller", cmds[4].Use)
+				assert.Equal(t, "version", cmds[5].Use)
+			})
+		})
 	})
 }
 
 var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		// Initialize verbose flags which is a global variable to default
-		verboseFlagValue = false
-		var fun = func(l logger.Logger, verbose bool) error {
-			return nil
-		}
-		cmd := NewCommand(ctx, fun)
-		cmd.Initialize()
+		with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+			// Initialize verbose flags which is a global variable to default
+			verboseFlagValue = false
+			var fun = func(l logger.Logger, verbose bool) error {
+				return nil
+			}
+			cmd := NewCommand(ctx, fun)
+			cmd.Initialize()
 
-		assert.True(t, cmd.cobraCmd.HasPersistentFlags())
-		flags := cmd.cobraCmd.PersistentFlags()
-		verboseVal, err := flags.GetBool(verboseFlagName)
-		assert.Nil(t, err)
-		assert.Equal(t, false, verboseVal)
+			assert.True(t, cmd.cobraCmd.HasPersistentFlags())
+			flags := cmd.cobraCmd.PersistentFlags()
+			verboseVal, err := flags.GetBool(verboseFlagName)
+			assert.Nil(t, err)
+			assert.Equal(t, false, verboseVal)
 
-		assert.True(t, cmd.cobraCmd.HasSubCommands())
-		cmds := cmd.cobraCmd.Commands()
-		assert.Equal(t, 6, len(cmds))
-		assert.Equal(t, "app", cmds[0].Use)
-		assert.Equal(t, "cli", cmds[1].Use)
-		assert.Equal(t, "completion", cmds[2].Use)
-		assert.Equal(t, "config", cmds[3].Use)
-		assert.Equal(t, "controller", cmds[4].Use)
-		assert.Equal(t, "version", cmds[5].Use)
+			assert.True(t, cmd.cobraCmd.HasSubCommands())
+			cmds := cmd.cobraCmd.Commands()
+			assert.Equal(t, 6, len(cmds))
+			assert.Equal(t, "app", cmds[0].Use)
+			assert.Equal(t, "cli", cmds[1].Use)
+			assert.Equal(t, "completion", cmds[2].Use)
+			assert.Equal(t, "config", cmds[3].Use)
+			assert.Equal(t, "controller", cmds[4].Use)
+			assert.Equal(t, "version", cmds[5].Use)
+		})
 	})
 }
 
 var HaveValidCompletionArgsAsTheSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		var fun = func(l logger.Logger, verbose bool) error {
-			return nil
-		}
-		cmd := NewCommand(ctx, fun)
-		cmd.InitSubCommands()
-		assert.NotNil(t, cmd.cobraCmd.ValidArgs)
-		assert.True(t, cmd.cobraCmd.HasSubCommands())
-		assert.Equal(t, len(cmd.cobraCmd.Commands()), len(cmd.cobraCmd.ValidArgs))
-		for _, subCmd := range cmd.cobraCmd.Commands() {
-			assert.Contains(t, cmd.cobraCmd.ValidArgs, subCmd.Use)
-		}
+		with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+			var fun = func(l logger.Logger, verbose bool) error {
+				return nil
+			}
+			cmd := NewCommand(ctx, fun)
+			cmd.InitSubCommands()
+			assert.NotNil(t, cmd.cobraCmd.ValidArgs)
+			assert.True(t, cmd.cobraCmd.HasSubCommands())
+			assert.Equal(t, len(cmd.cobraCmd.Commands()), len(cmd.cobraCmd.ValidArgs))
+			for _, subCmd := range cmd.cobraCmd.Commands() {
+				assert.Contains(t, cmd.cobraCmd.ValidArgs, subCmd.Use)
+			}
+		})
 	})
 }
 

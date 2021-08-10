@@ -1,15 +1,12 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/fsnotify/fsnotify"
-	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 	"strings"
 )
 
@@ -23,79 +20,85 @@ const (
 	defaultRepoClonePathFormat    = "%s/.config/anchor/repositories"
 )
 
-var ViperConfigFileLoader = func() (*AnchorConfig, error) {
-	err := initConfigPath()
+const (
+	Identifier string = "config-manager"
+)
+
+type ConfigManager interface {
+	SetupConfigFileLoader() error
+	SetupConfigInMemoryLoader(yaml string) error
+	ListenOnConfigFileChanges(ctx common.Context)
+
+	OverrideConfig(cfgToUpdate *AnchorConfig) error
+	OverrideConfigEntry(entryName string, value interface{}) error
+	ReadConfig(key string) string
+
+	SwitchActiveConfigContextByName(cfg *AnchorConfig, cfgCtxName string) error
+	CreateConfigObject() (*AnchorConfig, error)
+
+	GetConfigFilePath() (string, error)
+	GetDefaultRepoClonePath(contextName string) (string, error)
+}
+
+type configManagerImpl struct {
+	ConfigManager
+	adapter ConfigViperAdapter
+}
+
+func NewManager() ConfigManager {
+	return &configManagerImpl{
+		adapter: NewAdapter(),
+	}
+}
+
+func (cm *configManagerImpl) SetupConfigFileLoader() error {
+	path, err := cm.GetConfigFilePath()
 	if err != nil {
-		logger.Fatalf("Failed to initialize anchor configuration path. error: %s", err.Error())
-		return nil, err
+		return err
 	}
 
-	// Find and read the config file
-	if err := viper.ReadInConfig(); err != nil {
-		// Handle errors reading the config file
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			setDefaults()
-			createConfigFileWithDefaults()
+	cm.adapter.SetConfigPath(path)
+
+	err = cm.adapter.LoadConfigFromFile()
+	if err != nil {
+		return err
+	}
+
+	cm.adapter.SetEnvVars()
+	return nil
+}
+
+func (cm *configManagerImpl) SetupConfigInMemoryLoader(yaml string) error {
+	return cm.adapter.LoadConfigFromText(yaml)
+}
+
+func (cm *configManagerImpl) ListenOnConfigFileChanges(ctx common.Context) {
+	cm.adapter.RegisterConfigChangesListener(func(e fsnotify.Event) {
+		if err := cm.adapter.MergeConfig(ctx.Config()); err != nil {
+			// TODO: is it really fatal?
+			logger.Fatalf("Failed to reload in-memory configuration file after change was identified. error: %s", err.Error())
 		} else {
-			logger.Errorf("Config file was found but an error occurred. error: %s", err)
-			return nil, err
+			logger.Debugf("Config file changed, in-memory config state updated. event: %s", e.Name)
 		}
-	}
-
-	// Every viper.Get request auto checks for ANCHOR_<flag-name> before reading from config file
-	viper.SetEnvPrefix("ANCHOR")
-	viper.AutomaticEnv()
-
-	return createConfigObject()
-}
-
-var ViperConfigInMemoryLoader = func(yaml string) (*AnchorConfig, error) {
-	viper.SetConfigType("yaml")
-	setDefaults()
-
-	if err := viper.ReadConfig(bytes.NewBuffer([]byte(yaml))); err != nil {
-		logger.Errorf("Failed to read config from buffer. error: %s", err)
-		return nil, err
-	}
-
-	return createConfigObject()
-}
-
-var GetConfigFilePath = func() (string, error) {
-	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
-		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
-		return "", err
-	} else {
-		folderPath := fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder)
-		return fmt.Sprintf("%s/%s.%s", folderPath, defaultConfigFileName, defaultConfigFileType), nil
-	}
+	})
 }
 
 // OverrideConfig merge the configuration from disk with the in-memory configuration
-var OverrideConfig = func(cfgToUpdate *AnchorConfig) error {
-	out, err := yaml.Marshal(cfgToUpdate)
-	if err != nil {
-		return err
-	}
-	err = viper.MergeConfig(bytes.NewBuffer(out))
-	if err != nil {
-		return err
-	}
-
-	return writeConfigEntry()
+func (cm *configManagerImpl) OverrideConfig(cfgToUpdate *AnchorConfig) error {
+	return cm.adapter.UpdateAll(cfgToUpdate)
 }
 
 // OverrideConfigEntry allows to update delimited config values
 // Note that updating dynamic config context values is not supported
-var OverrideConfigEntry = func(entryName string, value interface{}) error {
-	viper.Set(entryName, value)
-	if !viper.IsSet(entryName) {
-		return fmt.Errorf("failed to set configuration entry. name: %s, value: %s", entryName, value)
-	}
-	return writeConfigEntry()
+func (cm *configManagerImpl) OverrideConfigEntry(entryName string, value interface{}) error {
+	return cm.adapter.UpdateEntry(entryName, value)
 }
 
-var LoadActiveConfigByName = func(cfg *AnchorConfig, cfgCtxName string) error {
+func (cm *configManagerImpl) ReadConfig(key string) string {
+	return cm.adapter.GetConfigByKey(key)
+}
+
+func (cm *configManagerImpl) SwitchActiveConfigContextByName(cfg *AnchorConfig, cfgCtxName string) error {
 	if cfgCtx := TryGetConfigContext(cfg.Config.Contexts, cfgCtxName); cfgCtx == nil {
 		return fmt.Errorf("could not identify config context. name: %s", cfgCtxName)
 	} else {
@@ -105,19 +108,37 @@ var LoadActiveConfigByName = func(cfg *AnchorConfig, cfgCtxName string) error {
 	}
 }
 
-var ListenOnConfigFileChanges = func(ctx common.Context) {
-	viper.WatchConfig()
-	viper.OnConfigChange(func(e fsnotify.Event) {
-		var cfg Config
-		if err := viper.UnmarshalKey("config", &cfg); err != nil {
-			logger.Fatalf("Failed to reload in-memory configuration file after change was identified. error: %s", err.Error())
-		}
-		ctx.(common.ConfigSetter).SetConfig(&cfg)
-		logger.Debugf("Config file changed, in-memory config state updated. event: %s", e.Name)
-	})
+func (cm *configManagerImpl) CreateConfigObject() (*AnchorConfig, error) {
+	cfg := &AnchorConfig{
+		Author:  cm.ReadConfig("author"),
+		License: cm.ReadConfig("license"),
+	}
+
+	err := cm.adapter.MergeConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to merge configuration from file. error: %s \n", err)
+	}
+
+	err = validateConfigurations(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	setDefaultsPostCreation(cfg, cm.GetDefaultRepoClonePath)
+	return cfg, nil
 }
 
-var GetDefaultRepoClonePath = func(contextName string) (string, error) {
+func (cm *configManagerImpl) GetConfigFilePath() (string, error) {
+	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
+		return "", err
+	} else {
+		folderPath := fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder)
+		return fmt.Sprintf("%s/%s.%s", folderPath, defaultConfigFileName, defaultConfigFileType), nil
+	}
+}
+
+func (cm *configManagerImpl) GetDefaultRepoClonePath(contextName string) (string, error) {
 	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
@@ -163,59 +184,8 @@ func TryGetConfigContext(contexts []*Context, cfgCtxName string) *Context {
 	return nil
 }
 
-func writeConfigEntry() error {
-	err := viper.WriteConfig()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func initConfigPath() error {
-	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
-		return err
-	} else {
-		viper.SetConfigName(defaultConfigFileName)
-		viper.SetConfigType(defaultConfigFileType)
-		viper.AddConfigPath(fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder)) // path to look for the config file in
-		//viper.AddConfigPath(".")                      		// optionally look for config in the working directory
-		return nil
-	}
-}
-
-func setDefaults() {
-	viper.SetDefault("author", DefaultAuthor)
-	viper.SetDefault("license", DefaultLicense)
-}
-
-func createConfigFileWithDefaults() {
-	err := viper.SafeWriteConfig() // Write defaults
-	if err != nil {
-		logger.Errorf("Could not create config file with defaults: %s \n", err)
-	}
-}
-
-func createConfigObject() (*AnchorConfig, error) {
-	var config Config
-	if err := viper.UnmarshalKey("config", &config); err != nil {
-		return nil, fmt.Errorf("Failed to unmarshal configuration file. error: %s \n", err)
-	}
-
-	err := validateConfigurations(&config)
-	if err != nil {
-		return nil, err
-	}
-
-	setDefaultsPostCreation(&config)
-
-	return &AnchorConfig{
-		Config:  &config,
-		Author:  viper.GetString("author"),
-		License: viper.GetString("license"),
-	}, nil
-}
-
-func validateConfigurations(cfg *Config) error {
+func validateConfigurations(anchorConfig *AnchorConfig) error {
+	cfg := anchorConfig.Config
 	if cfg.Contexts == nil || len(cfg.Contexts) == 0 {
 		return fmt.Errorf("invalid configuration attribute. name: contexts")
 	}
@@ -237,7 +207,8 @@ func validateConfigurations(cfg *Config) error {
 	return nil
 }
 
-func setDefaultsPostCreation(cfg *Config) {
+func setDefaultsPostCreation(anchorConfig *AnchorConfig, getRepoClonePathFunc func(contextName string) (string, error)) {
+	cfg := anchorConfig.Config
 	for _, ctx := range cfg.Contexts {
 		if ctx.Context != nil {
 			repo := ctx.Context.Repository
@@ -246,7 +217,7 @@ func setDefaultsPostCreation(cfg *Config) {
 				return
 			}
 			if repo.Remote.ClonePath == "" {
-				clonePath, err := GetDefaultRepoClonePath(ctx.Name)
+				clonePath, err := getRepoClonePathFunc(ctx.Name)
 				if err != nil {
 					logger.Fatal("failed to resolve default repo clone path")
 				}

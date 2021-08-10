@@ -29,8 +29,8 @@ func Test_ConfigCommandShould(t *testing.T) {
 var ContainExpectedSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
-				cmd := NewCommand(ctx)
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				cmd, _ := NewCommand(ctx)
 				assert.True(t, cmd.cobraCmd.HasSubCommands())
 				cmds := cmd.cobraCmd.Commands()
 				assert.Equal(t, 4, len(cmds))
@@ -46,8 +46,8 @@ var ContainExpectedSubCommands = func(t *testing.T) {
 var HaveValidCompletionCommandsAsTheSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
-				cmd := NewCommand(ctx)
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				cmd, _ := NewCommand(ctx)
 				assert.NotNil(t, cmd.cobraCmd.ValidArgs)
 				assert.True(t, cmd.cobraCmd.HasSubCommands())
 				assert.Equal(t, len(cmd.cobraCmd.Commands()), len(cmd.cobraCmd.ValidArgs))

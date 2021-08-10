@@ -78,8 +78,12 @@ func Test_MainShould(t *testing.T) {
 			Func: InitializeConfigurationSuccessfully,
 		},
 		{
-			Name: "fail to load configuration",
-			Func: FailToLoadConfiguration,
+			Name: "fail to set up config file loader",
+			Func: FailToSetupConfigFileLoader,
+		},
+		{
+			Name: "fail to create config object",
+			Func: FailToCreateConfigObject,
 		},
 		{
 			Name: "initialize registry successfully",
@@ -98,25 +102,29 @@ var SetValidInitializationsToCollaborators = func(t *testing.T) {
 
 var InitLoggerCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		collaborators.Logger(ctx)
+		err := collaborators.Logger(ctx)
+		assert.Nil(t, err)
 	})
 }
 
 var InitConfigurationCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		collaborators.Configuration(ctx)
+		err := collaborators.Configuration(ctx)
+		assert.Nil(t, err)
 	})
 }
 
 var InitRegistryCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		collaborators.Registry(ctx)
+		err := collaborators.Registry(ctx)
+		assert.Nil(t, err)
 	})
 }
 
 var InitStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		collaborators.StartCliCommands(ctx)
+		err := collaborators.StartCliCommands(ctx)
+		assert.Nil(t, err)
 	})
 }
 
@@ -138,7 +146,8 @@ var InitStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 
 var StartCliCommandsSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		startCliCommands(ctx)
+		err := startCliCommands(ctx)
+		assert.Nil(t, err)
 	})
 }
 
@@ -154,24 +163,29 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 		registryCallCount := 0
 		startCallCount := 0
 		collaborators := &MainCollaborators{
-			Logger: func(ctx common.Context) {
+			Logger: func(ctx common.Context) error {
 				callOrder = append(callOrder, "logger")
 				loggerCallCount++
+				return nil
 			},
-			Configuration: func(ctx common.Context) {
+			Configuration: func(ctx common.Context) error {
 				callOrder = append(callOrder, "configuration")
 				configCallCount++
+				return nil
 			},
-			Registry: func(ctx common.Context) {
+			Registry: func(ctx common.Context) error {
 				callOrder = append(callOrder, "registry")
 				registryCallCount++
+				return nil
 			},
-			StartCliCommands: func(ctx common.Context) {
+			StartCliCommands: func(ctx common.Context) error {
 				callOrder = append(callOrder, "start")
 				startCallCount++
+				return nil
 			},
 		}
-		runCollaboratorsInSequence(ctx, collaborators)
+		err := runCollaboratorsInSequence(ctx, collaborators)
+		assert.Nil(t, err)
 		assert.Equal(t, 1, loggerCallCount, "expected collaborator to be called exactly once. name: logger")
 		assert.Equal(t, 1, configCallCount, "expected collaborator to be called exactly once. name: configuration")
 		assert.Equal(t, 1, registryCallCount, "expected collaborator to be called exactly once. name: registry")
@@ -197,7 +211,8 @@ var InitializeLoggerSuccessfully = func(t *testing.T) {
 			return nil, nil
 		}
 
-		initLogger(ctx, logFileResolver, loggerCreator)
+		err := initLogger(ctx, logFileResolver, loggerCreator)
+		assert.Nil(t, err)
 		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
 	})
@@ -213,13 +228,9 @@ var FailToResolveLogFilePath = func(t *testing.T) {
 		loggerCreator := func(verbose bool, logFilePath string) (logger.Logger, error) {
 			return nil, nil
 		}
-		exitCallCount := 0
-		exitApplication = func(code int, message string) {
-			exitCallCount++
-		}
-		initLogger(ctx, logFileResolver, loggerCreator)
+		err := initLogger(ctx, logFileResolver, loggerCreator)
+		assert.NotNil(t, err)
 		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 1, exitCallCount, "expected exit to to be called exactly once")
 	})
 }
 
@@ -235,63 +246,88 @@ var FailToCreateLogger = func(t *testing.T) {
 			loggerCreatorCallCount++
 			return nil, fmt.Errorf("failed to create")
 		}
-		exitCallCount := 0
-		exitApplication = func(code int, message string) {
-			exitCallCount++
-		}
-		initLogger(ctx, logFileResolver, loggerCreator)
+		err := initLogger(ctx, logFileResolver, loggerCreator)
+		assert.NotNil(t, err)
 		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 1, exitCallCount, "expected exit to to be called exactly once")
 	})
 }
 
 var InitializeConfigurationSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		configInUse := config.AnchorConfig{}
+		configInUse := &config.AnchorConfig{}
+		fakeCfgMgr := config.CreateFakeConfigManager()
 		configLoaderCallCount := 0
-		configLoader := func() (*config.AnchorConfig, error) {
+		fakeCfgMgr.SetupConfigFileLoaderMock = func() error {
 			configLoaderCallCount++
-			return &configInUse, nil
+			return nil
 		}
-		configChangesListenerCallCount := 0
-		configChangesListener := func(ctx common.Context) {
-			configChangesListenerCallCount++
+		configListenChangesCallCount := 0
+		fakeCfgMgr.ListenOnConfigFileChangesMock = func(ctx common.Context) {
+			configListenChangesCallCount++
 		}
-
-		initConfiguration(ctx, configLoader, configChangesListener)
+		createConfigCallCount := 0
+		fakeCfgMgr.CreateConfigObjectMock = func() (*config.AnchorConfig, error) {
+			createConfigCallCount++
+			return configInUse, nil
+		}
+		err := initConfiguration(ctx, fakeCfgMgr)
+		assert.Nil(t, err)
 		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 1, configChangesListenerCallCount, "expected func to be called exactly once")
-		assert.Equal(t, configInUse, ctx.Config().(config.AnchorConfig))
+		assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, createConfigCallCount, "expected func to be called exactly once")
+		assert.Equal(t, configInUse, ctx.Config().(*config.AnchorConfig))
 	})
 }
 
-var FailToLoadConfiguration = func(t *testing.T) {
+var FailToSetupConfigFileLoader = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		configLoaderCallCount := 0
-		configLoader := func() (*config.AnchorConfig, error) {
+		fakeCfgMgr := config.CreateFakeConfigManager()
+		fakeCfgMgr.SetupConfigFileLoaderMock = func() error {
 			configLoaderCallCount++
-			return nil, fmt.Errorf("failed to load config")
+			return fmt.Errorf("failed to load config")
 		}
-		configChangesListenerCallCount := 0
-		configChangesListener := func(ctx common.Context) {
-			configChangesListenerCallCount++
-		}
-		exitCallCount := 0
-		exitApplication = func(code int, message string) {
-			exitCallCount++
-		}
-		initConfiguration(ctx, configLoader, configChangesListener)
+		err := initConfiguration(ctx, fakeCfgMgr)
+		assert.NotNil(t, err)
 		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 0, configChangesListenerCallCount, "expected func not to be called")
+		assert.Equal(t, "failed to load config", err.Error())
 		assert.Nil(t, ctx.Config(), "expected context not to have config set")
-		assert.Equal(t, 1, exitCallCount, "expected exit to to be called exactly once")
+	})
+}
+
+var FailToCreateConfigObject = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		configLoaderCallCount := 0
+		fakeCfgMgr := config.CreateFakeConfigManager()
+		fakeCfgMgr.SetupConfigFileLoaderMock = func() error {
+			configLoaderCallCount++
+			return nil
+		}
+		configListenChangesCallCount := 0
+		fakeCfgMgr.ListenOnConfigFileChangesMock = func(ctx common.Context) {
+			configListenChangesCallCount++
+		}
+		createConfigCallCount := 0
+		fakeCfgMgr.CreateConfigObjectMock = func() (*config.AnchorConfig, error) {
+			createConfigCallCount++
+			return nil, fmt.Errorf("failed to create config object")
+		}
+		err := initConfiguration(ctx, fakeCfgMgr)
+		assert.NotNil(t, err)
+		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, createConfigCallCount, "expected func to be called exactly once")
+		assert.Equal(t, "failed to create config object", err.Error())
+		assert.Nil(t, ctx.Config(), "expected context not to have config set")
 	})
 }
 
 var InitializeRegistrySuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		initRegistry(ctx)
+		err := initRegistry(ctx)
+		assert.Nil(t, err)
+
 		reg := ctx.Registry()
 
 		r, _ := reg.SafeGet(locator.Identifier)

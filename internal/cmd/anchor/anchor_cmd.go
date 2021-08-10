@@ -46,7 +46,7 @@ func NewCommand(ctx common.Context, setLoggerVerbosity cmd.SetLoggerVerbosityFun
 	}
 }
 
-func (c *anchorCmd) InitFlags() {
+func (c *anchorCmd) InitFlags() error {
 	c.cobraCmd.PersistentFlags().BoolVarP(
 		&verboseFlagValue,
 		verboseFlagName,
@@ -55,30 +55,56 @@ func (c *anchorCmd) InitFlags() {
 		"anchor <command> -v")
 
 	c.cobraCmd.PersistentFlags().SortFlags = false
+	return nil
 }
 
-func (c *anchorCmd) InitSubCommands() {
+func (c *anchorCmd) InitSubCommands() error {
 	preRunSequence := AnchorPreRunSequence()
 
 	//cobra.EnableCommandSorting = false
 
 	// Apps Commands
-	c.cobraCmd.AddCommand(app.NewCommand(c.ctx, preRunSequence.Run).GetCobraCmd())
+	if appCmd, err := app.NewCommand(c.ctx, preRunSequence.Run); err != nil {
+		return err
+	} else {
+		c.cobraCmd.AddCommand(appCmd.GetCobraCmd())
+	}
 
 	// CLI Commands
-	c.cobraCmd.AddCommand(cli.NewCommand(c.ctx, preRunSequence.Run).GetCobraCmd())
+	if cliCmd, err := cli.NewCommand(c.ctx, preRunSequence.Run); err != nil {
+		return err
+	} else {
+		c.cobraCmd.AddCommand(cliCmd.GetCobraCmd())
+	}
 
 	// Controller Commands
-	c.cobraCmd.AddCommand(controller.NewCommand(c.ctx, preRunSequence.Run).GetCobraCmd())
+	if controllerCmd, err := controller.NewCommand(c.ctx, preRunSequence.Run); err != nil {
+		return err
+	} else {
+		c.cobraCmd.AddCommand(controllerCmd.GetCobraCmd())
+	}
 
 	// Config Commands
-	c.cobraCmd.AddCommand(config_cmd.NewCommand(c.ctx).GetCobraCmd())
+	if cfgCmd, err := config_cmd.NewCommand(c.ctx); err != nil {
+		return err
+	} else {
+		c.cobraCmd.AddCommand(cfgCmd.GetCobraCmd())
+	}
 
 	// Version
-	c.cobraCmd.AddCommand(version.NewCommand(c.ctx, version.VersionVersion).GetCobraCmd())
+	if versionCmd, err := version.NewCommand(c.ctx, version.VersionVersion); err != nil {
+		return err
+	} else {
+		c.cobraCmd.AddCommand(versionCmd.GetCobraCmd())
+	}
 
 	// Auto completion
-	c.cobraCmd.AddCommand(completion.NewCommand(c.cobraCmd, c.ctx).GetCobraCmd())
+	if compCmd, err := completion.NewCommand(c.cobraCmd, c.ctx); err != nil {
+		return err
+	} else {
+		c.cobraCmd.AddCommand(compCmd.GetCobraCmd())
+	}
+	return nil
 }
 
 func (c *anchorCmd) GetCobraCmd() *cobra.Command {

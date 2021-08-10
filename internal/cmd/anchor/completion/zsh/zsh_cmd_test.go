@@ -31,7 +31,8 @@ var GenerateZshCompletionSuccessfully = func(t *testing.T) {
 					Short: "root cmd",
 					Long:  `root cmd`,
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(rootCmd))
+				command, err := NewCommand(rootCmd)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
 		})

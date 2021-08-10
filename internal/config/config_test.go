@@ -23,6 +23,10 @@ func Test_ConfigShould(t *testing.T) {
 			Func: ResolveConfigFromYamlTextSuccessfully,
 		},
 		{
+			Name: "resolve config from YAML text successfully",
+			Func: ResolveConfigFromYamlTextSuccessfully,
+		},
+		{
 			Name: "resolve config with defaults from YAML text successfully",
 			Func: ResolveConfigWithDefaultsFromYamlTextSuccessfully,
 		},
@@ -89,7 +93,8 @@ var ResolveConfigWithDefaultsFromYamlTextSuccessfully = func(t *testing.T) {
 			yamlConfigText := GetDefaultTestConfigText()
 			withConfig(ctx, yamlConfigText, func(cfg *AnchorConfig) {
 				cfgCtxName := "1st-anchorfiles"
-				defaultClonePath, _ := GetDefaultRepoClonePath(cfgCtxName)
+				cfgManager := NewManager()
+				defaultClonePath, _ := cfgManager.GetDefaultRepoClonePath(cfgCtxName)
 				nonViperConfig := YamlToConfigObj(yamlConfigText)
 				assert.NotNil(t, nonViperConfig, "expected a valid config object")
 				assert.EqualValues(t, DefaultAuthor, cfg.Author)
@@ -169,12 +174,17 @@ func withContext(f func(ctx common.Context)) {
 }
 
 func withConfig(ctx common.Context, content string, f func(config *AnchorConfig)) {
-	if cfg, err := ViperConfigInMemoryLoader(content); err != nil {
+	cfgManager := NewManager()
+	if err := cfgManager.SetupConfigInMemoryLoader(content); err != nil {
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
+		cfg, err := cfgManager.CreateConfigObject()
+		if err != nil {
+			logger.Fatalf("Failed to create a fake config loader. error: %s", err)
+		}
 		SetInContext(ctx, cfg)
 		// set current config context as the active config context
-		_ = LoadActiveConfigByName(cfg, cfg.Config.CurrentContext)
+		_ = cfgManager.SwitchActiveConfigContextByName(cfg, cfg.Config.CurrentContext)
 		f(cfg)
 	}
 }

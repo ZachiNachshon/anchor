@@ -15,7 +15,7 @@ type cliCmd struct {
 
 var validArgs = []string{"versions"}
 
-func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *cliCmd {
+func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) (*cliCmd, error) {
 	var cobraCmd = &cobra.Command{
 		Use:       "cli",
 		Short:     "CLI applications",
@@ -26,22 +26,32 @@ func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *cliCmd {
 		},
 	}
 
-	var cmd = &cliCmd{
+	var command = &cliCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
 	}
 
-	cmd.InitSubCommands()
-	return cmd
+	err := command.InitSubCommands()
+	if err != nil {
+		return nil, err
+	}
+
+	return command, nil
 }
 
 func (cmd *cliCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *cliCmd) InitFlags() {
+func (cmd *cliCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *cliCmd) InitSubCommands() {
-	cmd.cobraCmd.AddCommand(versions.NewCommand(cmd.ctx, versions.CliVersions).GetCobraCmd())
+func (cmd *cliCmd) InitSubCommands() error {
+	if versionCmd, err := versions.NewCommand(cmd.ctx, versions.CliVersions); err != nil {
+		return err
+	} else {
+		cmd.cobraCmd.AddCommand(versionCmd.GetCobraCmd())
+	}
+	return nil
 }

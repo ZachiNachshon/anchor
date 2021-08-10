@@ -12,7 +12,7 @@ type selectCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, selectFunc AppSelectFunc) *selectCmd {
+func NewCommand(ctx common.Context, selectFunc AppSelectFunc) (*selectCmd, error) {
 	var cobraCmd = &cobra.Command{
 		Use:   "select",
 		Short: "Select an application",
@@ -26,15 +26,17 @@ func NewCommand(ctx common.Context, selectFunc AppSelectFunc) *selectCmd {
 	return &selectCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}
+	}, nil
 }
 
 func (cmd *selectCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *selectCmd) InitFlags() {
+func (cmd *selectCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *selectCmd) InitSubCommands() {
+func (cmd *selectCmd) InitSubCommands() error {
+	return nil
 }

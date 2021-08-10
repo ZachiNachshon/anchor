@@ -34,7 +34,8 @@ var LoadRepoOrFailSuccessfully = func(t *testing.T) {
 					callCount++
 					return nil
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
+				command, err := NewCommand(ctx, fun)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: loadRepoOrFail")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
@@ -49,7 +50,7 @@ var ContainExpectedSubCommands = func(t *testing.T) {
 				var fun = func(ctx common.Context) error {
 					return nil
 				}
-				cmd := NewCommand(ctx, fun)
+				cmd, _ := NewCommand(ctx, fun)
 				assert.True(t, cmd.cobraCmd.HasSubCommands())
 				cmds := cmd.cobraCmd.Commands()
 				assert.Equal(t, 1, len(cmds))

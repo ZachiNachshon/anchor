@@ -29,13 +29,15 @@ func Test_EditCommandShould(t *testing.T) {
 var StartEditActionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgManager config.ConfigManager) error {
 					callCount++
 					return nil
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: edit")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
@@ -46,13 +48,15 @@ var StartEditActionSuccessfully = func(t *testing.T) {
 var FailEditAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context, getConfigFilePathFunc func() (string, error)) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgManager config.ConfigManager) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: edit")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, err.Error(), "an error occurred")

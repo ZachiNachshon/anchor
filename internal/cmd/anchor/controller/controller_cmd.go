@@ -15,7 +15,7 @@ type controllerCmd struct {
 
 var validArgs = []string{""}
 
-func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *controllerCmd {
+func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) (*controllerCmd, error) {
 	var cobraCmd = &cobra.Command{
 		Use:       "controller",
 		Short:     "Kubernetes controllers commands",
@@ -31,17 +31,27 @@ func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *controll
 		ctx:      ctx,
 	}
 
-	cmd.InitSubCommands()
-	return cmd
+	err := cmd.InitSubCommands()
+	if err != nil {
+		return nil, err
+	}
+
+	return cmd, nil
 }
 
 func (cmd *controllerCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *controllerCmd) InitFlags() {
+func (cmd *controllerCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *controllerCmd) InitSubCommands() {
-	cmd.cobraCmd.AddCommand(install.NewCommand(cmd.ctx, install.ControllerInstall).GetCobraCmd())
+func (cmd *controllerCmd) InitSubCommands() error {
+	if installCmd, err := install.NewCommand(cmd.ctx, install.ControllerInstall); err != nil {
+		return err
+	} else {
+		cmd.cobraCmd.AddCommand(installCmd.GetCobraCmd())
+	}
+	return nil
 }

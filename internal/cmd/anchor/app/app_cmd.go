@@ -16,7 +16,7 @@ type appCmd struct {
 
 var validArgs = []string{"select", "status"}
 
-func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *appCmd {
+func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) (*appCmd, error) {
 	var cobraCmd = &cobra.Command{
 		Use:       "app",
 		Short:     "Application commands",
@@ -27,23 +27,38 @@ func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *appCmd {
 		},
 	}
 
-	var cmd = &appCmd{
+	var command = &appCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
 	}
 
-	cmd.InitSubCommands()
-	return cmd
+	err := command.InitSubCommands()
+	if err != nil {
+		return nil, err
+	}
+
+	return command, nil
 }
 
 func (cmd *appCmd) GetCobraCmd() *cobra.Command {
 	return cmd.cobraCmd
 }
 
-func (cmd *appCmd) InitFlags() {
+func (cmd *appCmd) InitFlags() error {
+	return nil
 }
 
-func (cmd *appCmd) InitSubCommands() {
-	cmd.cobraCmd.AddCommand(_select.NewCommand(cmd.ctx, _select.AppSelect).GetCobraCmd())
-	cmd.cobraCmd.AddCommand(status.NewCommand(cmd.ctx, status.AppStatus).GetCobraCmd())
+func (cmd *appCmd) InitSubCommands() error {
+	if selectCmd, err := _select.NewCommand(cmd.ctx, _select.AppSelect); err != nil {
+		return err
+	} else {
+		cmd.cobraCmd.AddCommand(selectCmd.GetCobraCmd())
+	}
+
+	if statusCmd, err := status.NewCommand(cmd.ctx, status.AppStatus); err != nil {
+		return err
+	} else {
+		cmd.cobraCmd.AddCommand(statusCmd.GetCobraCmd())
+	}
+	return nil
 }

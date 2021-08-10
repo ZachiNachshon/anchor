@@ -19,24 +19,26 @@ import (
 )
 
 type MainCollaborators struct {
-	Logger           func(ctx common.Context)
-	Configuration    func(ctx common.Context)
-	Registry         func(ctx common.Context)
-	StartCliCommands func(ctx common.Context)
+	Logger           func(ctx common.Context) error
+	Configuration    func(ctx common.Context) error
+	Registry         func(ctx common.Context) error
+	StartCliCommands func(ctx common.Context) error
 }
 
 var collaborators = &MainCollaborators{
-	Logger: func(ctx common.Context) {
-		initLogger(ctx, logger.GetDefaultLoggerLogFilePath, logger.LogrusLoggerLoader)
+	Logger: func(ctx common.Context) error {
+		return initLogger(ctx, logger.GetDefaultLoggerLogFilePath, logger.LogrusLoggerLoader)
 	},
-	Configuration: func(ctx common.Context) {
-		initConfiguration(ctx, config.ViperConfigFileLoader, config.ListenOnConfigFileChanges)
+	Configuration: func(ctx common.Context) error {
+		cfgManager := config.NewManager()
+		ctx.Registry().Set(config.Identifier, cfgManager)
+		return initConfiguration(ctx, cfgManager)
 	},
-	Registry: func(ctx common.Context) {
-		initRegistry(ctx)
+	Registry: func(ctx common.Context) error {
+		return initRegistry(ctx)
 	},
-	StartCliCommands: func(ctx common.Context) {
-		startCliCommands(ctx)
+	StartCliCommands: func(ctx common.Context) error {
+		return startCliCommands(ctx)
 	},
 }
 
@@ -48,35 +50,39 @@ var exitApplication = func(code int, message string) {
 func initLogger(
 	ctx common.Context,
 	logFileResolver func() (string, error),
-	loggerCreator func(verbose bool, logFilePath string) (logger.Logger, error)) {
+	loggerCreator func(verbose bool, logFilePath string) (logger.Logger, error)) error {
 
 	logFilePath, err := logFileResolver()
 	if err != nil {
-		exitApplication(1, fmt.Sprintf("failed to resolve logger file path. error: %s", err))
+		return fmt.Errorf("failed to resolve logger file path. error: %s", err)
 	}
 
 	if lgr, err := loggerCreator(false, logFilePath); err != nil {
-		exitApplication(1, fmt.Sprintf("Failed to initialize logger. error: %s", err.Error()))
+		return fmt.Errorf("failed to initialize logger. error: %s", err.Error())
 	} else {
 		ctx.(common.LoggerSetter).SetLogger(lgr)
 	}
+	return nil
 }
 
-func initConfiguration(
-	ctx common.Context,
-	configLoader func() (*config.AnchorConfig, error),
-	configChangesListener func(ctx common.Context)) {
-
-	cfg, err := configLoader()
+func initConfiguration(ctx common.Context, cfgManager config.ConfigManager) error {
+	err := cfgManager.SetupConfigFileLoader()
 	if err != nil {
-		exitApplication(1, fmt.Sprintf("failed to load configuration. error: %s", err.Error()))
-	} else {
-		configChangesListener(ctx)
-		ctx.(common.ConfigSetter).SetConfig(*cfg)
+		return err
 	}
+
+	cfgManager.ListenOnConfigFileChanges(ctx)
+
+	cfg, err := cfgManager.CreateConfigObject()
+	if err != nil {
+		return err
+	}
+
+	config.SetInContext(ctx, cfg)
+	return nil
 }
 
-func initRegistry(ctx common.Context) {
+func initRegistry(ctx common.Context) error {
 	reg := ctx.Registry()
 
 	l := locator.New()
@@ -103,23 +109,38 @@ func initRegistry(ctx common.Context) {
 	o := orchestrator.New(pr, l, e, pa, s, in)
 	reg.Set(orchestrator.Identifier, o)
 
-	//registry.Initialize().Clipboard = clipboard.New(registry.Initialize().shell)
+	//registry.Initialize().Clipboard = clipboard.NewManager(registry.Initialize().shell)
+	return nil
 }
 
-func startCliCommands(ctx common.Context) {
-	if err := anchor.RunCliRootCommand(ctx); err != nil {
-		logger.Fatal(err.Error())
+func startCliCommands(ctx common.Context) error {
+	return anchor.RunCliRootCommand(ctx)
+}
+
+func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators) error {
+	err := collaborators.Logger(ctx)
+	if err != nil {
+		return err
 	}
-}
-
-func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators) {
-	collaborators.Logger(ctx)
-	collaborators.Configuration(ctx)
-	collaborators.Registry(ctx)
-	collaborators.StartCliCommands(ctx)
+	err = collaborators.Configuration(ctx)
+	if err != nil {
+		return err
+	}
+	err = collaborators.Registry(ctx)
+	if err != nil {
+		return err
+	}
+	err = collaborators.StartCliCommands(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func main() {
 	ctx := common.EmptyAnchorContext(registry.Initialize())
-	runCollaboratorsInSequence(ctx, collaborators)
+	err := runCollaboratorsInSequence(ctx, collaborators)
+	if err != nil {
+		exitApplication(1, err.Error())
+	}
 }

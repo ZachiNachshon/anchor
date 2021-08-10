@@ -24,7 +24,7 @@ var ContainExpectedSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
-				cmd := NewCommand(nil, ctx)
+				cmd, _ := NewCommand(nil, ctx)
 				assert.True(t, cmd.cobraCmd.HasSubCommands())
 				cmds := cmd.cobraCmd.Commands()
 				assert.Equal(t, 2, len(cmds))

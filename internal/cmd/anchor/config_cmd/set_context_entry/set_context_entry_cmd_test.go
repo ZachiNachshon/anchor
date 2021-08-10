@@ -39,11 +39,13 @@ var StartSetContextEntryActionSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
 					callCount++
 					return nil
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun), "test-cfg-context")
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command, "test-cfg-context")
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: set-context-entry")
 				assert.Nil(t, err, "expected cli action to have no errors")
 			})
@@ -64,7 +66,8 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 				localPath := "/test/local/path"
 
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
 					assert.Equal(t, cfgCtxName, configContextName)
 
 					assert.Contains(t, changes, remoteUrlFlagName)
@@ -89,7 +92,8 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 					return nil
 				}
 
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun),
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command,
 					configContextName,
 					fmt.Sprintf("--%s=%s", remoteUrlFlagName, url),
 					fmt.Sprintf("--%s=%s", remoteBranchFlagName, branch),
@@ -110,11 +114,13 @@ var FailDueToMissingConfigContextName = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
 					callCount++
 					return nil
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command)
 				assert.Equal(t, 0, callCount, "expected action not to be called. name: set-context-entry")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, "accepts 1 arg(s), received 0", err.Error())
@@ -129,11 +135,13 @@ var FailSetContextEntryAction = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				configContextName := "test-cfg-context"
 				callCount := 0
-				var fun = func(ctx common.Context, cfgCtxName string, changes map[string]string, overrideConfigFunc func(cfgToUpdate *config.AnchorConfig) error) error {
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun), configContextName)
+				command, err := NewCommand(ctx, fakeCfgManager, fun)
+				_, err = drivers.CLI().RunCommand(command, configContextName)
 				assert.Equal(t, 1, callCount, "expected action not to be called. name: set-context-entry")
 				assert.NotNil(t, err, "expected cli action to fail")
 				assert.Contains(t, "an error occurred", err.Error())
