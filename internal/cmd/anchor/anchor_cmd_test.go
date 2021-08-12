@@ -51,16 +51,20 @@ var ExpectVerbosityOnceFlagIsSet = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		// Initialize verbose flags which is a global variable to default
 		verboseFlagValue = false
-		var fun = func(l logger.Logger, verbose bool) error {
+		fakeLoggerManager := logger.CreateFakeLoggerManager()
+		setVerbosityCallCount := 0
+		fakeLoggerManager.SetVerbosityLevelMock = func(level string) error {
+			setVerbosityCallCount++
 			return nil
 		}
-		cmd := NewCommand(ctx, fun)
-		cmd.InitFlags()
-		if _, err := drivers.CLI().RunCommand(cmd, fmt.Sprintf("--%s", verboseFlagName)); err != nil {
-			logger.Fatalf("expected test to succeed. error: %s", err.Error())
-		} else {
-			assert.True(t, verboseFlagValue)
-		}
+		command, _ := NewCommand(ctx, fakeLoggerManager)
+		err := command.InitFlags()
+		assert.Nil(t, err, "expected init flags to succeed")
+
+		_, err = drivers.CLI().RunCommand(command, fmt.Sprintf("--%s", verboseFlagName))
+		assert.Nil(t, err, "expected command to succeed")
+		assert.Equal(t, 1, setVerbosityCallCount, "expected func to be called exactly once")
+		assert.True(t, verboseFlagValue)
 	})
 }
 
@@ -68,14 +72,12 @@ var ContainExpectedSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(lgr logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
-				var fun = func(l logger.Logger, verbose bool) error {
-					return nil
-				}
-				cmd := NewCommand(ctx, fun)
-				err := cmd.InitSubCommands()
+				fakeLoggerManager := logger.CreateFakeLoggerManager()
+				command, _ := NewCommand(ctx, fakeLoggerManager)
+				err := command.InitSubCommands()
 				assert.Nil(t, err)
-				assert.True(t, cmd.cobraCmd.HasSubCommands())
-				cmds := cmd.cobraCmd.Commands()
+				assert.True(t, command.cobraCmd.HasSubCommands())
+				cmds := command.cobraCmd.Commands()
 				assert.Equal(t, 6, len(cmds))
 				assert.Equal(t, "app", cmds[0].Use)
 				assert.Equal(t, "cli", cmds[1].Use)
@@ -93,20 +95,19 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 		with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 			// Initialize verbose flags which is a global variable to default
 			verboseFlagValue = false
-			var fun = func(l logger.Logger, verbose bool) error {
-				return nil
-			}
-			cmd := NewCommand(ctx, fun)
-			cmd.Initialize()
+			fakeLoggerManager := logger.CreateFakeLoggerManager()
+			command, _ := NewCommand(ctx, fakeLoggerManager)
+			_, err := command.Initialize()
+			assert.Nil(t, err)
 
-			assert.True(t, cmd.cobraCmd.HasPersistentFlags())
-			flags := cmd.cobraCmd.PersistentFlags()
+			assert.True(t, command.cobraCmd.HasPersistentFlags())
+			flags := command.cobraCmd.PersistentFlags()
 			verboseVal, err := flags.GetBool(verboseFlagName)
 			assert.Nil(t, err)
 			assert.Equal(t, false, verboseVal)
 
-			assert.True(t, cmd.cobraCmd.HasSubCommands())
-			cmds := cmd.cobraCmd.Commands()
+			assert.True(t, command.cobraCmd.HasSubCommands())
+			cmds := command.cobraCmd.Commands()
 			assert.Equal(t, 6, len(cmds))
 			assert.Equal(t, "app", cmds[0].Use)
 			assert.Equal(t, "cli", cmds[1].Use)
@@ -121,16 +122,15 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 var HaveValidCompletionArgsAsTheSubCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
-			var fun = func(l logger.Logger, verbose bool) error {
-				return nil
-			}
-			cmd := NewCommand(ctx, fun)
-			cmd.InitSubCommands()
-			assert.NotNil(t, cmd.cobraCmd.ValidArgs)
-			assert.True(t, cmd.cobraCmd.HasSubCommands())
-			assert.Equal(t, len(cmd.cobraCmd.Commands()), len(cmd.cobraCmd.ValidArgs))
-			for _, subCmd := range cmd.cobraCmd.Commands() {
-				assert.Contains(t, cmd.cobraCmd.ValidArgs, subCmd.Use)
+			fakeLoggerManager := logger.CreateFakeLoggerManager()
+			command, _ := NewCommand(ctx, fakeLoggerManager)
+			err := command.InitSubCommands()
+			assert.Nil(t, err)
+			assert.NotNil(t, command.cobraCmd.ValidArgs)
+			assert.True(t, command.cobraCmd.HasSubCommands())
+			assert.Equal(t, len(command.cobraCmd.Commands()), len(command.cobraCmd.ValidArgs))
+			for _, subCmd := range command.cobraCmd.Commands() {
+				assert.Contains(t, command.cobraCmd.ValidArgs, subCmd.Use)
 			}
 		})
 	})
@@ -138,26 +138,30 @@ var HaveValidCompletionArgsAsTheSubCommands = func(t *testing.T) {
 
 var CallSetLoggerVerbosity = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		setLoggerCallCount := 0
-		var fun = func(l logger.Logger, verbose bool) error {
-			setLoggerCallCount++
+		setVerbosityCallCount := 0
+		fakeLogManager := logger.CreateFakeLoggerManager()
+		fakeLogManager.SetVerbosityLevelMock = func(level string) error {
+			setVerbosityCallCount++
 			return nil
 		}
-		_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
-		assert.Equal(t, 1, setLoggerCallCount, "expected action to be called exactly once. name: set-logger-verbosity")
+		command, _ := NewCommand(ctx, fakeLogManager)
+		_, err := drivers.CLI().RunCommand(command)
+		assert.Equal(t, 1, setVerbosityCallCount, "expected action to be called exactly once. name: set-logger-verbosity")
 		assert.Nil(t, err, "expected cli action to have no errors")
 	})
 }
 
 var FailToSetLoggerVerbosity = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		setLoggerCallCount := 0
-		var fun = func(l logger.Logger, verbose bool) error {
-			setLoggerCallCount++
+		setVerbosityCallCount := 0
+		fakeLogManager := logger.CreateFakeLoggerManager()
+		fakeLogManager.SetVerbosityLevelMock = func(level string) error {
+			setVerbosityCallCount++
 			return fmt.Errorf("failed to set verbosity")
 		}
-		_, err := drivers.CLI().RunCommand(NewCommand(ctx, fun))
-		assert.Equal(t, 1, setLoggerCallCount, "expected action to be called exactly once. name: set-logger-verbosity")
+		command, _ := NewCommand(ctx, fakeLogManager)
+		_, err := drivers.CLI().RunCommand(command)
+		assert.Equal(t, 1, setVerbosityCallCount, "expected action to be called exactly once. name: set-logger-verbosity")
 		assert.NotNil(t, err, "expected cli action to fail")
 		assert.Equal(t, "failed to set verbosity", err.Error())
 	})

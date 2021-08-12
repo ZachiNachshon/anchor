@@ -17,10 +17,6 @@ import (
 func Test_AnchorShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "set logger verbosity successfully",
-			Func: SetLoggerVerbositySuccessfully,
-		},
-		{
 			Name: "fail to scan repo due to missing locator in registry",
 			Func: FailToScanRepoDueToMissingLocatorFromRegistry,
 		},
@@ -70,15 +66,6 @@ func Test_AnchorShould(t *testing.T) {
 		},
 	}
 	harness.RunTests(t, tests)
-}
-
-var SetLoggerVerbositySuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			err := SetLoggerVerbosity(logger, true)
-			assert.Nil(t, err)
-		})
-	})
 }
 
 var FailToScanRepoDueToMissingLocatorFromRegistry = func(t *testing.T) {

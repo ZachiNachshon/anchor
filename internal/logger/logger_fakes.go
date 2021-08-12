@@ -1,76 +1,40 @@
 package logger
 
-import (
-	"testing"
-)
-
-var FakeTestingLogger = func(t *testing.T, verbose bool) (Logger, error) {
-	fakeLogger := &fakeLogger{
-		testing: t,
-		verbose: verbose,
-	}
-	return fakeLogger, nil
+var CreateFakeLoggerManager = func() *fakeLoggerManagerImpl {
+	return &fakeLoggerManagerImpl{}
 }
 
-type fakeLogger struct {
-	Logger
-	testing *testing.T
-	verbose bool
+type fakeLoggerManagerImpl struct {
+	LoggerManager
+	CreateEmptyLoggerMock           func() (Logger, error)
+	AppendStdoutLoggerMock          func(level string) (Logger, error)
+	AppendFileLoggerMock            func(level string) (Logger, error)
+	SetActiveLoggerMock             func(log *Logger) error
+	SetVerbosityLevelMock           func(level string) error
+	GetDefaultLoggerLogFilePathMock func() (string, error)
 }
 
-func (f *fakeLogger) Debug(msg string) {
-	if f.verbose {
-		f.testing.Log(msg)
-	}
+func (e *fakeLoggerManagerImpl) CreateEmptyLogger() (Logger, error) {
+	return e.CreateEmptyLoggerMock()
 }
 
-func (f *fakeLogger) Debugf(format string, args ...interface{}) {
-	if f.verbose {
-		f.testing.Logf(format, args...)
-	}
+func (e *fakeLoggerManagerImpl) AppendStdoutLogger(level string) (Logger, error) {
+	return e.AppendStdoutLoggerMock(level)
 }
 
-func (f *fakeLogger) Info(msg string) {
-	if f.verbose {
-		f.testing.Log(msg)
-	}
+func (e *fakeLoggerManagerImpl) AppendFileLogger(level string) (Logger, error) {
+	return e.AppendFileLoggerMock(level)
 }
 
-func (f *fakeLogger) Infof(format string, args ...interface{}) {
-	if f.verbose {
-		f.testing.Logf(format, args...)
-	}
+func (e *fakeLoggerManagerImpl) SetActiveLogger(log *Logger) error {
+	loggerInUse = *log
+	return e.SetActiveLoggerMock(log)
 }
 
-func (f *fakeLogger) Warning(msg string) {
-	if f.verbose {
-		f.testing.Log(msg)
-	}
+func (e *fakeLoggerManagerImpl) SetVerbosityLevel(level string) error {
+	return e.SetVerbosityLevelMock(level)
 }
 
-func (f *fakeLogger) Warningf(format string, args ...interface{}) {
-	if f.verbose {
-		f.testing.Logf(format, args...)
-	}
-}
-
-func (f *fakeLogger) Error(msg string) {
-	f.testing.Error(msg)
-}
-
-func (f *fakeLogger) Errorf(format string, args ...interface{}) {
-	f.testing.Errorf(format, args...)
-}
-
-func (f *fakeLogger) Fatal(msg string) {
-	f.testing.Fatal(msg)
-}
-
-func (f *fakeLogger) Fatalf(format string, args ...interface{}) {
-	f.testing.Fatalf(format, args...)
-}
-
-func (f *fakeLogger) SetVerbosityLevel(level string) error {
-	f.verbose = level == "debug"
-	return nil
+func (e *fakeLoggerManagerImpl) GetDefaultLoggerLogFilePath() (string, error) {
+	return e.GetDefaultLoggerLogFilePathMock()
 }

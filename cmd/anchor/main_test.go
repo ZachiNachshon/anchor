@@ -22,24 +22,24 @@ import (
 func Test_MainShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "set valid initializations to collaborators",
-			Func: SetValidInitializationsToCollaborators,
+			Name: "set valid collaborators",
+			Func: SetValidCollaborators,
 		},
 		{
-			Name: "init logger collaborator successfully",
-			Func: InitLoggerCollaboratorSuccessfully,
+			Name: "run logger collaborator successfully",
+			Func: RunLoggerCollaboratorSuccessfully,
 		},
 		{
-			Name: "init configuration collaborator successfully",
-			Func: InitConfigurationCollaboratorSuccessfully,
+			Name: "run configuration collaborator successfully",
+			Func: RunConfigurationCollaboratorSuccessfully,
 		},
 		{
-			Name: "init registry collaborator successfully",
-			Func: InitRegistryCollaboratorSuccessfully,
+			Name: "run registry collaborator successfully",
+			Func: RunRegistryCollaboratorSuccessfully,
 		},
 		{
-			Name: "init start cli commands collaborator successfully",
-			Func: InitStartCliCommandsCollaboratorSuccessfully,
+			Name: "run start cli commands collaborator successfully",
+			Func: RunStartCliCommandsCollaboratorSuccessfully,
 		},
 		//{
 		//	Name: "exit application successfully",
@@ -62,16 +62,20 @@ func Test_MainShould(t *testing.T) {
 			Func: InitializeLoggerSuccessfully,
 		},
 		{
-			Name: "fail to resolve log file path",
-			Func: FailToResolveLogFilePath,
+			Name: "fail to append stdout logger",
+			Func: FailToAppendStdoutLogger,
 		},
 		{
-			Name: "fail to create logger",
-			Func: FailToCreateLogger,
+			Name: "fail to append file logger",
+			Func: FailToAppendFileLogger,
+		},
+		{
+			Name: "fail to set active logger",
+			Func: FailToSetActiveLogger,
 		},
 		{
 			Name: "fail to load log file path",
-			Func: FailToResolveLogFilePath,
+			Func: FailToAppendStdoutLogger,
 		},
 		{
 			Name: "initialize configuration successfully",
@@ -93,38 +97,42 @@ func Test_MainShould(t *testing.T) {
 	harness.RunTests(t, tests)
 }
 
-var SetValidInitializationsToCollaborators = func(t *testing.T) {
+var SetValidCollaborators = func(t *testing.T) {
 	assert.NotNil(t, collaborators.Logger, "expected collaborator not to be empty. name: Logger")
 	assert.NotNil(t, collaborators.Configuration, "expected collaborator not to be empty. name: Configuration")
 	assert.NotNil(t, collaborators.Registry, "expected collaborator not to be empty. name: Registry")
 	assert.NotNil(t, collaborators.StartCliCommands, "expected collaborator not to be empty. name: StartCliCommands")
 }
 
-var InitLoggerCollaboratorSuccessfully = func(t *testing.T) {
+var RunLoggerCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		err := collaborators.Logger(ctx)
 		assert.Nil(t, err)
 	})
 }
 
-var InitConfigurationCollaboratorSuccessfully = func(t *testing.T) {
+var RunConfigurationCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		err := collaborators.Configuration(ctx)
 		assert.Nil(t, err)
 	})
 }
 
-var InitRegistryCollaboratorSuccessfully = func(t *testing.T) {
+var RunRegistryCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		err := collaborators.Registry(ctx)
 		assert.Nil(t, err)
 	})
 }
 
-var InitStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
+var RunStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		err := collaborators.StartCliCommands(ctx)
-		assert.Nil(t, err)
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				err := collaborators.StartCliCommands(ctx)
+				assert.Nil(t, err)
+			})
+		})
 	})
 }
 
@@ -146,13 +154,23 @@ var InitStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 
 var StartCliCommandsSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		err := startCliCommands(ctx)
-		assert.Nil(t, err)
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				err := startCliCommands(ctx)
+				assert.Nil(t, err)
+			})
+		})
 	})
 }
 
 var StartMainEntryPointSuccessfully = func(t *testing.T) {
-	main()
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				main()
+			})
+		})
+	})
 }
 
 var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
@@ -162,7 +180,7 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 		configCallCount := 0
 		registryCallCount := 0
 		startCallCount := 0
-		collaborators := &MainCollaborators{
+		testCollaborators := &MainCollaborators{
 			Logger: func(ctx common.Context) error {
 				callOrder = append(callOrder, "logger")
 				loggerCallCount++
@@ -184,7 +202,7 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 				return nil
 			},
 		}
-		err := runCollaboratorsInSequence(ctx, collaborators)
+		err := runCollaboratorsInSequence(ctx, testCollaborators)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, loggerCallCount, "expected collaborator to be called exactly once. name: logger")
 		assert.Equal(t, 1, configCallCount, "expected collaborator to be called exactly once. name: configuration")
@@ -200,56 +218,118 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 
 var InitializeLoggerSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		logFileResolverCallCount := 0
-		logFileResolver := func() (string, error) {
-			logFileResolverCallCount++
-			return "/path/to/log/anchor.log", nil
+		fakeLogger, _ := logger.CreateFakeTestingLogger(t, false)
+		fakeLogManager := logger.CreateFakeLoggerManager()
+		createEmptyLoggerCallCount := 0
+		fakeLogManager.CreateEmptyLoggerMock = func() (logger.Logger, error) {
+			createEmptyLoggerCallCount++
+			return fakeLogger, nil
 		}
-		loggerCreatorCallCount := 0
-		loggerCreator := func(verbose bool, logFilePath string) (logger.Logger, error) {
-			loggerCreatorCallCount++
-			return nil, nil
+		appendStdoutLoggerCallCount := 0
+		fakeLogManager.AppendStdoutLoggerMock = func(level string) (logger.Logger, error) {
+			appendStdoutLoggerCallCount++
+			return fakeLogger, nil
 		}
-
-		err := initLogger(ctx, logFileResolver, loggerCreator)
+		appendFileLoggerCallCount := 0
+		fakeLogManager.AppendFileLoggerMock = func(level string) (logger.Logger, error) {
+			appendFileLoggerCallCount++
+			return fakeLogger, nil
+		}
+		setActiveLoggerCallCount := 0
+		fakeLogManager.SetActiveLoggerMock = func(log *logger.Logger) error {
+			setActiveLoggerCallCount++
+			return nil
+		}
+		err := initLogger(ctx, fakeLogManager)
 		assert.Nil(t, err)
-		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, createEmptyLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, appendStdoutLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, appendFileLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, setActiveLoggerCallCount, "expected func to be called exactly once")
 	})
 }
 
-var FailToResolveLogFilePath = func(t *testing.T) {
+var FailToAppendStdoutLogger = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		logFileResolverCallCount := 0
-		logFileResolver := func() (string, error) {
-			logFileResolverCallCount++
-			return "", fmt.Errorf("failed to resolve")
+		fakeLogger, _ := logger.CreateFakeTestingLogger(t, false)
+		fakeLogManager := logger.CreateFakeLoggerManager()
+		createEmptyLoggerCallCount := 0
+		fakeLogManager.CreateEmptyLoggerMock = func() (logger.Logger, error) {
+			createEmptyLoggerCallCount++
+			return fakeLogger, nil
 		}
-		loggerCreator := func(verbose bool, logFilePath string) (logger.Logger, error) {
-			return nil, nil
+		appendStdoutLoggerCallCount := 0
+		fakeLogManager.AppendStdoutLoggerMock = func(level string) (logger.Logger, error) {
+			appendStdoutLoggerCallCount++
+			return nil, fmt.Errorf("failed to append stdout logger")
 		}
-		err := initLogger(ctx, logFileResolver, loggerCreator)
+		err := initLogger(ctx, fakeLogManager)
 		assert.NotNil(t, err)
-		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, createEmptyLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, appendStdoutLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, "failed to append stdout logger", err.Error())
 	})
 }
 
-var FailToCreateLogger = func(t *testing.T) {
+var FailToAppendFileLogger = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		logFileResolverCallCount := 0
-		logFileResolver := func() (string, error) {
-			logFileResolverCallCount++
-			return "/path/to/log/anchor.log", nil
+		fakeLogger, _ := logger.CreateFakeTestingLogger(t, false)
+		fakeLogManager := logger.CreateFakeLoggerManager()
+		createEmptyLoggerCallCount := 0
+		fakeLogManager.CreateEmptyLoggerMock = func() (logger.Logger, error) {
+			createEmptyLoggerCallCount++
+			return fakeLogger, nil
 		}
-		loggerCreatorCallCount := 0
-		loggerCreator := func(verbose bool, logFilePath string) (logger.Logger, error) {
-			loggerCreatorCallCount++
-			return nil, fmt.Errorf("failed to create")
+		appendStdoutLoggerCallCount := 0
+		fakeLogManager.AppendStdoutLoggerMock = func(level string) (logger.Logger, error) {
+			appendStdoutLoggerCallCount++
+			return fakeLogger, nil
 		}
-		err := initLogger(ctx, logFileResolver, loggerCreator)
+		appendFileLoggerCallCount := 0
+		fakeLogManager.AppendFileLoggerMock = func(level string) (logger.Logger, error) {
+			appendFileLoggerCallCount++
+			return nil, fmt.Errorf("failed to append file logger")
+		}
+		err := initLogger(ctx, fakeLogManager)
 		assert.NotNil(t, err)
-		assert.Equal(t, 1, logFileResolverCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 1, loggerCreatorCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, createEmptyLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, appendStdoutLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, appendFileLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, "failed to append file logger", err.Error())
+	})
+}
+
+var FailToSetActiveLogger = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeLogger, _ := logger.CreateFakeTestingLogger(t, false)
+		fakeLogManager := logger.CreateFakeLoggerManager()
+		createEmptyLoggerCallCount := 0
+		fakeLogManager.CreateEmptyLoggerMock = func() (logger.Logger, error) {
+			createEmptyLoggerCallCount++
+			return fakeLogger, nil
+		}
+		appendStdoutLoggerCallCount := 0
+		fakeLogManager.AppendStdoutLoggerMock = func(level string) (logger.Logger, error) {
+			appendStdoutLoggerCallCount++
+			return fakeLogger, nil
+		}
+		appendFileLoggerCallCount := 0
+		fakeLogManager.AppendFileLoggerMock = func(level string) (logger.Logger, error) {
+			appendFileLoggerCallCount++
+			return fakeLogger, nil
+		}
+		setActiveLoggerCallCount := 0
+		fakeLogManager.SetActiveLoggerMock = func(log *logger.Logger) error {
+			setActiveLoggerCallCount++
+			return fmt.Errorf("failed to set active logger")
+		}
+		err := initLogger(ctx, fakeLogManager)
+		assert.NotNil(t, err)
+		assert.Equal(t, 1, createEmptyLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, appendStdoutLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, appendFileLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, setActiveLoggerCallCount, "expected func to be called exactly once")
+		assert.Equal(t, "failed to set active logger", err.Error())
 	})
 }
 

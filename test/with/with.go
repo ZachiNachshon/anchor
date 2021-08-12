@@ -26,12 +26,44 @@ func LoggingVerbose(ctx common.Context, t *testing.T, f func(logger logger.Logge
 }
 
 func createLogger(ctx common.Context, t *testing.T, verbose bool, f func(logger logger.Logger)) {
-	if out, err := logger.FakeTestingLogger(t, verbose); err != nil {
+	if fakeLogger, err := logger.CreateFakeTestingLogger(t, verbose); err != nil {
 		println("Failed to create a fake testing logger. error: %s", err)
 		os.Exit(1)
 	} else {
-		logger.SetLogger(out)
-		f(out)
+		fakeLoggerManager := logger.CreateFakeLoggerManager()
+		fakeLoggerManager.AppendStdoutLoggerMock = func(level string) (logger.Logger, error) {
+			return fakeLogger, nil
+		}
+		fakeLoggerManager.AppendFileLoggerMock = func(level string) (logger.Logger, error) {
+			return fakeLogger, nil
+		}
+		fakeLoggerManager.SetVerbosityLevelMock = func(level string) error {
+			resolveAdapter := fakeLogger.(logger.LoggerLogrusAdapter)
+			err = resolveAdapter.SetStdoutVerbosityLevel(level)
+			if err != nil {
+				return err
+			}
+
+			err = resolveAdapter.SetFileVerbosityLevel(level)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+
+		fakeLoggerManager.GetDefaultLoggerLogFilePathMock = func() (string, error) {
+			return "/testing/logger/path", nil
+		}
+		fakeLoggerManager.SetActiveLoggerMock = func(log *logger.Logger) error {
+			return nil
+		}
+
+		err = fakeLoggerManager.SetActiveLogger(&fakeLogger)
+		if err != nil {
+			return
+		}
+		ctx.Registry().Set(logger.Identifier, fakeLoggerManager)
+		f(fakeLogger)
 	}
 }
 

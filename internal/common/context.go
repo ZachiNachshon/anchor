@@ -2,7 +2,6 @@ package common
 
 import (
 	"context"
-	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/internal/registry"
 )
 
@@ -10,7 +9,7 @@ type Context interface {
 	GoContext() context.Context
 	Config() interface{}
 	Registry() *registry.InjectionsRegistry
-	Logger() logger.Logger
+	Logger() interface{}
 	AnchorFilesPath() string
 }
 
@@ -19,7 +18,7 @@ type ConfigSetter interface {
 }
 
 type LoggerSetter interface {
-	SetLogger(logger logger.Logger)
+	SetLogger(logger interface{})
 }
 
 type AnchorFilesPathSetter interface {
@@ -30,7 +29,7 @@ type anchorContext struct {
 	goContext                context.Context
 	config                   interface{}
 	registry                 *registry.InjectionsRegistry
-	logger                   logger.Logger
+	logger                   interface{}
 	anchorFilesRepoLocalPath string
 }
 
@@ -46,11 +45,11 @@ func (a *anchorContext) SetConfig(cfg interface{}) {
 	a.config = cfg
 }
 
-func (a *anchorContext) Logger() logger.Logger {
+func (a *anchorContext) Logger() interface{} {
 	return a.logger
 }
 
-func (a *anchorContext) SetLogger(logger logger.Logger) {
+func (a *anchorContext) SetLogger(logger interface{}) {
 	a.logger = logger
 }
 

@@ -27,7 +27,9 @@ type MainCollaborators struct {
 
 var collaborators = &MainCollaborators{
 	Logger: func(ctx common.Context) error {
-		return initLogger(ctx, logger.GetDefaultLoggerLogFilePath, logger.LogrusLoggerLoader)
+		logManager := logger.NewManager()
+		ctx.Registry().Set(logger.Identifier, logManager)
+		return initLogger(ctx, logManager)
 	},
 	Configuration: func(ctx common.Context) error {
 		cfgManager := config.NewManager()
@@ -47,21 +49,30 @@ var exitApplication = func(code int, message string) {
 	os.Exit(code)
 }
 
-func initLogger(
-	ctx common.Context,
-	logFileResolver func() (string, error),
-	loggerCreator func(verbose bool, logFilePath string) (logger.Logger, error)) error {
-
-	logFilePath, err := logFileResolver()
+func initLogger(ctx common.Context, logManager logger.LoggerManager) error {
+	lgr, err := logManager.CreateEmptyLogger()
 	if err != nil {
-		return fmt.Errorf("failed to resolve logger file path. error: %s", err)
+		return err
 	}
 
-	if lgr, err := loggerCreator(false, logFilePath); err != nil {
-		return fmt.Errorf("failed to initialize logger. error: %s", err.Error())
-	} else {
-		ctx.(common.LoggerSetter).SetLogger(lgr)
+	lgr, err = logManager.AppendStdoutLogger("info")
+	if err != nil {
+		return err
 	}
+
+	// TODO: add retention for xx log files with log rotation to conserve disk space
+	//       currently file based logger use debug level for visibility
+	lgr, err = logManager.AppendFileLogger("debug")
+	if err != nil {
+		return err
+	}
+
+	err = logManager.SetActiveLogger(&lgr)
+	if err != nil {
+		return err
+	}
+
+	logger.SetInContext(ctx, &lgr)
 	return nil
 }
 

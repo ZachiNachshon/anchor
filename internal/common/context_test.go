@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/ZachiNachshon/anchor/internal/logger"
+	//"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/internal/registry"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/stretchr/testify/assert"
@@ -52,9 +52,13 @@ var SetConfigSuccessfully = func(t *testing.T) {
 var SetLoggerSuccessfully = func(t *testing.T) {
 	reg := registry.New()
 	ctx := EmptyAnchorContext(reg)
-	testingLogger, _ := logger.FakeTestingLogger(t, false)
-	ctx.(LoggerSetter).SetLogger(testingLogger)
-	assert.Equal(t, testingLogger, ctx.Logger())
+	dummyLogger := struct {
+		Logger string
+	}{
+		Logger: "fastest logger in the world",
+	}
+	ctx.(LoggerSetter).SetLogger(dummyLogger)
+	assert.Equal(t, dummyLogger, ctx.Logger())
 }
 
 var SetAnchorFilesPathSuccessfully = func(t *testing.T) {

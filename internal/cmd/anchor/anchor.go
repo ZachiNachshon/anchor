@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
-	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/internal/repository"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
@@ -51,17 +50,6 @@ func (c *AnchorCollaborators) Run(ctx common.Context) error {
 		return err
 	}
 
-	return nil
-}
-
-var SetLoggerVerbosity = func(l logger.Logger, verbose bool) error {
-	level := "info"
-	if verbose {
-		level = "debug"
-	}
-	if err := l.SetVerbosityLevel(level); err != nil {
-		return err
-	}
 	return nil
 }
 
