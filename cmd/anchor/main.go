@@ -19,22 +19,20 @@ import (
 )
 
 type MainCollaborators struct {
-	Logger           func(ctx common.Context) error
-	Configuration    func(ctx common.Context) error
+	Logger           func(ctx common.Context, loggerManager logger.LoggerManager) error
+	Configuration    func(ctx common.Context, configManager config.ConfigManager) error
 	Registry         func(ctx common.Context) error
 	StartCliCommands func(ctx common.Context) error
 }
 
 var collaborators = &MainCollaborators{
-	Logger: func(ctx common.Context) error {
-		logManager := logger.NewManager()
-		ctx.Registry().Set(logger.Identifier, logManager)
-		return initLogger(ctx, logManager)
+	Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
+		ctx.Registry().Set(logger.Identifier, loggerManager)
+		return initLogger(ctx, loggerManager)
 	},
-	Configuration: func(ctx common.Context) error {
-		cfgManager := config.NewManager()
-		ctx.Registry().Set(config.Identifier, cfgManager)
-		return initConfiguration(ctx, cfgManager)
+	Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+		ctx.Registry().Set(config.Identifier, configManager)
+		return initConfiguration(ctx, configManager)
 	},
 	Registry: func(ctx common.Context) error {
 		return initRegistry(ctx)
@@ -129,11 +127,13 @@ func startCliCommands(ctx common.Context) error {
 }
 
 func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators) error {
-	err := collaborators.Logger(ctx)
+	loggerManager := logger.NewManager()
+	err := collaborators.Logger(ctx, loggerManager)
 	if err != nil {
 		return err
 	}
-	err = collaborators.Configuration(ctx)
+	configManager := config.NewManager()
+	err = collaborators.Configuration(ctx, configManager)
 	if err != nil {
 		return err
 	}

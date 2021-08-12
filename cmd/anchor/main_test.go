@@ -26,12 +26,12 @@ func Test_MainShould(t *testing.T) {
 			Func: SetValidCollaborators,
 		},
 		{
-			Name: "run logger collaborator successfully",
-			Func: RunLoggerCollaboratorSuccessfully,
+			Name: "fail logger collaborator",
+			Func: FailLoggerCollaborator,
 		},
 		{
-			Name: "run configuration collaborator successfully",
-			Func: RunConfigurationCollaboratorSuccessfully,
+			Name: "fail configuration collaborator",
+			Func: FailConfigurationCollaborator,
 		},
 		{
 			Name: "run registry collaborator successfully",
@@ -104,17 +104,27 @@ var SetValidCollaborators = func(t *testing.T) {
 	assert.NotNil(t, collaborators.StartCliCommands, "expected collaborator not to be empty. name: StartCliCommands")
 }
 
-var RunLoggerCollaboratorSuccessfully = func(t *testing.T) {
+var FailLoggerCollaborator = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		err := collaborators.Logger(ctx)
-		assert.Nil(t, err)
+		fakeLoggerManager := logger.CreateFakeLoggerManager()
+		fakeLoggerManager.CreateEmptyLoggerMock = func() (logger.Logger, error) {
+			return nil, fmt.Errorf("fail to create logger")
+		}
+		err := collaborators.Logger(ctx, fakeLoggerManager)
+		assert.NotNil(t, err)
+		assert.Equal(t, "fail to create logger", err.Error())
 	})
 }
 
-var RunConfigurationCollaboratorSuccessfully = func(t *testing.T) {
+var FailConfigurationCollaborator = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		err := collaborators.Configuration(ctx)
-		assert.Nil(t, err)
+		fakeConfigManager := config.CreateFakeConfigManager()
+		fakeConfigManager.SetupConfigFileLoaderMock = func() error {
+			return fmt.Errorf("fail to create config file loader")
+		}
+		err := collaborators.Configuration(ctx, fakeConfigManager)
+		assert.NotNil(t, err)
+		assert.Equal(t, "fail to create config file loader", err.Error())
 	})
 }
 
@@ -181,12 +191,12 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 		registryCallCount := 0
 		startCallCount := 0
 		testCollaborators := &MainCollaborators{
-			Logger: func(ctx common.Context) error {
+			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
 				callOrder = append(callOrder, "logger")
 				loggerCallCount++
 				return nil
 			},
-			Configuration: func(ctx common.Context) error {
+			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
 				callOrder = append(callOrder, "configuration")
 				configCallCount++
 				return nil
