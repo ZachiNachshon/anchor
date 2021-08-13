@@ -31,7 +31,7 @@ var StartStatusActionSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context) error {
+				var fun = func(ctx common.Context, orch orchestrator) error {
 					callCount++
 					return nil
 				}
@@ -49,7 +49,7 @@ var FailStatusAction = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context) error {
+				var fun = func(ctx common.Context, orch orchestrator) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}

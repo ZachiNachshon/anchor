@@ -9,50 +9,68 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 )
 
-type AppStatusFunc func(ctx common.Context) error
+type AppStatusFunc func(ctx common.Context, o orchestrator) error
 
-var AppStatus = func(ctx common.Context) error {
-	var l locator.Locator
+var AppStatus = func(ctx common.Context, o orchestrator) error {
+	err := o.prepare(ctx)
+	if err != nil {
+		return err
+	}
+	o.banner()
+	return o.run(ctx)
+}
+
+type orchestrator interface {
+	banner()
+	prepare(ctx common.Context) error
+	run(ctx common.Context) error
+}
+
+type statusOrchestratorImpl struct {
+	orchestrator
+	l  locator.Locator
+	e  extractor.Extractor
+	pa parser.Parser
+	p  printer.Printer
+}
+
+var statusOrchestrator = &statusOrchestratorImpl{}
+
+func (o *statusOrchestratorImpl) banner() {
+	o.p.PrintAnchorBanner()
+}
+
+func (o *statusOrchestratorImpl) prepare(ctx common.Context) error {
 	if resolved, err := ctx.Registry().SafeGet(locator.Identifier); err != nil {
 		return err
 	} else {
-		l = resolved.(locator.Locator)
+		o.l = resolved.(locator.Locator)
 	}
 
-	var p printer.Printer
 	if resolved, err := ctx.Registry().SafeGet(printer.Identifier); err != nil {
 		return err
 	} else {
-		p = resolved.(printer.Printer)
+		o.p = resolved.(printer.Printer)
 	}
 
-	var e extractor.Extractor
 	if resolved, err := ctx.Registry().SafeGet(extractor.Identifier); err != nil {
 		return err
 	} else {
-		e = resolved.(extractor.Extractor)
+		o.e = resolved.(extractor.Extractor)
 	}
 
-	var pa parser.Parser
 	if resolved, err := ctx.Registry().SafeGet(parser.Identifier); err != nil {
 		return err
 	} else {
-		pa = resolved.(parser.Parser)
+		o.pa = resolved.(parser.Parser)
 	}
 
-	p.PrintAnchorBanner()
-	return runApplicationStatusFlow(ctx, l, e, pa, p)
+	return nil
 }
 
-func runApplicationStatusFlow(
-	ctx common.Context,
-	l locator.Locator,
-	e extractor.Extractor,
-	pa parser.Parser,
-	p printer.Printer) error {
-
+func (o *statusOrchestratorImpl) run(ctx common.Context) error {
 	var appStatus []*printer.AppStatusTemplateItem
-	for _, app := range l.Applications() {
+	for _, app := range o.l.Applications() {
 		status := &printer.AppStatusTemplateItem{
 			Name: app.Name,
 		}
@@ -60,14 +78,14 @@ func runApplicationStatusFlow(
 		if !ioutils.IsValidPath(app.InstructionsPath) {
 			status.MissingInstructionFile = true
 		} else {
-			inst, err := e.ExtractInstructions(app.InstructionsPath, pa)
-			status.InvalidInstructionFormat = inst != nil || err != nil
+			inst, err := o.e.ExtractInstructions(app.InstructionsPath, o.pa)
+			status.InvalidInstructionFormat = inst == nil || err != nil
 		}
 
 		status.CalculateValidity()
 		appStatus = append(appStatus, status)
 	}
 
-	p.PrintApplications(appStatus)
+	o.p.PrintApplications(appStatus)
 	return nil
 }

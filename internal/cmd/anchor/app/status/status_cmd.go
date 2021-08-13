@@ -19,7 +19,7 @@ func NewCommand(ctx common.Context, statusFunc AppStatusFunc) (*statusCmd, error
 		Long:  `Check status validity of supported applications`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return statusFunc(ctx)
+			return statusFunc(ctx, statusOrchestrator)
 		},
 	}
 

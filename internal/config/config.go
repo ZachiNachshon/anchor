@@ -129,7 +129,7 @@ func (cm *configManagerImpl) CreateConfigObject() (*AnchorConfig, error) {
 }
 
 func (cm *configManagerImpl) GetConfigFilePath() (string, error) {
-	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+	if homeFolder, err := ioutils.GetUserHomeDirectory(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
 	} else {
@@ -139,7 +139,7 @@ func (cm *configManagerImpl) GetConfigFilePath() (string, error) {
 }
 
 func (cm *configManagerImpl) GetDefaultRepoClonePath(contextName string) (string, error) {
-	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+	if homeFolder, err := ioutils.GetUserHomeDirectory(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
 	} else {

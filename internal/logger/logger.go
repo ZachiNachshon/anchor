@@ -80,7 +80,7 @@ func (l *loggerManagerImpl) SetVerbosityLevel(level string) error {
 }
 
 func (l *loggerManagerImpl) GetDefaultLoggerLogFilePath() (string, error) {
-	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+	if homeFolder, err := ioutils.GetUserHomeDirectory(); err != nil {
 		Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
 	} else {
@@ -89,7 +89,7 @@ func (l *loggerManagerImpl) GetDefaultLoggerLogFilePath() (string, error) {
 }
 
 func GetDefaultScriptOutputLogFilePath() (string, error) {
-	if homeFolder, err := ioutils.GetUserHomeFolder(); err != nil {
+	if homeFolder, err := ioutils.GetUserHomeDirectory(); err != nil {
 		Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
 	} else {

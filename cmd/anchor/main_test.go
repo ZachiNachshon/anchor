@@ -175,9 +175,29 @@ var StartCliCommandsSuccessfully = func(t *testing.T) {
 
 var StartMainEntryPointSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				GetCollaborators = func() *MainCollaborators {
+					return &MainCollaborators{
+						Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
+							return nil
+						},
+						Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+							return nil
+						},
+						Registry: func(ctx common.Context) error {
+							return nil
+						},
+						StartCliCommands: func(ctx common.Context) error {
+							return nil
+						},
+					}
+				}
 				main()
+				// set with previous collaborators if a future testing method should be created for the main entry point
+				GetCollaborators = func() *MainCollaborators {
+					return collaborators
+				}
 			})
 		})
 	})

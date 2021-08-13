@@ -25,6 +25,10 @@ type MainCollaborators struct {
 	StartCliCommands func(ctx common.Context) error
 }
 
+var GetCollaborators = func() *MainCollaborators {
+	return collaborators
+}
+
 var collaborators = &MainCollaborators{
 	Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
 		ctx.Registry().Set(logger.Identifier, loggerManager)
@@ -150,7 +154,7 @@ func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollabora
 
 func main() {
 	ctx := common.EmptyAnchorContext(registry.Initialize())
-	err := runCollaboratorsInSequence(ctx, collaborators)
+	err := runCollaboratorsInSequence(ctx, GetCollaborators())
 	if err != nil {
 		exitApplication(1, err.Error())
 	}

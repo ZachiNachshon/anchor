@@ -17,7 +17,8 @@ const instructionsFileName string = "instructions.yaml"
 const anchorfilesTestRelativePath string = "test/data/anchorfiles"
 
 func prepareInstructionTestFilePath() string {
-	return fmt.Sprintf("%s/%s/%s/%s", ioutils.GetRepositoryAbsoluteRootPath(),
+	path, _ := ioutils.GetWorkingDirectory()
+	return fmt.Sprintf("%s/%s/%s/%s", ioutils.GetRepositoryAbsoluteRootPath(path),
 		anchorfilesTestRelativePath, "app/first-app", instructionsFileName)
 }
 

@@ -233,7 +233,8 @@ func withLogging(ctx common.Context, t *testing.T, verbose bool, f func(logger l
 }
 
 func harnessAnchorfilesTestRepo(ctx common.Context) {
-	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath()
+	path, _ := ioutils.GetWorkingDirectory()
+	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath(path)
 	if repoRootPath == "" {
 		logger.Fatalf("failed to resolve the absolute path of the repository root.")
 	}
