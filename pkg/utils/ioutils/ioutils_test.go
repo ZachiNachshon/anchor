@@ -14,8 +14,8 @@ func Test_IOUtilsShould(t *testing.T) {
 			Func: ParseValidAnchorRepositoryAbsolutePath,
 		},
 		{
-			Name: "avoid infinite loop when parsing repo absolute path",
-			Func: AvoidInfiniteLoopWhenParsingRepoAbsolutePath,
+			Name: "stop at root folder when parsing repo absolute path",
+			Func: StopAtRootFolderWhenParsingRepoAbsolutePath,
 		},
 		{
 			Name: "return that a path is invalid",
@@ -32,7 +32,7 @@ var ParseValidAnchorRepositoryAbsolutePath = func(t *testing.T) {
 	assert.NotEmpty(t, anchorPath)
 }
 
-var AvoidInfiniteLoopWhenParsingRepoAbsolutePath = func(t *testing.T) {
+var StopAtRootFolderWhenParsingRepoAbsolutePath = func(t *testing.T) {
 	pathInTest := "/user/src/github.com/noname/some/example/path"
 	anchorPath := GetRepositoryAbsoluteRootPath(pathInTest)
 	assert.Equal(t, "/", anchorPath)

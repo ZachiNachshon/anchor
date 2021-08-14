@@ -2,7 +2,7 @@ package _select
 
 import (
 	"github.com/ZachiNachshon/anchor/internal/common"
-	errors2 "github.com/ZachiNachshon/anchor/internal/errors"
+	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/models"
 
@@ -37,7 +37,7 @@ var AppSelect = func(ctx common.Context) error {
 	return nil
 }
 
-func runApplicationSelectionFlow(o orchestrator.Orchestrator, anchorfilesRepoPath string) *errors2.PromptError {
+func runApplicationSelectionFlow(o orchestrator.Orchestrator, anchorfilesRepoPath string) *errors.PromptError {
 	if app, promptErr := o.OrchestrateApplicationSelection(); promptErr != nil {
 		return promptErr
 	} else if app.Name == prompter.CancelActionName {
@@ -49,7 +49,7 @@ func runApplicationSelectionFlow(o orchestrator.Orchestrator, anchorfilesRepoPat
 		}
 
 		if instructionItem, promptErr := runInstructionActionSelectionFlow(o, app, instRoot); promptErr != nil {
-			if promptErr.Code() == errors2.InstructionMissingError {
+			if promptErr.Code() == errors.InstructionMissingError {
 				return runApplicationSelectionFlow(o, anchorfilesRepoPath)
 			}
 			return promptErr
@@ -63,7 +63,7 @@ func runApplicationSelectionFlow(o orchestrator.Orchestrator, anchorfilesRepoPat
 func runInstructionActionSelectionFlow(
 	o orchestrator.Orchestrator,
 	app *models.ApplicationInfo,
-	instructionRoot *models.InstructionsRoot) (*models.Action, *errors2.PromptError) {
+	instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError) {
 
 	appendInstructionActionsCustomOptions(instructionRoot.Instructions)
 	actions := instructionRoot.Instructions.Actions
@@ -96,7 +96,7 @@ func runInstructionWorkflowSelectionFlow(
 	o orchestrator.Orchestrator,
 	app *models.ApplicationInfo,
 	workflows []*models.Workflow,
-	actions []*models.Action) (*models.Workflow, *errors2.PromptError) {
+	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 
 	if workflow, promptError := o.OrchestrateInstructionWorkflowSelection(app, workflows); promptError != nil {
 		return nil, promptError
@@ -115,7 +115,7 @@ func runInstructionWorkflowSelectionFlow(
 
 func runInstructionActionExecutionFlow(
 	o orchestrator.Orchestrator,
-	action *models.Action) (*models.Action, *errors2.PromptError) {
+	action *models.Action) (*models.Action, *errors.PromptError) {
 
 	if shouldRun, promptError := o.AskBeforeRunningInstructionAction(action); promptError != nil {
 		logger.Debugf("failed to ask before running an instruction action. error: %s", promptError.GoError().Error())
@@ -134,7 +134,7 @@ func runInstructionActionExecutionFlow(
 func runInstructionWorkflowExecutionFlow(
 	o orchestrator.Orchestrator,
 	workflow *models.Workflow,
-	actions []*models.Action) (*models.Workflow, *errors2.PromptError) {
+	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 
 	if shouldRun, promptError := o.AskBeforeRunningInstructionWorkflow(workflow); promptError != nil {
 		logger.Debugf("failed to ask before running an instruction workflow. error: %s", promptError.GoError().Error())
@@ -150,7 +150,7 @@ func runInstructionWorkflowExecutionFlow(
 	return workflow, nil
 }
 
-func managePromptError(promptErr *errors2.PromptError) error {
+func managePromptError(promptErr *errors.PromptError) error {
 	err := promptErr.GoError()
 	if err == nil {
 		logger.Debug("Prompt error returned but does not contain an inner Go error")

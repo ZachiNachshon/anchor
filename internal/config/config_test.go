@@ -23,10 +23,6 @@ func Test_ConfigShould(t *testing.T) {
 			Func: ResolveConfigFromYamlTextSuccessfully,
 		},
 		{
-			Name: "resolve config from YAML text successfully",
-			Func: ResolveConfigFromYamlTextSuccessfully,
-		},
-		{
 			Name: "resolve config with defaults from YAML text successfully",
 			Func: ResolveConfigWithDefaultsFromYamlTextSuccessfully,
 		},
@@ -52,7 +48,7 @@ var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
 			yamlConfigText := GetDefaultTestConfigText()
 			withConfig(ctx, yamlConfigText, func(config *AnchorConfig) {
 				harnessAnchorfilesTestRepo(ctx)
-				assert.True(t, ioutils.IsValidPath(ctx.AnchorFilesPath()),
+				assert.DirExists(t, ctx.AnchorFilesPath(),
 					"cannot resolve anchorfiles test repo. path: %s", ctx.AnchorFilesPath())
 			})
 		})
