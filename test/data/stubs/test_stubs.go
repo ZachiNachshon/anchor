@@ -49,7 +49,7 @@ func GenerateInstructionsTestData() *models.InstructionsRoot {
 	return &models.InstructionsRoot{
 		Instructions: &models.Instructions{
 			Actions:   []*models.Action{&app1Action1, &app1Action2},
-			Workflows: []*models.Workflow{&app1Workflow1},
+			Workflows: []*models.Workflow{&app1Workflow1, &app2Workflow1},
 		},
 	}
 }
@@ -71,9 +71,18 @@ func GetAppByName(appsArr []*models.ApplicationInfo, name string) *models.Applic
 	return nil
 }
 
-func GetInstructionActionById(instructions *models.Instructions, id string) *models.Action {
+func GetInstructionActionById(instructions *models.Instructions, actionId string) *models.Action {
 	for _, v := range instructions.Actions {
-		if v.Id == id {
+		if v.Id == actionId {
+			return v
+		}
+	}
+	return nil
+}
+
+func GetInstructionWorkflowById(instructions *models.Instructions, workflowId string) *models.Workflow {
+	for _, v := range instructions.Workflows {
+		if v.Id == workflowId {
 			return v
 		}
 	}

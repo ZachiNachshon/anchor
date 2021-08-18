@@ -13,10 +13,15 @@ type viewCmd struct {
 	ctx      common.Context
 }
 
+type NewCommandFunc func(
+	ctx common.Context,
+	cfgManager config.ConfigManager,
+	editFunc ConfigViewFunc) *viewCmd
+
 func NewCommand(
 	ctx common.Context,
 	cfgManager config.ConfigManager,
-	viewFunc ConfigViewFunc) (*viewCmd, error) {
+	viewFunc ConfigViewFunc) *viewCmd {
 
 	var cobraCmd = &cobra.Command{
 		Use:   "view",
@@ -31,17 +36,23 @@ func NewCommand(
 	return &viewCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}, nil
+	}
 }
 
-func (cmd *viewCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
+func (c *viewCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
 }
 
-func (cmd *viewCmd) InitFlags() error {
-	return nil
+func (c *viewCmd) GetContext() common.Context {
+	return c.ctx
 }
 
-func (cmd *viewCmd) InitSubCommands() error {
+func AddCommand(
+	parent cmd.AnchorCommand,
+	cfgManager config.ConfigManager,
+	createCmd NewCommandFunc) error {
+
+	newCmd := createCmd(parent.GetContext(), cfgManager, ConfigView)
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

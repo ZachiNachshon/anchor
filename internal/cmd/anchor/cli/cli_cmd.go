@@ -11,47 +11,48 @@ type cliCmd struct {
 	cmd.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
+
+	addVersionSubCmdFunc func(parent cmd.AnchorCommand, createCmd versions.NewCommandFunc) error
 }
 
 var validArgs = []string{"versions"}
 
-func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) (*cliCmd, error) {
+type NewCommandFunc func(ctx common.Context, preRunSequence cmd.PreRunSequence) *cliCmd
+
+func NewCommand(ctx common.Context, preRunSequenceFunc cmd.PreRunSequence) *cliCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "cli",
 		Short:     "CLI applications",
-		Aliases:   []string{"a"},
 		ValidArgs: validArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return preRunSequence(ctx)
+			return preRunSequenceFunc(ctx)
 		},
 	}
 
-	var command = &cliCmd{
-		cobraCmd: cobraCmd,
-		ctx:      ctx,
+	c := &cliCmd{
+		cobraCmd:             cobraCmd,
+		ctx:                  ctx,
+		addVersionSubCmdFunc: versions.AddCommand,
 	}
+	return c
+}
 
-	err := command.InitSubCommands()
+func (c *cliCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
+}
+
+func (c *cliCmd) GetContext() common.Context {
+	return c.ctx
+}
+
+func AddCommand(parent cmd.AnchorCommand, preRunSequence *cmd.AnchorCollaborators, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), preRunSequence.Run)
+
+	err := newCmd.addVersionSubCmdFunc(newCmd, versions.NewCommand)
 	if err != nil {
-		return nil, err
-	}
-
-	return command, nil
-}
-
-func (cmd *cliCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
-}
-
-func (cmd *cliCmd) InitFlags() error {
-	return nil
-}
-
-func (cmd *cliCmd) InitSubCommands() error {
-	if versionCmd, err := versions.NewCommand(cmd.ctx, versions.CliVersions); err != nil {
 		return err
-	} else {
-		cmd.cobraCmd.AddCommand(versionCmd.GetCobraCmd())
 	}
+
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

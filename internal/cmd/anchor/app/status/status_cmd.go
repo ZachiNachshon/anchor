@@ -12,31 +12,35 @@ type statusCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, statusFunc AppStatusFunc) (*statusCmd, error) {
+type NewCommandFunc func(ctx common.Context, statusFunc AppStatusFunc) *statusCmd
+
+func NewCommand(ctx common.Context, statusFunc AppStatusFunc) *statusCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "status",
 		Short: "Check status validity of supported applications",
 		Long:  `Check status validity of supported applications`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return statusFunc(ctx, statusOrchestrator)
+			return statusFunc(ctx, NewOrchestrator())
 		},
 	}
 
 	return &statusCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}, nil
+	}
 }
 
-func (cmd *statusCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
+func (c *statusCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
 }
 
-func (cmd *statusCmd) InitFlags() error {
-	return nil
+func (c *statusCmd) GetContext() common.Context {
+	return c.ctx
 }
 
-func (cmd *statusCmd) InitSubCommands() error {
+func AddCommand(parent cmd.AnchorCommand, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), AppStatus)
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

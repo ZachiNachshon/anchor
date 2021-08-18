@@ -7,7 +7,6 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
-	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
@@ -460,8 +459,5 @@ var InitializeRegistrySuccessfully = func(t *testing.T) {
 
 		in, _ := reg.SafeGet(input.Identifier)
 		assert.NotNil(t, in, "expected item from registry to exist. name: input")
-
-		o, _ := reg.SafeGet(orchestrator.Identifier)
-		assert.NotNil(t, o, "expected item from registry to exist. name: orchestrator")
 	})
 }

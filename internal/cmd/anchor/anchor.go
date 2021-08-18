@@ -2,6 +2,7 @@ package anchor
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/cmd"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/repository"
@@ -10,47 +11,12 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
-type AnchorCollaborators struct {
-	resolveConfigContext func(ctx common.Context, prmpt prompter.Prompter, s shell.Shell) error
-	loadRepository       func(ctx common.Context) (string, error)
-	scanAnchorfiles      func(ctx common.Context, repoPath string) error
-}
-
-var AnchorPreRunSequence = func() *AnchorCollaborators {
-	return &AnchorCollaborators{
-		resolveConfigContext: loadConfigContext,
-		loadRepository:       loadRepository,
-		scanAnchorfiles:      scanAnchorfilesRepositoryTree,
+var AnchorPreRunSequence = func() *cmd.AnchorCollaborators {
+	return &cmd.AnchorCollaborators{
+		ResolveConfigContext: loadConfigContext,
+		LoadRepository:       loadRepository,
+		ScanAnchorfiles:      scanAnchorfilesRepositoryTree,
 	}
-}
-
-func (c *AnchorCollaborators) Run(ctx common.Context) error {
-	p, err := ctx.Registry().SafeGet(prompter.Identifier)
-	if err != nil {
-		return err
-	}
-
-	s, err := ctx.Registry().SafeGet(shell.Identifier)
-	if err != nil {
-		return err
-	}
-
-	err = c.resolveConfigContext(ctx, p.(prompter.Prompter), s.(shell.Shell))
-	if err != nil {
-		return err
-	}
-
-	repoPath, err := c.loadRepository(ctx)
-	if err != nil {
-		return err
-	}
-
-	err = c.scanAnchorfiles(ctx, repoPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func loadConfigContext(

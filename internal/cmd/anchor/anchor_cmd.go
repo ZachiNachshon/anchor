@@ -18,15 +18,12 @@ func RunCliRootCommand(ctx common.Context) error {
 		return err
 	} else {
 		loggerManager := result.(logger.LoggerManager)
-		if c, err := NewCommand(ctx, loggerManager); err != nil {
+		c := NewCommand(ctx, loggerManager)
+		err = c.initialize()
+		if err != nil {
 			return err
-		} else {
-			initRootCmd, err := c.Initialize()
-			if err != nil {
-				return err
-			}
-			return initRootCmd.GetCobraCmd().Execute()
 		}
+		return c.GetCobraCmd().Execute()
 	}
 }
 
@@ -34,6 +31,26 @@ type anchorCmd struct {
 	cmd.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
+
+	initFlagsFunc    func(o *anchorCmd) error
+	addAppSubCmdFunc func(
+		parent cmd.AnchorCommand,
+		preRunSequence *cmd.AnchorCollaborators,
+		createCmd app.NewCommandFunc) error
+
+	addCliSubCmdFunc func(
+		parent cmd.AnchorCommand,
+		preRunSequence *cmd.AnchorCollaborators,
+		createCmd cli.NewCommandFunc) error
+
+	addControllerSubCmdFunc func(
+		parent cmd.AnchorCommand,
+		preRunSequence *cmd.AnchorCollaborators,
+		createCmd controller.NewCommandFunc) error
+
+	addConfigSubCmdFunc     func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error
+	addCompletionSubCmdFunc func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error
+	addVersionSubCmdFunc    func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error
 }
 
 var validArgs = []string{"app", "cli", "completion", "config", "controller", "version"}
@@ -42,7 +59,7 @@ const verboseFlagName = "verbose"
 
 var verboseFlagValue = false
 
-func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) (*anchorCmd, error) {
+func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) *anchorCmd {
 	var rootCmd = &cobra.Command{
 		Use:       "anchor",
 		Short:     "Anchor your Ops environment into a version controlled repository",
@@ -58,12 +75,19 @@ func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) (*anchor
 	}
 
 	return &anchorCmd{
-		cobraCmd: rootCmd,
-		ctx:      ctx,
-	}, nil
+		cobraCmd:                rootCmd,
+		ctx:                     ctx,
+		initFlagsFunc:           initFlags,
+		addAppSubCmdFunc:        app.AddCommand,
+		addCliSubCmdFunc:        cli.AddCommand,
+		addControllerSubCmdFunc: controller.AddCommand,
+		addConfigSubCmdFunc:     config_cmd.AddCommand,
+		addCompletionSubCmdFunc: completion.AddCommand,
+		addVersionSubCmdFunc:    version.AddCommand,
+	}
 }
 
-func (c *anchorCmd) InitFlags() error {
+func initFlags(c *anchorCmd) error {
 	c.cobraCmd.PersistentFlags().BoolVarP(
 		&verboseFlagValue,
 		verboseFlagName,
@@ -75,69 +99,59 @@ func (c *anchorCmd) InitFlags() error {
 	return nil
 }
 
-func (c *anchorCmd) InitSubCommands() error {
-	preRunSequence := AnchorPreRunSequence()
-
-	//cobra.EnableCommandSorting = false
-
-	// Apps Commands
-	if appCmd, err := app.NewCommand(c.ctx, preRunSequence.Run); err != nil {
-		return err
-	} else {
-		c.cobraCmd.AddCommand(appCmd.GetCobraCmd())
-	}
-
-	// CLI Commands
-	if cliCmd, err := cli.NewCommand(c.ctx, preRunSequence.Run); err != nil {
-		return err
-	} else {
-		c.cobraCmd.AddCommand(cliCmd.GetCobraCmd())
-	}
-
-	// Controller Commands
-	if controllerCmd, err := controller.NewCommand(c.ctx, preRunSequence.Run); err != nil {
-		return err
-	} else {
-		c.cobraCmd.AddCommand(controllerCmd.GetCobraCmd())
-	}
-
-	// Config Commands
-	if cfgCmd, err := config_cmd.NewCommand(c.ctx); err != nil {
-		return err
-	} else {
-		c.cobraCmd.AddCommand(cfgCmd.GetCobraCmd())
-	}
-
-	// Version
-	if versionCmd, err := version.NewCommand(c.ctx, version.VersionVersion); err != nil {
-		return err
-	} else {
-		c.cobraCmd.AddCommand(versionCmd.GetCobraCmd())
-	}
-
-	// Auto completion
-	if compCmd, err := completion.NewCommand(c.cobraCmd, c.ctx); err != nil {
-		return err
-	} else {
-		c.cobraCmd.AddCommand(compCmd.GetCobraCmd())
-	}
-	return nil
-}
-
 func (c *anchorCmd) GetCobraCmd() *cobra.Command {
 	return c.cobraCmd
 }
 
-func (c *anchorCmd) Initialize() (*anchorCmd, error) {
+func (c *anchorCmd) GetContext() common.Context {
+	return c.ctx
+}
+
+func (c *anchorCmd) initialize() error {
 	// Cannot run on the command Run() method itself since we must initialize the logger
 	// logger must be available at the PersistentPreRun() stage
-	err := c.InitFlags()
+	err := c.initFlagsFunc(c)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	err = c.InitSubCommands()
+	//cobra.EnableCommandSorting = false
+
+	preRunSequence := AnchorPreRunSequence()
+
+	// Apps Commands
+	err = c.addAppSubCmdFunc(c, preRunSequence, app.NewCommand)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return c, nil
+
+	// CLI Commands
+	err = c.addCliSubCmdFunc(c, preRunSequence, cli.NewCommand)
+	if err != nil {
+		return err
+	}
+
+	// Controller Commands
+	err = c.addControllerSubCmdFunc(c, preRunSequence, controller.NewCommand)
+	if err != nil {
+		return err
+	}
+
+	// Config Commands
+	err = c.addConfigSubCmdFunc(c, config_cmd.NewCommand)
+	if err != nil {
+		return err
+	}
+
+	// Version
+	err = c.addVersionSubCmdFunc(c, version.NewCommand)
+	if err != nil {
+		return err
+	}
+
+	// Auto completion
+	err = c.addCompletionSubCmdFunc(c, completion.NewCommand)
+	if err != nil {
+		return err
+	}
+	return nil
 }

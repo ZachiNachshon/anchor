@@ -9,7 +9,6 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/registry"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
-	"github.com/ZachiNachshon/anchor/pkg/orchestrator"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
@@ -119,10 +118,7 @@ func initRegistry(ctx common.Context) error {
 	in := input.New()
 	reg.Set(input.Identifier, in)
 
-	o := orchestrator.New(pr, l, e, pa, s, in)
-	reg.Set(orchestrator.Identifier, o)
-
-	//registry.Initialize().Clipboard = clipboard.NewManager(registry.Initialize().shell)
+	//registry.Append().Clipboard = clipboard.NewManager(registry.Append().shell)
 	return nil
 }
 

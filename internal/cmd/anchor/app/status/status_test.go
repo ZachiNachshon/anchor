@@ -19,8 +19,8 @@ import (
 func Test_StatusActionShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "complete status flow successfully",
-			Func: CompleteStatusFlowSuccessfully,
+			Name: "complete runner method successfully",
+			Func: CompleteRunnerMethodSuccessfully,
 		},
 		{
 			Name: "print banner",
@@ -46,25 +46,25 @@ func Test_StatusActionShould(t *testing.T) {
 	harness.RunTests(t, tests)
 }
 
-var CompleteStatusFlowSuccessfully = func(t *testing.T) {
+var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			fakeOrch := createFakeOrchestrator()
+			fakeO := NewOrchestrator()
 			bannerCallCount := 0
-			fakeOrch.bannerMock = func() {
+			fakeO.bannerFunc = func(o *statusOrchestrator) {
 				bannerCallCount++
 			}
 			prepareCallCount := 0
-			fakeOrch.prepareMock = func(ctx common.Context) error {
+			fakeO.prepareFunc = func(o *statusOrchestrator, ctx common.Context) error {
 				prepareCallCount++
 				return nil
 			}
 			runCallCount := 0
-			fakeOrch.runMock = func(ctx common.Context) error {
+			fakeO.runFunc = func(o *statusOrchestrator, ctx common.Context) error {
 				runCallCount++
 				return nil
 			}
-			err := AppStatus(ctx, fakeOrch)
+			err := AppStatus(ctx, fakeO)
 			assert.Nil(t, err, "expected not to fail app status")
 			assert.Equal(t, 1, bannerCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, prepareCallCount, "expected func to be called exactly once")
@@ -80,10 +80,9 @@ var PrintBanner = func(t *testing.T) {
 		printBannerCallCount++
 	}
 
-	statusOrch := &statusOrchestratorImpl{
-		p: fakePrinter,
-	}
-	statusOrch.banner()
+	fakeO := NewOrchestrator()
+	fakeO.prntr = fakePrinter
+	fakeO.bannerFunc(fakeO)
 	assert.Equal(t, 1, printBannerCallCount, "expected func to be called exactly once")
 }
 
@@ -104,13 +103,13 @@ var PrepareRegistryComponents = func(t *testing.T) {
 		fakeParser := parser.CreateFakeParser()
 		reg.Set(parser.Identifier, fakeParser)
 
-		statusOrch := &statusOrchestratorImpl{}
-		err := statusOrch.prepare(ctx)
+		fakeO := NewOrchestrator()
+		err := fakeO.prepareFunc(fakeO, ctx)
 		assert.Nil(t, err)
-		assert.NotNil(t, statusOrch.l)
-		assert.NotNil(t, statusOrch.p)
-		assert.NotNil(t, statusOrch.e)
-		assert.NotNil(t, statusOrch.pa)
+		assert.NotNil(t, fakeO.l)
+		assert.NotNil(t, fakeO.prntr)
+		assert.NotNil(t, fakeO.e)
+		assert.NotNil(t, fakeO.prsr)
 	})
 }
 
@@ -123,29 +122,29 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 		fakePrinter := printer.CreateFakePrinter()
 		fakeExtractor := extractor.CreateFakeExtractor()
 		fakeParser := parser.CreateFakeParser()
-		statusOrch := &statusOrchestratorImpl{}
+		fakeO := NewOrchestrator()
 
-		err := statusOrch.prepare(ctx)
+		err := fakeO.prepareFunc(fakeO, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", locator.Identifier))
 		reg.Set(locator.Identifier, fakeLocator)
 
-		err = statusOrch.prepare(ctx)
+		err = fakeO.prepareFunc(fakeO, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", printer.Identifier))
 		reg.Set(printer.Identifier, fakePrinter)
 
-		err = statusOrch.prepare(ctx)
+		err = fakeO.prepareFunc(fakeO, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", extractor.Identifier))
 		reg.Set(extractor.Identifier, fakeExtractor)
 
-		err = statusOrch.prepare(ctx)
+		err = fakeO.prepareFunc(fakeO, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", parser.Identifier))
 		reg.Set(parser.Identifier, fakeParser)
 
-		err = statusOrch.prepare(ctx)
+		err = fakeO.prepareFunc(fakeO, ctx)
 		assert.Nil(t, err)
 	})
 }
@@ -176,12 +175,11 @@ var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 			}
 		}
 
-		statusOrch := &statusOrchestratorImpl{
-			l: fakeLocator,
-			p: fakePrinter,
-		}
+		fakeO := NewOrchestrator()
+		fakeO.l = fakeLocator
+		fakeO.prntr = fakePrinter
 
-		err := statusOrch.run(ctx)
+		err := fakeO.runFunc(fakeO, ctx)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
@@ -226,13 +224,12 @@ var PrintApplicationsWithValidStatus = func(t *testing.T) {
 			}
 		}
 
-		statusOrch := &statusOrchestratorImpl{
-			l: fakeLocator,
-			p: fakePrinter,
-			e: fakeExtractor,
-		}
+		fakeO := NewOrchestrator()
+		fakeO.l = fakeLocator
+		fakeO.prntr = fakePrinter
+		fakeO.e = fakeExtractor
 
-		err := statusOrch.run(ctx)
+		err := fakeO.runFunc(fakeO, ctx)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")

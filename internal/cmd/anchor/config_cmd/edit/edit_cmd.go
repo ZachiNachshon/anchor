@@ -13,10 +13,15 @@ type editCmd struct {
 	ctx      common.Context
 }
 
+type NewCommandFunc func(
+	ctx common.Context,
+	cfgManager config.ConfigManager,
+	editFunc ConfigEditFunc) *editCmd
+
 func NewCommand(
 	ctx common.Context,
 	cfgManager config.ConfigManager,
-	editFunc ConfigEditFunc) (*editCmd, error) {
+	editFunc ConfigEditFunc) *editCmd {
 
 	var cobraCmd = &cobra.Command{
 		Use:   "edit",
@@ -31,17 +36,23 @@ func NewCommand(
 	return &editCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}, nil
+	}
 }
 
-func (cmd *editCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
+func (c *editCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
 }
 
-func (cmd *editCmd) InitFlags() error {
-	return nil
+func (c *editCmd) GetContext() common.Context {
+	return c.ctx
 }
 
-func (cmd *editCmd) InitSubCommands() error {
+func AddCommand(
+	parent cmd.AnchorCommand,
+	cfgManager config.ConfigManager,
+	createCmd NewCommandFunc) error {
+
+	newCmd := createCmd(parent.GetContext(), cfgManager, ConfigEdit)
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

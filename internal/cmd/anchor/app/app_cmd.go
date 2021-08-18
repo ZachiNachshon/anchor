@@ -12,53 +12,54 @@ type appCmd struct {
 	cmd.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
+
+	addSelectSubCmdFunc func(parent cmd.AnchorCommand, createCmd _select.NewCommandFunc) error
+	addStatusSubCmdFunc func(parent cmd.AnchorCommand, createCmd status.NewCommandFunc) error
 }
 
 var validArgs = []string{"select", "status"}
 
-func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) (*appCmd, error) {
+type NewCommandFunc func(ctx common.Context, preRunSequence cmd.PreRunSequence) *appCmd
+
+func NewCommand(ctx common.Context, preRunSequence cmd.PreRunSequence) *appCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "app",
 		Short:     "Application commands",
-		Aliases:   []string{"a"},
 		ValidArgs: validArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return preRunSequence(ctx)
 		},
 	}
 
-	var command = &appCmd{
-		cobraCmd: cobraCmd,
-		ctx:      ctx,
+	return &appCmd{
+		cobraCmd:            cobraCmd,
+		ctx:                 ctx,
+		addSelectSubCmdFunc: _select.AddCommand,
+		addStatusSubCmdFunc: status.AddCommand,
 	}
+}
 
-	err := command.InitSubCommands()
+func (c *appCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
+}
+
+func (c *appCmd) GetContext() common.Context {
+	return c.ctx
+}
+
+func AddCommand(parent cmd.AnchorCommand, preRunSequence *cmd.AnchorCollaborators, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), preRunSequence.Run)
+
+	err := newCmd.addSelectSubCmdFunc(newCmd, _select.NewCommand)
 	if err != nil {
-		return nil, err
-	}
-
-	return command, nil
-}
-
-func (cmd *appCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
-}
-
-func (cmd *appCmd) InitFlags() error {
-	return nil
-}
-
-func (cmd *appCmd) InitSubCommands() error {
-	if selectCmd, err := _select.NewCommand(cmd.ctx, _select.AppSelect); err != nil {
 		return err
-	} else {
-		cmd.cobraCmd.AddCommand(selectCmd.GetCobraCmd())
 	}
 
-	if statusCmd, err := status.NewCommand(cmd.ctx, status.AppStatus); err != nil {
+	err = newCmd.addStatusSubCmdFunc(newCmd, status.NewCommand)
+	if err != nil {
 		return err
-	} else {
-		cmd.cobraCmd.AddCommand(statusCmd.GetCobraCmd())
 	}
+
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

@@ -22,6 +22,18 @@ func Test_EditCommandShould(t *testing.T) {
 			Name: "fail edit action",
 			Func: FailEditAction,
 		},
+		{
+			Name: "contain cobra command",
+			Func: ContainCobraCommand,
+		},
+		{
+			Name: "contain context",
+			Func: ContainContext,
+		},
+		{
+			Name: "add itself to parent command",
+			Func: AddItselfToParentCommand,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -36,10 +48,10 @@ var StartEditActionSuccessfully = func(t *testing.T) {
 					callCount++
 					return nil
 				}
-				command, err := NewCommand(ctx, fakeCfgManager, fun)
-				_, err = drivers.CLI().RunCommand(command)
-				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: edit")
-				assert.Nil(t, err, "expected cli action to have no errors")
+				command := NewCommand(ctx, fakeCfgManager, fun)
+				_, err := drivers.CLI().RunCommand(command)
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once")
+				assert.Nil(t, err, "expected action to have no errors")
 			})
 		})
 	})
@@ -55,12 +67,50 @@ var FailEditAction = func(t *testing.T) {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				command, err := NewCommand(ctx, fakeCfgManager, fun)
-				_, err = drivers.CLI().RunCommand(command)
-				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: edit")
-				assert.NotNil(t, err, "expected cli action to fail")
+				command := NewCommand(ctx, fakeCfgManager, fun)
+				_, err := drivers.CLI().RunCommand(command)
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once")
+				assert.NotNil(t, err, "expected action to fail")
 				assert.Contains(t, err.Error(), "an error occurred")
 			})
 		})
+	})
+}
+
+var ContainCobraCommand = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		var fun ConfigEditFunc = func(ctx common.Context, cfgManager config.ConfigManager) error {
+			return nil
+		}
+		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
+		cobraCmd := anchorCmd.GetCobraCmd()
+		assert.NotNil(t, cobraCmd, "expected cobra command to exist")
+	})
+}
+
+var ContainContext = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		var fun ConfigEditFunc = func(ctx common.Context, cfgManager config.ConfigManager) error {
+			return nil
+		}
+		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
+		cmdCtx := anchorCmd.GetContext()
+		assert.NotNil(t, cmdCtx, "expected context to exist")
+		assert.Equal(t, ctx, cmdCtx)
+	})
+}
+
+var AddItselfToParentCommand = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		parentCmd := NewCommand(ctx, fakeCfgManager, nil)
+		err := AddCommand(parentCmd, fakeCfgManager, NewCommand)
+		assert.Nil(t, err, "expected add command to succeed")
+		assert.True(t, parentCmd.GetCobraCmd().HasSubCommands())
+		cmds := parentCmd.GetCobraCmd().Commands()
+		assert.Equal(t, 1, len(cmds))
+		assert.Equal(t, "edit", cmds[0].Use)
 	})
 }

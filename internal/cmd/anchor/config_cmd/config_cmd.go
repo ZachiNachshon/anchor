@@ -15,11 +15,33 @@ type configCmd struct {
 	cmd.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
+
+	addEditSubCmdFunc func(
+		parent cmd.AnchorCommand,
+		cfgManager config.ConfigManager,
+		createCmd edit.NewCommandFunc) error
+
+	addSetContextEntrySubCmdFunc func(
+		parent cmd.AnchorCommand,
+		cfgManager config.ConfigManager,
+		createCmd set_context_entry.NewCommandFunc) error
+
+	addUseContextSubCmdFunc func(
+		parent cmd.AnchorCommand,
+		cfgManager config.ConfigManager,
+		createCmd use_context.NewCommandFunc) error
+
+	addViewSubCmdFunc func(
+		parent cmd.AnchorCommand,
+		cfgManager config.ConfigManager,
+		createCmd view.NewCommandFunc) error
 }
 
 var validArgs = []string{"edit", "set-context-entry", "use-context", "view"}
 
-func NewCommand(ctx common.Context) (*configCmd, error) {
+type NewCommandFunc func(ctx common.Context) *configCmd
+
+func NewCommand(ctx common.Context) *configCmd {
 	var cobraCmd = &cobra.Command{
 		Use:       "config",
 		Short:     "Configuration file management",
@@ -27,55 +49,51 @@ func NewCommand(ctx common.Context) (*configCmd, error) {
 		ValidArgs: validArgs,
 	}
 
-	var cmd = &configCmd{
-		cobraCmd: cobraCmd,
-		ctx:      ctx,
+	return &configCmd{
+		cobraCmd:                     cobraCmd,
+		ctx:                          ctx,
+		addEditSubCmdFunc:            edit.AddCommand,
+		addSetContextEntrySubCmdFunc: set_context_entry.AddCommand,
+		addUseContextSubCmdFunc:      use_context.AddCommand,
+		addViewSubCmdFunc:            view.AddCommand,
 	}
-
-	err := cmd.InitSubCommands()
-	if err != nil {
-		return nil, err
-	}
-
-	return cmd, nil
 }
 
-func (cmd *configCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
+func (c *configCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
 }
 
-func (cmd *configCmd) InitFlags() error {
-	return nil
+func (c *configCmd) GetContext() common.Context {
+	return c.ctx
 }
 
-func (cmd *configCmd) InitSubCommands() error {
-	if cfgManager, err := cmd.ctx.Registry().SafeGet(config.Identifier); err != nil {
+func AddCommand(parent cmd.AnchorCommand, createCmd NewCommandFunc) error {
+	if cfgManager, err := parent.GetContext().Registry().SafeGet(config.Identifier); err != nil {
 		return err
 	} else {
+		newCmd := createCmd(parent.GetContext())
 		manager := cfgManager.(config.ConfigManager)
-		if viewCmd, err := view.NewCommand(cmd.ctx, manager, view.ConfigView); err != nil {
+
+		err = newCmd.addEditSubCmdFunc(newCmd, manager, edit.NewCommand)
+		if err != nil {
 			return err
-		} else {
-			cmd.cobraCmd.AddCommand(viewCmd.GetCobraCmd())
 		}
 
-		if editCmd, err := edit.NewCommand(cmd.ctx, manager, edit.ConfigEdit); err != nil {
+		err = newCmd.addSetContextEntrySubCmdFunc(newCmd, manager, set_context_entry.NewCommand)
+		if err != nil {
 			return err
-		} else {
-			cmd.cobraCmd.AddCommand(editCmd.GetCobraCmd())
 		}
 
-		if useCtxCmd, err := use_context.NewCommand(cmd.ctx, manager, use_context.ConfigUseContext); err != nil {
+		err = newCmd.addUseContextSubCmdFunc(newCmd, manager, use_context.NewCommand)
+		if err != nil {
 			return err
-		} else {
-			cmd.cobraCmd.AddCommand(useCtxCmd.GetCobraCmd())
 		}
 
-		if setCtxEntryCmd, err := set_context_entry.NewCommand(cmd.ctx, manager, set_context_entry.ConfigSetContextEntry); err != nil {
+		err = newCmd.addViewSubCmdFunc(newCmd, manager, view.NewCommand)
+		if err != nil {
 			return err
-		} else {
-			cmd.cobraCmd.AddCommand(setCtxEntryCmd.GetCobraCmd())
 		}
+		parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 		return nil
 	}
 }

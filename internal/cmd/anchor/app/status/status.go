@@ -9,38 +9,39 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 )
 
-type AppStatusFunc func(ctx common.Context, o orchestrator) error
+type AppStatusFunc func(ctx common.Context, o *statusOrchestrator) error
 
-var AppStatus = func(ctx common.Context, o orchestrator) error {
-	err := o.prepare(ctx)
+var AppStatus = func(ctx common.Context, o *statusOrchestrator) error {
+	err := o.prepareFunc(o, ctx)
 	if err != nil {
 		return err
 	}
-	o.banner()
-	return o.run(ctx)
+	o.bannerFunc(o)
+	return o.runFunc(o, ctx)
 }
 
-type orchestrator interface {
-	banner()
-	prepare(ctx common.Context) error
-	run(ctx common.Context) error
+type statusOrchestrator struct {
+	l     locator.Locator
+	e     extractor.Extractor
+	prsr  parser.Parser
+	prntr printer.Printer
+
+	// --- CLI Command ---
+	prepareFunc func(o *statusOrchestrator, ctx common.Context) error
+	bannerFunc  func(o *statusOrchestrator)
+	runFunc     func(o *statusOrchestrator, ctx common.Context) error
 }
 
-type statusOrchestratorImpl struct {
-	orchestrator
-	l  locator.Locator
-	e  extractor.Extractor
-	pa parser.Parser
-	p  printer.Printer
+func NewOrchestrator() *statusOrchestrator {
+	return &statusOrchestrator{
+		// --- CLI Command ---
+		bannerFunc:  banner,
+		prepareFunc: prepare,
+		runFunc:     run,
+	}
 }
 
-var statusOrchestrator = &statusOrchestratorImpl{}
-
-func (o *statusOrchestratorImpl) banner() {
-	o.p.PrintAnchorBanner()
-}
-
-func (o *statusOrchestratorImpl) prepare(ctx common.Context) error {
+func prepare(o *statusOrchestrator, ctx common.Context) error {
 	if resolved, err := ctx.Registry().SafeGet(locator.Identifier); err != nil {
 		return err
 	} else {
@@ -50,7 +51,7 @@ func (o *statusOrchestratorImpl) prepare(ctx common.Context) error {
 	if resolved, err := ctx.Registry().SafeGet(printer.Identifier); err != nil {
 		return err
 	} else {
-		o.p = resolved.(printer.Printer)
+		o.prntr = resolved.(printer.Printer)
 	}
 
 	if resolved, err := ctx.Registry().SafeGet(extractor.Identifier); err != nil {
@@ -62,13 +63,17 @@ func (o *statusOrchestratorImpl) prepare(ctx common.Context) error {
 	if resolved, err := ctx.Registry().SafeGet(parser.Identifier); err != nil {
 		return err
 	} else {
-		o.pa = resolved.(parser.Parser)
+		o.prsr = resolved.(parser.Parser)
 	}
 
 	return nil
 }
 
-func (o *statusOrchestratorImpl) run(ctx common.Context) error {
+func banner(o *statusOrchestrator) {
+	o.prntr.PrintAnchorBanner()
+}
+
+func run(o *statusOrchestrator, ctx common.Context) error {
 	var appStatus []*printer.AppStatusTemplateItem
 	for _, app := range o.l.Applications() {
 		status := &printer.AppStatusTemplateItem{
@@ -78,7 +83,7 @@ func (o *statusOrchestratorImpl) run(ctx common.Context) error {
 		if !ioutils.IsValidPath(app.InstructionsPath) {
 			status.MissingInstructionFile = true
 		} else {
-			inst, err := o.e.ExtractInstructions(app.InstructionsPath, o.pa)
+			inst, err := o.e.ExtractInstructions(app.InstructionsPath, o.prsr)
 			status.InvalidInstructionFormat = inst == nil || err != nil
 		}
 
@@ -86,6 +91,6 @@ func (o *statusOrchestratorImpl) run(ctx common.Context) error {
 		appStatus = append(appStatus, status)
 	}
 
-	o.p.PrintApplications(appStatus)
+	o.prntr.PrintApplications(appStatus)
 	return nil
 }

@@ -12,7 +12,9 @@ type installCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, installFunc ControllerInstallFunc) (*installCmd, error) {
+type NewCommandFunc func(ctx common.Context, installFunc ControllerInstallFunc) *installCmd
+
+func NewCommand(ctx common.Context, installFunc ControllerInstallFunc) *installCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "install",
 		Short: "Install a controller",
@@ -26,17 +28,19 @@ func NewCommand(ctx common.Context, installFunc ControllerInstallFunc) (*install
 	return &installCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}, nil
+	}
 }
 
-func (cmd *installCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
+func (c *installCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
 }
 
-func (cmd *installCmd) InitFlags() error {
-	return nil
+func (c *installCmd) GetContext() common.Context {
+	return c.ctx
 }
 
-func (cmd *installCmd) InitSubCommands() error {
+func AddCommand(parent cmd.AnchorCommand, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), ControllerInstall)
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

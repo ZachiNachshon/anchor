@@ -1,7 +1,6 @@
 package ioutils
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +24,6 @@ func GetRepositoryAbsoluteRootPath(path string) string {
 		dirName = filepath.Base(dirPath)
 	}
 
-	fmt.Printf("absolute path: %s", dirPath)
 	return dirPath
 }
 

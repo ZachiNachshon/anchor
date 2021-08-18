@@ -30,6 +30,18 @@ func Test_SetContextEntryCommandShould(t *testing.T) {
 			Name: "fail set context entry action",
 			Func: FailSetContextEntryAction,
 		},
+		{
+			Name: "contain cobra command",
+			Func: ContainCobraCommand,
+		},
+		{
+			Name: "contain context",
+			Func: ContainContext,
+		},
+		{
+			Name: "add itself to parent command",
+			Func: AddItselfToParentCommand,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -44,10 +56,10 @@ var StartSetContextEntryActionSuccessfully = func(t *testing.T) {
 					callCount++
 					return nil
 				}
-				command, err := NewCommand(ctx, fakeCfgManager, fun)
-				_, err = drivers.CLI().RunCommand(command, "test-cfg-context")
+				command := NewCommand(ctx, fakeCfgManager, fun)
+				_, err := drivers.CLI().RunCommand(command, "test-cfg-context")
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: set-context-entry")
-				assert.Nil(t, err, "expected cli action to have no errors")
+				assert.Nil(t, err, "expected action to have no errors")
 			})
 		})
 	})
@@ -92,8 +104,9 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 					return nil
 				}
 
-				command, err := NewCommand(ctx, fakeCfgManager, fun)
-				_, err = drivers.CLI().RunCommand(command,
+				command := NewCommand(ctx, fakeCfgManager, fun)
+				_ = command.initFlagsFunc(command)
+				_, err := drivers.CLI().RunCommand(command,
 					configContextName,
 					fmt.Sprintf("--%s=%s", remoteUrlFlagName, url),
 					fmt.Sprintf("--%s=%s", remoteBranchFlagName, branch),
@@ -103,7 +116,7 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 					fmt.Sprintf("--%s=%s", localPathFlagName, localPath),
 				)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: set-context-entry")
-				assert.Nil(t, err, "expected cli action to have no errors")
+				assert.Nil(t, err, "expected action to have no errors")
 			})
 		})
 	})
@@ -119,10 +132,10 @@ var FailDueToMissingConfigContextName = func(t *testing.T) {
 					callCount++
 					return nil
 				}
-				command, err := NewCommand(ctx, fakeCfgManager, fun)
-				_, err = drivers.CLI().RunCommand(command)
+				command := NewCommand(ctx, fakeCfgManager, fun)
+				_, err := drivers.CLI().RunCommand(command)
 				assert.Equal(t, 0, callCount, "expected action not to be called. name: set-context-entry")
-				assert.NotNil(t, err, "expected cli action to fail")
+				assert.NotNil(t, err, "expected action to fail")
 				assert.Contains(t, "accepts 1 arg(s), received 0", err.Error())
 			})
 		})
@@ -140,12 +153,50 @@ var FailSetContextEntryAction = func(t *testing.T) {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				command, err := NewCommand(ctx, fakeCfgManager, fun)
-				_, err = drivers.CLI().RunCommand(command, configContextName)
+				command := NewCommand(ctx, fakeCfgManager, fun)
+				_, err := drivers.CLI().RunCommand(command, configContextName)
 				assert.Equal(t, 1, callCount, "expected action not to be called. name: set-context-entry")
-				assert.NotNil(t, err, "expected cli action to fail")
+				assert.NotNil(t, err, "expected action to fail")
 				assert.Contains(t, "an error occurred", err.Error())
 			})
 		})
+	})
+}
+
+var ContainCobraCommand = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		var fun ConfigSetContextEntryFunc = func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
+			return nil
+		}
+		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
+		cobraCmd := anchorCmd.GetCobraCmd()
+		assert.NotNil(t, cobraCmd, "expected cobra command to exist")
+	})
+}
+
+var ContainContext = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		var fun ConfigSetContextEntryFunc = func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
+			return nil
+		}
+		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
+		cmdCtx := anchorCmd.GetContext()
+		assert.NotNil(t, cmdCtx, "expected context to exist")
+		assert.Equal(t, ctx, cmdCtx)
+	})
+}
+
+var AddItselfToParentCommand = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		parentCmd := NewCommand(ctx, fakeCfgManager, nil)
+		err := AddCommand(parentCmd, fakeCfgManager, NewCommand)
+		assert.Nil(t, err, "expected add command to succeed")
+		assert.True(t, parentCmd.GetCobraCmd().HasSubCommands())
+		cmds := parentCmd.GetCobraCmd().Commands()
+		assert.Equal(t, 1, len(cmds))
+		assert.Contains(t, cmds[0].Use, "set-context-entry")
 	})
 }

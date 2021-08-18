@@ -12,31 +12,35 @@ type selectCmd struct {
 	ctx      common.Context
 }
 
-func NewCommand(ctx common.Context, selectFunc AppSelectFunc) (*selectCmd, error) {
+type NewCommandFunc func(ctx common.Context, selectFunc AppSelectFunc) *selectCmd
+
+func NewCommand(ctx common.Context, selectFunc AppSelectFunc) *selectCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "select",
 		Short: "Select an application",
 		Long:  `Select an application`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return selectFunc(ctx)
+			return selectFunc(ctx, NewOrchestrator())
 		},
 	}
 
 	return &selectCmd{
 		cobraCmd: cobraCmd,
 		ctx:      ctx,
-	}, nil
+	}
 }
 
-func (cmd *selectCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
+func (c *selectCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
 }
 
-func (cmd *selectCmd) InitFlags() error {
-	return nil
+func (c *selectCmd) GetContext() common.Context {
+	return c.ctx
 }
 
-func (cmd *selectCmd) InitSubCommands() error {
+func AddCommand(parent cmd.AnchorCommand, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), AppSelect)
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

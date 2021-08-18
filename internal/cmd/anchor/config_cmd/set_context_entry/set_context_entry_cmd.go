@@ -28,12 +28,19 @@ type setContextValueCmd struct {
 	cmd.AnchorCommand
 	cobraCmd *cobra.Command
 	ctx      common.Context
+
+	initFlagsFunc func(o *setContextValueCmd) error
 }
+
+type NewCommandFunc func(
+	ctx common.Context,
+	cfgManager config.ConfigManager,
+	setContextEntryFunc ConfigSetContextEntryFunc) *setContextValueCmd
 
 func NewCommand(
 	ctx common.Context,
 	cfgManager config.ConfigManager,
-	setContextEntryFunc ConfigSetContextEntryFunc) (*setContextValueCmd, error) {
+	setContextEntryFunc ConfigSetContextEntryFunc) *setContextValueCmd {
 
 	var cobraCmd = &cobra.Command{
 		Use: fmt.Sprintf(
@@ -81,64 +88,72 @@ func NewCommand(
 		},
 	}
 
-	var cmd = &setContextValueCmd{
-		cobraCmd: cobraCmd,
-		ctx:      ctx,
+	return &setContextValueCmd{
+		cobraCmd:      cobraCmd,
+		ctx:           ctx,
+		initFlagsFunc: initFlags,
 	}
-
-	err := cmd.InitFlags()
-	if err != nil {
-		return nil, err
-	}
-
-	return cmd, nil
 }
 
-func (cmd *setContextValueCmd) GetCobraCmd() *cobra.Command {
-	return cmd.cobraCmd
+func (c *setContextValueCmd) GetCobraCmd() *cobra.Command {
+	return c.cobraCmd
 }
 
-func (cmd *setContextValueCmd) InitFlags() error {
-	cmd.cobraCmd.Flags().StringVar(
+func (c *setContextValueCmd) GetContext() common.Context {
+	return c.ctx
+}
+
+func initFlags(c *setContextValueCmd) error {
+	c.cobraCmd.Flags().StringVar(
 		&remoteRevisionFlagValue,
 		remoteRevisionFlagName,
 		"",
 		fmt.Sprintf("--%s=3x4MPl3R3v1510N", remoteRevisionFlagName))
 
-	cmd.cobraCmd.Flags().StringVar(
+	c.cobraCmd.Flags().StringVar(
 		&remoteUrlFlagValue,
 		remoteUrlFlagName,
 		"",
 		fmt.Sprintf("--%s=git@some-repo", remoteUrlFlagName))
 
-	cmd.cobraCmd.Flags().StringVar(
+	c.cobraCmd.Flags().StringVar(
 		&remoteBranchFlagValue,
 		remoteBranchFlagName,
 		"",
 		fmt.Sprintf("--%s=main", remoteBranchFlagName))
 
-	cmd.cobraCmd.Flags().StringVar(
+	c.cobraCmd.Flags().StringVar(
 		&remoteClonePathFlagValue,
 		remoteClonePathFlagName,
 		"",
 		fmt.Sprintf("--%s=/repo/remote/clone/path", remoteClonePathFlagName))
 
-	cmd.cobraCmd.Flags().StringVar(
+	c.cobraCmd.Flags().StringVar(
 		&remoteAutoUpdateFlagValue,
 		remoteAutoUpdateFlagName,
 		"",
 		fmt.Sprintf("--%s=true", remoteAutoUpdateFlagName))
 
-	cmd.cobraCmd.Flags().StringVar(
+	c.cobraCmd.Flags().StringVar(
 		&localPathFlagValue,
 		localPathFlagName,
 		"",
 		fmt.Sprintf("--%s=/repo/local/path", localPathFlagName))
 
-	cmd.cobraCmd.Flags().SortFlags = false
+	c.cobraCmd.Flags().SortFlags = false
 	return nil
 }
 
-func (cmd *setContextValueCmd) InitSubCommands() error {
+func AddCommand(
+	parent cmd.AnchorCommand,
+	cfgManager config.ConfigManager,
+	createCmd NewCommandFunc) error {
+
+	newCmd := createCmd(parent.GetContext(), cfgManager, ConfigSetContextEntry)
+	err := newCmd.initFlagsFunc(newCmd)
+	if err != nil {
+		return err
+	}
+	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }
