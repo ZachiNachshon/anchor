@@ -65,6 +65,6 @@ var SetAnchorFilesPathSuccessfully = func(t *testing.T) {
 	reg := registry.New()
 	ctx := EmptyAnchorContext(reg)
 	path := "/path/to/anchorfiles"
-	ctx.(AnchorFilesPathSetter).SetAnchorFilesPath(path)
+	ctx.(AnchorFilesPathSetter).SetAnchorFilesPath(&path)
 	assert.Equal(t, path, ctx.AnchorFilesPath())
 }
