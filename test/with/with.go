@@ -95,8 +95,6 @@ func setConfPath(ctx *common.Context) {
 	(*ctx).(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
 }
 
-
-
 func HarnessAnchorfilesTestRepo(ctx common.Context) {
 	path, _ := ioutils.GetWorkingDirectory()
 	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath(path)
