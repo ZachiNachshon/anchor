@@ -30,7 +30,7 @@ type anchorContext struct {
 	config                   interface{}
 	registry                 *registry.InjectionsRegistry
 	logger                   interface{}
-	anchorFilesRepoLocalPath string
+	anchorFilesRepoLocalPath *string
 }
 
 func (a *anchorContext) GoContext() context.Context {
@@ -54,11 +54,14 @@ func (a *anchorContext) SetLogger(logger interface{}) {
 }
 
 func (a *anchorContext) AnchorFilesPath() string {
-	return a.anchorFilesRepoLocalPath
+	if a.anchorFilesRepoLocalPath != nil {
+		return *a.anchorFilesRepoLocalPath
+	}
+	return ""
 }
 
 func (a *anchorContext) SetAnchorFilesPath(path string) {
-	a.anchorFilesRepoLocalPath = path
+	a.anchorFilesRepoLocalPath = &path
 }
 
 func (a *anchorContext) Registry() *registry.InjectionsRegistry {
