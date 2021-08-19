@@ -72,6 +72,7 @@ func Config(ctx common.Context, content string, f func(cfg *config.AnchorConfig)
 	if err := cfgManager.SetupConfigInMemoryLoader(content); err != nil {
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
+		setConfPath(&ctx)
 		cfg, err := cfgManager.CreateConfigObject()
 		if err != nil {
 			logger.Fatalf("Failed to create a fake config loader. error: %s", err)
@@ -83,6 +84,18 @@ func Config(ctx common.Context, content string, f func(cfg *config.AnchorConfig)
 		f(cfg)
 	}
 }
+
+func setConfPath(ctx *common.Context) {
+	path, _ := ioutils.GetWorkingDirectory()
+	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath(path)
+	if repoRootPath == "" {
+		logger.Fatalf("failed to resolve the absolute path of the repository root.")
+	}
+	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
+	(*ctx).(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
+}
+
+
 
 func HarnessAnchorfilesTestRepo(ctx common.Context) {
 	path, _ := ioutils.GetWorkingDirectory()
