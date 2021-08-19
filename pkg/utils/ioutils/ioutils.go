@@ -7,8 +7,8 @@ import (
 
 const repositoryName = "anchor"
 
-func GetRepositoryAbsoluteRootPath() string {
-	path, _ := os.Getwd()
+func GetRepositoryAbsoluteRootPath(path string) string {
+	//path, _ := os.Getwd()
 
 	trailingPath := filepath.Base(path)
 	if trailingPath == repositoryName {
