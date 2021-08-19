@@ -28,7 +28,7 @@ func Test_RemoteShould(t *testing.T) {
 var ResolveLocalRepositorySuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(&ctx)
+			with.HarnessAnchorfilesTestRepo(ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
   currentContext: test-cfg-ctx
