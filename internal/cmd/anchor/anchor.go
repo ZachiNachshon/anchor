@@ -53,7 +53,7 @@ func loadRepository(ctx common.Context) (string, error) {
 		if repoPath, err := repo.Load(ctx); err != nil {
 			return "", err
 		} else {
-			ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(&repoPath)
+			ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(repoPath)
 			return repoPath, nil
 		}
 	}

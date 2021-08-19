@@ -22,7 +22,7 @@ type LoggerSetter interface {
 }
 
 type AnchorFilesPathSetter interface {
-	SetAnchorFilesPath(path *string)
+	SetAnchorFilesPath(path string)
 }
 
 type anchorContext struct {
@@ -30,7 +30,7 @@ type anchorContext struct {
 	config                   interface{}
 	registry                 *registry.InjectionsRegistry
 	logger                   interface{}
-	anchorFilesRepoLocalPath *string
+	anchorFilesRepoLocalPath string
 }
 
 func (a *anchorContext) GoContext() context.Context {
@@ -54,13 +54,10 @@ func (a *anchorContext) SetLogger(logger interface{}) {
 }
 
 func (a *anchorContext) AnchorFilesPath() string {
-	if a.anchorFilesRepoLocalPath != nil {
-		return *a.anchorFilesRepoLocalPath
-	}
-	return ""
+	return a.anchorFilesRepoLocalPath
 }
 
-func (a *anchorContext) SetAnchorFilesPath(path *string) {
+func (a *anchorContext) SetAnchorFilesPath(path string) {
 	a.anchorFilesRepoLocalPath = path
 }
 

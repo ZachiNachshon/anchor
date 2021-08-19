@@ -47,7 +47,7 @@ var ScanAndFindExpectedApplications = func(t *testing.T) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				// Given I prepare an anchorfiles test repo
-				with.HarnessAnchorfilesTestRepo(ctx)
+				with.HarnessAnchorfilesTestRepo(&ctx)
 				// And I create a new locator
 				l := New()
 				// When I scan the anchorfiles repo

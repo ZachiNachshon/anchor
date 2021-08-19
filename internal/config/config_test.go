@@ -47,7 +47,7 @@ var ResolveLocalAnchorfilesTestRepoSuccessfully = func(t *testing.T) {
 		withLogging(ctx, t, false, func(logger logger.Logger) {
 			yamlConfigText := GetDefaultTestConfigText()
 			withConfig(ctx, yamlConfigText, func(config *AnchorConfig) {
-				harnessAnchorfilesTestRepo(ctx)
+				harnessAnchorfilesTestRepo(&ctx)
 				assert.DirExists(t, ctx.AnchorFilesPath(),
 					"cannot resolve anchorfiles test repo. path: %s", ctx.AnchorFilesPath())
 			})
@@ -228,12 +228,12 @@ func withLogging(ctx common.Context, t *testing.T, verbose bool, f func(logger l
 	}
 }
 
-func harnessAnchorfilesTestRepo(ctx common.Context) {
+func harnessAnchorfilesTestRepo(ctx *common.Context) {
 	path, _ := ioutils.GetWorkingDirectory()
 	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath(path)
 	if repoRootPath == "" {
 		logger.Fatalf("failed to resolve the absolute path of the repository root.")
 	}
 	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
-	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(&anchorfilesPathTest)
+	(*ctx).(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
 }

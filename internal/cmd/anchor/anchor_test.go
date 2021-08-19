@@ -247,7 +247,7 @@ var LoadRepositoryFilesSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
-				with.HarnessAnchorfilesTestRepo(ctx)
+				with.HarnessAnchorfilesTestRepo(&ctx)
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
 				repoPath, err := loadRepository(ctx)
 				assert.Nil(t, err)
@@ -281,7 +281,7 @@ var RunPreRunSequenceSuccessfully = func(t *testing.T) {
 				}
 				ctx.Registry().Set(locator.Identifier, fakeLocator)
 
-				with.HarnessAnchorfilesTestRepo(ctx)
+				with.HarnessAnchorfilesTestRepo(&ctx)
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
 				preRunSeq := AnchorPreRunSequence()
 				err := preRunSeq.Run(ctx)

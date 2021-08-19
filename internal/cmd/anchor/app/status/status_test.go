@@ -189,7 +189,7 @@ var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 var PrintApplicationsWithValidStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		reg := ctx.Registry()
-		with.HarnessAnchorfilesTestRepo(ctx)
+		with.HarnessAnchorfilesTestRepo(&ctx)
 
 		path := "/some/path"
 		apps := stubs.GenerateApplicationTestData()

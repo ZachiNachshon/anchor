@@ -229,7 +229,7 @@ config:
 var DoNotCloneNewRepositoryWhenClonePathExists = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
+			with.HarnessAnchorfilesTestRepo(&ctx)
 			yamlConfigText := fmt.Sprintf(`
 config:
  currentContext: test-cfg-ctx

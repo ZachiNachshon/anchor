@@ -1042,7 +1042,7 @@ var ExtractInstructionsPromptEmptyWhenInvalidSchema = func(t *testing.T) {
 var ExtractInstructionsPromptEnrichedActions = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
+			with.HarnessAnchorfilesTestRepo(&ctx)
 			apps := stubs.GenerateApplicationTestData()
 			app1 := stubs.GetAppByName(apps, stubs.App1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
