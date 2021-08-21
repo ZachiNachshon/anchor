@@ -3,48 +3,29 @@ package ioutils
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const repositoryName = "anchor"
 
 func GetRepositoryAbsoluteRootPath(path string) string {
-	//path, _ := os.Getwd()
-
-	trailingPath := filepath.Base(path)
-	if trailingPath == repositoryName {
-		// make sure not to return an internal path with anchor as the folder name (/cmd/anchor for example)
-		if IsValidPath(path + "/go.mod") {
-			return path
+	// split to avoid internal use of anchor as package name
+	// example: $GOPATH/src/github.com/anchor/internal/cmd/anchor/app/status
+	split := strings.SplitAfter(path, repositoryName)
+	pathInUse := split[0]
+	dirPath := pathInUse
+	dirName := filepath.Base(dirPath)
+	for found := false; !found && dirPath != "/"; {
+		found = dirName == repositoryName
+		if found {
+			break
 		}
+		dirPath = filepath.Dir(dirPath)
+		dirName = filepath.Base(dirPath)
 	}
 
-	for search := true; search; search = trailingPath != repositoryName && !IsValidPath(trailingPath+"/go.mod") {
-		path = filepath.Dir(path)
-		trailingPath = filepath.Base(path)
-		search = false
-	}
-
-	return path
+	return dirPath
 }
-
-//func GetRepositoryAbsoluteRootPath(path string) string {
-//	// split to avoid internal use of anchor as package name
-//	// example: $GOPATH/src/github.com/anchor/internal/cmd/anchor/app/status
-//	split := strings.SplitAfter(path, repositoryName)
-//	pathInUse := split[0]
-//	dirPath := pathInUse
-//	dirName := filepath.Base(dirPath)
-//	for found := false; !found && dirPath != "/"; {
-//		found = dirName == repositoryName
-//		if found {
-//			break
-//		}
-//		dirPath = filepath.Dir(dirPath)
-//		dirName = filepath.Base(dirPath)
-//	}
-//
-//	return dirPath
-//}
 
 func IsValidPath(path string) bool {
 	if _, err := os.Stat(path); err != nil {

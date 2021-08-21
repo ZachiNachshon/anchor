@@ -91,5 +91,8 @@ func HarnessAnchorfilesTestRepo(ctx common.Context) {
 		logger.Fatalf("failed to resolve the absolute path of the repository root.")
 	}
 	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
+	logger.Debugf("Test anchorfiles repo path: %s", anchorfilesPathTest)
+	logger.Debugf("Scoped context before set (ctx.AnchorFilesPath()): %s", ctx.AnchorFilesPath())
 	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
+	logger.Debugf("Scoped context after set (ctx.AnchorFilesPath()): %s", ctx.AnchorFilesPath())
 }
