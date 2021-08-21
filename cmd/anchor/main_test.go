@@ -57,6 +57,10 @@ func Test_MainShould(t *testing.T) {
 			Func: RunCollaboratorsInASpecificOrder,
 		},
 		{
+			Name: "fail to run collaborators in sequence",
+			Func: FailToRunCollaboratorsInSequence,
+		},
+		{
 			Name: "initialize logger successfully",
 			Func: InitializeLoggerSuccessfully,
 		},
@@ -97,10 +101,11 @@ func Test_MainShould(t *testing.T) {
 }
 
 var SetValidCollaborators = func(t *testing.T) {
-	assert.NotNil(t, collaborators.Logger, "expected collaborator not to be empty. name: Logger")
-	assert.NotNil(t, collaborators.Configuration, "expected collaborator not to be empty. name: Configuration")
-	assert.NotNil(t, collaborators.Registry, "expected collaborator not to be empty. name: Registry")
-	assert.NotNil(t, collaborators.StartCliCommands, "expected collaborator not to be empty. name: StartCliCommands")
+	col := GetCollaborators()
+	assert.NotNil(t, col.Logger, "expected collaborator not to be empty. name: Logger")
+	assert.NotNil(t, col.Configuration, "expected collaborator not to be empty. name: Configuration")
+	assert.NotNil(t, col.Registry, "expected collaborator not to be empty. name: Registry")
+	assert.NotNil(t, col.StartCliCommands, "expected collaborator not to be empty. name: StartCliCommands")
 }
 
 var FailLoggerCollaborator = func(t *testing.T) {
@@ -242,6 +247,64 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 		assert.Equal(t, "configuration", callOrder[1], "expected collaborator to be in order: configuration")
 		assert.Equal(t, "registry", callOrder[2], "expected collaborator to be in order: registry")
 		assert.Equal(t, "start", callOrder[3], "expected collaborator to be in order: start")
+	})
+}
+
+var FailToRunCollaboratorsInSequence = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		testCollaborators := &MainCollaborators{
+			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
+				return fmt.Errorf("failed to init logger")
+			},
+		}
+		err := runCollaboratorsInSequence(ctx, testCollaborators)
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to init logger", err.Error())
+
+		testCollaborators = &MainCollaborators{
+			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
+				return nil
+			},
+			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+				return fmt.Errorf("failed to init configuration")
+			},
+		}
+		err = runCollaboratorsInSequence(ctx, testCollaborators)
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to init configuration", err.Error())
+
+		testCollaborators = &MainCollaborators{
+			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
+				return nil
+			},
+			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+				return nil
+			},
+			Registry: func(ctx common.Context) error {
+				return fmt.Errorf("failed to init registry")
+			},
+		}
+		err = runCollaboratorsInSequence(ctx, testCollaborators)
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to init registry", err.Error())
+
+		testCollaborators = &MainCollaborators{
+			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
+				return nil
+			},
+			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+				return nil
+			},
+			Registry: func(ctx common.Context) error {
+				return nil
+			},
+			StartCliCommands: func(ctx common.Context) error {
+				return fmt.Errorf("failed to start cli commands")
+			},
+		}
+		err = runCollaboratorsInSequence(ctx, testCollaborators)
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to start cli commands", err.Error())
 	})
 }
 
