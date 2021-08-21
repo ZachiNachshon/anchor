@@ -7,23 +7,18 @@ import (
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
 )
 
 func Test_LocatorShould(t *testing.T) {
 	tests := []harness.TestsHarness{
-		//{
-		//	Name: "fail on invalid anchorfiles local path",
-		//	Func: FailOnInvalidAnchorfilesLocalPath,
-		//},
-		//{
-		//	Name: "scan anchorfiles test repo and find expected applications",
-		//	Func: ScanAndFindExpectedApplications,
-		//},
 		{
-			Name: "test paths1",
-			Func: TestPath1,
+			Name: "fail on invalid anchorfiles local path",
+			Func: FailOnInvalidAnchorfilesLocalPath,
+		},
+		{
+			Name: "scan anchorfiles test repo and find expected applications",
+			Func: ScanAndFindExpectedApplications,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -61,22 +56,6 @@ var ScanAndFindExpectedApplications = func(t *testing.T) {
 				assert.NotNil(t, l.Application(secondAppName), "expected application to exist. Name: %s", secondAppName)
 				assert.Equal(t, secondAppName, l.Application(secondAppName).Name, "expected application %s but found %s",
 					secondAppName, l.Application(secondAppName).Name)
-			})
-		})
-	})
-}
-
-var TestPath1 = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
-				with.HarnessAnchorfilesTestRepo(ctx)
-				assert.NotEmpty(t, ctx.AnchorFilesPath())
-				logger.Debugf("test context (ctx.AnchorFilesPath()): %s", ctx.AnchorFilesPath())
-				logger.Debugf("GOPATH: %s", os.Getenv("GOPATH"))
-				getwd, _ := os.Getwd()
-				logger.Debugf("CWD: %s", getwd)
-				assert.DirExists(t, ctx.AnchorFilesPath())
 			})
 		})
 	})

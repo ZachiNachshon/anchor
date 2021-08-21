@@ -3,15 +3,21 @@ package ioutils
 import (
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
 func Test_IOUtilsShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "parse a valid anchor repository absolute path",
-			Func: ParseValidAnchorRepositoryAbsolutePath,
+			Name: "parse path with anchor sub directory",
+			Func: ParsePathWithAnchorSubDirectory,
+		},
+		{
+			Name: "parse path with consecutive anchor dir names",
+			Func: ParsePathWithConsecutiveAnchorDirNames,
 		},
 		{
 			Name: "stop at root folder when parsing repo absolute path",
@@ -25,11 +31,33 @@ func Test_IOUtilsShould(t *testing.T) {
 	harness.RunTests(t, tests)
 }
 
-var ParseValidAnchorRepositoryAbsolutePath = func(t *testing.T) {
-	pathInTest := "/user/src/github.com/anchor/internal/cmd/anchor/app/status"
+var ParsePathWithAnchorSubDirectory = func(t *testing.T) {
+	workingDir, _ := os.Getwd()
+	split := strings.SplitAfter(workingDir, "anchor")
+	pathInTest := split[0] + "/sub-dir/anchor"
+	for i := 1; i < len(split); i++ {
+		pathInTest += split[i]
+	}
+
+	// <REPO_PATH>/anchor/sub-dir/anchor...
 	anchorPath := GetRepositoryAbsoluteRootPath(pathInTest)
-	assert.Equal(t, repositoryName, filepath.Base(anchorPath))
 	assert.NotEmpty(t, anchorPath)
+	assert.NotContains(t, anchorPath, "/sub-dir/anchor", "failed parsing path: %s", pathInTest)
+	assert.Equal(t, repositoryName, filepath.Base(anchorPath), "failed parsing path: %s", pathInTest)
+}
+
+var ParsePathWithConsecutiveAnchorDirNames = func(t *testing.T) {
+	workingDir, _ := os.Getwd()
+	split := strings.SplitAfter(workingDir, "anchor")
+	pathInTest := split[0] + "/anchor"
+	for i := 1; i < len(split); i++ {
+		pathInTest += split[i]
+	}
+	// <REPO_PATH>/anchor/anchor/path...
+	anchorPath := GetRepositoryAbsoluteRootPath(pathInTest)
+	assert.NotEmpty(t, anchorPath)
+	assert.NotContains(t, anchorPath, "/anchor/anchor", "failed parsing path: %s", pathInTest)
+	assert.Equal(t, repositoryName, filepath.Base(anchorPath), "failed parsing path: %s", pathInTest)
 }
 
 var StopAtRootFolderWhenParsingRepoAbsolutePath = func(t *testing.T) {

@@ -1,6 +1,7 @@
 package ioutils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -8,15 +9,18 @@ import (
 const repositoryName = "anchor"
 
 func GetRepositoryAbsoluteRootPath(path string) string {
-	// split to avoid internal use of anchor as package name
-	// example: $GOPATH/src/github.com/anchor/internal/cmd/anchor/app/status
-	// example: $GITHUB_WORKSPACE/anchor/anchor/.git
-	//split := strings.SplitAfter(path, repositoryName)
-	//pathInUse := split[len(split) - 1]
+	// Parsing absolute repo root path should:
+	//  - Avoid internal use of anchor as package name
+	//    $GOPATH/src/github.com/anchor/internal/cmd/anchor/app/status
+	//  - Handle consecutive repo name
+	//    $GITHUB_WORKSPACE/anchor/anchor/.git
 	dirPath := path
 	dirName := filepath.Base(dirPath)
 	for found := false; !found && dirPath != "/"; {
-		found = dirName == repositoryName
+		if dirName == repositoryName {
+			found = IsValidPath(dirPath+"/go.mod") || IsValidPath(dirPath+"/.git")
+			fmt.Printf("found: %v, dirPath: %s\n", found, dirPath)
+		}
 		if found {
 			break
 		}
