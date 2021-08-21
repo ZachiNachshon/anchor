@@ -32,7 +32,7 @@ func Test_IOUtilsShould(t *testing.T) {
 
 var ParsePathWithAnchorSubDirectory = func(t *testing.T) {
 	workingDir, _ := os.Getwd()
-	pathInTest := workingDir + "/sub-dir/anchor"
+	pathInTest := workingDir + "anchor/sub-dir/anchor"
 	// <REPO_PATH>/anchor/sub-dir/anchor...
 	anchorPath := GetRepositoryAbsoluteRootPath(pathInTest)
 	assert.NotEmpty(t, anchorPath)
@@ -42,7 +42,7 @@ var ParsePathWithAnchorSubDirectory = func(t *testing.T) {
 
 var ParsePathWithConsecutiveAnchorDirNames = func(t *testing.T) {
 	workingDir, _ := os.Getwd()
-	pathInTest := workingDir + "/anchor"
+	pathInTest := workingDir + "/anchor/anchor"
 	// <REPO_PATH>/anchor/anchor/path...
 	anchorPath := GetRepositoryAbsoluteRootPath(pathInTest)
 	assert.NotEmpty(t, anchorPath)
