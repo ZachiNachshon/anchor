@@ -33,6 +33,10 @@ func Test_VersionActionShould(t *testing.T) {
 			Name: "fail resolving registry components",
 			Func: FailResolvingRegistryComponents,
 		},
+		{
+			Name: "print cli versions",
+			Func: PrintCliVersions,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -120,6 +124,14 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 		reg.Set(printer.Identifier, fakePrinter)
 
 		err = fakeO.prepareFunc(fakeO, ctx)
+		assert.Nil(t, err)
+	})
+}
+
+var PrintCliVersions = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeO := NewOrchestrator()
+		err := fakeO.runFunc(fakeO, ctx)
 		assert.Nil(t, err)
 	})
 }

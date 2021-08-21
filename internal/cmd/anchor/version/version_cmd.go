@@ -20,7 +20,7 @@ func NewCommand(ctx common.Context, versionFunc VersionVersionFunc) *versionCmd 
 		Short: "Print anchor CLI version",
 		Long:  `Print anchor CLI version`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return versionFunc(ctx)
+			return versionFunc(ctx, NewOrchestrator())
 		},
 	}
 
