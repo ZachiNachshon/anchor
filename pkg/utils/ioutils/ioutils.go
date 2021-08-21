@@ -3,7 +3,6 @@ package ioutils
 import (
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 const repositoryName = "anchor"
@@ -11,9 +10,10 @@ const repositoryName = "anchor"
 func GetRepositoryAbsoluteRootPath(path string) string {
 	// split to avoid internal use of anchor as package name
 	// example: $GOPATH/src/github.com/anchor/internal/cmd/anchor/app/status
-	split := strings.SplitAfter(path, repositoryName)
-	pathInUse := split[0]
-	dirPath := pathInUse
+	// example: $GITHUB_WORKSPACE/anchor/anchor/.git
+	//split := strings.SplitAfter(path, repositoryName)
+	//pathInUse := split[len(split) - 1]
+	dirPath := path
 	dirName := filepath.Base(dirPath)
 	for found := false; !found && dirPath != "/"; {
 		found = dirName == repositoryName

@@ -93,8 +93,5 @@ func HarnessAnchorfilesTestRepo(ctx common.Context) {
 	}
 	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
 	anchorfilesPathTest = strings.TrimSuffix(anchorfilesPathTest, "\n")
-	logger.Debugf("Test anchorfiles repo path: %s", anchorfilesPathTest)
-	logger.Debugf("Scoped context before set (ctx.AnchorFilesPath()): %s", ctx.AnchorFilesPath())
 	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
-	logger.Debugf("Scoped context after set (ctx.AnchorFilesPath()): %s", ctx.AnchorFilesPath())
 }
