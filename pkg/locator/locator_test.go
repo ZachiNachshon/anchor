@@ -71,6 +71,7 @@ var TestPath1 = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				with.HarnessAnchorfilesTestRepo(ctx)
 				assert.NotEmpty(t, ctx.AnchorFilesPath())
+				assert.DirExists(t, ctx.AnchorFilesPath())
 			})
 		})
 	})

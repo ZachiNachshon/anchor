@@ -8,6 +8,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/registry"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -91,6 +92,7 @@ func HarnessAnchorfilesTestRepo(ctx common.Context) {
 		logger.Fatalf("failed to resolve the absolute path of the repository root.")
 	}
 	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
+	anchorfilesPathTest = strings.TrimSuffix(anchorfilesPathTest, "\n")
 	logger.Debugf("Test anchorfiles repo path: %s", anchorfilesPathTest)
 	logger.Debugf("Scoped context before set (ctx.AnchorFilesPath()): %s", ctx.AnchorFilesPath())
 	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
