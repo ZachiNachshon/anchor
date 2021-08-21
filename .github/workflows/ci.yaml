@@ -29,6 +29,8 @@ jobs:
 
       - name: Checkout repo code
         uses: actions/checkout@v2
+        with:
+          path: .
 
       - name: Build
         run: make build
