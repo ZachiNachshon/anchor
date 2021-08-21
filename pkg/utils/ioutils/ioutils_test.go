@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -33,12 +32,7 @@ func Test_IOUtilsShould(t *testing.T) {
 
 var ParsePathWithAnchorSubDirectory = func(t *testing.T) {
 	workingDir, _ := os.Getwd()
-	split := strings.SplitAfter(workingDir, "anchor")
-	pathInTest := split[0] + "/sub-dir/anchor"
-	for i := 1; i < len(split); i++ {
-		pathInTest += split[i]
-	}
-
+	pathInTest := workingDir + "/sub-dir/anchor"
 	// <REPO_PATH>/anchor/sub-dir/anchor...
 	anchorPath := GetRepositoryAbsoluteRootPath(pathInTest)
 	assert.NotEmpty(t, anchorPath)
@@ -48,11 +42,7 @@ var ParsePathWithAnchorSubDirectory = func(t *testing.T) {
 
 var ParsePathWithConsecutiveAnchorDirNames = func(t *testing.T) {
 	workingDir, _ := os.Getwd()
-	split := strings.SplitAfter(workingDir, "anchor")
-	pathInTest := split[0] + "/anchor"
-	for i := 1; i < len(split); i++ {
-		pathInTest += split[i]
-	}
+	pathInTest := workingDir + "/anchor"
 	// <REPO_PATH>/anchor/anchor/path...
 	anchorPath := GetRepositoryAbsoluteRootPath(pathInTest)
 	assert.NotEmpty(t, anchorPath)
