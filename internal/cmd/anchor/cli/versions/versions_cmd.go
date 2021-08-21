@@ -21,7 +21,7 @@ func NewCommand(ctx common.Context, cliVersions CliVersionsFunc) *versionsCmd {
 		Long:  `Print versions of all CLI application`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return cliVersions(ctx)
+			return cliVersions(ctx, NewOrchestrator())
 		},
 	}
 
