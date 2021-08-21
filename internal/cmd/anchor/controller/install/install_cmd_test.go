@@ -43,7 +43,7 @@ var StartInstallActionSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context) error {
+				var fun = func(ctx common.Context, o *installOrchestrator) error {
 					callCount++
 					return nil
 				}
@@ -61,7 +61,7 @@ var FailInstallAction = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				callCount := 0
-				var fun = func(ctx common.Context) error {
+				var fun = func(ctx common.Context, o *installOrchestrator) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
@@ -77,7 +77,7 @@ var FailInstallAction = func(t *testing.T) {
 
 var ContainCobraCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		var fun = func(ctx common.Context) error {
+		var fun = func(ctx common.Context, o *installOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fun)
@@ -88,7 +88,7 @@ var ContainCobraCommand = func(t *testing.T) {
 
 var ContainContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		var fun = func(ctx common.Context) error {
+		var fun = func(ctx common.Context, o *installOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fun)

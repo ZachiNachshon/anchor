@@ -21,7 +21,7 @@ func NewCommand(ctx common.Context, installFunc ControllerInstallFunc) *installC
 		Long:  `Install a controller`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return installFunc(ctx)
+			return installFunc(ctx, NewOrchestrator())
 		},
 	}
 
