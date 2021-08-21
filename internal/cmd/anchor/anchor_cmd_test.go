@@ -2,6 +2,13 @@ package anchor
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/cmd"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/app"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/cli"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/completion"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/config_cmd"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/controller"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
@@ -41,6 +48,10 @@ func Test_AnchorCommandShould(t *testing.T) {
 		{
 			Name: "contain context",
 			Func: ContainContext,
+		},
+		{
+			Name: "fail to initialize command",
+			Func: FailToInitializeCommand,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -156,5 +167,102 @@ var ContainContext = func(t *testing.T) {
 		cmdCtx := newCmd.GetContext()
 		assert.NotNil(t, cmdCtx, "expected context to exist")
 		assert.Equal(t, ctx, cmdCtx)
+	})
+}
+
+var FailToInitializeCommand = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		lgrMgr := logger.CreateFakeLoggerManager()
+		newCmd := NewCommand(ctx, lgrMgr)
+		newCmd.initFlagsFunc = func(o *anchorCmd) error {
+			return fmt.Errorf("failed to init flags")
+		}
+		err := newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to init flags", err.Error())
+
+		newCmd.initFlagsFunc = func(o *anchorCmd) error {
+			return nil
+		}
+		newCmd.addAppSubCmdFunc = func(
+			parent cmd.AnchorCommand,
+			preRunSequence *cmd.AnchorCollaborators,
+			createCmd app.NewCommandFunc) error {
+			return fmt.Errorf("failed to add app subcommand")
+		}
+		err = newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to add app subcommand", err.Error())
+
+		newCmd.addAppSubCmdFunc = func(
+			parent cmd.AnchorCommand,
+			preRunSequence *cmd.AnchorCollaborators,
+			createCmd app.NewCommandFunc) error {
+			return nil
+		}
+		newCmd.addCliSubCmdFunc = func(
+			parent cmd.AnchorCommand,
+			preRunSequence *cmd.AnchorCollaborators,
+			createCmd cli.NewCommandFunc) error {
+			return fmt.Errorf("failed to add cli subcommand")
+		}
+		err = newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to add cli subcommand", err.Error())
+
+		newCmd.addCliSubCmdFunc = func(
+			parent cmd.AnchorCommand,
+			preRunSequence *cmd.AnchorCollaborators,
+			createCmd cli.NewCommandFunc) error {
+			return nil
+		}
+		newCmd.addControllerSubCmdFunc = func(
+			parent cmd.AnchorCommand,
+			preRunSequence *cmd.AnchorCollaborators,
+			createCmd controller.NewCommandFunc) error {
+			return fmt.Errorf("failed to add controller subcommand")
+		}
+		err = newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to add controller subcommand", err.Error())
+
+		newCmd.addControllerSubCmdFunc = func(
+			parent cmd.AnchorCommand,
+			preRunSequence *cmd.AnchorCollaborators,
+			createCmd controller.NewCommandFunc) error {
+			return nil
+		}
+		newCmd.addConfigSubCmdFunc = func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error {
+			return fmt.Errorf("failed to add config subcommand")
+		}
+		err = newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to add config subcommand", err.Error())
+
+		newCmd.addConfigSubCmdFunc = func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error {
+			return nil
+		}
+		newCmd.addVersionSubCmdFunc = func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error {
+			return fmt.Errorf("failed to add version subcommand")
+		}
+		err = newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to add version subcommand", err.Error())
+
+		newCmd.addVersionSubCmdFunc = func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error {
+			return nil
+		}
+		newCmd.addCompletionSubCmdFunc = func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error {
+			return fmt.Errorf("failed to add completion subcommand")
+		}
+		err = newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed to add completion subcommand", err.Error())
+
+		newCmd.addCompletionSubCmdFunc = func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error {
+			return nil
+		}
+		err = newCmd.initialize()
+		assert.Nil(t, err)
 	})
 }
