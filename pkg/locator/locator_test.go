@@ -7,6 +7,7 @@ import (
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -71,6 +72,10 @@ var TestPath1 = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
 				with.HarnessAnchorfilesTestRepo(ctx)
 				assert.NotEmpty(t, ctx.AnchorFilesPath())
+				logger.Debugf("test context (ctx.AnchorFilesPath()): %s", ctx.AnchorFilesPath())
+				logger.Debugf("GOPATH: %s", os.Getenv("GOPATH"))
+				getwd, _ := os.Getwd()
+				logger.Debugf("CWD: %s", getwd)
 				assert.DirExists(t, ctx.AnchorFilesPath())
 			})
 		})
