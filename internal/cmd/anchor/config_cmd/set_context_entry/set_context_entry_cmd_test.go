@@ -213,7 +213,7 @@ var FailToInitializeFlags = func(t *testing.T) {
 		var newCmdFunc NewCommandFunc = func(ctx common.Context, cfgManager config.ConfigManager, setContextEntryFunc ConfigSetContextEntryFunc) *setContextValueCmd {
 			c := NewCommand(ctx, config.CreateFakeConfigManager(), nil)
 			c.initFlagsFunc = func(o *setContextValueCmd) error {
-				return fmt.Errorf("failed to initilize flags")
+				return fmt.Errorf("failed to initialize flags")
 			}
 			return c
 		}
