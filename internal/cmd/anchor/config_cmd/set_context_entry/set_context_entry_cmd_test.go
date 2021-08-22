@@ -42,6 +42,10 @@ func Test_SetContextEntryCommandShould(t *testing.T) {
 			Name: "add itself to parent command",
 			Func: AddItselfToParentCommand,
 		},
+		{
+			Name: "fail to initialize flags",
+			Func: FailToInitializeFlags,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -198,5 +202,24 @@ var AddItselfToParentCommand = func(t *testing.T) {
 		cmds := parentCmd.GetCobraCmd().Commands()
 		assert.Equal(t, 1, len(cmds))
 		assert.Contains(t, cmds[0].Use, "set-context-entry")
+	})
+}
+
+var FailToInitializeFlags = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		parentCmd := NewCommand(ctx, fakeCfgManager, nil)
+
+		var newCmdFunc NewCommandFunc = func(ctx common.Context, cfgManager config.ConfigManager, setContextEntryFunc ConfigSetContextEntryFunc) *setContextValueCmd {
+			c := NewCommand(ctx, config.CreateFakeConfigManager(), nil)
+			c.initFlagsFunc = func(o *setContextValueCmd) error {
+				return fmt.Errorf("failed to initilize flags")
+			}
+			return c
+		}
+
+		err := AddCommand(parentCmd, fakeCfgManager, newCmdFunc)
+		assert.NotNil(t, err, "expected add command to fail")
+		assert.Equal(t, "failed to initilize flags", err.Error())
 	})
 }
