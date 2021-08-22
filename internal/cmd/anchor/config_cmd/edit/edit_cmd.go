@@ -29,7 +29,7 @@ func NewCommand(
 		Long:  `Edit configuration file`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return editFunc(ctx, cfgManager)
+			return editFunc(ctx, NewOrchestrator(cfgManager))
 		},
 	}
 

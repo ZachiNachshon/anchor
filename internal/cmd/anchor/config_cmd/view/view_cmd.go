@@ -29,7 +29,7 @@ func NewCommand(
 		Long:  `Display configuration file settings`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return viewFunc(ctx, cfgManager)
+			return viewFunc(ctx, NewOrchestrator(cfgManager))
 		},
 	}
 

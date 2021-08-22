@@ -156,16 +156,22 @@ func YamlToConfigObj(yamlText string) AnchorConfig {
 }
 
 func ConfigObjToYaml(cfg *AnchorConfig) (string, error) {
+	if cfg == nil {
+		return "", fmt.Errorf("cannot unmarshal nil config object to string")
+	}
 	if out, err := converters.UnmarshalObjToYaml(cfg); err != nil {
-		logger.Errorf("Failed to generate config template. error: %s", err.Error())
-		return "", nil
+		logger.Debugf("Failed to generate config template. error: %s", err.Error())
+		return "", err
 	} else {
 		return out, nil
 	}
 }
 
 func FromContext(ctx common.Context) *AnchorConfig {
-	return ctx.Config().(*AnchorConfig)
+	if ctx.Config() != nil {
+		return ctx.Config().(*AnchorConfig)
+	}
+	return nil
 }
 
 func SetInContext(ctx common.Context, config *AnchorConfig) {

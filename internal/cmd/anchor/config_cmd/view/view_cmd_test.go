@@ -44,7 +44,7 @@ var StartViewActionSuccessfully = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				fakeCfgManager := config.CreateFakeConfigManager()
 				callCount := 0
-				fun := func(ctx common.Context, cfgManager config.ConfigManager) error {
+				fun := func(ctx common.Context, o *viewOrchestrator) error {
 					callCount++
 					return nil
 				}
@@ -64,7 +64,7 @@ var FailViewAction = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, cfgManager config.ConfigManager) error {
+				fun := func(ctx common.Context, o *viewOrchestrator) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
@@ -81,7 +81,7 @@ var FailViewAction = func(t *testing.T) {
 var ContainCobraCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigViewFunc = func(ctx common.Context, cfgManager config.ConfigManager) error {
+		var fun ConfigViewFunc = func(ctx common.Context, o *viewOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
@@ -93,7 +93,7 @@ var ContainCobraCommand = func(t *testing.T) {
 var ContainContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigViewFunc = func(ctx common.Context, cfgManager config.ConfigManager) error {
+		var fun ConfigViewFunc = func(ctx common.Context, o *viewOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)

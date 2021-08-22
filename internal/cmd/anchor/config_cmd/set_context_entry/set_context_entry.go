@@ -8,29 +8,41 @@ import (
 	"strconv"
 )
 
-type ConfigSetContextEntryFunc func(
-	ctx common.Context,
-	cfgCtxName string,
-	changes map[string]string,
-	cfgManager config.ConfigManager) error
+type ConfigSetContextEntryFunc func(ctx common.Context, o *setContextEntryOrchestrator) error
 
-var ConfigSetContextEntry = func(
-	ctx common.Context,
-	cfgCtxName string,
-	changes map[string]string,
-	cfgManager config.ConfigManager) error {
+var ConfigSetContextEntry = func(ctx common.Context, o *setContextEntryOrchestrator) error {
+	return o.runFunc(o, ctx)
+}
 
+type setContextEntryOrchestrator struct {
+	cfgCtxName string
+	cfgManager config.ConfigManager
+	changes    map[string]string
+
+	runFunc func(o *setContextEntryOrchestrator, ctx common.Context) error
+}
+
+func NewOrchestrator(cfgManager config.ConfigManager, cfgCtxName string, changes map[string]string) *setContextEntryOrchestrator {
+	return &setContextEntryOrchestrator{
+		cfgManager: cfgManager,
+		cfgCtxName: cfgCtxName,
+		changes:    changes,
+		runFunc:    run,
+	}
+}
+
+func run(o *setContextEntryOrchestrator, ctx common.Context) error {
 	cfg := config.FromContext(ctx)
-	if cfgCtx := config.TryGetConfigContext(cfg.Config.Contexts, cfgCtxName); cfgCtx == nil {
-		return fmt.Errorf("could not identify config context. name: %s", cfgCtxName)
+	if cfgCtx := config.TryGetConfigContext(cfg.Config.Contexts, o.cfgCtxName); cfgCtx == nil {
+		return fmt.Errorf("could not identify config context. name: %s", o.cfgCtxName)
 	} else {
-		if err := populateConfigContextChanges(cfgCtx, changes); err != nil {
+		if err := populateConfigContextChanges(cfgCtx, o.changes); err != nil {
 			return err
 		}
-		if err := cfgManager.OverrideConfig(cfg); err != nil {
+		if err := o.cfgManager.OverrideConfig(cfg); err != nil {
 			return err
 		} else {
-			logger.Infof("Updated config context entries successfully. context: %s", cfgCtxName)
+			logger.Infof("Updated config context entries successfully. context: %s", o.cfgCtxName)
 			return nil
 		}
 	}

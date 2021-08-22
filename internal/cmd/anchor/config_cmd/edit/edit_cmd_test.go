@@ -44,7 +44,7 @@ var StartEditActionSuccessfully = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, cfgManager config.ConfigManager) error {
+				fun := func(ctx common.Context, o *editOrchestrator) error {
 					callCount++
 					return nil
 				}
@@ -63,7 +63,7 @@ var FailEditAction = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, cfgManager config.ConfigManager) error {
+				fun := func(ctx common.Context, o *editOrchestrator) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
@@ -80,7 +80,7 @@ var FailEditAction = func(t *testing.T) {
 var ContainCobraCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigEditFunc = func(ctx common.Context, cfgManager config.ConfigManager) error {
+		var fun ConfigEditFunc = func(ctx common.Context, o *editOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
@@ -92,7 +92,7 @@ var ContainCobraCommand = func(t *testing.T) {
 var ContainContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigEditFunc = func(ctx common.Context, cfgManager config.ConfigManager) error {
+		var fun ConfigEditFunc = func(ctx common.Context, o *editOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)

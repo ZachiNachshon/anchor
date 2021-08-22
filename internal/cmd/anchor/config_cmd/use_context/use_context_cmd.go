@@ -32,7 +32,7 @@ func NewCommand(
 		SilenceErrors: true, // Fatal errors are being logged by parent anchor.go
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgCtxName := args[0]
-			return useContextFunc(ctx, cfgCtxName, cfgManager)
+			return useContextFunc(ctx, NewOrchestrator(cfgManager, cfgCtxName))
 		},
 	}
 

@@ -84,7 +84,7 @@ func NewCommand(
 			if len(localPathFlagValue) > 0 {
 				flags[localPathFlagName] = localPathFlagValue
 			}
-			return setContextEntryFunc(ctx, cfgCtxName, flags, cfgManager)
+			return setContextEntryFunc(ctx, NewOrchestrator(cfgManager, cfgCtxName, flags))
 		},
 	}
 

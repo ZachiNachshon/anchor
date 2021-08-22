@@ -52,7 +52,7 @@ var StartSetContextEntryActionSuccessfully = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
+				fun := func(ctx common.Context, o *setContextEntryOrchestrator) error {
 					callCount++
 					return nil
 				}
@@ -79,26 +79,26 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
-					assert.Equal(t, cfgCtxName, configContextName)
+				fun := func(ctx common.Context, o *setContextEntryOrchestrator) error {
+					assert.Equal(t, o.cfgCtxName, configContextName)
 
-					assert.Contains(t, changes, remoteUrlFlagName)
-					assert.Equal(t, changes[remoteUrlFlagName], url)
+					assert.Contains(t, o.changes, remoteUrlFlagName)
+					assert.Equal(t, o.changes[remoteUrlFlagName], url)
 
-					assert.Contains(t, changes, remoteBranchFlagName)
-					assert.Equal(t, changes[remoteBranchFlagName], branch)
+					assert.Contains(t, o.changes, remoteBranchFlagName)
+					assert.Equal(t, o.changes[remoteBranchFlagName], branch)
 
-					assert.Contains(t, changes, remoteRevisionFlagName)
-					assert.Equal(t, changes[remoteRevisionFlagName], revision)
+					assert.Contains(t, o.changes, remoteRevisionFlagName)
+					assert.Equal(t, o.changes[remoteRevisionFlagName], revision)
 
-					assert.Contains(t, changes, remoteClonePathFlagName)
-					assert.Equal(t, changes[remoteClonePathFlagName], clonePath)
+					assert.Contains(t, o.changes, remoteClonePathFlagName)
+					assert.Equal(t, o.changes[remoteClonePathFlagName], clonePath)
 
-					assert.Contains(t, changes, remoteAutoUpdateFlagName)
-					assert.Equal(t, changes[remoteAutoUpdateFlagName], autoUpdate)
+					assert.Contains(t, o.changes, remoteAutoUpdateFlagName)
+					assert.Equal(t, o.changes[remoteAutoUpdateFlagName], autoUpdate)
 
-					assert.Contains(t, changes, localPathFlagName)
-					assert.Equal(t, changes[localPathFlagName], localPath)
+					assert.Contains(t, o.changes, localPathFlagName)
+					assert.Equal(t, o.changes[localPathFlagName], localPath)
 
 					callCount++
 					return nil
@@ -128,7 +128,7 @@ var FailDueToMissingConfigContextName = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
+				fun := func(ctx common.Context, o *setContextEntryOrchestrator) error {
 					callCount++
 					return nil
 				}
@@ -149,7 +149,7 @@ var FailSetContextEntryAction = func(t *testing.T) {
 				configContextName := "test-cfg-context"
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
+				fun := func(ctx common.Context, o *setContextEntryOrchestrator) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
@@ -166,7 +166,7 @@ var FailSetContextEntryAction = func(t *testing.T) {
 var ContainCobraCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigSetContextEntryFunc = func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
+		var fun ConfigSetContextEntryFunc = func(ctx common.Context, o *setContextEntryOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
@@ -178,7 +178,7 @@ var ContainCobraCommand = func(t *testing.T) {
 var ContainContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigSetContextEntryFunc = func(ctx common.Context, cfgCtxName string, changes map[string]string, cfgManager config.ConfigManager) error {
+		var fun ConfigSetContextEntryFunc = func(ctx common.Context, o *setContextEntryOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
