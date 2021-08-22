@@ -220,6 +220,6 @@ var FailToInitializeFlags = func(t *testing.T) {
 
 		err := AddCommand(parentCmd, fakeCfgManager, newCmdFunc)
 		assert.NotNil(t, err, "expected add command to fail")
-		assert.Equal(t, "failed to initilize flags", err.Error())
+		assert.Equal(t, "failed to initialize flags", err.Error())
 	})
 }
