@@ -103,7 +103,7 @@ var ReturnWorkingDirectory = func(t *testing.T) {
 
 var CreateNewFileIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "tempFile.txt"
+	tempConfigFile := tempDir + "/tempFile.txt"
 	f, err := CreateOrOpenFile(tempConfigFile)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
@@ -111,7 +111,7 @@ var CreateNewFileIfNotExists = func(t *testing.T) {
 
 var OpenFileIfExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "tempFile.txt"
+	tempConfigFile := tempDir + "/tempFile.txt"
 
 	err := os.WriteFile(tempConfigFile, []byte("some test text"), 0)
 	assert.Nil(t, err, "expected write updated config to a temp file successfully")

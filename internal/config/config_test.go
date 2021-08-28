@@ -128,8 +128,16 @@ func Test_ConfigShould(t *testing.T) {
 			Func: ValidationsVerifyMandatoryConfigEntriesExist,
 		},
 		{
+			Name: "path: get config file path",
+			Func: PathGetConfigFilePath,
+		},
+		{
 			Name: "defaults: skip when config do not override on explicit values",
 			Func: DefaultsDoNotOverrideOnExplicitValues,
+		},
+		{
+			Name: "defaults: skip on missing remote config",
+			Func: DefaultsSkipOnMissingRemoteConfig,
 		},
 		{
 			Name: "defaults: do not override on explicit values",
@@ -687,6 +695,16 @@ config:
 	assert.Nil(t, err)
 }
 
+var PathGetConfigFilePath = func(t *testing.T) {
+	cfgManager := NewManager()
+	cfgManager.getConfigFilePathFunc = func() (string, error) {
+		return "/some/path", nil
+	}
+	path, err := cfgManager.GetConfigFilePath()
+	assert.Nil(t, err)
+	assert.Equal(t, "/some/path", path)
+}
+
 var DefaultsDoNotOverrideOnExplicitValues = func(t *testing.T) {
 	withContext(func(ctx common.Context) {
 		withLogging(ctx, t, false, func(logger logger.Logger) {
@@ -712,6 +730,27 @@ config:
 			context := TryGetConfigContext(anchorCfg.Config.Contexts, "test-cfg-ctx")
 			assert.Equal(t, context.Context.Repository.Remote.Branch, "test-branch")
 			assert.Equal(t, context.Context.Repository.Remote.ClonePath, "/test/clone/path")
+		})
+	})
+}
+
+var DefaultsSkipOnMissingRemoteConfig = func(t *testing.T) {
+	withContext(func(ctx common.Context) {
+		withLogging(ctx, t, false, func(logger logger.Logger) {
+			cfgYamlText := `
+config:
+  currentContext: test-cfg-ctx
+  contexts:
+    - name: test-cfg-ctx
+      context:
+        repository: 
+          remote:
+`
+			anchorCfg, _ := YamlToConfigObj(cfgYamlText)
+
+			cfgManager := NewManager()
+			err := cfgManager.setDefaultsPostCreation(anchorCfg)
+			assert.Nil(t, err)
 		})
 	})
 }
