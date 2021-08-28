@@ -26,6 +26,26 @@ func Test_IOUtilsShould(t *testing.T) {
 			Name: "return that a path is invalid",
 			Func: ReturnThatPathIsInvalid,
 		},
+		{
+			Name: "return that a path is valid",
+			Func: ReturnThatPathIsValid,
+		},
+		{
+			Name: "return user home directory",
+			Func: ReturnUserHomeDirectory,
+		},
+		{
+			Name: "return working directory",
+			Func: ReturnWorkingDirectory,
+		},
+		{
+			Name: "create a new file if not exists",
+			Func: CreateNewFileIfNotExists,
+		},
+		{
+			Name: "open file if exists",
+			Func: OpenFileIfExists,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -58,7 +78,45 @@ var StopAtRootFolderWhenParsingRepoAbsolutePath = func(t *testing.T) {
 }
 
 var ReturnThatPathIsInvalid = func(t *testing.T) {
-	pathInTest := "/invalid/path"
-	isValid := IsValidPath(pathInTest)
+	invalidPath := "/invalid/path"
+	isValid := IsValidPath(invalidPath)
 	assert.False(t, isValid)
+}
+
+var ReturnThatPathIsValid = func(t *testing.T) {
+	validPath, _ := os.Getwd()
+	isValid := IsValidPath(validPath)
+	assert.True(t, isValid)
+}
+
+var ReturnUserHomeDirectory = func(t *testing.T) {
+	homeDir, err := GetUserHomeDirectory()
+	assert.Nil(t, err, "expected to succeed")
+	assert.NotEmpty(t, homeDir)
+}
+
+var ReturnWorkingDirectory = func(t *testing.T) {
+	wd, err := GetWorkingDirectory()
+	assert.Nil(t, err, "expected to succeed")
+	assert.NotEmpty(t, wd)
+}
+
+var CreateNewFileIfNotExists = func(t *testing.T) {
+	tempDir := os.TempDir()
+	tempConfigFile := tempDir + "tempFile.txt"
+	f, err := CreateOrOpenFile(tempConfigFile)
+	assert.Nil(t, err, "expected to succeed")
+	assert.NotNil(t, f)
+}
+
+var OpenFileIfExists = func(t *testing.T) {
+	tempDir := os.TempDir()
+	tempConfigFile := tempDir + "tempFile.txt"
+
+	err := os.WriteFile(tempConfigFile, []byte("some test text"), 0)
+	assert.Nil(t, err, "expected write updated config to a temp file successfully")
+
+	f, err := CreateOrOpenFile(tempConfigFile)
+	assert.Nil(t, err, "expected to succeed")
+	assert.NotNil(t, f)
 }

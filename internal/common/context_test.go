@@ -1,7 +1,6 @@
 package common
 
 import (
-	//"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/internal/registry"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/stretchr/testify/assert"

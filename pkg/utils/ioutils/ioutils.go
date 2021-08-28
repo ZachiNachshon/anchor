@@ -38,12 +38,12 @@ func IsValidPath(path string) bool {
 	return true
 }
 
-func CreateDirectory(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return os.Mkdir(path, os.ModePerm)
-	}
-	return nil
-}
+//func CreateDirectory(path string) error {
+//	if _, err := os.Stat(path); os.IsNotExist(err) {
+//		return os.Mkdir(path, os.ModePerm)
+//	}
+//	return nil
+//}
 
 func GetUserHomeDirectory() (string, error) {
 	if dirname, err := os.UserHomeDir(); err != nil {
