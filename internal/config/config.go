@@ -37,34 +37,47 @@ type ConfigManager interface {
 	CreateConfigObject() (*AnchorConfig, error)
 
 	GetConfigFilePath() (string, error)
-	GetDefaultRepoClonePath(contextName string) (string, error)
+	setDefaultsPostCreation(anchorConfig *AnchorConfig) error
 }
 
 type configManagerImpl struct {
 	ConfigManager
 	adapter ConfigViperAdapter
+
+	getConfigFilePathFunc       func() (string, error)
+	validateConfigurationsFunc  func(anchorConfig *AnchorConfig) error
+	getDefaultRepoClonePathFunc func(contextName string) (string, error)
 }
 
-func NewManager() ConfigManager {
+func NewManager() *configManagerImpl {
 	return &configManagerImpl{
-		adapter: NewAdapter(),
+		adapter:                     NewAdapter(),
+		getConfigFilePathFunc:       getConfigFilePath,
+		validateConfigurationsFunc:  validateConfigurations,
+		getDefaultRepoClonePathFunc: getDefaultRepoClonePath,
 	}
 }
 
 func (cm *configManagerImpl) SetupConfigFileLoader() error {
-	path, err := cm.GetConfigFilePath()
+	path, err := cm.getConfigFilePathFunc()
 	if err != nil {
 		return err
 	}
 
-	cm.adapter.SetConfigPath(path)
+	err = cm.adapter.SetConfigPath(path)
+	if err != nil {
+		return err
+	}
 
 	err = cm.adapter.LoadConfigFromFile()
 	if err != nil {
 		return err
 	}
 
-	cm.adapter.SetEnvVars()
+	err = cm.adapter.SetEnvVars()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -74,7 +87,7 @@ func (cm *configManagerImpl) SetupConfigInMemoryLoader(yaml string) error {
 
 func (cm *configManagerImpl) ListenOnConfigFileChanges(ctx common.Context) {
 	cm.adapter.RegisterConfigChangesListener(func(e fsnotify.Event) {
-		if err := cm.adapter.MergeConfig(ctx.Config()); err != nil {
+		if err := cm.adapter.AppendConfig(ctx.Config()); err != nil {
 			// TODO: is it really fatal?
 			logger.Fatalf("Failed to reload in-memory configuration file after change was identified. error: %s", err.Error())
 		} else {
@@ -114,31 +127,54 @@ func (cm *configManagerImpl) CreateConfigObject() (*AnchorConfig, error) {
 		License: cm.ReadConfig("license"),
 	}
 
-	err := cm.adapter.MergeConfig(cfg)
+	err := cm.adapter.AppendConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to merge configuration from file. error: %s \n", err)
 	}
 
-	err = validateConfigurations(cfg)
+	err = cm.validateConfigurationsFunc(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	setDefaultsPostCreation(cfg, cm.GetDefaultRepoClonePath)
+	err = cm.setDefaultsPostCreation(cfg)
+	if err != nil {
+		return nil, err
+	}
 	return cfg, nil
 }
 
 func (cm *configManagerImpl) GetConfigFilePath() (string, error) {
-	if homeFolder, err := ioutils.GetUserHomeDirectory(); err != nil {
-		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
-		return "", err
-	} else {
-		folderPath := fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder)
-		return fmt.Sprintf("%s/%s.%s", folderPath, defaultConfigFileName, defaultConfigFileType), nil
-	}
+	return cm.getConfigFilePathFunc()
 }
 
-func (cm *configManagerImpl) GetDefaultRepoClonePath(contextName string) (string, error) {
+func (cm *configManagerImpl) setDefaultsPostCreation(anchorConfig *AnchorConfig) error {
+	cfg := anchorConfig.Config
+	for _, ctx := range cfg.Contexts {
+		if ctx.Context != nil {
+			repo := ctx.Context.Repository
+			if repo.Remote == nil {
+				// Local must be set else validation would fail
+				return nil
+			}
+			if repo.Remote.ClonePath == "" {
+				clonePath, err := cm.getDefaultRepoClonePathFunc(ctx.Name)
+				if err != nil {
+					logger.Error("failed to resolve default repo clone path")
+					return err
+				}
+				repo.Remote.ClonePath = clonePath
+			}
+
+			if repo.Remote.Branch == "" {
+				repo.Remote.Branch = DefaultRemoteBranch
+			}
+		}
+	}
+	return nil
+}
+
+func getDefaultRepoClonePath(contextName string) (string, error) {
 	if homeFolder, err := ioutils.GetUserHomeDirectory(); err != nil {
 		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
 		return "", err
@@ -147,12 +183,22 @@ func (cm *configManagerImpl) GetDefaultRepoClonePath(contextName string) (string
 	}
 }
 
-func YamlToConfigObj(yamlText string) AnchorConfig {
-	cfg := AnchorConfig{}
-	if err := converters.UnmarshalYamlToObj(yamlText, &cfg); err != nil {
-		logger.Fatalf("Failed to generate config template. error: %s", err.Error())
+func getConfigFilePath() (string, error) {
+	if homeFolder, err := ioutils.GetUserHomeDirectory(); err != nil {
+		logger.Errorf("failed to resolve home folder. err: %s", err.Error())
+		return "", err
+	} else {
+		return fmt.Sprintf(defaultConfigFolderPathFormat, homeFolder), nil
 	}
-	return cfg
+}
+
+func YamlToConfigObj(yamlText string) (*AnchorConfig, error) {
+	cfg := &AnchorConfig{}
+	if err := converters.UnmarshalYamlToObj(yamlText, &cfg); err != nil {
+		logger.Errorf("Failed to generate config template. error: %s", err.Error())
+		return nil, err
+	}
+	return cfg, nil
 }
 
 func ConfigObjToYaml(cfg *AnchorConfig) (string, error) {
@@ -160,7 +206,7 @@ func ConfigObjToYaml(cfg *AnchorConfig) (string, error) {
 		return "", fmt.Errorf("cannot unmarshal nil config object to string")
 	}
 	if out, err := converters.UnmarshalObjToYaml(cfg); err != nil {
-		logger.Debugf("Failed to generate config template. error: %s", err.Error())
+		logger.Errorf("Failed to generate config template. error: %s", err.Error())
 		return "", err
 	} else {
 		return out, nil
@@ -211,28 +257,4 @@ func validateConfigurations(anchorConfig *AnchorConfig) error {
 		}
 	}
 	return nil
-}
-
-func setDefaultsPostCreation(anchorConfig *AnchorConfig, getRepoClonePathFunc func(contextName string) (string, error)) {
-	cfg := anchorConfig.Config
-	for _, ctx := range cfg.Contexts {
-		if ctx.Context != nil {
-			repo := ctx.Context.Repository
-			if repo.Remote == nil {
-				// Local must be set else validation would fail
-				return
-			}
-			if repo.Remote.ClonePath == "" {
-				clonePath, err := getRepoClonePathFunc(ctx.Name)
-				if err != nil {
-					logger.Fatal("failed to resolve default repo clone path")
-				}
-				repo.Remote.ClonePath = clonePath
-			}
-
-			if repo.Remote.Branch == "" {
-				repo.Remote.Branch = DefaultRemoteBranch
-			}
-		}
-	}
 }

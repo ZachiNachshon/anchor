@@ -1,0 +1,25 @@
+author: Zachi Nachshon
+license: Apache
+config:
+  currentContext: 1st-anchorfiles
+  contexts:
+    - name: 1st-anchorfiles
+      context:
+        repository:
+          remote:
+            url: https://github.com/ZachiNachshon/dummy-repo-1.git
+            revision: a123456789
+            branch: some-branch-1
+            clonePath: /path/to/ctx1/remote/folder
+          local:
+            path: /path/to/ctx1/local/folder
+    - name: 2nd-anchorfiles
+      context:
+        repository:
+          remote:
+            url: https://github.com/ZachiNachshon/dummy-repo-2.git
+            revision: 987654321a
+            branch: some-branch-2
+            clonePath: /path/to/ctx2/remote/folder
+        local:
+          path: /path/to/ctx2/local/folder

@@ -10,22 +10,22 @@ var CreateFakeViperConfigAdapter = func() *fakeViperConfigAdapter {
 
 type fakeViperConfigAdapter struct {
 	ConfigViperAdapter
-	SetConfigPathMock                 func(path string)
+	SetConfigPathMock                 func(path string) error
 	LoadConfigFromFileMock            func() error
 	LoadConfigFromTextMock            func(yaml string) error
 	RegisterConfigChangesListenerMock func(callback func(e fsnotify.Event))
 	UpdateAllMock                     func(cfgToUpdate *AnchorConfig) error
 	UpdateEntryMock                   func(entryName string, value interface{}) error
 	GetConfigByKeyMock                func(key string) string
-	SetDefaultsMock                   func()
-	SetEnvVarsMock                    func()
-	MergeConfigMock                   func(output interface{}) error
+	SetDefaultsMock                   func() error
+	SetEnvVarsMock                    func() error
+	AppendConfigMock                  func(anchorConfig interface{}) error
 	flushToNewConfigFileMock          func() error
 	flushMock                         func() error
 }
 
-func (ca *fakeViperConfigAdapter) SetConfigPath(path string) {
-	ca.SetConfigPathMock(path)
+func (ca *fakeViperConfigAdapter) SetConfigPath(path string) error {
+	return ca.SetConfigPathMock(path)
 }
 
 func (ca *fakeViperConfigAdapter) LoadConfigFromFile() error {
@@ -52,16 +52,16 @@ func (ca *fakeViperConfigAdapter) GetConfigByKey(key string) string {
 	return ca.GetConfigByKeyMock(key)
 }
 
-func (ca *fakeViperConfigAdapter) SetDefaults() {
-	ca.SetDefaultsMock()
+func (ca *fakeViperConfigAdapter) SetDefaults() error {
+	return ca.SetDefaultsMock()
 }
 
-func (ca *fakeViperConfigAdapter) SetEnvVars() {
-	ca.SetEnvVarsMock()
+func (ca *fakeViperConfigAdapter) SetEnvVars() error {
+	return ca.SetEnvVarsMock()
 }
 
-func (ca *fakeViperConfigAdapter) MergeConfig(output interface{}) error {
-	return ca.MergeConfigMock(output)
+func (ca *fakeViperConfigAdapter) AppendConfig(anchorConfig interface{}) error {
+	return ca.AppendConfigMock(anchorConfig)
 }
 
 func (ca *fakeViperConfigAdapter) flushToNewConfigFile() error {

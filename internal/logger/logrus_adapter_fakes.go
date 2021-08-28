@@ -81,11 +81,11 @@ func (fl *fakeLogger) Warningf(format string, args ...interface{}) {
 }
 
 func (fl *fakeLogger) Error(msg string) {
-	fl.testing.Error(msg)
+	fl.testing.Logf(msg)
 }
 
 func (fl *fakeLogger) Errorf(format string, args ...interface{}) {
-	fl.testing.Errorf(format, args...)
+	fl.testing.Logf(format, args...)
 }
 
 func (fl *fakeLogger) Fatal(msg string) {

@@ -7,11 +7,10 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
-	"strings"
 )
 
 type ConfigViperAdapter interface {
-	SetConfigPath(path string)
+	SetConfigPath(dirPath string) error
 
 	LoadConfigFromFile() error
 	LoadConfigFromText(yaml string) error
@@ -21,9 +20,9 @@ type ConfigViperAdapter interface {
 	UpdateEntry(entryName string, value interface{}) error
 	GetConfigByKey(key string) string
 
-	SetDefaults()
-	SetEnvVars()
-	MergeConfig(output interface{}) error
+	SetDefaults() error
+	SetEnvVars() error
+	AppendConfig(anchorConfig interface{}) error
 
 	flushToNewConfigFile() error
 	flush() error
@@ -40,22 +39,23 @@ func NewAdapter() ConfigViperAdapter {
 	}
 }
 
-func (a *configViperAdapterImpl) SetConfigPath(path string) {
+func (a *configViperAdapterImpl) SetConfigPath(dirPath string) error {
 	a.viper.SetConfigName(defaultConfigFileName)
 	a.viper.SetConfigType(defaultConfigFileType)
-	configFolder := strings.TrimSuffix(path, defaultConfigFileName+"."+defaultConfigFileType)
-	a.viper.AddConfigPath(configFolder) // path to look for the config file in
+	a.viper.AddConfigPath(dirPath) // path to look for the config file in
+	return nil
 }
 
 func (a *configViperAdapterImpl) LoadConfigFromFile() error {
 	if err := a.viper.ReadInConfig(); err != nil {
 		// Handle errors reading the config file
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			a.SetDefaults()
+			_ = a.SetDefaults()
 			return a.flushToNewConfigFile()
 		} else {
-			logger.Errorf("Config file was found but an error occurred. error: %s", err)
-			return err
+			errMsg := fmt.Errorf("could not read configuration from file. error: %s", err.Error())
+			logger.Errorf(errMsg.Error())
+			return errMsg
 		}
 	}
 	return nil
@@ -63,10 +63,11 @@ func (a *configViperAdapterImpl) LoadConfigFromFile() error {
 
 func (a *configViperAdapterImpl) LoadConfigFromText(yaml string) error {
 	a.viper.SetConfigType(defaultConfigFileType)
-	a.SetDefaults()
+	_ = a.SetDefaults()
 	if err := a.viper.ReadConfig(bytes.NewBuffer([]byte(yaml))); err != nil {
-		logger.Errorf("Failed to read config from buffer. error: %s", err)
-		return err
+		errMsg := fmt.Errorf("failed to read config from buffer. error: %s", err.Error())
+		logger.Errorf(errMsg.Error())
+		return errMsg
 	}
 	return nil
 }
@@ -108,23 +109,25 @@ func (a *configViperAdapterImpl) GetConfigByKey(key string) string {
 	return a.viper.GetString(key)
 }
 
-func (a *configViperAdapterImpl) SetDefaults() {
+func (a *configViperAdapterImpl) SetDefaults() error {
 	a.viper.SetDefault("author", DefaultAuthor)
 	a.viper.SetDefault("license", DefaultLicense)
+	return nil
 }
 
-func (a *configViperAdapterImpl) SetEnvVars() {
+func (a *configViperAdapterImpl) SetEnvVars() error {
 	// Every viper.Get request auto checks for ANCHOR_<flag-name> before reading from config file
 	a.viper.SetEnvPrefix("ANCHOR")
 	a.viper.AutomaticEnv()
+	return nil
 }
 
-func (a *configViperAdapterImpl) MergeConfig(output interface{}) error {
+func (a *configViperAdapterImpl) AppendConfig(anchorConfig interface{}) error {
 	var cfg Config
 	if err := a.viper.UnmarshalKey("config", &cfg); err != nil {
 		return err
 	} else {
-		output.(*AnchorConfig).Config = &cfg
+		anchorConfig.(*AnchorConfig).Config = &cfg
 		return nil
 	}
 }
