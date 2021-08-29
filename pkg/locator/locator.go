@@ -2,6 +2,7 @@ package locator
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/models"
 
@@ -18,7 +19,7 @@ const (
 )
 
 type Locator interface {
-	Scan(anchorFilesLocalPath string) error
+	Scan(anchorFilesLocalPath string) *errors.LocatorError
 	Applications() []*models.ApplicationInfo
 	ApplicationsAsMap() map[string]*models.ApplicationInfo
 	Application(name string) *models.ApplicationInfo
@@ -66,20 +67,21 @@ func newAppContent(name string, path string) *models.ApplicationInfo {
 	}
 }
 
-func New() Locator {
+func New() *locatorImpl {
 	return &locatorImpl{
 		appDirs: make(map[string]*models.ApplicationInfo),
 	}
 }
 
-func (l *locatorImpl) Scan(anchorfilesLocalPath string) error {
+func (l *locatorImpl) Scan(anchorfilesLocalPath string) *errors.LocatorError {
 	if l.isInitialized() {
-		logger.Warning("scan can be called only once, using previous scan result")
-		return nil
+		warnMsg := "scan can be called only once, using previous scan result"
+		logger.Warning(warnMsg)
+		return errors.NewAlreadyInitializedError(fmt.Errorf(warnMsg))
 	}
 
 	if !ioutils.IsValidPath(anchorfilesLocalPath) {
-		return fmt.Errorf("invalid anchorfile local path. path: %s", anchorfilesLocalPath)
+		return errors.NewLocatorError(fmt.Errorf("invalid anchorfile local path. path: %s", anchorfilesLocalPath))
 	}
 
 	err := filepath.Walk(anchorfilesLocalPath,
@@ -126,7 +128,7 @@ func (l *locatorImpl) Scan(anchorfilesLocalPath string) error {
 		})
 
 	if err != nil {
-		return err
+		return errors.NewLocatorError(err)
 	}
 
 	l.markInitialized()

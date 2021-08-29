@@ -3,7 +3,7 @@ package errors
 type ErrorCode int
 
 const (
-	GeneralError            ErrorCode = 1
+	GeneralPromptError      ErrorCode = 1
 	InterruptError          ErrorCode = 2
 	InstructionMissingError ErrorCode = 3
 )
@@ -14,9 +14,9 @@ type PromptError struct {
 	err     error
 }
 
-func New(err error) *PromptError {
+func NewPromptError(err error) *PromptError {
 	return &PromptError{
-		code:    GeneralError,
+		code:    GeneralPromptError,
 		message: "an error occurred",
 		err:     err,
 	}

@@ -1,0 +1,7 @@
+instructions:
+  actions:
+    - id: elusive-hello-world
+      title: "Elusive Hello World"
+      description: "Try to print 'Hello World' to stdout"
+      script: |
+        echo "This should always be ignored"

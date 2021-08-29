@@ -5,7 +5,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/models"
 
 	"github.com/ZachiNachshon/anchor/pkg/parser"
-	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"io/ioutil"
 	"sort"
 )
@@ -25,39 +24,30 @@ func New() Extractor {
 }
 
 func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-	if !ioutils.IsValidPath(instructionsPath) {
-		return nil, fmt.Errorf("invalid instructions path. path: %s", instructionsPath)
-	}
-
 	if contentByte, err := ioutil.ReadFile(instructionsPath); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid instructions path. error: %s", err.Error())
 	} else {
 		var text = string(contentByte)
 
-		if instructions, err := p.ParseInstructions(text); err != nil {
+		if instRoot, err := p.ParseInstructions(text); err != nil {
 			return nil, err
 		} else {
-			sortInstructions(instructions.Instructions)
-			sortWorkflows(instructions.Instructions)
-			return instructions, nil
+			if instRoot != nil && instRoot.Instructions != nil {
+				actions := instRoot.Instructions.Actions
+				if actions != nil {
+					sort.Slice(actions, func(i, j int) bool {
+						return actions[i].Id < actions[j].Id
+					})
+				}
+
+				workflows := instRoot.Instructions.Workflows
+				if workflows != nil {
+					sort.Slice(workflows, func(i, j int) bool {
+						return workflows[i].Id < workflows[j].Id
+					})
+				}
+			}
+			return instRoot, nil
 		}
 	}
-}
-
-func sortInstructions(instructions *models.Instructions) {
-	if instructions == nil || instructions.Actions == nil {
-		return
-	}
-	sort.Slice(instructions.Actions, func(i, j int) bool {
-		return instructions.Actions[i].Id < instructions.Actions[j].Id
-	})
-}
-
-func sortWorkflows(instructions *models.Instructions) {
-	if instructions == nil || instructions.Workflows == nil {
-		return
-	}
-	sort.Slice(instructions.Workflows, func(i, j int) bool {
-		return instructions.Workflows[i].Id < instructions.Workflows[j].Id
-	})
 }

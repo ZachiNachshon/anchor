@@ -7,7 +7,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/models"
 
 	"github.com/manifoldco/promptui"
-	"github.com/manifoldco/promptui/screenbuf"
 )
 
 const (
@@ -33,10 +32,20 @@ type Prompter interface {
 
 type prompterImpl struct {
 	Prompter
+
+	runConfigCtxSelectorFunc   func(promptui.Select) (int, string, error)
+	runApplicationSelectorFunc func(promptui.Select) (int, string, error)
+	runActionSelectorFunc      func(promptui.Select) (int, string, error)
+	runWorkflowSelectorFunc    func(promptui.Select) (int, string, error)
 }
 
-func New() Prompter {
-	return &prompterImpl{}
+func New() *prompterImpl {
+	return &prompterImpl{
+		runConfigCtxSelectorFunc:   runPromptSelector,
+		runApplicationSelectorFunc: runPromptSelector,
+		runActionSelectorFunc:      runPromptSelector,
+		runWorkflowSelectorFunc:    runPromptSelector,
+	}
 }
 
 func (p *prompterImpl) PromptConfigContext(cfgContexts []*config.Context) (*config.Context, error) {
@@ -46,7 +55,7 @@ func (p *prompterImpl) PromptConfigContext(cfgContexts []*config.Context) (*conf
 
 	generateConfigContextSelectionMessage()
 
-	i, _, err := ctxSelector.Run()
+	i, _, err := p.runConfigCtxSelectorFunc(ctxSelector)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +69,7 @@ func (p *prompterImpl) PromptApps(apps []*models.ApplicationInfo) (*models.Appli
 	appsSelector := preparePromptAppsItems(apps)
 	appsOptions := appsSelector.Items.([]*models.ApplicationInfo)
 
-	i, _, err := appsSelector.Run()
+	i, _, err := p.runApplicationSelectorFunc(appsSelector)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +82,7 @@ func (p *prompterImpl) PromptInstructionActions(appName string, actions []*model
 	setSearchInstructionsPrompt(appName)
 	instSelector := preparePromptInstructionsActions(actions)
 
-	i, _, err := instSelector.Run()
+	i, _, err := p.runActionSelectorFunc(instSelector)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +95,7 @@ func (p *prompterImpl) PromptInstructionWorkflows(appName string, workflows []*m
 	setSearchInstructionsPrompt(appName + " (workflows)")
 	instSelector := preparePromptInstructionsWorkflows(workflows)
 
-	i, _, err := instSelector.Run()
+	i, _, err := p.runWorkflowSelectorFunc(instSelector)
 	if err != nil {
 		return nil, err
 	}
@@ -95,12 +104,16 @@ func (p *prompterImpl) PromptInstructionWorkflows(appName string, workflows []*m
 	return workflows[i], nil
 }
 
-func ClearPrompter(selector promptui.Select) {
-	buf := screenbuf.New(selector.Stdout)
-	err := buf.Clear()
-	if err != nil {
-		logger.Warningf("failed to clear the screen. error: %s", err.Error())
-	}
+//func ClearPrompter(selector promptui.Select) {
+//	buf := screenbuf.New(selector.Stdout)
+//	err := buf.Clear()
+//	if err != nil {
+//		logger.Warningf("failed to clear the screen. error: %s", err.Error())
+//	}
+//}
+
+func runPromptSelector(selector promptui.Select) (int, string, error) {
+	return selector.Run()
 }
 
 func createPaddingLeftString(length int) string {

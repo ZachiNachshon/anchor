@@ -16,6 +16,10 @@ func Test_ParserShould(t *testing.T) {
 			Name: "parse instruction workflows successfully",
 			Func: ParseInstructionWorkflowsSuccessfully,
 		},
+		{
+			Name: "fail to parse instruction",
+			Func: FailToParseInstructions,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -45,4 +49,12 @@ var ParseInstructionWorkflowsSuccessfully = func(t *testing.T) {
 	assert.Nil(t, err, "expected parser to succeed")
 	assert.Equal(t, 1, len(workflows), "expected 1 workflow but found %v", len(workflows))
 	assert.Equal(t, "talk-to-the-world", workflows[0].Id)
+}
+
+var FailToParseInstructions = func(t *testing.T) {
+	parser := New()
+	invalidYamlText := "@#$%!@#<invalid> yaml: -instructions"
+	instRootTestData, err := parser.ParseInstructions(invalidYamlText)
+	assert.NotNil(t, err, "expected to fail")
+	assert.Empty(t, instRootTestData)
 }

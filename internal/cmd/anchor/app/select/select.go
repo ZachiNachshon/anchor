@@ -202,7 +202,7 @@ func startApplicationSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath st
 func promptApplicationSelection(o *selectOrchestrator) (*models.ApplicationInfo, *errors.PromptError) {
 	apps := o.l.Applications()
 	if app, err := o.prmpt.PromptApps(apps); err != nil {
-		return nil, errors.New(err)
+		return nil, errors.NewPromptError(err)
 	} else {
 		return app, nil
 	}
@@ -211,11 +211,11 @@ func promptApplicationSelection(o *selectOrchestrator) (*models.ApplicationInfo,
 func wrapAfterExecution(o *selectOrchestrator) *errors.PromptError {
 	if inputErr := o.in.PressAnyKeyToContinue(); inputErr != nil {
 		logger.Debugf("Failed to prompt user to press any key after instruction action run")
-		return errors.New(inputErr)
+		return errors.NewPromptError(inputErr)
 	}
 	if err := o.s.ClearScreen(); err != nil {
 		logger.Debugf("Failed to clear screen post instruction action run")
-		return errors.New(err)
+		return errors.NewPromptError(err)
 	}
 	return nil
 }
@@ -245,14 +245,14 @@ func runInstructionAction(o *selectOrchestrator, action *models.Action) *errors.
 	scriptOutputPath, _ := logger.GetDefaultScriptOutputLogFilePath()
 
 	if len(action.Script) > 0 && len(action.ScriptFile) > 0 {
-		return errors.New(fmt.Errorf("script / scriptFile are mutual exclusive, please use either one"))
+		return errors.NewPromptError(fmt.Errorf("script / scriptFile are mutual exclusive, please use either one"))
 	} else if len(action.Script) == 0 && len(action.ScriptFile) == 0 {
-		return errors.New(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
+		return errors.NewPromptError(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
 	}
 
 	if len(action.Script) > 0 {
 		if err := o.s.ExecuteWithOutputToFile(action.Script, scriptOutputPath); err != nil {
-			return errors.New(err)
+			return errors.NewPromptError(err)
 		}
 	} else if len(action.ScriptFile) > 0 {
 		if err := o.s.ExecuteScriptFileWithOutputToFile(
@@ -260,7 +260,7 @@ func runInstructionAction(o *selectOrchestrator, action *models.Action) *errors.
 			action.ScriptFile,
 			scriptOutputPath); err != nil {
 
-			return errors.New(err)
+			return errors.NewPromptError(err)
 		}
 	}
 	return nil
@@ -290,7 +290,7 @@ func startInstructionActionSelectionFlow(
 		}
 	} else {
 		logger.Debugf("Selected instruction action to run. id: %v", action.Id)
-		if _, promptErr := o.startInstructionActionExecutionFlowFunc(o, action); promptErr != nil {
+		if _, promptErr = o.startInstructionActionExecutionFlowFunc(o, action); promptErr != nil {
 			return nil, promptErr
 		} else {
 			return o.startInstructionActionSelectionFlowFunc(o, app, instructionRoot)
@@ -305,7 +305,7 @@ func promptInstructionActionSelection(
 
 	item, err := o.prmpt.PromptInstructionActions(app.Name, actions)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, errors.NewPromptError(err)
 	}
 	return item, nil
 }
@@ -317,7 +317,7 @@ func promptInstructionWorkflowSelection(
 
 	item, err := o.prmpt.PromptInstructionWorkflows(app.Name, workflows)
 	if err != nil {
-		return nil, errors.New(err)
+		return nil, errors.NewPromptError(err)
 	}
 	return item, nil
 }
@@ -365,7 +365,7 @@ func askBeforeRunningInstructionAction(
 	action *models.Action) (bool, *errors.PromptError) {
 	question := prompter.GenerateRunInstructionMessage(action.Id, "action", action.Title)
 	if res, err := o.in.AskYesNoQuestion(question); err != nil {
-		return false, errors.New(err)
+		return false, errors.NewPromptError(err)
 	} else {
 		return res, nil
 	}
@@ -377,7 +377,7 @@ func askBeforeRunningInstructionWorkflow(
 	// TODO: Change description since it might be too long
 	question := prompter.GenerateRunInstructionMessage(workflow.Id, "workflow", workflow.Description)
 	if res, err := o.in.AskYesNoQuestion(question); err != nil {
-		return false, errors.New(err)
+		return false, errors.NewPromptError(err)
 	} else {
 		return res, nil
 	}

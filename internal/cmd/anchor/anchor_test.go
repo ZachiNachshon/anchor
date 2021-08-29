@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
@@ -80,8 +81,8 @@ var FailToScanRepository = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		path := "/some/path"
 		fakeLocator := locator.CreateFakeLocator(path)
-		fakeLocator.ScanMock = func(anchorFilesLocalPath string) error {
-			return fmt.Errorf("failed to scan")
+		fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+			return errors.NewLocatorError(fmt.Errorf("failed to scan"))
 		}
 		ctx.Registry().Set(locator.Identifier, fakeLocator)
 		err := scanAnchorfilesRepositoryTree(ctx, path)
@@ -94,7 +95,7 @@ var ScanRepositorySuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		path := "/some/path"
 		fakeLocator := locator.CreateFakeLocator(path)
-		fakeLocator.ScanMock = func(anchorFilesLocalPath string) error {
+		fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
 			return nil
 		}
 		ctx.Registry().Set(locator.Identifier, fakeLocator)
@@ -276,7 +277,7 @@ var RunPreRunSequenceSuccessfully = func(t *testing.T) {
 				ctx.Registry().Set(shell.Identifier, fakeShell)
 
 				fakeLocator := locator.CreateFakeLocator("/path/to/repo")
-				fakeLocator.ScanMock = func(anchorFilesLocalPath string) error {
+				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
 					return nil
 				}
 				ctx.Registry().Set(locator.Identifier, fakeLocator)

@@ -65,9 +65,9 @@ func scanAnchorfilesRepositoryTree(ctx common.Context, repoPath string) error {
 		return err
 	} else {
 		l = resolved.(locator.Locator)
-		err := l.Scan(repoPath)
-		if err != nil {
-			errMsg := fmt.Sprintf("failed to scan anchorfiles repository. error: %s", err.Error())
+		locatorErr := l.Scan(repoPath)
+		if locatorErr != nil {
+			errMsg := fmt.Sprintf("failed to scan anchorfiles repository. error: %s", locatorErr.GoError().Error())
 			return fmt.Errorf(errMsg)
 		}
 	}

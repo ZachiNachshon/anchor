@@ -3,6 +3,7 @@ package locator
 import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -15,6 +16,10 @@ func Test_LocatorShould(t *testing.T) {
 		{
 			Name: "fail on invalid anchorfiles local path",
 			Func: FailOnInvalidAnchorfilesLocalPath,
+		},
+		{
+			Name: "fail on already initialized",
+			Func: FailOnAlreadyInitialized,
 		},
 		{
 			Name: "scan anchorfiles test repo and find expected applications",
@@ -30,9 +35,23 @@ var FailOnInvalidAnchorfilesLocalPath = func(t *testing.T) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				l := New()
-				err := l.Scan("/invalid/anchorfiles/path")
-				assert.NotNil(t, err, "expected to fail on invalid anchorfiles local path")
-				assert.Contains(t, err.Error(), "invalid anchorfile local path")
+				locatorErr := l.Scan("/invalid/anchorfiles/path")
+				assert.NotNil(t, locatorErr, "expected to fail on invalid anchorfiles local path")
+				assert.Contains(t, locatorErr.GoError().Error(), "invalid anchorfile local path")
+			})
+		})
+	})
+}
+
+var FailOnAlreadyInitialized = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := config.GetDefaultTestConfigText()
+			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
+				l := New()
+				l.markInitialized()
+				locatorErr := l.Scan("/invalid/anchorfiles/path")
+				assert.NotNil(t, locatorErr.Code(), errors.AlreadyInitialized)
 			})
 		})
 	})

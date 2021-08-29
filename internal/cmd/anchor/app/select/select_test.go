@@ -395,7 +395,7 @@ var AppSelectionFailToPrompt = func(t *testing.T) {
 			fakeO := NewOrchestrator()
 			fakeO.promptApplicationSelectionFunc = func(o *selectOrchestrator) (*models.ApplicationInfo, *errors.PromptError) {
 				promptCallCount++
-				return nil, errors.New(fmt.Errorf("failed to prompt"))
+				return nil, errors.NewPromptError(fmt.Errorf("failed to prompt"))
 			}
 			err := fakeO.startApplicationSelectionFlowFunc(fakeO, ctx.AnchorFilesPath())
 			assert.NotNil(t, err, "expected selection prompt to fail")
@@ -430,7 +430,7 @@ var AppSelectionFailToExtractInstructions = func(t *testing.T) {
 				anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
 				extractorCallCount++
 				assert.Equal(t, app.InstructionsPath, app1.InstructionsPath)
-				return nil, errors.New(fmt.Errorf("failed to extract instructions"))
+				return nil, errors.NewPromptError(fmt.Errorf("failed to extract instructions"))
 			}
 
 			err := fakeO.startApplicationSelectionFlowFunc(fakeO, ctx.AnchorFilesPath())
@@ -797,7 +797,7 @@ var InstructionActionSelectionFailWorkflowSelection = func(t *testing.T) {
 				workflows []*models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 				workflowSelectionCallCount++
-				return nil, errors.New(fmt.Errorf("failed workflow selection"))
+				return nil, errors.NewPromptError(fmt.Errorf("failed workflow selection"))
 			}
 
 			result, err := fakeO.startInstructionActionSelectionFlowFunc(fakeO, app1, instRootTestData)
@@ -880,7 +880,7 @@ var InstructionActionSelectionFailActionExecution = func(t *testing.T) {
 			fakeO.startInstructionActionExecutionFlowFunc = func(o *selectOrchestrator, action *models.Action) (*models.Action, *errors.PromptError) {
 				instActionExecCallCount++
 				assert.Equal(t, action1, action)
-				return nil, errors.New(fmt.Errorf("failed to exec instruction action"))
+				return nil, errors.NewPromptError(fmt.Errorf("failed to exec instruction action"))
 			}
 
 			result, err := fakeO.startInstructionActionSelectionFlowFunc(fakeO, app1, instRootTestData)
@@ -1187,7 +1187,7 @@ var InstructionActionExecFailToAskBeforeRunning = func(t *testing.T) {
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
-				return false, errors.New(fmt.Errorf("failed to ask"))
+				return false, errors.NewPromptError(fmt.Errorf("failed to ask"))
 			}
 
 			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
@@ -1215,7 +1215,7 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 			runInstructionCallCount := 0
 			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
 				runInstructionCallCount++
-				return errors.New(fmt.Errorf("failed to run instruction"))
+				return errors.NewPromptError(fmt.Errorf("failed to run instruction"))
 			}
 
 			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
@@ -1250,7 +1250,7 @@ var InstructionActionExecFailToWrapAfterRun = func(t *testing.T) {
 			wrapAfterExecCallCount := 0
 			fakeO.wrapAfterExecutionFunc = func(o *selectOrchestrator) *errors.PromptError {
 				wrapAfterExecCallCount++
-				return errors.New(fmt.Errorf("failed to wrap"))
+				return errors.NewPromptError(fmt.Errorf("failed to wrap"))
 			}
 
 			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
@@ -1432,7 +1432,7 @@ var InstructionWorkflowSelectionFailWorkflowExecution = func(t *testing.T) {
 				workflow *models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 				workflowExecCallCount++
-				return nil, errors.New(fmt.Errorf("failed workflow execution"))
+				return nil, errors.NewPromptError(fmt.Errorf("failed workflow execution"))
 			}
 
 			result, err := fakeO.startInstructionWorkflowSelectionFlowFunc(fakeO, app1,
@@ -1610,7 +1610,7 @@ var InstructionWorkflowExecFailToAskBeforeRunning = func(t *testing.T) {
 				workflow *models.Workflow) (bool, *errors.PromptError) {
 
 				askBeforeCallCount++
-				return false, errors.New(fmt.Errorf("failed to ask"))
+				return false, errors.NewPromptError(fmt.Errorf("failed to ask"))
 			}
 
 			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
@@ -1645,7 +1645,7 @@ var InstructionWorkflowExecFailToRun = func(t *testing.T) {
 				actions []*models.Action) *errors.PromptError {
 
 				runInstructionCallCount++
-				return errors.New(fmt.Errorf("failed to run instruction workflow"))
+				return errors.NewPromptError(fmt.Errorf("failed to run instruction workflow"))
 			}
 
 			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
@@ -1687,7 +1687,7 @@ var InstructionWorkflowExecFailToWrapAfterRun = func(t *testing.T) {
 			wrapAfterExecCallCount := 0
 			fakeO.wrapAfterExecutionFunc = func(o *selectOrchestrator) *errors.PromptError {
 				wrapAfterExecCallCount++
-				return errors.New(fmt.Errorf("failed to wrap"))
+				return errors.NewPromptError(fmt.Errorf("failed to wrap"))
 			}
 
 			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
@@ -1754,7 +1754,7 @@ var RunInstructionWorkflowFailToRunActions = func(t *testing.T) {
 			runInstActionCallCount := 0
 			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
 				runInstActionCallCount++
-				return errors.New(fmt.Errorf("failed to run action"))
+				return errors.NewPromptError(fmt.Errorf("failed to run action"))
 			}
 
 			err := fakeO.runInstructionWorkflowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
@@ -1790,7 +1790,7 @@ var RunInstructionWorkflowRunActionsSuccessfully = func(t *testing.T) {
 var ManagePromptErrorMissingInnerGoError = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			promptError := errors.New(nil)
+			promptError := errors.NewPromptError(nil)
 			err := managePromptError(promptError)
 			assert.Nil(t, err, "expect no inner go error")
 		})
@@ -1800,7 +1800,7 @@ var ManagePromptErrorMissingInnerGoError = func(t *testing.T) {
 var ManagePromptErrorMitigateInterruptError = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			promptError := errors.New(promptui.ErrInterrupt)
+			promptError := errors.NewPromptError(promptui.ErrInterrupt)
 			err := managePromptError(promptError)
 			assert.Nil(t, err, "expect no inner go error")
 		})
@@ -1810,7 +1810,7 @@ var ManagePromptErrorMitigateInterruptError = func(t *testing.T) {
 var ManagePromptErrorReturnInnerGoError = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			promptError := errors.New(fmt.Errorf("inner go error"))
+			promptError := errors.NewPromptError(fmt.Errorf("inner go error"))
 			err := managePromptError(promptError)
 			assert.NotNil(t, err, "expect error to exist")
 			assert.Equal(t, err.Error(), "inner go error")
