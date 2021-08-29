@@ -57,18 +57,6 @@ func prepareInstructionsActionTemplate(activeSpacePadding string, inactiveSpaceP
 	}
 }
 
-func preparePromptInstructionsWorkflows(workflows []*models.Workflow) promptui.Select {
-	instTemplate := prepareInstructionsWorkflowTemplate(calculateWorkflowPadding(workflows))
-	instSearcher := prepareInstructionsWorkflowSearcher(workflows)
-	return prepareInstructionsWorkflowsSelector(workflows, instTemplate, instSearcher)
-}
-
-func calculateWorkflowPadding(workflows []*models.Workflow) (string, string) {
-	length := findLongestInstructionWorkflowNameLength(workflows)
-	return createPaddingLeftString(length + selectorEmojiCharLength),
-		createPaddingLeftString(length + selectorEmojiCharLength + 2)
-}
-
 func prepareInstructionsActionSearcher(items []*models.Action) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := items[index]
@@ -92,6 +80,18 @@ func prepareInstructionsActionsSelector(
 		StartInSearchMode: true,
 		HideSelected:      true,
 	}
+}
+
+func preparePromptInstructionsWorkflows(workflows []*models.Workflow) promptui.Select {
+	instTemplate := prepareInstructionsWorkflowTemplate(calculateWorkflowPadding(workflows))
+	instSearcher := prepareInstructionsWorkflowSearcher(workflows)
+	return prepareInstructionsWorkflowsSelector(workflows, instTemplate, instSearcher)
+}
+
+func calculateWorkflowPadding(workflows []*models.Workflow) (string, string) {
+	length := findLongestInstructionWorkflowNameLength(workflows)
+	return createPaddingLeftString(length + selectorEmojiCharLength),
+		createPaddingLeftString(length + selectorEmojiCharLength + 2)
 }
 
 func findLongestInstructionWorkflowNameLength(workflows []*models.Workflow) int {

@@ -13,10 +13,10 @@ func generateConfigContextSelectionMessage() {
 }
 
 func preparePromptConfigContextItems(cfgContexts []*config.Context) promptui.Select {
-	appsEnhanced := appendConfigContextCustomOptions(cfgContexts)
-	appsTemplate := prepareConfigContextTemplate()
-	appsSearcher := prepareConfigContextSearcher(appsEnhanced)
-	return prepareConfigContextSelector(appsEnhanced, appsTemplate, appsSearcher)
+	cfgCtxEnhanced := appendConfigContextCustomOptions(cfgContexts)
+	cfgCtxTemplate := prepareConfigContextTemplate()
+	cfgCtxSearcher := prepareConfigContextSearcher(cfgCtxEnhanced)
+	return prepareConfigContextSelector(cfgCtxEnhanced, cfgCtxTemplate, cfgCtxSearcher)
 }
 
 func appendConfigContextCustomOptions(cfgContexts []*config.Context) []*config.Context {
