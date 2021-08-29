@@ -22,6 +22,10 @@ func Test_LocatorShould(t *testing.T) {
 			Func: FailOnAlreadyInitialized,
 		},
 		{
+			Name: "not return app if missing from scan",
+			Func: NotReturnAppIfMissingFromScan,
+		},
+		{
 			Name: "scan anchorfiles test repo and find expected applications",
 			Func: ScanAndFindExpectedApplications,
 		},
@@ -57,6 +61,19 @@ var FailOnAlreadyInitialized = func(t *testing.T) {
 	})
 }
 
+var NotReturnAppIfMissingFromScan = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := config.GetDefaultTestConfigText()
+			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
+				l := New()
+				result := l.Application("not-exists")
+				assert.Nil(t, result, "should not identify application after scan took place")
+			})
+		})
+	})
+}
+
 var ScanAndFindExpectedApplications = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
@@ -75,6 +92,9 @@ var ScanAndFindExpectedApplications = func(t *testing.T) {
 				assert.NotNil(t, l.Application(secondAppName), "expected application to exist. Name: %s", secondAppName)
 				assert.Equal(t, secondAppName, l.Application(secondAppName).Name, "expected application %s but found %s",
 					secondAppName, l.Application(secondAppName).Name)
+
+				asMap := l.ApplicationsAsMap()
+				assert.Equal(t, 2, len(asMap), "expected map of 2 applications")
 			})
 		})
 	})
