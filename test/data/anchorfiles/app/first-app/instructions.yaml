@@ -23,3 +23,8 @@ instructions:
       actionIds:
         - hello-world
         - goodbye-world
+    - id: talk-to-the-world-again
+      description: "Talk to the world again, now only with hello"
+      tolerateFailures: false
+      actionIds:
+        - hello-world

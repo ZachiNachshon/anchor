@@ -21,6 +21,10 @@ func Test_RemoteShould(t *testing.T) {
 			Name: "fail to resolve local repository due to invalid path",
 			Func: FailToResolveLocalRepositoryDueToInvalidPath,
 		},
+		{
+			Name: "fail to resolve local repository due to missing local config",
+			Func: FailToResolveLocalRepositoryDueToMissingLocalConfig,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -72,6 +76,30 @@ config:
 				assert.NotNil(t, err, "expected to fail on local resolver")
 				assert.Contains(t, err.Error(), "local anchorfiles repository path is invalid")
 				assert.Equal(t, "", repoPath, "expected not to have a repository path path")
+			})
+		})
+	})
+}
+
+var FailToResolveLocalRepositoryDueToMissingLocalConfig = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+  currentContext: test-cfg-ctx
+  contexts:
+    - name: test-cfg-ctx
+      context:
+        repository: 
+          local:
+            path: /invalid/path
+`
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
+				repo := &LocalRepository{}
+				repoPath, err := repo.Load(ctx)
+				assert.NotNil(t, err, "expected to fail on local resolver")
+				assert.Contains(t, err.Error(), "invalid local repository configuration")
+				assert.Empty(t, repoPath)
 			})
 		})
 	})

@@ -63,10 +63,12 @@ var ExtractActionsFromInstructionsSuccessfully = func(t *testing.T) {
 	ext := New()
 	instRoot, err := ext.ExtractInstructions(path, parser.New())
 	actions := instRoot.Instructions.Actions
+	workflows := instRoot.Instructions.Workflows
 	assert.Nil(t, err, "expected prompt item extraction to succeed")
-	assert.Equal(t, 3, len(actions), "expected 3 instructions but found %v", len(actions))
-	// TODO: Rename ids to alphanumeric characters to test ordering
+	assert.Equal(t, 3, len(actions), "expected 3 actions but found %v", len(actions))
+	assert.Equal(t, 2, len(workflows), "expected 2 workflows but found %v", len(workflows))
 	assert.Equal(t, "global-hello-world", actions[0].Id)
 	assert.Equal(t, "goodbye-world", actions[1].Id)
 	assert.Equal(t, "hello-world", actions[2].Id)
+	assert.Equal(t, "talk-to-the-world", workflows[0].Id)
 }
