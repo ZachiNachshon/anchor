@@ -6,6 +6,10 @@ default: help
 build: fmtcheck ## Build project, format check and install to bin folder
 	go build -o $(GOPATH)/bin/anchor ./cmd/anchor/*.go
 
+build-ci: fmtcheck ## Build project, format check and install to bin folder on CI
+	go build ./...
+	go install ./cmd/anchor/*.go
+
 fmt: ## Format go files
 	gofmt -w $(GOFMT_FILES)
 
