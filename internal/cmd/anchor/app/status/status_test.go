@@ -166,7 +166,7 @@ var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 		fakePrinter := printer.CreateFakePrinter()
 		reg.Set(printer.Identifier, fakePrinter)
 		printAppsCallCount := 0
-		fakePrinter.PrintApplicationsMock = func(apps []*printer.AppStatusTemplateItem) {
+		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
 			printAppsCallCount++
 			assert.Equal(t, 2, len(apps))
 			for _, app := range apps {
@@ -215,7 +215,7 @@ var PrintApplicationsWithValidStatus = func(t *testing.T) {
 		fakePrinter := printer.CreateFakePrinter()
 		reg.Set(printer.Identifier, fakePrinter)
 		printAppsCallCount := 0
-		fakePrinter.PrintApplicationsMock = func(apps []*printer.AppStatusTemplateItem) {
+		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
 			printAppsCallCount++
 			assert.Equal(t, 2, len(apps))
 			for _, app := range apps {

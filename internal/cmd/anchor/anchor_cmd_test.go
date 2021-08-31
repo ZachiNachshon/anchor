@@ -11,6 +11,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/test/drivers"
 	"github.com/ZachiNachshon/anchor/test/harness"
@@ -71,7 +72,7 @@ var ExpectVerbosityOnceFlagIsSet = func(t *testing.T) {
 		err := command.initFlagsFunc(command)
 		assert.Nil(t, err, "expected init flags to succeed")
 
-		_, err = drivers.CLI().RunCommand(command, fmt.Sprintf("--%s", verboseFlagName))
+		_, err = drivers.CLI().RunCommand(command, fmt.Sprintf("--%s", globals.VerboseFlagName))
 		assert.Nil(t, err, "expected command to succeed")
 		assert.Equal(t, 1, setVerbosityCallCount, "expected func to be called exactly once")
 		assert.True(t, verboseFlagValue)
@@ -91,7 +92,7 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 
 				assert.True(t, command.cobraCmd.HasPersistentFlags())
 				flags := command.cobraCmd.PersistentFlags()
-				verboseVal, err := flags.GetBool(verboseFlagName)
+				verboseVal, err := flags.GetBool(globals.VerboseFlagName)
 				assert.Nil(t, err)
 				assert.Equal(t, false, verboseVal)
 

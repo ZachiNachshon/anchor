@@ -3,9 +3,9 @@ package printer
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/logger"
-
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/ZachiNachshon/anchor/pkg/utils/templates"
+	"github.com/manifoldco/promptui"
 )
 
 const (
@@ -15,8 +15,11 @@ const (
 type Printer interface {
 	PrintAnchorBanner()
 	PrintAnchorVersion(version string)
-	PrintApplications(appsStatus []*AppStatusTemplateItem)
+	PrintApplicationsStatus(appsStatus []*AppStatusTemplateItem)
 	PrintConfiguration(cfgFilePath string, cfgText string)
+
+	PrepareRunActionPlainer(actionId string) PrinterPlainer
+	PrepareRunActionSpinner(actionId string, scriptOutputPath string) PrinterSpinner
 }
 
 func (as *AppStatusTemplateItem) CalculateValidity() {
@@ -50,7 +53,7 @@ func (p *printerImpl) PrintAnchorVersion(version string) {
 	fmt.Println(version)
 }
 
-func (p *printerImpl) PrintApplications(appsStatus []*AppStatusTemplateItem) {
+func (p *printerImpl) PrintApplicationsStatus(appsStatus []*AppStatusTemplateItem) {
 	data := struct {
 		AppsStatusItems []*AppStatusTemplateItem
 		Count           int
@@ -75,4 +78,59 @@ func (p *printerImpl) PrintConfiguration(cfgFilePath string, cfgText string) {
 	} else {
 		fmt.Print(text)
 	}
+}
+
+func (p *printerImpl) PrepareRunActionPlainer(actionId string) PrinterPlainer {
+	return NewPlainer(
+		getPlainerRunActionMessage(actionId),
+		getPlainerSuccessActionMessage(actionId),
+		getPlainerFailureActionMessageFormat(actionId))
+}
+
+func (p *printerImpl) PrepareRunActionSpinner(actionId string, scriptOutputPath string) PrinterSpinner {
+	return NewSpinner(
+		getSpinnerRunActionMessage(actionId),
+		getSpinnerSuccessActionMessage(actionId),
+		getSpinnerFailureActionMessageFormat(actionId, scriptOutputPath))
+}
+
+func getPlainerRunActionMessage(actionId string) string {
+	return fmt.Sprintf(`==> Running %s...
+
+Output:`, actionId)
+}
+
+func getPlainerSuccessActionMessage(actionId string) string {
+	return fmt.Sprintf(`
+Result:
+%s Action %s%s%s completed successfully
+
+`,
+		promptui.IconGood, colors.Cyan, actionId, colors.Reset)
+}
+
+func getPlainerFailureActionMessageFormat(actionId string) string {
+	return fmt.Sprintf(`
+Result:
+%s Action %s%s%s failed
+
+`, promptui.IconBad, colors.Cyan, actionId, colors.Reset)
+}
+
+func getSpinnerRunActionMessage(actionId string) string {
+	return fmt.Sprintf(" Running %s...", actionId)
+}
+
+func getSpinnerSuccessActionMessage(actionId string) string {
+	return fmt.Sprintf("%s Action %s%s%s completed successfully\n\n",
+		promptui.IconGood, colors.Cyan, actionId, colors.Reset)
+}
+
+func getSpinnerFailureActionMessageFormat(actionId string, scriptOutputPath string) string {
+	return fmt.Sprintf(`%s Action %s%s%s failed
+    
+    Reason: %%s
+    Output: %s
+
+`, promptui.IconBad, colors.Cyan, actionId, colors.Reset, scriptOutputPath)
 }

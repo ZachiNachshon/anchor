@@ -9,6 +9,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/controller"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/internal/common"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/spf13/cobra"
 )
@@ -55,16 +56,16 @@ type anchorCmd struct {
 
 var validArgs = []string{"app", "cli", "completion", "config", "controller", "version"}
 
-const verboseFlagName = "verbose"
-
 var verboseFlagValue = false
 
 func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) *anchorCmd {
 	var rootCmd = &cobra.Command{
-		Use:       "anchor",
-		Short:     "Anchor your Ops environment into a version controlled repository",
-		Long:      `Anchor your Ops environment into a version controlled repository`,
-		ValidArgs: validArgs,
+		Use:           "anchor",
+		Short:         "Anchor your Ops environment into a version controlled repository",
+		Long:          `Anchor your Ops environment into a version controlled repository`,
+		ValidArgs:     validArgs,
+		SilenceErrors: true,
+		SilenceUsage:  true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			level := "info"
 			if verboseFlagValue {
@@ -90,7 +91,7 @@ func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) *anchorC
 func initFlags(c *anchorCmd) error {
 	c.cobraCmd.PersistentFlags().BoolVarP(
 		&verboseFlagValue,
-		verboseFlagName,
+		globals.VerboseFlagName,
 		"v",
 		verboseFlagValue,
 		"anchor <command> -v")

@@ -136,39 +136,84 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: RunInstructionActionFailOnMissingScriptToExec,
 		},
 		{
-			Name: "run instruction action: fail to run script",
-			Func: RunInstructionActionFailToRunScript,
+			Name: "run instruction action: fail to execute action",
+			Func: RunInstructionActionFailToExecuteAction,
 		},
 		{
-			Name: "run instruction action: fail to run script file",
-			Func: RunInstructionActionFailToRunScriptFile,
+			Name: "run instruction action: fail to execute verbose action",
+			Func: RunInstructionActionFailToExecuteVerboseAction,
 		},
 		{
-			Name: "run instruction action: run script successfully",
-			Func: RunInstructionActionRunScriptSuccessfully,
+			Name: "run instruction action: run action verbose",
+			Func: RunInstructionActionRunActionVerbose,
 		},
 		{
-			Name: "instruction action exec: fail to ask before running",
+			Name: "run instruction action: run action interactive",
+			Func: RunInstructionActionRunActionInteractive,
+		},
+
+		{
+			Name: "action exec interactive: fail to exec script",
+			Func: ActionExecInteractiveFailToExecScript,
+		},
+		{
+			Name: "action exec interactive: exec script successfully",
+			Func: ActionExecInteractiveExecScriptSuccessfully,
+		},
+		{
+			Name: "action exec interactive: fail to exec script file",
+			Func: ActionExecInteractiveFailToExecScriptFile,
+		},
+		{
+			Name: "action exec interactive: exec script file successfully",
+			Func: ActionExecInteractiveExecScriptFileSuccessfully,
+		},
+		{
+			Name: "action exec interactive: no op when nothing to exec",
+			Func: ActionExecInteractiveNoOpWhenNothingToExec,
+		},
+		{
+			Name: "action exec verbose: fail to exec script",
+			Func: ActionExecVerboseFailToExecScript,
+		},
+		{
+			Name: "action exec verbose: exec script successfully",
+			Func: ActionExecVerboseExecScriptSuccessfully,
+		},
+		{
+			Name: "action exec verbose: fail to exec script file",
+			Func: ActionExecVerboseFailToExecScriptFile,
+		},
+		{
+			Name: "action exec verbose: exec script file successfully",
+			Func: ActionExecVerboseExecScriptFileSuccessfully,
+		},
+		{
+			Name: "action exec verbose: no op when nothing to exec",
+			Func: ActionExecVerboseNoOpWhenNothingToExec,
+		},
+		{
+			Name: "instruction action exec flow: fail to ask before running",
 			Func: InstructionActionExecFailToAskBeforeRunning,
 		},
 		{
-			Name: "instruction action exec: fail to run",
+			Name: "instruction action exec flow: fail to run",
 			Func: InstructionActionExecFailToRun,
 		},
 		{
-			Name: "instruction action exec: fail to wrap after run",
+			Name: "instruction action exec flow: fail to wrap after run",
 			Func: InstructionActionExecFailToWrapAfterRun,
 		},
 		{
-			Name: "instruction action exec: run successfully",
+			Name: "instruction action exec flow: run successfully",
 			Func: InstructionActionExecRunSuccessfully,
 		},
 		{
-			Name: "instruction action exec: fail to ask yes/no question",
+			Name: "instruction action exec flow: fail to ask yes/no question",
 			Func: InstructionActionExecFailToAskYesNoQuestion,
 		},
 		{
-			Name: "instruction action exec: ask yes/no question successfully",
+			Name: "instruction action exec flow: ask yes/no question successfully",
 			Func: InstructionActionExecAskYesNoQuestionSuccessfully,
 		},
 		{
@@ -315,6 +360,12 @@ var PrepareRegistryComponents = func(t *testing.T) {
 		fakeParser := parser.CreateFakeParser()
 		reg.Set(parser.Identifier, fakeParser)
 
+		fakeShell := shell.CreateFakeShell()
+		reg.Set(shell.Identifier, fakeShell)
+
+		fakeInput := input.CreateFakeUserInput()
+		reg.Set(input.Identifier, fakeInput)
+
 		fakeO := NewOrchestrator()
 		err := fakeO.prepareFunc(fakeO, ctx)
 
@@ -324,6 +375,8 @@ var PrepareRegistryComponents = func(t *testing.T) {
 		assert.NotNil(t, fakeO.e)
 		assert.NotNil(t, fakeO.prsr)
 		assert.NotNil(t, fakeO.prntr)
+		assert.NotNil(t, fakeO.s)
+		assert.NotNil(t, fakeO.in)
 	})
 }
 
@@ -337,6 +390,8 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 		fakePrinter := printer.CreateFakePrinter()
 		fakeExtractor := extractor.CreateFakeExtractor()
 		fakeParser := parser.CreateFakeParser()
+		fakeShell := shell.CreateFakeShell()
+		fakeInput := input.CreateFakeUserInput()
 
 		fakeO := NewOrchestrator()
 
@@ -364,6 +419,16 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", printer.Identifier))
 		reg.Set(printer.Identifier, fakePrinter)
+
+		err = fakeO.prepareFunc(fakeO, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", shell.Identifier))
+		reg.Set(shell.Identifier, fakeShell)
+
+		err = fakeO.prepareFunc(fakeO, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", input.Identifier))
+		reg.Set(input.Identifier, fakeInput)
 
 		err = fakeO.prepareFunc(fakeO, ctx)
 		assert.Nil(t, err)
@@ -1102,62 +1167,385 @@ var RunInstructionActionFailOnMissingScriptToExec = func(t *testing.T) {
 	})
 }
 
-var RunInstructionActionFailToRunScript = func(t *testing.T) {
+var RunInstructionActionFailToExecuteAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
-			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteWithOutputToFileMock = func(script string, outputFilePath string) error {
-				return fmt.Errorf("failed to execute script")
-			}
-
 			fakeO := NewOrchestrator()
-			fakeO.s = fakeShell
+			fakeO.verbose = true
+
+			execActionVerboseCallCount := 0
+			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
+				execActionVerboseCallCount++
+				return errors.NewPromptError(fmt.Errorf("failed to execute action"))
+			}
 
 			action1.Script = "some script"
 			action1.ScriptFile = ""
 			err := fakeO.runInstructionActionFunc(fakeO, action1)
 			assert.NotNil(t, err, "expected instructions execution to fail")
-			assert.Contains(t, err.GoError().Error(), "failed to execute script")
+			assert.Contains(t, err.GoError().Error(), "failed to execute action")
+			assert.Equal(t, 1, execActionVerboseCallCount)
 		})
 	})
 }
 
-var RunInstructionActionFailToRunScriptFile = func(t *testing.T) {
+var RunInstructionActionFailToExecuteVerboseAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
-			fakeShell := shell.CreateFakeShell()
-			execCallCount := 0
-			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error {
-				execCallCount++
-				return fmt.Errorf("failed to execute script file")
-			}
-
 			fakeO := NewOrchestrator()
-			fakeO.s = fakeShell
+			fakeO.verbose = false
+
+			execActionCallCount := 0
+			fakeO.executeInstructionActionFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
+				execActionCallCount++
+				return errors.NewPromptError(fmt.Errorf("failed to execute action"))
+			}
 
 			action1.Script = ""
 			action1.ScriptFile = "/path/to/script"
 			err := fakeO.runInstructionActionFunc(fakeO, action1)
 			assert.NotNil(t, err, "expected instructions execution to fail")
-			assert.Contains(t, err.GoError().Error(), "failed to execute script file")
-			assert.Equal(t, 1, execCallCount, "expected func to be called exactly once")
+			assert.Contains(t, err.GoError().Error(), "failed to execute action")
+			assert.Equal(t, 1, execActionCallCount, "expected func to be called exactly once")
 		})
 	})
 }
 
-var RunInstructionActionRunScriptSuccessfully = func(t *testing.T) {
+var RunInstructionActionRunActionVerbose = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 
+			fakeO := NewOrchestrator()
+			fakeO.verbose = true
+			execActionVerboseCallCount := 0
+			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
+				execActionVerboseCallCount++
+				return nil
+			}
+
+			action1.Script = "some script"
+			action1.ScriptFile = ""
+			err := fakeO.runInstructionActionFunc(fakeO, action1)
+			assert.Nil(t, err)
+			assert.Equal(t, 1, execActionVerboseCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var RunInstructionActionRunActionInteractive = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+
+			fakeO := NewOrchestrator()
+			fakeO.verbose = false
+			execActionCallCount := 0
+			fakeO.executeInstructionActionFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
+				execActionCallCount++
+				return nil
+			}
+			action1.Script = "some script"
+			action1.ScriptFile = ""
+			err := fakeO.runInstructionActionFunc(fakeO, action1)
+			assert.Nil(t, err)
+			assert.Equal(t, 1, execActionCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecInteractiveFailToExecScript = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
 			fakeShell := shell.CreateFakeShell()
+
+			fakeSpinner := printer.CreateFakePrinterSpinner()
+			spinCallCount := 0
+			fakeSpinner.SpinMock = func() {
+				spinCallCount++
+			}
+
+			stopOnFailureCallCount := 0
+			fakeSpinner.StopOnFailureMock = func(err error) {
+				stopOnFailureCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
+				return fakeSpinner
+			}
+
+			execCallCount := 0
+			fakeShell.ExecuteSilentlyWithOutputToFileMock = func(script string, outputFilePath string) error {
+				execCallCount++
+				assert.Equal(t, "some script", script)
+				return fmt.Errorf("fail to execute")
+			}
+
+			action1.Script = "some script"
+			action1.ScriptFile = ""
+
+			fakeO := NewOrchestrator()
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionAction(fakeO, action1, "")
+			assert.NotNil(t, err)
+			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecInteractiveExecScriptSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			fakeShell := shell.CreateFakeShell()
+
+			fakeSpinner := printer.CreateFakePrinterSpinner()
+			spinCallCount := 0
+			fakeSpinner.SpinMock = func() {
+				spinCallCount++
+			}
+
+			stopOnSuccessCallCount := 0
+			fakeSpinner.StopOnSuccessMock = func() {
+				stopOnSuccessCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
+				return fakeSpinner
+			}
+
+			execCallCount := 0
+			fakeShell.ExecuteSilentlyWithOutputToFileMock = func(script string, outputFilePath string) error {
+				execCallCount++
+				assert.Equal(t, "some script", script)
+				return nil
+			}
+
+			action1.Script = "some script"
+			action1.ScriptFile = ""
+
+			fakeO := NewOrchestrator()
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionAction(fakeO, action1, "")
+			assert.Nil(t, err)
+			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecInteractiveFailToExecScriptFile = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			fakeShell := shell.CreateFakeShell()
+
+			fakeSpinner := printer.CreateFakePrinterSpinner()
+			spinCallCount := 0
+			fakeSpinner.SpinMock = func() {
+				spinCallCount++
+			}
+
+			stopOnFailureCallCount := 0
+			fakeSpinner.StopOnFailureMock = func(err error) {
+				stopOnFailureCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
+				return fakeSpinner
+			}
+
+			execCallCount := 0
+			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execCallCount++
+				assert.Equal(t, "/path/to/script", relativeScriptPath)
+				return fmt.Errorf("fail to execute")
+			}
+
+			action1.Script = ""
+			action1.ScriptFile = "/path/to/script"
+
+			fakeO := NewOrchestrator()
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionAction(fakeO, action1, "")
+			assert.NotNil(t, err, "expected  to fail")
+			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecInteractiveExecScriptFileSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			fakeShell := shell.CreateFakeShell()
+
+			fakeSpinner := printer.CreateFakePrinterSpinner()
+			spinCallCount := 0
+			fakeSpinner.SpinMock = func() {
+				spinCallCount++
+			}
+
+			stopOnSuccessCallCount := 0
+			fakeSpinner.StopOnSuccessMock = func() {
+				stopOnSuccessCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
+				return fakeSpinner
+			}
+
+			execCallCount := 0
+			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execCallCount++
+				assert.Equal(t, "/path/to/script", relativeScriptPath)
+				return nil
+			}
+
+			action1.Script = ""
+			action1.ScriptFile = "/path/to/script"
+
+			fakeO := NewOrchestrator()
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionAction(fakeO, action1, "")
+			assert.Nil(t, err)
+			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecInteractiveNoOpWhenNothingToExec = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+
+			fakeSpinner := printer.CreateFakePrinterSpinner()
+			spinCallCount := 0
+			fakeSpinner.SpinMock = func() {
+				spinCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
+				return fakeSpinner
+			}
+
+			action1.Script = ""
+			action1.ScriptFile = ""
+
+			fakeO := NewOrchestrator()
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionAction(fakeO, action1, "")
+			assert.Nil(t, err)
+			assert.Equal(t, 0, spinCallCount, "expected no calls to be made")
+		})
+	})
+}
+
+var ActionExecVerboseFailToExecScript = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			fakeShell := shell.CreateFakeShell()
+
+			fakePlainer := printer.CreateFakePrinterPlainer()
+			startCallCount := 0
+			fakePlainer.StartMock = func() {
+				startCallCount++
+			}
+
+			stopOnFailureCallCount := 0
+			fakePlainer.StopOnFailureMock = func(err error) {
+				stopOnFailureCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
+				return fakePlainer
+			}
+
+			execCallCount := 0
+			fakeShell.ExecuteWithOutputToFileMock = func(script string, outputFilePath string) error {
+				execCallCount++
+				assert.Equal(t, "some script", script)
+				return fmt.Errorf("fail to execute")
+			}
+
+			action1.Script = "some script"
+			action1.ScriptFile = ""
+
+			fakeO := NewOrchestrator()
+			fakeO.verbose = true
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionActionVerbose(fakeO, action1, "")
+			assert.NotNil(t, err)
+			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecVerboseExecScriptSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			fakeShell := shell.CreateFakeShell()
+
+			fakePlainer := printer.CreateFakePrinterPlainer()
+			startCallCount := 0
+			fakePlainer.StartMock = func() {
+				startCallCount++
+			}
+
+			stopOnSuccessCallCount := 0
+			fakePlainer.StopOnSuccessMock = func() {
+				stopOnSuccessCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
+				return fakePlainer
+			}
+
 			execCallCount := 0
 			fakeShell.ExecuteWithOutputToFileMock = func(script string, outputFilePath string) error {
 				execCallCount++
@@ -1165,14 +1553,140 @@ var RunInstructionActionRunScriptSuccessfully = func(t *testing.T) {
 				return nil
 			}
 
-			fakeO := NewOrchestrator()
-			fakeO.s = fakeShell
-
 			action1.Script = "some script"
 			action1.ScriptFile = ""
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
+
+			fakeO := NewOrchestrator()
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionActionVerbose(fakeO, action1, "")
 			assert.Nil(t, err)
-			assert.Equal(t, 1, execCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecVerboseFailToExecScriptFile = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			fakeShell := shell.CreateFakeShell()
+
+			fakePlainer := printer.CreateFakePrinterPlainer()
+			startCallCount := 0
+			fakePlainer.StartMock = func() {
+				startCallCount++
+			}
+
+			stopOnFailureCallCount := 0
+			fakePlainer.StopOnFailureMock = func(err error) {
+				stopOnFailureCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
+				return fakePlainer
+			}
+
+			execCallCount := 0
+			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execCallCount++
+				assert.Equal(t, "/path/to/script", relativeScriptPath)
+				return fmt.Errorf("fail to execute")
+			}
+
+			action1.Script = ""
+			action1.ScriptFile = "/path/to/script"
+
+			fakeO := NewOrchestrator()
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionActionVerbose(fakeO, action1, "")
+			assert.NotNil(t, err, "expected  to fail")
+			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecVerboseExecScriptFileSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+			fakeShell := shell.CreateFakeShell()
+
+			fakePlainer := printer.CreateFakePrinterPlainer()
+			startCallCount := 0
+			fakePlainer.StartMock = func() {
+				startCallCount++
+			}
+
+			stopOnSuccessCallCount := 0
+			fakePlainer.StopOnSuccessMock = func() {
+				stopOnSuccessCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
+				return fakePlainer
+			}
+
+			execCallCount := 0
+			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+				execCallCount++
+				assert.Equal(t, "/path/to/script", relativeScriptPath)
+				return nil
+			}
+
+			action1.Script = ""
+			action1.ScriptFile = "/path/to/script"
+
+			fakeO := NewOrchestrator()
+			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionActionVerbose(fakeO, action1, "")
+			assert.Nil(t, err)
+			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
+			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var ActionExecVerboseNoOpWhenNothingToExec = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.App1Action1Id)
+
+			fakePlainer := printer.CreateFakePrinterPlainer()
+			startCallCount := 0
+			fakePlainer.StartMock = func() {
+				startCallCount++
+			}
+
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
+				return fakePlainer
+			}
+
+			action1.Script = ""
+			action1.ScriptFile = ""
+
+			fakeO := NewOrchestrator()
+			fakeO.prntr = fakePrinter
+
+			err := executeInstructionActionVerbose(fakeO, action1, "")
+			assert.Nil(t, err)
+			assert.Equal(t, 0, startCallCount, "expected no calls to be made")
 		})
 	})
 }

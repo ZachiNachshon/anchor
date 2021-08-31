@@ -4,8 +4,7 @@ GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 default: help
 
 build: fmtcheck ## Build project, format check and install to bin folder
-	go build ./...
-	go install ./cmd/anchor/*.go
+	go build -o $(GOPATH)/bin/anchor ./cmd/anchor/*.go
 
 fmt: ## Format go files
 	gofmt -w $(GOFMT_FILES)

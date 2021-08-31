@@ -93,51 +93,51 @@ func (lr *logrusAdapterImpl) SetFileVerbosityLevel(level string) error {
 }
 
 func (lr *logrusAdapterImpl) Debug(msg string) {
-	lr.stdoutLogger.Debug(msg)
+	//lr.stdoutLogger.Debug(msg)
 	lr.fileLogger.Debug(msg)
 }
 
 func (lr *logrusAdapterImpl) Debugf(format string, args ...interface{}) {
-	lr.stdoutLogger.Debugf(format, args...)
+	//lr.stdoutLogger.Debugf(format, args...)
 	lr.fileLogger.Debugf(format, args...)
 }
 
 func (lr *logrusAdapterImpl) Info(msg string) {
-	lr.stdoutLogger.Info(msg)
+	//lr.stdoutLogger.Info(msg)
 	lr.fileLogger.Info(msg)
 }
 
 func (lr *logrusAdapterImpl) Infof(format string, args ...interface{}) {
-	lr.stdoutLogger.Infof(format, args...)
+	//lr.stdoutLogger.Infof(format, args...)
 	lr.fileLogger.Infof(format, args...)
 }
 
 func (lr *logrusAdapterImpl) Warning(msg string) {
-	lr.stdoutLogger.Warning(msg)
+	//lr.stdoutLogger.Warning(msg)
 	lr.fileLogger.Warning(msg)
 }
 
 func (lr *logrusAdapterImpl) Warningf(format string, args ...interface{}) {
-	lr.stdoutLogger.Warningf(format, args...)
+	//lr.stdoutLogger.Warningf(format, args...)
 	lr.fileLogger.Warningf(format, args...)
 }
 
 func (lr *logrusAdapterImpl) Error(msg string) {
-	lr.stdoutLogger.Error(msg)
+	//lr.stdoutLogger.Error(msg)
 	lr.fileLogger.Error(msg)
 }
 
 func (lr *logrusAdapterImpl) Errorf(format string, args ...interface{}) {
-	lr.stdoutLogger.Errorf(format, args...)
+	//lr.stdoutLogger.Errorf(format, args...)
 	lr.fileLogger.Errorf(format, args...)
 }
 
 func (lr *logrusAdapterImpl) Fatal(msg string) {
-	lr.stdoutLogger.Fatal(msg)
+	//lr.stdoutLogger.Fatal(msg)
 	lr.fileLogger.Fatal(msg)
 }
 
 func (lr *logrusAdapterImpl) Fatalf(format string, args ...interface{}) {
-	lr.stdoutLogger.Fatalf(format, args...)
+	//lr.stdoutLogger.Fatalf(format, args...)
 	lr.fileLogger.Fatalf(format, args...)
 }

@@ -6,15 +6,17 @@ var CreateFakeShell = func() *fakeShell {
 
 type fakeShell struct {
 	Shell
-	ExecuteMock                           func(script string) error
-	ExecuteWithOutputToFileMock           func(script string, outputFilePath string) error
-	ExecuteSilentlyMock                   func(script string) error
-	ExecuteScriptFileMock                 func(dir string, relativeScriptPath string, args ...string) error
-	ExecuteScriptFileWithOutputToFileMock func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error
-	ExecuteWithOutputMock                 func(script string) (string, error)
-	ExecuteTTYMock                        func(script string) error
-	ExecuteInBackgroundMock               func(script string) error
-	ClearScreenMock                       func() error
+	ExecuteMock                                   func(script string) error
+	ExecuteWithOutputToFileMock                   func(script string, outputFilePath string) error
+	ExecuteSilentlyWithOutputToFileMock           func(script string, outputFilePath string) error
+	ExecuteSilentlyMock                           func(script string) error
+	ExecuteScriptFileMock                         func(dir string, relativeScriptPath string, args ...string) error
+	ExecuteScriptFileWithOutputToFileMock         func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error
+	ExecuteScriptFileSilentlyWithOutputToFileMock func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error
+	ExecuteWithOutputMock                         func(script string) (string, error)
+	ExecuteTTYMock                                func(script string) error
+	ExecuteInBackgroundMock                       func(script string) error
+	ClearScreenMock                               func() error
 }
 
 func (s *fakeShell) Execute(script string) error {
@@ -23,6 +25,10 @@ func (s *fakeShell) Execute(script string) error {
 
 func (s *fakeShell) ExecuteWithOutputToFile(script string, outputFilePath string) error {
 	return s.ExecuteWithOutputToFileMock(script, outputFilePath)
+}
+
+func (s *fakeShell) ExecuteSilentlyWithOutputToFile(script string, outputFilePath string) error {
+	return s.ExecuteSilentlyWithOutputToFileMock(script, outputFilePath)
 }
 
 func (s *fakeShell) ExecuteSilently(script string) error {
@@ -40,6 +46,15 @@ func (s *fakeShell) ExecuteScriptFileWithOutputToFile(
 	args ...string) error {
 
 	return s.ExecuteScriptFileWithOutputToFileMock(workingDirectory, relativeScriptPath, outputFilePath, args...)
+}
+
+func (s *fakeShell) ExecuteScriptFileSilentlyWithOutputToFile(
+	workingDirectory string,
+	relativeScriptPath string,
+	outputFilePath string,
+	args ...string) error {
+
+	return s.ExecuteScriptFileSilentlyWithOutputToFileMock(workingDirectory, relativeScriptPath, outputFilePath, args...)
 }
 
 func (s *fakeShell) ExecuteReturnOutput(script string) (string, error) {

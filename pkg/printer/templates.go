@@ -30,4 +30,5 @@ var appStatusTemplate = `{{ "There are " | cyan }}{{ .Count | green }}{{ " avail
     • {{ "Invalid instructions.yaml file format" | red }} 
     {{ end }}
   {{- end }}
-{{ end }}`
+{{ end }}
+`

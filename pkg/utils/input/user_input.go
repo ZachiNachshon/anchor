@@ -29,7 +29,7 @@ func New() UserInput {
 }
 
 func (input *userInputImpl) PressAnyKeyToContinue() error {
-	fmt.Print("\nPress any key to continue...\n")
+	fmt.Print("Press any key to continue...\n")
 	reader := bufio.NewReader(os.Stdin)
 	_, _, err := reader.ReadRune()
 	return err

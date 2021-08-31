@@ -1,7 +1,6 @@
 package ioutils
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -19,7 +18,6 @@ func GetRepositoryAbsoluteRootPath(path string) string {
 	for found := false; !found && dirPath != "/"; {
 		if dirName == repositoryName {
 			found = IsValidPath(dirPath+"/go.mod") || IsValidPath(dirPath+"/.git")
-			fmt.Printf("found: %v, dirPath: %s\n", found, dirPath)
 		}
 		if found {
 			break

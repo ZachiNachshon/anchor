@@ -9,11 +9,10 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
-	"github.com/ZachiNachshon/anchor/pkg/utils/input"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
-
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
+	"github.com/ZachiNachshon/anchor/pkg/utils/input"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/manifoldco/promptui"
 )
 
@@ -40,6 +39,8 @@ type selectOrchestrator struct {
 	s     shell.Shell
 	in    input.UserInput
 	prntr printer.Printer
+
+	verbose bool
 
 	// --- CLI Command ---
 	prepareFunc func(o *selectOrchestrator, ctx common.Context) error
@@ -79,6 +80,16 @@ type selectOrchestrator struct {
 		o *selectOrchestrator,
 		action *models.Action) *errors.PromptError
 
+	executeInstructionActionFunc func(
+		o *selectOrchestrator,
+		action *models.Action,
+		scriptOutputPath string) *errors.PromptError
+
+	executeInstructionActionVerboseFunc func(
+		o *selectOrchestrator,
+		action *models.Action,
+		scriptOutputPath string) *errors.PromptError
+
 	// --- Workflow ---
 	startInstructionWorkflowSelectionFlowFunc func(
 		o *selectOrchestrator,
@@ -108,6 +119,8 @@ type selectOrchestrator struct {
 
 func NewOrchestrator() *selectOrchestrator {
 	return &selectOrchestrator{
+		verbose: false,
+
 		// --- CLI Command ---
 		bannerFunc:  banner,
 		prepareFunc: prepare,
@@ -125,6 +138,8 @@ func NewOrchestrator() *selectOrchestrator {
 		startInstructionActionExecutionFlowFunc: startInstructionActionExecutionFlow,
 		askBeforeRunningInstructionActionFunc:   askBeforeRunningInstructionAction,
 		runInstructionActionFunc:                runInstructionAction,
+		executeInstructionActionFunc:            executeInstructionAction,
+		executeInstructionActionVerboseFunc:     executeInstructionActionVerbose,
 
 		// --- Workflow ---
 		startInstructionWorkflowSelectionFlowFunc: startInstructionWorkflowSelectionFlow,
@@ -164,6 +179,18 @@ func prepare(o *selectOrchestrator, ctx common.Context) error {
 		return err
 	} else {
 		o.prntr = resolved.(printer.Printer)
+	}
+
+	if resolved, err := ctx.Registry().SafeGet(shell.Identifier); err != nil {
+		return err
+	} else {
+		o.s = resolved.(shell.Shell)
+	}
+
+	if resolved, err := ctx.Registry().SafeGet(input.Identifier); err != nil {
+		return err
+	} else {
+		o.in = resolved.(input.UserInput)
 	}
 	return nil
 }
@@ -250,18 +277,63 @@ func runInstructionAction(o *selectOrchestrator, action *models.Action) *errors.
 		return errors.NewPromptError(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
 	}
 
+	if o.verbose {
+		return o.executeInstructionActionVerboseFunc(o, action, scriptOutputPath)
+	} else {
+		return o.executeInstructionActionFunc(o, action, scriptOutputPath)
+	}
+}
+
+func executeInstructionAction(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
+	spnr := o.prntr.PrepareRunActionSpinner(action.Id, scriptOutputPath)
+
 	if len(action.Script) > 0 {
-		if err := o.s.ExecuteWithOutputToFile(action.Script, scriptOutputPath); err != nil {
+		spnr.Spin()
+		if err := o.s.ExecuteSilentlyWithOutputToFile(action.Script, scriptOutputPath); err != nil {
+			logger.Errorf("failed to run action. id: %s, source: script, error: %s", action.Id, err.Error())
+			spnr.StopOnFailure(err)
 			return errors.NewPromptError(err)
 		}
+		spnr.StopOnSuccess()
 	} else if len(action.ScriptFile) > 0 {
+		spnr.Spin()
+		if err := o.s.ExecuteScriptFileSilentlyWithOutputToFile(
+			action.AnchorfilesRepoPath,
+			action.ScriptFile,
+			scriptOutputPath); err != nil {
+
+			logger.Errorf("failed to run action. id: %s, source: script file, error: %s", action.Id, err.Error())
+			spnr.StopOnFailure(err)
+			return errors.NewPromptError(err)
+		}
+		spnr.StopOnSuccess()
+	}
+	return nil
+}
+
+func executeInstructionActionVerbose(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
+	plainer := o.prntr.PrepareRunActionPlainer(action.Id)
+
+	if len(action.Script) > 0 {
+		plainer.Start()
+		if err := o.s.ExecuteWithOutputToFile(action.Script, scriptOutputPath); err != nil {
+			plainer.StopOnFailure(err)
+			logger.Errorf("failed to run action. id: %s, source: script, error: %s", action.Id, err.Error())
+			return errors.NewPromptError(err)
+		}
+		plainer.StopOnSuccess()
+	} else if len(action.ScriptFile) > 0 {
+		plainer.Start()
 		if err := o.s.ExecuteScriptFileWithOutputToFile(
 			action.AnchorfilesRepoPath,
 			action.ScriptFile,
 			scriptOutputPath); err != nil {
 
+			logger.Errorf("failed to run action. id: %s, source: script file, error: %s", action.Id, err.Error())
+			plainer.StopOnFailure(err)
 			return errors.NewPromptError(err)
 		}
+		plainer.StopOnSuccess()
 	}
 	return nil
 }
@@ -283,7 +355,7 @@ func startInstructionActionSelectionFlow(
 		appendInstructionWorkflowsCustomOptions(instructionRoot.Instructions)
 		workflows := instructionRoot.Instructions.Workflows
 		logger.Debugf("Selected to prompt for instruction workflows menu. id: %v", action.Id)
-		if _, promptErr := o.startInstructionWorkflowSelectionFlowFunc(o, app, workflows, actions); promptErr != nil {
+		if _, promptErr = o.startInstructionWorkflowSelectionFlowFunc(o, app, workflows, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
 			return o.startInstructionActionSelectionFlowFunc(o, app, instructionRoot)

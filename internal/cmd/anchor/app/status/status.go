@@ -91,6 +91,6 @@ func run(o *statusOrchestrator, ctx common.Context) error {
 		appStatus = append(appStatus, status)
 	}
 
-	o.prntr.PrintApplications(appStatus)
+	o.prntr.PrintApplicationsStatus(appStatus)
 	return nil
 }

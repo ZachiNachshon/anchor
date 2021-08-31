@@ -27,8 +27,15 @@ type Shell interface {
 		outputFilePath string,
 		args ...string) error
 
+	ExecuteScriptFileSilentlyWithOutputToFile(
+		workingDirectory string,
+		relativeScriptPath string,
+		outputFilePath string,
+		args ...string) error
+
 	Execute(script string) error
 	ExecuteWithOutputToFile(script string, outputFilePath string) error
+	ExecuteSilentlyWithOutputToFile(script string, outputFilePath string) error
 
 	ExecuteReturnOutput(script string) (string, error)
 	ExecuteSilently(script string) error
@@ -111,6 +118,39 @@ func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
 	return nil
 }
 
+func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
+	workingDirectory string,
+	relativeScriptPath string,
+	outputFilePath string,
+	args ...string) error {
+
+	path := fmt.Sprintf("%s/%s", workingDirectory, relativeScriptPath)
+	// Args must include the command as Args[0]
+	slice := append([]string{path}, args...)
+
+	cmd := &exec.Cmd{
+		Path: path,
+		Args: slice,
+		Dir:  workingDirectory,
+	}
+
+	file, err := ioutils.CreateOrOpenFile(outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	var _, stderrBuf bytes.Buffer
+	// Script execution sends output to stderr instead of stdout
+	cmd.Stderr = file
+
+	err = cmd.Run()
+	if err != nil {
+		errStr := string(stderrBuf.Bytes())
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
+	}
+	return nil
+}
+
 func (s *shellExecutor) Execute(script string) error {
 	cmd := exec.Command(string(s.shellType), "-c", script)
 	cmd.Stdout = os.Stdout
@@ -144,6 +184,26 @@ func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath st
 	return nil
 }
 
+func (s *shellExecutor) ExecuteSilentlyWithOutputToFile(script string, outputFilePath string) error {
+	cmd := exec.Command(string(s.shellType), "-c", script)
+
+	file, err := ioutils.CreateOrOpenFile(outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	var _, stderrBuf bytes.Buffer
+	cmd.Stdout = file
+	cmd.Stderr = file
+
+	err = cmd.Run()
+	if err != nil {
+		errStr := string(stderrBuf.Bytes())
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
+	}
+	return nil
+}
+
 // ExecuteTTY example was inspired by - https://github.com/creack/pty#shell
 func (s *shellExecutor) ExecuteTTY(script string) error {
 	c := exec.Command(string(s.shellType), "-c", script)
@@ -161,8 +221,8 @@ func (s *shellExecutor) ExecuteTTY(script string) error {
 	signal.Notify(ch, syscall.SIGWINCH)
 	go func() {
 		for range ch {
-			if err := pty.InheritSize(os.Stdin, ptmx); err != nil {
-				logger.Debugf("error resizing pty: %s", err)
+			if err = pty.InheritSize(os.Stdin, ptmx); err != nil {
+				logger.Errorf("error resizing pty: %s", err)
 			}
 		}
 	}()

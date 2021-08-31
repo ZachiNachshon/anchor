@@ -46,7 +46,7 @@ var collaborators = &MainCollaborators{
 }
 
 var exitApplication = func(code int, message string) {
-	fmt.Printf(message)
+	fmt.Printf(message + "\n\n")
 	os.Exit(code)
 }
 
@@ -118,7 +118,6 @@ func initRegistry(ctx common.Context) error {
 	in := input.New()
 	reg.Set(input.Identifier, in)
 
-	//registry.Append().Clipboard = clipboard.NewManager(registry.Append().shell)
 	return nil
 }
 

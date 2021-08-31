@@ -10,8 +10,8 @@ import (
 	"testing"
 )
 
-const instructionsFileName string = "instructions.yaml"
 const anchorfilesTestRelativePath string = "test/data/anchorfiles"
+const instructionsFileName string = "instructions.yaml"
 
 func prepareInstructionTestFilePath() string {
 	path, _ := ioutils.GetWorkingDirectory()
@@ -30,8 +30,8 @@ func Test_ExtractorShould(t *testing.T) {
 			Func: FailedToParseExtractedInstructions,
 		},
 		{
-			Name: "extract actions from instructions successfully",
-			Func: ExtractActionsFromInstructionsSuccessfully,
+			Name: "extract instructions successfully",
+			Func: ExtractInstructionsSuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -58,7 +58,7 @@ var FailedToParseExtractedInstructions = func(t *testing.T) {
 	assert.Nil(t, instRoot)
 }
 
-var ExtractActionsFromInstructionsSuccessfully = func(t *testing.T) {
+var ExtractInstructionsSuccessfully = func(t *testing.T) {
 	path := prepareInstructionTestFilePath()
 	ext := New()
 	instRoot, err := ext.ExtractInstructions(path, parser.New())

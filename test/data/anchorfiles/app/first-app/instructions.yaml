@@ -6,6 +6,7 @@ instructions:
       script: |
         echo "Hello"
         echo "World"
+        sleep 2
 #      scriptFile: app/first-app/sub-folder/hello_world.sh
 
     - id: goodbye-world
@@ -19,12 +20,14 @@ instructions:
   workflows:
     - id: talk-to-the-world
       description: "Talk to the world, starting from hello up to goodbye"
-      tolerateFailures: false
+      tolerateFailures: true
       actionIds:
         - hello-world
+        - global-hello-world
         - goodbye-world
     - id: talk-to-the-world-again
       description: "Talk to the world again, now only with hello"
       tolerateFailures: false
       actionIds:
         - hello-world
+        - global-hello-world

@@ -24,12 +24,10 @@ func NewCommand(
 	useContextFunc ConfigUseContextFunc) *setContextCmd {
 
 	var cobraCmd = &cobra.Command{
-		Use:           "use-context",
-		Short:         "Sets the current context in the anchor configuration file",
-		Long:          `Sets the current context in the anchor configuration file`,
-		Args:          cobra.ExactArgs(1),
-		SilenceUsage:  true, // Fatal errors are being logged by parent anchor.go
-		SilenceErrors: true, // Fatal errors are being logged by parent anchor.go
+		Use:   "use-context",
+		Short: "Sets the current context in the anchor configuration file",
+		Long:  `Sets the current context in the anchor configuration file`,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgCtxName := args[0]
 			return useContextFunc(ctx, NewOrchestrator(cfgManager, cfgCtxName))

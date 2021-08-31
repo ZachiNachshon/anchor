@@ -61,8 +61,6 @@ func NewCommand(
 		Long:                  `Update config context supported entries`,
 		Args:                  cobra.ExactArgs(1),
 		DisableFlagsInUseLine: true,
-		SilenceUsage:          true, // Fatal errors are being logged by parent anchor.go
-		SilenceErrors:         true, // Fatal errors are being logged by parent anchor.go
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgCtxName := args[0]
 			flags := make(map[string]string)

@@ -3,7 +3,9 @@ package _select
 import (
 	"github.com/ZachiNachshon/anchor/internal/cmd"
 	"github.com/ZachiNachshon/anchor/internal/common"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 type selectCmd struct {
@@ -21,7 +23,14 @@ func NewCommand(ctx common.Context, selectFunc AppSelectFunc) *selectCmd {
 		Long:  `Select an application`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return selectFunc(ctx, NewOrchestrator())
+			verboseFlag := cmd.Flag(globals.VerboseFlagName)
+			orchestrator := NewOrchestrator()
+			if verboseFlag != nil {
+				if isVerbose, err := strconv.ParseBool(verboseFlag.Value.String()); err == nil {
+					orchestrator.verbose = isVerbose
+				}
+			}
+			return selectFunc(ctx, orchestrator)
 		},
 	}
 
