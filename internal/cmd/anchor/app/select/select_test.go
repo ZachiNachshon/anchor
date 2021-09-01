@@ -498,6 +498,14 @@ var AppSelectionFailToExtractInstructions = func(t *testing.T) {
 				return nil, errors.NewPromptError(fmt.Errorf("failed to extract instructions"))
 			}
 
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrintMissingInstructionsMock = func() {}
+			fakeO.prntr = fakePrinter
+
+			fakeO.wrapAfterExecutionFunc = func(o *selectOrchestrator) *errors.PromptError {
+				return nil
+			}
+
 			err := fakeO.startApplicationSelectionFlowFunc(fakeO, ctx.AnchorFilesPath())
 			assert.NotNil(t, err, "expected selection to stop due to keyboard interrupt")
 			assert.Equal(t, "keyboard interrupt the test flow", err.GoError().Error())
@@ -1732,12 +1740,18 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 				return errors.NewPromptError(fmt.Errorf("failed to run instruction"))
 			}
 
+			wrapCallCount := 0
+			fakeO.wrapAfterExecutionFunc = func(o *selectOrchestrator) *errors.PromptError {
+				wrapCallCount++
+				return nil
+			}
+
 			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
-			assert.Nil(t, result)
-			assert.NotNil(t, err, "expected instructions action execution to fail")
-			assert.Equal(t, "failed to run instruction", err.GoError().Error())
+			assert.Nil(t, err, "expected not to fail instructions action selection")
+			assert.NotNil(t, result)
 			assert.Equal(t, 1, askBeforeCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, runInstructionCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 1, wrapCallCount, "expected func to be called exactly once")
 		})
 	})
 }

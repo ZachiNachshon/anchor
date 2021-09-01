@@ -1,6 +1,8 @@
 package printer
 
-import "github.com/ZachiNachshon/anchor/pkg/prompter"
+import (
+	"github.com/manifoldco/promptui"
+)
 
 type AppStatusTemplateItem struct {
 	Name                     string
@@ -20,9 +22,9 @@ var appStatusTemplate = `{{ "There are " | cyan }}{{ .Count | green }}{{ " avail
 
 {{ range $element := .AppsStatusItems }}
   {{- if (eq $element.IsValid true) }} ` +
-	prompter.CheckMarkEmoji + ` {{ $element.Name }}
+	promptui.IconGood + ` {{ $element.Name }}
   {{- else }} ` +
-	prompter.CrossMarkEmoji + ` {{ $element.Name }}
+	promptui.IconBad + ` {{ $element.Name }}
     {{- if (eq $element.MissingInstructionFile true) }}
     • {{ "Missing instructions.yaml file" | red }} 
     {{ end }}

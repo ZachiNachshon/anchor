@@ -211,6 +211,8 @@ func startApplicationSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath st
 	} else {
 		instRoot, promptError := o.extractInstructionsFunc(o, app, anchorfilesRepoPath)
 		if promptError != nil {
+			o.prntr.PrintMissingInstructions()
+			_ = o.wrapAfterExecutionFunc(o)
 			return o.startApplicationSelectionFlowFunc(o, anchorfilesRepoPath)
 		}
 
@@ -422,9 +424,8 @@ func startInstructionActionExecutionFlow(
 		logger.Debugf("failed to ask before running an instruction action. error: %s", promptError.GoError().Error())
 		return nil, promptError
 	} else if shouldRun {
-		if promptErr := o.runInstructionActionFunc(o, action); promptErr != nil {
-			return nil, promptErr
-		}
+		// Do not break selection flow upon action failure
+		_ = o.runInstructionActionFunc(o, action)
 		if promptErr := o.wrapAfterExecutionFunc(o); promptErr != nil {
 			return nil, promptErr
 		}

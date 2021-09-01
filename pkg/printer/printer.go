@@ -2,6 +2,7 @@ package printer
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/ZachiNachshon/anchor/pkg/utils/templates"
@@ -17,6 +18,7 @@ type Printer interface {
 	PrintAnchorVersion(version string)
 	PrintApplicationsStatus(appsStatus []*AppStatusTemplateItem)
 	PrintConfiguration(cfgFilePath string, cfgText string)
+	PrintMissingInstructions()
 
 	PrepareRunActionPlainer(actionId string) PrinterPlainer
 	PrepareRunActionSpinner(actionId string, scriptOutputPath string) PrinterSpinner
@@ -78,6 +80,10 @@ func (p *printerImpl) PrintConfiguration(cfgFilePath string, cfgText string) {
 	} else {
 		fmt.Print(text)
 	}
+}
+
+func (p *printerImpl) PrintMissingInstructions() {
+	fmt.Printf("%sMissing file: %s%s\n\n", colors.Red, globals.InstructionsFileName, colors.Reset)
 }
 
 func (p *printerImpl) PrepareRunActionPlainer(actionId string) PrinterPlainer {

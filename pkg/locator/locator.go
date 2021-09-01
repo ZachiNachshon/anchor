@@ -3,6 +3,7 @@ package locator
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/errors"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/models"
 
@@ -47,7 +48,6 @@ const (
 	controller           DirectoryIdentifier = "controller"
 	docker               DirectoryIdentifier = "docker"
 	k8s                  DirectoryIdentifier = "k8s"
-	instructionsFileName string              = "instructions.yaml"
 	anchorIgnoreFileName string              = ".anchorignore"
 )
 
@@ -63,7 +63,7 @@ func newAppContent(name string, path string) *models.ApplicationInfo {
 	return &models.ApplicationInfo{
 		Name:             name,
 		DirPath:          path,
-		InstructionsPath: fmt.Sprintf("%s/%s", path, instructionsFileName),
+		InstructionsPath: fmt.Sprintf("%s/%s", path, globals.InstructionsFileName),
 	}
 }
 

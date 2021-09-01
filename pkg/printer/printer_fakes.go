@@ -6,12 +6,13 @@ var CreateFakePrinter = func() *fakePrinter {
 
 type fakePrinter struct {
 	Printer
-	PrintAnchorBannerMock       func()
-	PrintAnchorVersionMock      func(version string)
-	PrintApplicationsStatusMock func(apps []*AppStatusTemplateItem)
-	PrintConfigurationMock      func(cfgFilePath string, cfgText string)
-	PrepareRunActionPlainerMock func(actionId string) PrinterPlainer
-	PrepareRunActionSpinnerMock func(actionId string, scriptOutputPath string) PrinterSpinner
+	PrintAnchorBannerMock        func()
+	PrintAnchorVersionMock       func(version string)
+	PrintApplicationsStatusMock  func(apps []*AppStatusTemplateItem)
+	PrintConfigurationMock       func(cfgFilePath string, cfgText string)
+	PrintMissingInstructionsMock func()
+	PrepareRunActionPlainerMock  func(actionId string) PrinterPlainer
+	PrepareRunActionSpinnerMock  func(actionId string, scriptOutputPath string) PrinterSpinner
 }
 
 func (p *fakePrinter) PrintAnchorBanner() {
@@ -28,6 +29,10 @@ func (p *fakePrinter) PrintApplicationsStatus(apps []*AppStatusTemplateItem) {
 
 func (p *fakePrinter) PrintConfiguration(cfgFilePath string, cfgText string) {
 	p.PrintConfigurationMock(cfgFilePath, cfgText)
+}
+
+func (p *fakePrinter) PrintMissingInstructions() {
+	p.PrintMissingInstructionsMock()
 }
 
 func (p *fakePrinter) PrepareRunActionPlainer(actionId string) PrinterPlainer {
