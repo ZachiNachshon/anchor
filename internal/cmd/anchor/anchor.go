@@ -47,7 +47,7 @@ func loadConfigContext(
 
 func loadRepository(ctx common.Context) (string, error) {
 	cfg := config.FromContext(ctx)
-	if repo, err := repository.GetRepositoryOriginByConfig(cfg.Config.ActiveContext.Context.Repository); err != nil {
+	if repo, err := repository.GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository); err != nil {
 		return "", err
 	} else {
 		if repoPath, err := repo.Load(ctx); err != nil {

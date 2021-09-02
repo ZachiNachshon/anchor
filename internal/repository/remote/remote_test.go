@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -374,9 +375,27 @@ config:
 					checkoutCallCount++
 					return nil
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopSuccessCallCount := 0
+				fakeSpinner.StopOnSuccessMock = func() {
+					stopSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				repo := &RemoteRepository{
 					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
+					Printer:       fakePrinter,
 				}
 				repoPath, err := repo.Load(ctx)
 				assert.Equal(t, 1, verifyConfigCallCount)
@@ -386,6 +405,8 @@ config:
 				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
 				assert.Equal(t, 1, printRevisionsDiffCallCount)
 				assert.Equal(t, 1, checkoutCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopSuccessCallCount)
 				assert.Nil(t, err, "expected to succeed on remote resolver")
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})
@@ -449,9 +470,28 @@ config:
 					checkoutCallCount++
 					return nil
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopCustomSuccessCallCount := 0
+				fakeSpinner.StopOnSuccessWithCustomMessageMock = func(message string) {
+					assert.Contains(t, message, "already up to date")
+					stopCustomSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				repo := &RemoteRepository{
 					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
+					Printer:       fakePrinter,
 				}
 				repoPath, err := repo.Load(ctx)
 				assert.Equal(t, 1, verifyConfigCallCount)
@@ -461,6 +501,8 @@ config:
 				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
 				assert.Equal(t, 0, printRevisionsDiffCallCount)
 				assert.Equal(t, 1, checkoutCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopCustomSuccessCallCount)
 				assert.Nil(t, err, "expected to succeed on remote resolver")
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})
@@ -503,14 +545,34 @@ config:
 					tryFetchLocalOriginCallCount++
 					return "", fmt.Errorf("fail to fetch local origin revision")
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopCustomSuccessCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopCustomSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				repo := &RemoteRepository{
 					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
+					Printer:       fakePrinter,
 				}
 				repoPath, err := repo.Load(ctx)
 				assert.Equal(t, 1, verifyConfigCallCount)
 				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
 				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopCustomSuccessCallCount)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, "fail to fetch local origin revision", err.Error())
 				assert.Equal(t, "", repoPath, "expected to have invalid repository path")
@@ -560,15 +622,35 @@ config:
 					tryFetchRemoteHeadCallCount++
 					return "", fmt.Errorf("fail to fetch remote HEAD revision")
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopCustomSuccessCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopCustomSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				repo := &RemoteRepository{
 					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
+					Printer:       fakePrinter,
 				}
 				repoPath, err := repo.Load(ctx)
 				assert.Equal(t, 1, verifyConfigCallCount)
 				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
 				assert.Equal(t, 1, tryFetchRemoteHeadCallCount)
 				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopCustomSuccessCallCount)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, "fail to fetch remote HEAD revision", err.Error())
 				assert.Equal(t, "", repoPath, "expected to have invalid repository path")
@@ -623,9 +705,27 @@ config:
 					tryResetToRevisionCallCount++
 					return fmt.Errorf("failed to reset to revision")
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopCustomSuccessCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopCustomSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				repo := &RemoteRepository{
 					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
+					Printer:       fakePrinter,
 				}
 				repoPath, err := repo.Load(ctx)
 				assert.Equal(t, 1, verifyConfigCallCount)
@@ -633,6 +733,8 @@ config:
 				assert.Equal(t, 1, tryResetToRevisionCallCount)
 				assert.Equal(t, 1, tryFetchRemoteHeadCallCount)
 				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopCustomSuccessCallCount)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
 				assert.Equal(t, "failed to reset to revision", err.Error())
 				assert.Equal(t, "", repoPath, "expected to have invalid repository path")
@@ -697,9 +799,27 @@ config:
 					checkoutCallCount++
 					return nil
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopSuccessCallCount := 0
+				fakeSpinner.StopOnSuccessMock = func() {
+					stopSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				repo := &RemoteRepository{
 					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
 					RemoteActions: fakeRemoteActions,
+					Printer:       fakePrinter,
 				}
 				repoPath, err := repo.Load(ctx)
 				assert.Equal(t, 1, verifyConfigCallCount)
@@ -709,6 +829,8 @@ config:
 				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
 				assert.Equal(t, 1, printRevisionsDiffCallCount)
 				assert.Equal(t, 1, checkoutCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopSuccessCallCount)
 				assert.Nil(t, err, "expected to succeed on remote resolver")
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
 			})

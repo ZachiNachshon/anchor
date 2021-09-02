@@ -121,7 +121,7 @@ func (g *gitImpl) LogRevisionsDiffPretty(path string, prevRevision string, newRe
 --graph \
 --pretty='%%C(Yellow)%%h%%Creset %%<(5) %%C(auto)%%s%%Creset %%Cgreen(%%ad) %%C(bold blue)<%%an>%%Creset' \
 --date=short %s..%s`, path, prevRevision, newRevision)
-	fmt.Print("\nCommits:\n\n")
+	fmt.Print("\n\nCommits:\n\n")
 	err := g.shell.Execute(script)
 	if err != nil {
 		return err

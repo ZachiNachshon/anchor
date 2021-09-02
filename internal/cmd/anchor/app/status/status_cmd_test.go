@@ -34,6 +34,18 @@ func Test_StatusCommandShould(t *testing.T) {
 			Name: "add itself to parent command",
 			Func: AddItselfToParentCommand,
 		},
+		{
+			Name: "fail on mutual exclusive flags",
+			Func: FailOnMutualExclusiveFlags,
+		},
+		{
+			Name: "start status command with all flags",
+			Func: StartStatusCommandWithAllFlags,
+		},
+		{
+			Name: "fail to initialize flags",
+			Func: FailToInitializeFlags,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -107,5 +119,46 @@ var AddItselfToParentCommand = func(t *testing.T) {
 		cmds := parentCmd.GetCobraCmd().Commands()
 		assert.Equal(t, 1, len(cmds))
 		assert.Equal(t, "status", cmds[0].Use)
+	})
+}
+
+var FailOnMutualExclusiveFlags = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		command := NewCommand(ctx, nil)
+		_ = command.initFlagsFunc(command)
+		_, err := drivers.CLI().RunCommand(command,
+			fmt.Sprintf("--%s", validStatusOnlyFlagName),
+			fmt.Sprintf("--%s", invalidStatusOnlyFlagName))
+
+		assert.NotNil(t, err, "expected cli action to fail")
+		assert.Contains(t, err.Error(), "mutual exclusive flags")
+	})
+}
+
+var StartStatusCommandWithAllFlags = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		command := NewCommand(ctx, nil)
+		err := command.initFlagsFunc(command)
+		assert.Nil(t, err, "expected flags init to have no errors")
+		assert.NotNil(t, command.GetCobraCmd().Flag(validStatusOnlyFlagName), "expected flag to exist")
+		assert.NotNil(t, command.GetCobraCmd().Flag(invalidStatusOnlyFlagName), "expected flag to exist")
+	})
+}
+
+var FailToInitializeFlags = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		parentCmd := NewCommand(ctx, nil)
+
+		var newCmdFunc NewCommandFunc = func(ctx common.Context, statusFunc AppStatusFunc) *statusCmd {
+			c := NewCommand(ctx, nil)
+			c.initFlagsFunc = func(o *statusCmd) error {
+				return fmt.Errorf("failed to initialize flags")
+			}
+			return c
+		}
+
+		err := AddCommand(parentCmd, newCmdFunc)
+		assert.NotNil(t, err, "expected add command to fail")
+		assert.Equal(t, "failed to initialize flags", err.Error())
 	})
 }

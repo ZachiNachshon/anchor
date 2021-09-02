@@ -8,6 +8,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/repository/local"
 	"github.com/ZachiNachshon/anchor/internal/repository/remote"
 	"github.com/ZachiNachshon/anchor/pkg/git"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
@@ -15,7 +16,7 @@ type Repository interface {
 	Load(ctx common.Context) (string, error)
 }
 
-var GetRepositoryOriginByConfig = func(repoConfig *config.Repository) (Repository, error) {
+var GetRepositoryOriginByConfig = func(ctx common.Context, repoConfig *config.Repository) (Repository, error) {
 	// Checks if repository config attribute is empty
 	if repoConfig == nil {
 		return nil, fmt.Errorf("missing required config value. name: repository")
@@ -26,14 +27,18 @@ var GetRepositoryOriginByConfig = func(repoConfig *config.Repository) (Repositor
 		return &local.LocalRepository{
 			LocalConfig: repoConfig.Local,
 		}, nil
-
 	} else if repoConfig.Remote != nil {
 		logger.Debugf("Using remote anchorfiles repository")
 		g := git.New(shell.New())
-		return &remote.RemoteRepository{
-			RemoteConfig:  repoConfig.Remote,
-			RemoteActions: remote.NewRemoteActions(g),
-		}, nil
+		if prntr, err := ctx.Registry().SafeGet(printer.Identifier); err != nil {
+			return nil, err
+		} else {
+			return &remote.RemoteRepository{
+				RemoteConfig:  repoConfig.Remote,
+				RemoteActions: remote.NewRemoteActions(g),
+				Printer:       prntr.(printer.Printer),
+			}, nil
+		}
 	}
 	return nil, fmt.Errorf("could not resolve anchorfiles local repository path or git tracked remote repository")
 }

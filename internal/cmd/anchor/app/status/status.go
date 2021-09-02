@@ -21,10 +21,12 @@ var AppStatus = func(ctx common.Context, o *statusOrchestrator) error {
 }
 
 type statusOrchestrator struct {
-	l     locator.Locator
-	e     extractor.Extractor
-	prsr  parser.Parser
-	prntr printer.Printer
+	l                 locator.Locator
+	e                 extractor.Extractor
+	prsr              parser.Parser
+	prntr             printer.Printer
+	validStatusOnly   bool
+	invalidStatusOnly bool
 
 	// --- CLI Command ---
 	prepareFunc func(o *statusOrchestrator, ctx common.Context) error
@@ -87,8 +89,13 @@ func run(o *statusOrchestrator, ctx common.Context) error {
 			status.InvalidInstructionFormat = inst == nil || err != nil
 		}
 
-		status.CalculateValidity()
-		appStatus = append(appStatus, status)
+		isValid := status.CalculateValidity()
+		if isValid && o.validStatusOnly ||
+			!isValid && o.invalidStatusOnly ||
+			!o.validStatusOnly && !o.invalidStatusOnly {
+
+			appStatus = append(appStatus, status)
+		}
 	}
 
 	o.prntr.PrintApplicationsStatus(appStatus)

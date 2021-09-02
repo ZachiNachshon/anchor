@@ -11,6 +11,11 @@ type AppStatusTemplateItem struct {
 	InvalidInstructionFormat bool
 }
 
+func (as *AppStatusTemplateItem) CalculateValidity() bool {
+	as.IsValid = !as.MissingInstructionFile && !as.InvalidInstructionFormat
+	return as.IsValid
+}
+
 var configViewTemplate = `{{ "Configuration Path:" | cyan }} 
 {{ .ConfigFilePath | yellow }} 
 

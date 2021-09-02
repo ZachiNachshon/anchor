@@ -19,13 +19,12 @@ type Printer interface {
 	PrintApplicationsStatus(appsStatus []*AppStatusTemplateItem)
 	PrintConfiguration(cfgFilePath string, cfgText string)
 	PrintMissingInstructions()
+	PrintEmptyLines(count int)
 
 	PrepareRunActionPlainer(actionId string) PrinterPlainer
 	PrepareRunActionSpinner(actionId string, scriptOutputPath string) PrinterSpinner
-}
-
-func (as *AppStatusTemplateItem) CalculateValidity() {
-	as.IsValid = !as.MissingInstructionFile && !as.InvalidInstructionFormat
+	PrepareAutoUpdateRepositorySpinner(url string, branch string) PrinterSpinner
+	PrepareCloneRepositorySpinner(url string, branch string) PrinterSpinner
 }
 
 type ConfigViewTemplateItem struct {
@@ -39,6 +38,12 @@ type printerImpl struct {
 
 func New() Printer {
 	return &printerImpl{}
+}
+
+func (p *printerImpl) PrintEmptyLines(count int) {
+	for i := 0; i < count; i++ {
+		fmt.Println()
+	}
 }
 
 func (p *printerImpl) PrintAnchorBanner() {
@@ -100,6 +105,20 @@ func (p *printerImpl) PrepareRunActionSpinner(actionId string, scriptOutputPath 
 		getSpinnerFailureActionMessageFormat(actionId, scriptOutputPath))
 }
 
+func (p *printerImpl) PrepareAutoUpdateRepositorySpinner(url string, branch string) PrinterSpinner {
+	return NewSpinner(
+		getSpinnerAutoUpdateRepoMessage(url, branch),
+		getSpinnerAutoUpdateRepoSuccessMessage(),
+		getSpinnerAutoUpdateRepoFailureMessageFormat())
+}
+
+func (p *printerImpl) PrepareCloneRepositorySpinner(url string, branch string) PrinterSpinner {
+	return NewSpinner(
+		getCloneRepositoryMessage(url, branch),
+		getCloneRepositorySuccessMessage(),
+		getCloneRepositoryMessageFormat())
+}
+
 func getPlainerRunActionMessage(actionId string) string {
 	return fmt.Sprintf(`==> Running %s...
 
@@ -139,4 +158,36 @@ func getSpinnerFailureActionMessageFormat(actionId string, scriptOutputPath stri
     Output: %s
 
 `, promptui.IconBad, colors.Cyan, actionId, colors.Reset, scriptOutputPath)
+}
+
+func getSpinnerAutoUpdateRepoMessage(url string, branch string) string {
+	return fmt.Sprintf(" Fetching repository changes (url: %s, branch: %s)...", url, branch)
+}
+
+func getSpinnerAutoUpdateRepoSuccessMessage() string {
+	return fmt.Sprintf("%s Remote repository updated successfully !", promptui.IconGood)
+}
+
+func getSpinnerAutoUpdateRepoFailureMessageFormat() string {
+	return fmt.Sprintf(`%s Updated remote repository failed.
+    
+    Reason: %%s
+
+`, promptui.IconBad)
+}
+
+func getCloneRepositoryMessage(url string, branch string) string {
+	return fmt.Sprintf(" Cloning repository (url: %s, branch: %s)...", url, branch)
+}
+
+func getCloneRepositorySuccessMessage() string {
+	return fmt.Sprintf("%s Repository cloned successfully !", promptui.IconGood)
+}
+
+func getCloneRepositoryMessageFormat() string {
+	return fmt.Sprintf(`%s Cloning remote repository failed.
+    
+    Reason: %%s
+
+`, promptui.IconBad)
 }

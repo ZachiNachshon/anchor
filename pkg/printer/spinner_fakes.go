@@ -6,9 +6,10 @@ var CreateFakePrinterSpinner = func() *fakePrinterSpinner {
 
 type fakePrinterSpinner struct {
 	PrinterSpinner
-	SpinMock          func()
-	StopOnSuccessMock func()
-	StopOnFailureMock func(err error)
+	SpinMock                           func()
+	StopOnSuccessMock                  func()
+	StopOnSuccessWithCustomMessageMock func(message string)
+	StopOnFailureMock                  func(err error)
 }
 
 func (pp *fakePrinterSpinner) Spin() {
@@ -17,6 +18,10 @@ func (pp *fakePrinterSpinner) Spin() {
 
 func (pp *fakePrinterSpinner) StopOnSuccess() {
 	pp.StopOnSuccessMock()
+}
+
+func (pp *fakePrinterSpinner) StopOnSuccessWithCustomMessage(message string) {
+	pp.StopOnSuccessWithCustomMessageMock(message)
 }
 
 func (pp *fakePrinterSpinner) StopOnFailure(err error) {

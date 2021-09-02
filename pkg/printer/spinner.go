@@ -3,6 +3,7 @@ package printer
 import (
 	"fmt"
 	"github.com/briandowns/spinner"
+	"github.com/manifoldco/promptui"
 	"os"
 	"time"
 )
@@ -10,6 +11,7 @@ import (
 type PrinterSpinner interface {
 	Spin()
 	StopOnSuccess()
+	StopOnSuccessWithCustomMessage(message string)
 	StopOnFailure(err error)
 }
 
@@ -43,6 +45,12 @@ func (p *printerSpinnerImpl) Spin() {
 func (p *printerSpinnerImpl) StopOnSuccess() {
 	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
 	fmt.Printf(p.successMsg)
+	p.spnr.Stop()
+}
+
+func (p *printerSpinnerImpl) StopOnSuccessWithCustomMessage(message string) {
+	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
+	fmt.Printf("%s %s", promptui.IconGood, message)
 	p.spnr.Stop()
 }
 

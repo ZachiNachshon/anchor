@@ -39,8 +39,16 @@ func Test_StatusActionShould(t *testing.T) {
 			Func: PrintApplicationsWithMissingInstructionsStatus,
 		},
 		{
-			Name: "print applications with valid status",
-			Func: PrintApplicationsWithValidStatus,
+			Name: "print all applications status",
+			Func: PrintAllApplicationsStatus,
+		},
+		{
+			Name: "print applications only with valid status",
+			Func: PrintApplicationsOnlyWithValidStatus,
+		},
+		{
+			Name: "print applications only with invalid status",
+			Func: PrintApplicationsOnlyWithInvalidStatus,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -151,12 +159,10 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 
 var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		reg := ctx.Registry()
 		path := "/some/path"
 		apps := stubs.GenerateApplicationTestData()
 
 		fakeLocator := locator.CreateFakeLocator(path)
-		reg.Set(locator.Identifier, fakeLocator)
 		locateAppsCallCount := 0
 		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
 			locateAppsCallCount++
@@ -164,7 +170,6 @@ var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 		}
 
 		fakePrinter := printer.CreateFakePrinter()
-		reg.Set(printer.Identifier, fakePrinter)
 		printAppsCallCount := 0
 		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
 			printAppsCallCount++
@@ -186,18 +191,10 @@ var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 	})
 }
 
-var PrintApplicationsWithValidStatus = func(t *testing.T) {
+var PrintAllApplicationsStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		reg := ctx.Registry()
-		with.HarnessAnchorfilesTestRepo(ctx)
-
-		path := "/some/path"
-		apps := stubs.GenerateApplicationTestData()
-		apps[0].InstructionsPath = ctx.AnchorFilesPath() + "/app/first-app/instructions.yaml"
-		apps[1].InstructionsPath = ctx.AnchorFilesPath() + "/app/second-app/instructions.yaml"
-
-		fakeLocator := locator.CreateFakeLocator(path)
-		reg.Set(locator.Identifier, fakeLocator)
+		apps := createStatusTestData(ctx)
+		fakeLocator := locator.CreateFakeLocator("/some/path")
 		locateAppsCallCount := 0
 		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
 			locateAppsCallCount++
@@ -210,18 +207,12 @@ var PrintApplicationsWithValidStatus = func(t *testing.T) {
 				instructionsPath == apps[1].InstructionsPath)
 			return &models.InstructionsRoot{}, nil
 		}
-		reg.Set(extractor.Identifier, fakeExtractor)
 
 		fakePrinter := printer.CreateFakePrinter()
-		reg.Set(printer.Identifier, fakePrinter)
 		printAppsCallCount := 0
 		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
 			printAppsCallCount++
-			assert.Equal(t, 2, len(apps))
-			for _, app := range apps {
-				assert.False(t, app.MissingInstructionFile)
-				assert.True(t, app.IsValid)
-			}
+			assert.Equal(t, 4, len(apps))
 		}
 
 		fakeO := NewOrchestrator()
@@ -234,4 +225,104 @@ var PrintApplicationsWithValidStatus = func(t *testing.T) {
 		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
 	})
+}
+
+var PrintApplicationsOnlyWithValidStatus = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		apps := createStatusTestData(ctx)
+
+		fakeLocator := locator.CreateFakeLocator("/some/path")
+		locateAppsCallCount := 0
+		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
+			locateAppsCallCount++
+			return apps
+		}
+
+		fakeExtractor := extractor.CreateFakeExtractor()
+		fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
+			assert.True(t, instructionsPath == apps[0].InstructionsPath ||
+				instructionsPath == apps[1].InstructionsPath)
+			return &models.InstructionsRoot{}, nil
+		}
+
+		fakePrinter := printer.CreateFakePrinter()
+		printAppsCallCount := 0
+		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
+			printAppsCallCount++
+			assert.Equal(t, 2, len(apps))
+			for _, app := range apps {
+				assert.False(t, app.MissingInstructionFile)
+				assert.True(t, app.IsValid)
+			}
+		}
+
+		fakeO := NewOrchestrator()
+		fakeO.validStatusOnly = true
+		fakeO.l = fakeLocator
+		fakeO.prntr = fakePrinter
+		fakeO.e = fakeExtractor
+
+		err := fakeO.runFunc(fakeO, ctx)
+		assert.Nil(t, err)
+		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
+	})
+}
+
+var PrintApplicationsOnlyWithInvalidStatus = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		apps := createStatusTestData(ctx)
+
+		fakeLocator := locator.CreateFakeLocator("/some/path")
+		locateAppsCallCount := 0
+		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
+			locateAppsCallCount++
+			return apps
+		}
+
+		fakeExtractor := extractor.CreateFakeExtractor()
+		fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
+			assert.True(t, instructionsPath == apps[0].InstructionsPath ||
+				instructionsPath == apps[1].InstructionsPath)
+			return &models.InstructionsRoot{}, nil
+		}
+
+		fakePrinter := printer.CreateFakePrinter()
+		printAppsCallCount := 0
+		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
+			printAppsCallCount++
+			assert.Equal(t, 2, len(apps))
+			for _, app := range apps {
+				assert.True(t, app.MissingInstructionFile)
+				assert.False(t, app.IsValid)
+			}
+		}
+
+		fakeO := NewOrchestrator()
+		fakeO.invalidStatusOnly = true
+		fakeO.l = fakeLocator
+		fakeO.prntr = fakePrinter
+		fakeO.e = fakeExtractor
+
+		err := fakeO.runFunc(fakeO, ctx)
+		assert.Nil(t, err)
+		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
+	})
+}
+
+func createStatusTestData(ctx common.Context) []*models.ApplicationInfo {
+	with.HarnessAnchorfilesTestRepo(ctx)
+	apps := stubs.GenerateApplicationTestData()
+	apps[0].InstructionsPath = ctx.AnchorFilesPath() + "/app/first-app/instructions.yaml"
+	apps[1].InstructionsPath = ctx.AnchorFilesPath() + "/app/second-app/instructions.yaml"
+
+	invalidApps := make([]*models.ApplicationInfo, 2)
+	invalidApps[0] = &models.ApplicationInfo{
+		InstructionsPath: ctx.AnchorFilesPath() + "/app/invalid-third-app/instructions.yaml",
+	}
+	invalidApps[1] = &models.ApplicationInfo{
+		InstructionsPath: ctx.AnchorFilesPath() + "/app/invalid-fourth-app/instructions.yaml",
+	}
+	return append(apps, invalidApps...)
 }

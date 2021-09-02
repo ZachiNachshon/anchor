@@ -7,6 +7,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/internal/repository/local"
 	"github.com/ZachiNachshon/anchor/internal/repository/remote"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -28,6 +29,10 @@ func Test_ResolverShould(t *testing.T) {
 			Name: "get remote resolver from config successfully",
 			Func: GetRemoteResolverFromConfigSuccessfully,
 		},
+		{
+			Name: "fail to get remote resolver",
+			Func: FailToGetRemoteResolver,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -35,7 +40,7 @@ func Test_ResolverShould(t *testing.T) {
 var FailToGetResolverDueToInvalidConfig = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			res, err := GetRepositoryOriginByConfig(nil)
+			res, err := GetRepositoryOriginByConfig(ctx, nil)
 			assert.Nil(t, res, "expected invalid resolver")
 			assert.NotNil(t, err, "expected to fail getting a repository resolver")
 			assert.Contains(t, err.Error(), "missing required config value")
@@ -62,7 +67,7 @@ config:
             path: /local/path/wins
 `
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				res, err := GetRepositoryOriginByConfig(cfg.Config.ActiveContext.Context.Repository)
+				res, err := GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository)
 				assert.Equal(t, fmt.Sprintf("%T", &local.LocalRepository{}), fmt.Sprintf("%T", res), "expected a local resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
 			})
@@ -89,9 +94,38 @@ config:
             path: ""
 `
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				res, err := GetRepositoryOriginByConfig(cfg.Config.ActiveContext.Context.Repository)
+				ctx.Registry().Set(printer.Identifier, printer.CreateFakePrinter())
+				res, err := GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository)
 				assert.Equal(t, fmt.Sprintf("%T", &remote.RemoteRepository{}), fmt.Sprintf("%T", res), "expected a remote resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
+			})
+		})
+	})
+}
+
+var FailToGetRemoteResolver = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := `
+config:
+  currentContext: test-cfg-ctx
+  contexts:
+    - name: test-cfg-ctx
+      context:
+        repository: 
+          remote:
+            url: https://github.com/ZachiNachshon/dummy-repo.git      
+            revision: l33tf4k3c0mm1757r1n6 
+            branch: some-branch
+            clonePath: /best/path/ever
+          local:
+            path: ""
+`
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
+				res, err := GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Nil(t, res, "expected not to have a response object")
+				assert.Contains(t, err.Error(), "failed to retrieve from registry")
 			})
 		})
 	})

@@ -5,11 +5,13 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/printer"
 )
 
 type RemoteRepository struct {
 	RemoteConfig  *config.Remote
 	RemoteActions RemoteResolverActions
+	Printer       printer.Printer
 }
 
 type RemoteResolverActions interface {
@@ -75,15 +77,21 @@ func (rr *RemoteRepository) Load(ctx common.Context) (string, error) {
 		}
 
 	} else if rr.RemoteConfig.AutoUpdate {
+		rr.Printer.PrintEmptyLines(1)
+		spnr := rr.Printer.PrepareAutoUpdateRepositorySpinner(rr.RemoteConfig.Url, branch)
+		spnr.Spin()
 		logger.Debug("Checking anchorfiles local origin revision...")
 		originRevision, err := rr.RemoteActions.TryFetchLocalOriginRevision(clonePath, branch)
 		if err != nil {
+			spnr.StopOnFailure(err)
 			return "", err
 		}
 
 		logger.Info("Checking anchorfiles remote HEAD revision...")
+
 		headRevision, err := rr.RemoteActions.TryFetchRemoteHeadRevision(clonePath, rr.RemoteConfig.Url, branch)
 		if err != nil {
+			spnr.StopOnFailure(err)
 			return "", err
 		}
 
@@ -91,10 +99,12 @@ func (rr *RemoteRepository) Load(ctx common.Context) (string, error) {
 			clonePath,
 			branch,
 			headRevision); err != nil {
+			spnr.StopOnFailure(err)
 			return "", err
 		}
 
 		if originRevision != headRevision {
+			spnr.StopOnSuccess()
 			logger.Infof("Fetched remote HEAD revision. hash: %s", headRevision)
 			err = rr.RemoteActions.PrintRevisionsDiff(clonePath, originRevision, headRevision)
 			if err != nil {
@@ -103,8 +113,11 @@ func (rr *RemoteRepository) Load(ctx common.Context) (string, error) {
 				//return "", err
 			}
 		} else {
-			logger.Info("Already up to date !")
+			alreadyUpdatedMsg := "Remote repository is already up to date !"
+			logger.Info(alreadyUpdatedMsg)
+			spnr.StopOnSuccessWithCustomMessage(alreadyUpdatedMsg)
 		}
+		rr.Printer.PrintEmptyLines(1)
 	}
 
 	err := rr.RemoteActions.TryCheckoutToBranch(clonePath, branch)
