@@ -30,8 +30,8 @@ func Test_ResolverShould(t *testing.T) {
 			Func: GetRemoteResolverFromConfigSuccessfully,
 		},
 		{
-			Name: "fail to get remote resolver",
-			Func: FailToGetRemoteResolver,
+			Name: "fail to resolve local or remote repositories origin ",
+			Func: FailToResolveLocalOrRemoteRepositoriesOrigin,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -68,7 +68,7 @@ config:
 `
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				res, err := GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository)
-				assert.Equal(t, fmt.Sprintf("%T", &local.LocalRepository{}), fmt.Sprintf("%T", res), "expected a local resolver")
+				assert.Equal(t, fmt.Sprintf("%T", local.NewLocalRepository(nil)), fmt.Sprintf("%T", res), "expected a local resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
 			})
 		})
@@ -96,36 +96,32 @@ config:
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				ctx.Registry().Set(printer.Identifier, printer.CreateFakePrinter())
 				res, err := GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository)
-				assert.Equal(t, fmt.Sprintf("%T", &remote.RemoteRepository{}), fmt.Sprintf("%T", res), "expected a remote resolver")
+				assert.Equal(t, fmt.Sprintf("%T", remote.NewRemoteRepository(nil)), fmt.Sprintf("%T", res), "expected a remote resolver")
 				assert.Nil(t, err, "expected getting a resolver successfully")
 			})
 		})
 	})
 }
 
-var FailToGetRemoteResolver = func(t *testing.T) {
+var FailToResolveLocalOrRemoteRepositoriesOrigin = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := `
 config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-            url: https://github.com/ZachiNachshon/dummy-repo.git      
-            revision: l33tf4k3c0mm1757r1n6 
-            branch: some-branch
-            clonePath: /best/path/ever
-          local:
-            path: ""
+ currentContext: test-cfg-ctx
+ contexts:
+   - name: test-cfg-ctx
+     context:
+       repository:
+         remote:
+         local:
+           path: ""
 `
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
 				res, err := GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Nil(t, res, "expected not to have a response object")
-				assert.Contains(t, err.Error(), "failed to retrieve from registry")
+				assert.Contains(t, err.Error(), "could not resolve anchorfiles local repository path or git tracked remote repository")
 			})
 		})
 	})

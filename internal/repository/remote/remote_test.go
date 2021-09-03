@@ -5,7 +5,9 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/git"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -15,824 +17,928 @@ import (
 
 func Test_RemoteShould(t *testing.T) {
 	tests := []harness.TestsHarness{
-
 		{
-			Name: "fail to resolve remote repository due to invalid remote actions",
-			Func: FailToResolveRemoteRepositoryDueToInvalidRemoteActions,
+			Name: "fail resolving registry components",
+			Func: FailResolvingRegistryComponents,
 		},
 		{
-			Name: "fail to clone a fresh remote repository into clone path",
-			Func: FailToCloneFreshRemoteRepositoryIntoClonePath,
+			Name: "verify remote repository config values",
+			Func: VerifyRemoteRepositoryConfigValues,
 		},
 		{
-			Name: "perform an initial fresh remote repository clone into a clone path successfully",
-			Func: PerformInitialFreshRemoteRepositoryCloneIntoClonePathSuccessfully,
+			Name: "not clone repo if already exists",
+			Func: NotCloneRepoIfAlreadyExists,
 		},
 		{
-			Name: "clone repository and fail on checkout",
-			Func: CloneRepositoryAndFailOnCheckout,
+			Name: "fail to clone repository",
+			Func: FailToCloneRepository,
 		},
 		{
-			Name: "reset to revision on existing cloned repo successfully",
-			Func: ResetToRevisionOnExistingClonedRepoSuccessfully,
+			Name: "clone repository successfully",
+			Func: CloneRepositorySuccessfully,
 		},
 		{
-			Name: "fail resetting to revision on existing cloned repo",
-			Func: FailResettingToRevisionOnExistingClonedRepo,
+			Name: "reset to revision on 1st try successfully",
+			Func: ResetToRevisionOnFirstTrySuccessfully,
 		},
 		{
-			Name: "auto update: fetch remote HEAD revision successfully",
-			Func: AutoUpdateToRemoteHeadRevisionSuccessfully,
+			Name: "fail to fetch after 1st try to reset fails",
+			Func: FailToFetchAfterFirstTryToResetFails,
 		},
 		{
-			Name: "auto update: avoid printing commit log since revision is up to date",
-			Func: AvoidPrintingCommitLogSinceRevisionIsAlreadyUpToDate,
+			Name: "reset to revision on 2ns try successfully",
+			Func: ResetToRevisionOnSecondTrySuccessfully,
 		},
 		{
-			Name: "auto update: fails to fetch local origin revision",
-			Func: AutoUpdateFailsToFetchLocalOriginRevision,
+			Name: "fail to reset to revision on 2nd try",
+			Func: FailToResetToRevisionOnSecondTry,
 		},
 		{
-			Name: "auto update: fails to fetch remote HEAD revision",
-			Func: AutoUpdateFailsToFetchRemoteHeadRevision,
+			Name: "auto update: fail to get local origin commit hash",
+			Func: AutoUpdateFailToGetLocalOriginCommitHash,
 		},
 		{
-			Name: "auto update: fails to reset to revision",
-			Func: AutoUpdateFailsToResetToRevision,
+			Name: "auto update: fail to get remote HEAD commit hash",
+			Func: AutoUpdateFailToGetRemoteHeadCommitHash,
 		},
 		{
-			Name: "auto update: fails to print revision diff does not generate an error",
-			Func: AutoUpdateFailsToPrintRevisionDiffDoesNotGenerateAnError,
+			Name: "auto update: fail to reset to revision",
+			Func: AutoUpdateFailToResetToRevision,
+		},
+		{
+			Name: "auto update: do not fail when revision diff print fails",
+			Func: AutoUpdateDoNotFailWhenRevisionDiffPrintFails,
+		},
+		{
+			Name: "auto update: run a successful already up to date flow",
+			Func: AutoUpdateRunSuccessfulAlreadyUpToDateFlow,
+		},
+		{
+			Name: "load: fail on preparations",
+			Func: LoadFailOnPreparations,
+		},
+		{
+			Name: "load: fail to verify configuration",
+			Func: LoadFailToVerifyConfiguration,
+		},
+		{
+			Name: "load: fail to clone repository",
+			Func: LoadFailToCloneRepository,
+		},
+		{
+			Name: "load: fail to reset to revision",
+			Func: LoadFailToResetToRevision,
+		},
+		{
+			Name: "load: fail to auto update repository",
+			Func: LoadFailToAutoUpdateRepository,
+		},
+		{
+			Name: "load: fail to checkout from branch",
+			Func: LoadFailToCheckoutFromBranch,
+		},
+		{
+			Name: "load: remote repository successfully",
+			Func: LoadRemoteRepositorySuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var FailToResolveRemoteRepositoryDueToInvalidRemoteActions = func(t *testing.T) {
+var FailResolvingRegistryComponents = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		reg := ctx.Registry()
+		remote := NewRemoteRepository(nil)
+
+		err := remote.prepareFunc(remote, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", printer.Identifier))
+		reg.Set(printer.Identifier, printer.CreateFakePrinter())
+
+		err = remote.prepareFunc(remote, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", shell.Identifier))
+		reg.Set(shell.Identifier, shell.CreateFakeShell())
+
+		err = remote.prepareFunc(remote, ctx)
+		assert.Nil(t, err)
+	})
+}
+
+var VerifyRemoteRepositoryConfigValues = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := config.GetDefaultTestConfigText()
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				repo := &RemoteRepository{
-					RemoteConfig: cfg.Config.ActiveContext.Context.Repository.Remote,
-				}
-				repoPath, err := repo.Load(ctx)
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.Url = ""
+				remoteCfg.Branch = ""
+				remoteCfg.ClonePath = ""
+
+				remote := NewRemoteRepository(nil)
+
+				err := remote.verifyRemoteRepositoryConfigFunc(nil)
 				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "remote actions weren't defined for remote resolver, cannot proceed", err.Error())
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
+				assert.Equal(t, "invalid remote repository configuration", err.Error())
+
+				err = remote.verifyRemoteRepositoryConfigFunc(remoteCfg)
+				assert.NotNil(t, err, "expected to fail on remote resolver")
+				assert.Equal(t, "remote repository config is missing value. name: url", err.Error())
+
+				remoteCfg.Url = "/some/url"
+				err = remote.verifyRemoteRepositoryConfigFunc(remoteCfg)
+				assert.NotNil(t, err, "expected to fail on remote resolver")
+				assert.Equal(t, "remote repository config is missing value. name: branch", err.Error())
+
+				remoteCfg.Branch = "some-branch"
+				err = remote.verifyRemoteRepositoryConfigFunc(remoteCfg)
+				assert.NotNil(t, err, "expected to fail on remote resolver")
+				assert.Equal(t, "remote repository config is missing value. name: clonePath", err.Error())
+
+				remoteCfg.ClonePath = "/some/clone/path"
+				err = remote.verifyRemoteRepositoryConfigFunc(remoteCfg)
+				assert.Nil(t, err, "expected to succeed on remote resolver")
 			})
 		})
 	})
 }
 
-var FailToCloneFreshRemoteRepositoryIntoClonePath = func(t *testing.T) {
+var NotCloneRepoIfAlreadyExists = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
+				with.HarnessAnchorfilesTestRepo(ctx)
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeGit := git.CreateFakeGit()
+				cloneCallCount := 0
+				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
+					cloneCallCount++
 					return nil
 				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+
+				err := remote.cloneRepoIfMissingFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.Nil(t, err, "expected not to fail")
+				assert.Equal(t, 0, cloneCallCount, "expected not to be called")
+			})
+		})
+	})
+}
+
+var FailToCloneRepository = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			yamlConfigText := config.GetDefaultTestConfigText()
+			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnFailureCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopOnFailureCallCount++
+				}
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrepareCloneRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
+				fakeGit := git.CreateFakeGit()
+				cloneCallCount := 0
+				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
+					cloneCallCount++
+					assert.Equal(t, remoteCfg.Url, url)
+					assert.Equal(t, remoteCfg.Branch, branch)
+					assert.Equal(t, remoteCfg.ClonePath, clonePath)
 					return fmt.Errorf("failed to clone")
 				}
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "failed to clone", err.Error())
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
-			})
-		})
-	})
-}
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
 
-var PerformInitialFreshRemoteRepositoryCloneIntoClonePathSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-`, ctx.AnchorFilesPath())
-
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
-					return nil
-				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
-				}
-				checkoutCallCount := 0
-				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
-					checkoutCallCount++
-					return nil
-				}
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, checkoutCallCount)
-				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
-			})
-		})
-	})
-}
-
-var CloneRepositoryAndFailOnCheckout = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-`, ctx.AnchorFilesPath())
-
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
-					return nil
-				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
-				}
-				checkoutCallCount := 0
-				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
-					checkoutCallCount++
-					return fmt.Errorf("failed to checkout branch")
-				}
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-				}
-				repoPath, err := repo.Load(ctx)
+				err := remote.cloneRepoIfMissingFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
 				assert.NotNil(t, err, "expected to fail")
-				assert.Equal(t, "failed to checkout branch", err.Error())
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, checkoutCallCount)
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
+				assert.Equal(t, "failed to clone", err.Error())
+				assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
+				assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
 			})
 		})
 	})
 }
 
-var ResetToRevisionOnExistingClonedRepoSuccessfully = func(t *testing.T) {
+var CloneRepositorySuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           revision: l33tf4k3c0mm1757r1n6
-           clonePath: %s
-`, ctx.AnchorFilesPath())
-
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
-					return nil
-				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
-				}
-				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
-					tryResetToRevisionCallCount++
-					return nil
-				}
-				checkoutCallCount := 0
-				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
-					checkoutCallCount++
-					return nil
-				}
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryResetToRevisionCallCount)
-				assert.Equal(t, 1, checkoutCallCount)
-				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
-			})
-		})
-	})
-}
-
-var FailResettingToRevisionOnExistingClonedRepo = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			yamlConfigText := `
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           revision: l33tf4k3c0mm1757r1n6
-           clonePath: /some/clone/path
-`
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
-					return nil
-				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
-				}
-				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
-					tryResetToRevisionCallCount++
-					return fmt.Errorf("failed resetting to revision")
-				}
-
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryResetToRevisionCallCount)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "failed resetting to revision", err.Error())
-				assert.Equal(t, "", repoPath, "expected not to have a repository path")
-			})
-		})
-	})
-}
-
-var AutoUpdateToRemoteHeadRevisionSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-           autoUpdate: true
-`, ctx.AnchorFilesPath())
-
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
-					return nil
-				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
-				}
-				tryFetchLocalOriginCallCount := 0
-				fakeRemoteActions.TryFetchLocalOriginRevisionMock = func(clonePath string, branch string) (string, error) {
-					tryFetchLocalOriginCallCount++
-					return "local-origin-rev", nil
-				}
-
-				tryFetchRemoteHeadCallCount := 0
-				fakeRemoteActions.TryFetchRemoteHeadRevisionMock = func(clonePath string, repoUrl string, branch string) (string, error) {
-					tryFetchRemoteHeadCallCount++
-					return "head-revision", nil
-				}
-				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
-					tryResetToRevisionCallCount++
-					return nil
-				}
-				printRevisionsDiffCallCount := 0
-				fakeRemoteActions.PrintRevisionsDiffMock = func(path string, prevRevision string, newRevision string) error {
-					printRevisionsDiffCallCount++
-					return nil
-				}
-				checkoutCallCount := 0
-				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
-					checkoutCallCount++
-					return nil
-				}
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
 
 				fakeSpinner := printer.CreateFakePrinterSpinner()
 				spinCallCount := 0
 				fakeSpinner.SpinMock = func() {
 					spinCallCount++
 				}
-				stopSuccessCallCount := 0
+				stopOnSuccessCallCount := 0
 				fakeSpinner.StopOnSuccessMock = func() {
-					stopSuccessCallCount++
+					stopOnSuccessCallCount++
 				}
-
 				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+				fakePrinter.PrepareCloneRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
 					return fakeSpinner
 				}
 
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-					Printer:       fakePrinter,
+				fakeGit := git.CreateFakeGit()
+				cloneCallCount := 0
+				fakeGit.CloneMock = func(url string, branch string, clonePath string) error {
+					assert.Equal(t, remoteCfg.Url, url)
+					assert.Equal(t, remoteCfg.Branch, branch)
+					assert.Equal(t, remoteCfg.ClonePath, clonePath)
+					cloneCallCount++
+					return nil
 				}
-				repoPath, err := repo.Load(ctx)
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryResetToRevisionCallCount)
-				assert.Equal(t, 1, tryFetchRemoteHeadCallCount)
-				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
-				assert.Equal(t, 1, printRevisionsDiffCallCount)
-				assert.Equal(t, 1, checkoutCallCount)
-				assert.Equal(t, 1, spinCallCount)
-				assert.Equal(t, 1, stopSuccessCallCount)
-				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				err := remote.cloneRepoIfMissingFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
+				assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
 			})
 		})
 	})
 }
 
-var AvoidPrintingCommitLogSinceRevisionIsAlreadyUpToDate = func(t *testing.T) {
+var ResetToRevisionOnFirstTrySuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-           autoUpdate: true
-`, ctx.AnchorFilesPath())
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+				remoteCfg.AutoUpdate = true
 
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
+				fakeGit := git.CreateFakeGit()
+				gitResetCallCount := 0
+				fakeGit.ResetMock = func(path string, revision string) error {
+					gitResetCallCount++
 					return nil
 				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
-				}
-				tryFetchLocalOriginCallCount := 0
-				fakeRemoteActions.TryFetchLocalOriginRevisionMock = func(clonePath string, branch string) (string, error) {
-					tryFetchLocalOriginCallCount++
-					return "head-revision", nil
-				}
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
 
-				tryFetchRemoteHeadCallCount := 0
-				fakeRemoteActions.TryFetchRemoteHeadRevisionMock = func(clonePath string, repoUrl string, branch string) (string, error) {
-					tryFetchRemoteHeadCallCount++
-					return "head-revision", nil
+				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				assert.Nil(t, err, "expected not to fail")
+				assert.Equal(t, 1, gitResetCallCount)
+			})
+		})
+	})
+}
+
+var FailToFetchAfterFirstTryToResetFails = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeGit := git.CreateFakeGit()
+				gitResetCallCount := 0
+				fakeGit.ResetMock = func(path string, revision string) error {
+					gitResetCallCount++
+					return fmt.Errorf("fail to reset to revision 1st try")
 				}
-				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
-					tryResetToRevisionCallCount++
+				gitFetchCallCount := 0
+				fakeGit.FetchShallowMock = func(path string, branch string) error {
+					gitFetchCallCount++
+					return fmt.Errorf("fail to fetch")
+				}
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+
+				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "fail to fetch", err.Error())
+				assert.Equal(t, 1, gitResetCallCount)
+				assert.Equal(t, 1, gitFetchCallCount)
+			})
+		})
+	})
+}
+
+var ResetToRevisionOnSecondTrySuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeGit := git.CreateFakeGit()
+				gitResetCallCount := 0
+				fakeGit.ResetMock = func(path string, revision string) error {
+					gitResetCallCount++
+					if gitResetCallCount == 1 {
+						return fmt.Errorf("fail to reset to revision 1st try")
+					}
 					return nil
 				}
-				printRevisionsDiffCallCount := 0
-				fakeRemoteActions.PrintRevisionsDiffMock = func(path string, prevRevision string, newRevision string) error {
-					printRevisionsDiffCallCount++
+				gitFetchCallCount := 0
+				fakeGit.FetchShallowMock = func(path string, branch string) error {
+					gitFetchCallCount++
 					return nil
 				}
-				checkoutCallCount := 0
-				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
-					checkoutCallCount++
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+
+				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 2, gitResetCallCount)
+				assert.Equal(t, 1, gitFetchCallCount)
+			})
+		})
+	})
+}
+
+var FailToResetToRevisionOnSecondTry = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeGit := git.CreateFakeGit()
+				gitResetCallCount := 0
+				fakeGit.ResetMock = func(path string, revision string) error {
+					gitResetCallCount++
+					if gitResetCallCount == 1 {
+						return fmt.Errorf("fail to reset to revision 1st try")
+					}
+					return fmt.Errorf("fail to reset to revision 2nd try")
+				}
+				gitFetchCallCount := 0
+				fakeGit.FetchShallowMock = func(path string, branch string) error {
+					gitFetchCallCount++
 					return nil
 				}
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+
+				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "fail to reset to revision 2nd try", err.Error())
+				assert.Equal(t, 2, gitResetCallCount)
+				assert.Equal(t, 1, gitFetchCallCount)
+			})
+		})
+	})
+}
+
+var AutoUpdateFailToGetLocalOriginCommitHash = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
 
 				fakeSpinner := printer.CreateFakePrinterSpinner()
 				spinCallCount := 0
 				fakeSpinner.SpinMock = func() {
 					spinCallCount++
 				}
-				stopCustomSuccessCallCount := 0
+				stopOnFailureCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopOnFailureCallCount++
+				}
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				prepareSpinnerCallCount := 0
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					prepareSpinnerCallCount++
+					return fakeSpinner
+				}
+
+				fakeGit := git.CreateFakeGit()
+				gitLocalOriginCommitCallCount := 0
+				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
+					gitLocalOriginCommitCallCount++
+					return "", fmt.Errorf("fail to get local origin commit hash")
+				}
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "fail to get local origin commit hash", err.Error())
+				assert.Equal(t, 1, prepareSpinnerCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
+				assert.Equal(t, 1, stopOnFailureCallCount)
+			})
+		})
+	})
+}
+
+var AutoUpdateFailToGetRemoteHeadCommitHash = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnFailureCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopOnFailureCallCount++
+				}
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				prepareSpinnerCallCount := 0
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					prepareSpinnerCallCount++
+					return fakeSpinner
+				}
+
+				fakeGit := git.CreateFakeGit()
+				gitLocalOriginCommitCallCount := 0
+				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
+					gitLocalOriginCommitCallCount++
+					return "", nil
+				}
+
+				gitRemoteHeadCommitCallCount := 0
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
+					gitRemoteHeadCommitCallCount++
+					return "", fmt.Errorf("fail to get remote HEAD commit hash")
+				}
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "fail to get remote HEAD commit hash", err.Error())
+				assert.Equal(t, 1, prepareSpinnerCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
+				assert.Equal(t, 1, gitRemoteHeadCommitCallCount)
+				assert.Equal(t, 1, stopOnFailureCallCount)
+			})
+		})
+	})
+}
+
+var AutoUpdateFailToResetToRevision = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnFailureCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopOnFailureCallCount++
+				}
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				prepareSpinnerCallCount := 0
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					prepareSpinnerCallCount++
+					return fakeSpinner
+				}
+
+				fakeGit := git.CreateFakeGit()
+				gitLocalOriginCommitCallCount := 0
+				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
+					gitLocalOriginCommitCallCount++
+					return "", nil
+				}
+
+				gitRemoteHeadCommitCallCount := 0
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
+					gitRemoteHeadCommitCallCount++
+					return "", nil
+				}
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				resetToRevisionCallCount := 0
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+					resetToRevisionCallCount++
+					return fmt.Errorf("fail to reset to revision")
+				}
+
+				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "fail to reset to revision", err.Error())
+				assert.Equal(t, 1, prepareSpinnerCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
+				assert.Equal(t, 1, gitRemoteHeadCommitCallCount)
+				assert.Equal(t, 1, resetToRevisionCallCount)
+				assert.Equal(t, 1, stopOnFailureCallCount)
+			})
+		})
+	})
+}
+
+var AutoUpdateDoNotFailWhenRevisionDiffPrintFails = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnSuccessCallCount := 0
+				fakeSpinner.StopOnSuccessMock = func() {
+					stopOnSuccessCallCount++
+				}
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				prepareSpinnerCallCount := 0
+				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					prepareSpinnerCallCount++
+					return fakeSpinner
+				}
+
+				fakeGit := git.CreateFakeGit()
+				gitLocalOriginCommitCallCount := 0
+				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
+					gitLocalOriginCommitCallCount++
+					return "12345", nil
+				}
+
+				gitRemoteHeadCommitCallCount := 0
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
+					gitRemoteHeadCommitCallCount++
+					return "abcdef", nil
+				}
+
+				logRevisionDiffCallCount := 0
+				fakeGit.LogRevisionsDiffPrettyMock = func(path string, prevRevision string, newRevision string) error {
+					logRevisionDiffCallCount++
+					return fmt.Errorf("failed to log revision diff pretty")
+				}
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				resetToRevisionCallCount := 0
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+					resetToRevisionCallCount++
+					return nil
+				}
+
+				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 1, prepareSpinnerCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
+				assert.Equal(t, 1, gitRemoteHeadCommitCallCount)
+				assert.Equal(t, 1, resetToRevisionCallCount)
+				assert.Equal(t, 1, logRevisionDiffCallCount)
+				assert.Equal(t, 1, stopOnSuccessCallCount)
+			})
+		})
+	})
+}
+
+var AutoUpdateRunSuccessfulAlreadyUpToDateFlow = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnCustomSuccessCallCount := 0
 				fakeSpinner.StopOnSuccessWithCustomMessageMock = func(message string) {
-					assert.Contains(t, message, "already up to date")
-					stopCustomSuccessCallCount++
+					stopOnCustomSuccessCallCount++
 				}
-
 				fakePrinter := printer.CreateFakePrinter()
 				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				prepareSpinnerCallCount := 0
 				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					prepareSpinnerCallCount++
 					return fakeSpinner
 				}
 
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-					Printer:       fakePrinter,
+				fakeGit := git.CreateFakeGit()
+				gitLocalOriginCommitCallCount := 0
+				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
+					gitLocalOriginCommitCallCount++
+					return "12345", nil
 				}
-				repoPath, err := repo.Load(ctx)
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryResetToRevisionCallCount)
-				assert.Equal(t, 1, tryFetchRemoteHeadCallCount)
-				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
-				assert.Equal(t, 0, printRevisionsDiffCallCount)
-				assert.Equal(t, 1, checkoutCallCount)
+
+				gitRemoteHeadCommitCallCount := 0
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
+					gitRemoteHeadCommitCallCount++
+					return "12345", nil
+				}
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				resetToRevisionCallCount := 0
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+					resetToRevisionCallCount++
+					return nil
+				}
+
+				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 1, prepareSpinnerCallCount)
 				assert.Equal(t, 1, spinCallCount)
-				assert.Equal(t, 1, stopCustomSuccessCallCount)
-				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
+				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
+				assert.Equal(t, 1, gitRemoteHeadCommitCallCount)
+				assert.Equal(t, 1, resetToRevisionCallCount)
+				assert.Equal(t, 1, stopOnCustomSuccessCallCount)
 			})
 		})
 	})
 }
 
-var AutoUpdateFailsToFetchLocalOriginRevision = func(t *testing.T) {
+var LoadFailOnPreparations = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-           autoUpdate: true
-`, ctx.AnchorFilesPath())
-
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
-					return nil
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
+					return fmt.Errorf("fail to prepare")
 				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
-				}
-				tryFetchLocalOriginCallCount := 0
-				fakeRemoteActions.TryFetchLocalOriginRevisionMock = func(clonePath string, branch string) (string, error) {
-					tryFetchLocalOriginCallCount++
-					return "", fmt.Errorf("fail to fetch local origin revision")
-				}
-
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
-				}
-				stopCustomSuccessCallCount := 0
-				fakeSpinner.StopOnFailureMock = func(err error) {
-					stopCustomSuccessCallCount++
-				}
-
-				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					return fakeSpinner
-				}
-
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-					Printer:       fakePrinter,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
-				assert.Equal(t, 1, spinCallCount)
-				assert.Equal(t, 1, stopCustomSuccessCallCount)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "fail to fetch local origin revision", err.Error())
-				assert.Equal(t, "", repoPath, "expected to have invalid repository path")
+				clonePath, err := remote.Load(ctx)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Empty(t, clonePath)
+				assert.Equal(t, "fail to prepare", err.Error())
+				assert.Equal(t, 1, prepareCallCount)
 			})
 		})
 	})
 }
 
-var AutoUpdateFailsToFetchRemoteHeadRevision = func(t *testing.T) {
+var LoadFailToVerifyConfiguration = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-           autoUpdate: true
-`, ctx.AnchorFilesPath())
-
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
 					return nil
 				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
-					return nil
+				verifyRepoConfigCallCount := 0
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					verifyRepoConfigCallCount++
+					return fmt.Errorf("fail to verify remote repo configuration")
 				}
-				tryFetchLocalOriginCallCount := 0
-				fakeRemoteActions.TryFetchLocalOriginRevisionMock = func(clonePath string, branch string) (string, error) {
-					tryFetchLocalOriginCallCount++
-					return "local-origin-revision", nil
-				}
-
-				tryFetchRemoteHeadCallCount := 0
-				fakeRemoteActions.TryFetchRemoteHeadRevisionMock = func(clonePath string, repoUrl string, branch string) (string, error) {
-					tryFetchRemoteHeadCallCount++
-					return "", fmt.Errorf("fail to fetch remote HEAD revision")
-				}
-
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
-				}
-				stopCustomSuccessCallCount := 0
-				fakeSpinner.StopOnFailureMock = func(err error) {
-					stopCustomSuccessCallCount++
-				}
-
-				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					return fakeSpinner
-				}
-
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-					Printer:       fakePrinter,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryFetchRemoteHeadCallCount)
-				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
-				assert.Equal(t, 1, spinCallCount)
-				assert.Equal(t, 1, stopCustomSuccessCallCount)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
-				assert.Equal(t, "fail to fetch remote HEAD revision", err.Error())
-				assert.Equal(t, "", repoPath, "expected to have invalid repository path")
+				clonePath, err := remote.Load(ctx)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Empty(t, clonePath)
+				assert.Equal(t, "fail to verify remote repo configuration", err.Error())
+				assert.Equal(t, 1, prepareCallCount)
+				assert.Equal(t, 1, verifyRepoConfigCallCount)
 			})
 		})
 	})
 }
 
-var AutoUpdateFailsToResetToRevision = func(t *testing.T) {
+var LoadFailToCloneRepository = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-           autoUpdate: true
-`, ctx.AnchorFilesPath())
-
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
 					return nil
 				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
+				verifyRepoConfigCallCount := 0
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					verifyRepoConfigCallCount++
 					return nil
 				}
-				tryFetchLocalOriginCallCount := 0
-				fakeRemoteActions.TryFetchLocalOriginRevisionMock = func(clonePath string, branch string) (string, error) {
-					tryFetchLocalOriginCallCount++
-					return "local-origin-revision", nil
+				cloneRepoCallCount := 0
+				remote.cloneRepoIfMissingFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					cloneRepoCallCount++
+					return fmt.Errorf("fail to clone repo")
 				}
+				clonePath, err := remote.Load(ctx)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Empty(t, clonePath)
+				assert.Equal(t, "fail to clone repo", err.Error())
+				assert.Equal(t, 1, prepareCallCount)
+				assert.Equal(t, 1, verifyRepoConfigCallCount)
+				assert.Equal(t, 1, cloneRepoCallCount)
+			})
+		})
+	})
+}
 
-				tryFetchRemoteHeadCallCount := 0
-				fakeRemoteActions.TryFetchRemoteHeadRevisionMock = func(clonePath string, repoUrl string, branch string) (string, error) {
-					tryFetchRemoteHeadCallCount++
-					return "head-revision", nil
+var LoadFailToResetToRevision = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.Revision = "12345"
+				remoteCfg.AutoUpdate = false
+
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
+					return nil
 				}
-				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
-					tryResetToRevisionCallCount++
+				verifyRepoConfigCallCount := 0
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					verifyRepoConfigCallCount++
+					return nil
+				}
+				cloneRepoCallCount := 0
+				remote.cloneRepoIfMissingFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					cloneRepoCallCount++
+					return nil
+				}
+				resetToRevisionCallCount := 0
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+					resetToRevisionCallCount++
 					return fmt.Errorf("failed to reset to revision")
 				}
-
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
-				}
-				stopCustomSuccessCallCount := 0
-				fakeSpinner.StopOnFailureMock = func(err error) {
-					stopCustomSuccessCallCount++
-				}
-
-				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					return fakeSpinner
-				}
-
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-					Printer:       fakePrinter,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryResetToRevisionCallCount)
-				assert.Equal(t, 1, tryFetchRemoteHeadCallCount)
-				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
-				assert.Equal(t, 1, spinCallCount)
-				assert.Equal(t, 1, stopCustomSuccessCallCount)
-				assert.NotNil(t, err, "expected to fail on remote resolver")
+				clonePath, err := remote.Load(ctx)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Empty(t, clonePath)
 				assert.Equal(t, "failed to reset to revision", err.Error())
-				assert.Equal(t, "", repoPath, "expected to have invalid repository path")
+				assert.Equal(t, 1, prepareCallCount)
+				assert.Equal(t, 1, verifyRepoConfigCallCount)
+				assert.Equal(t, 1, cloneRepoCallCount)
+				assert.Equal(t, 1, resetToRevisionCallCount)
 			})
 		})
 	})
 }
 
-var AutoUpdateFailsToPrintRevisionDiffDoesNotGenerateAnError = func(t *testing.T) {
+var LoadFailToAutoUpdateRepository = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			yamlConfigText := fmt.Sprintf(`
-config:
-  currentContext: test-cfg-ctx
-  contexts:
-    - name: test-cfg-ctx
-      context:
-        repository: 
-          remote:
-           url: https://github.com/ZachiNachshon/dummy-repo.git
-           branch: some-branch
-           clonePath: %s
-           autoUpdate: true
-`, ctx.AnchorFilesPath())
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.Revision = ""
+				remoteCfg.AutoUpdate = true
 
-			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				verifyConfigCallCount := 0
-				fakeRemoteActions := CreateFakeRemoteActions()
-				fakeRemoteActions.VerifyRemoteRepositoryConfigMock = func(remoteCfg *config.Remote) error {
-					verifyConfigCallCount++
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
 					return nil
 				}
-				cloneRepoIfMissingCallCount := 0
-				fakeRemoteActions.CloneRepositoryIfMissingMock = func(clonePath string, url string, branch string) error {
-					cloneRepoIfMissingCallCount++
+				verifyRepoConfigCallCount := 0
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					verifyRepoConfigCallCount++
 					return nil
 				}
-				tryFetchLocalOriginCallCount := 0
-				fakeRemoteActions.TryFetchLocalOriginRevisionMock = func(clonePath string, branch string) (string, error) {
-					tryFetchLocalOriginCallCount++
-					return "local-origin-revision", nil
-				}
-
-				tryFetchRemoteHeadCallCount := 0
-				fakeRemoteActions.TryFetchRemoteHeadRevisionMock = func(clonePath string, repoUrl string, branch string) (string, error) {
-					tryFetchRemoteHeadCallCount++
-					return "head-revision", nil
-				}
-				tryResetToRevisionCallCount := 0
-				fakeRemoteActions.TryResetToRevisionMock = func(clonePath string, branch string, revision string) error {
-					tryResetToRevisionCallCount++
+				cloneRepoCallCount := 0
+				remote.cloneRepoIfMissingFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					cloneRepoCallCount++
 					return nil
 				}
-				printRevisionsDiffCallCount := 0
-				fakeRemoteActions.PrintRevisionsDiffMock = func(path string, prevRevision string, newRevision string) error {
-					printRevisionsDiffCallCount++
-					return fmt.Errorf("failed to print revision diff")
+				autoUpdateRepoCallCount := 0
+				remote.autoUpdateRepositoryFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					autoUpdateRepoCallCount++
+					return fmt.Errorf("failed to auto update repository")
 				}
-				checkoutCallCount := 0
-				fakeRemoteActions.TryCheckoutToBranchMock = func(clonePath string, branch string) error {
-					checkoutCallCount++
+				clonePath, err := remote.Load(ctx)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Empty(t, clonePath)
+				assert.Equal(t, "failed to auto update repository", err.Error())
+				assert.Equal(t, 1, prepareCallCount)
+				assert.Equal(t, 1, verifyRepoConfigCallCount)
+				assert.Equal(t, 1, cloneRepoCallCount)
+				assert.Equal(t, 1, autoUpdateRepoCallCount)
+			})
+		})
+	})
+}
+
+var LoadFailToCheckoutFromBranch = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.Revision = ""
+				remoteCfg.AutoUpdate = false
+
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
+					return nil
+				}
+				verifyRepoConfigCallCount := 0
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					verifyRepoConfigCallCount++
+					return nil
+				}
+				cloneRepoCallCount := 0
+				remote.cloneRepoIfMissingFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					cloneRepoCallCount++
 					return nil
 				}
 
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
+				fakeGit := git.CreateFakeGit()
+				gitCheckoutCallCount := 0
+				fakeGit.CheckoutMock = func(path string, branch string) error {
+					gitCheckoutCallCount++
+					return fmt.Errorf("failed to checkout")
 				}
-				stopSuccessCallCount := 0
-				fakeSpinner.StopOnSuccessMock = func() {
-					stopSuccessCallCount++
+				remote.git = fakeGit
+
+				clonePath, err := remote.Load(ctx)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Empty(t, clonePath)
+				assert.Equal(t, "failed to checkout", err.Error())
+				assert.Equal(t, 1, prepareCallCount)
+				assert.Equal(t, 1, verifyRepoConfigCallCount)
+				assert.Equal(t, 1, cloneRepoCallCount)
+				assert.Equal(t, 1, gitCheckoutCallCount)
+			})
+		})
+	})
+}
+
+var LoadRemoteRepositorySuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.Revision = ""
+				remoteCfg.AutoUpdate = false
+
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
+					return nil
+				}
+				verifyRepoConfigCallCount := 0
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					verifyRepoConfigCallCount++
+					return nil
+				}
+				cloneRepoCallCount := 0
+				remote.cloneRepoIfMissingFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					cloneRepoCallCount++
+					return nil
 				}
 
-				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					return fakeSpinner
+				fakeGit := git.CreateFakeGit()
+				gitCheckoutCallCount := 0
+				fakeGit.CheckoutMock = func(path string, branch string) error {
+					gitCheckoutCallCount++
+					return nil
 				}
+				remote.git = fakeGit
 
-				repo := &RemoteRepository{
-					RemoteConfig:  cfg.Config.ActiveContext.Context.Repository.Remote,
-					RemoteActions: fakeRemoteActions,
-					Printer:       fakePrinter,
-				}
-				repoPath, err := repo.Load(ctx)
-				assert.Equal(t, 1, verifyConfigCallCount)
-				assert.Equal(t, 1, cloneRepoIfMissingCallCount)
-				assert.Equal(t, 1, tryResetToRevisionCallCount)
-				assert.Equal(t, 1, tryFetchRemoteHeadCallCount)
-				assert.Equal(t, 1, tryFetchLocalOriginCallCount)
-				assert.Equal(t, 1, printRevisionsDiffCallCount)
-				assert.Equal(t, 1, checkoutCallCount)
-				assert.Equal(t, 1, spinCallCount)
-				assert.Equal(t, 1, stopSuccessCallCount)
-				assert.Nil(t, err, "expected to succeed on remote resolver")
-				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected to have a repository path")
+				clonePath, err := remote.Load(ctx)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, clonePath, remoteCfg.ClonePath)
+				assert.Equal(t, 1, prepareCallCount)
+				assert.Equal(t, 1, verifyRepoConfigCallCount)
+				assert.Equal(t, 1, cloneRepoCallCount)
+				assert.Equal(t, 1, gitCheckoutCallCount)
 			})
 		})
 	})

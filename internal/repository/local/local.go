@@ -7,13 +7,22 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 )
 
-type LocalRepository struct {
-	LocalConfig *config.Local
+type LocalRepository interface {
+	Load(ctx common.Context) (string, error)
+}
+type localRepositoryImpl struct {
+	localConfig *config.Local
 }
 
-func (lr *LocalRepository) Load(ctx common.Context) (string, error) {
-	if lr.LocalConfig != nil {
-		pathToUse := lr.LocalConfig.Path
+func NewLocalRepository(localConfig *config.Local) *localRepositoryImpl {
+	return &localRepositoryImpl{
+		localConfig: localConfig,
+	}
+}
+
+func (lr *localRepositoryImpl) Load(ctx common.Context) (string, error) {
+	if lr.localConfig != nil {
+		pathToUse := lr.localConfig.Path
 		if len(pathToUse) > 0 {
 			if !ioutils.IsValidPath(pathToUse) {
 				return "", fmt.Errorf("local anchorfiles repository path is invalid. path: %s", pathToUse)

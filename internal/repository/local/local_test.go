@@ -44,9 +44,7 @@ config:
             path: %s
 `, ctx.AnchorFilesPath())
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				repo := &LocalRepository{
-					LocalConfig: cfg.Config.ActiveContext.Context.Repository.Local,
-				}
+				repo := NewLocalRepository(cfg.Config.ActiveContext.Context.Repository.Local)
 				repoPath, err := repo.Load(ctx)
 				assert.Nil(t, err, "expected to succeed on local resolver")
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath, "expected a valid local repository path")
@@ -69,9 +67,7 @@ config:
             path: /invalid/path
 `
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				repo := &LocalRepository{
-					LocalConfig: cfg.Config.ActiveContext.Context.Repository.Local,
-				}
+				repo := NewLocalRepository(cfg.Config.ActiveContext.Context.Repository.Local)
 				repoPath, err := repo.Load(ctx)
 				assert.NotNil(t, err, "expected to fail on local resolver")
 				assert.Contains(t, err.Error(), "local anchorfiles repository path is invalid")
@@ -95,7 +91,7 @@ config:
             path: /invalid/path
 `
 			with.Config(ctx, yamlConfigText, func(cfg *config.AnchorConfig) {
-				repo := &LocalRepository{}
+				repo := NewLocalRepository(nil)
 				repoPath, err := repo.Load(ctx)
 				assert.NotNil(t, err, "expected to fail on local resolver")
 				assert.Contains(t, err.Error(), "invalid local repository configuration")
