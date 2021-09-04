@@ -27,6 +27,7 @@ type remoteRepositoryImpl struct {
 	cloneRepoIfMissingFunc           func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error
 	resetToRevisionFunc              func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error
 	autoUpdateRepositoryFunc         func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error
+	readRemoteHeadRevisionFunc       func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) (string, error)
 }
 
 func NewRemoteRepository(remoteConfig *config.Remote) *remoteRepositoryImpl {
@@ -36,6 +37,7 @@ func NewRemoteRepository(remoteConfig *config.Remote) *remoteRepositoryImpl {
 		verifyRemoteRepositoryConfigFunc: verifyRemoteRepositoryConfig,
 		cloneRepoIfMissingFunc:           cloneRepoIfMissing,
 		resetToRevisionFunc:              resetToRevision,
+		readRemoteHeadRevisionFunc:       readRemoteHeadRevisionFunc,
 		autoUpdateRepositoryFunc:         autoUpdateRepository,
 	}
 }
@@ -61,10 +63,20 @@ func (rr *remoteRepositoryImpl) Load(ctx common.Context) (string, error) {
 		if err := rr.resetToRevisionFunc(rr, clonePath, branch, rr.remoteConfig.Revision); err != nil {
 			return "", err
 		}
+		if rr.remoteConfig.AutoUpdate {
+			msg := fmt.Sprintf("Mutually exclusive config values found: autoUpdate / revision. "+
+				"To allow auto update from '%s' branch latest HEAD, remove the revision from config.",
+				branch)
+			logger.Warning(msg)
+			rr.prntr.PrintEmptyLines(1)
+			rr.prntr.PrintWarning(msg)
+		}
+		rr.prntr.PrintEmptyLines(1)
 	} else if rr.remoteConfig.AutoUpdate {
 		if err := rr.autoUpdateRepositoryFunc(rr, url, branch, clonePath); err != nil {
 			return "", err
 		}
+		rr.prntr.PrintEmptyLines(1)
 	}
 
 	if err := rr.git.Checkout(clonePath, branch); err != nil {
@@ -112,6 +124,7 @@ func verifyRemoteRepositoryConfig(remoteCfg *config.Remote) error {
 
 func cloneRepoIfMissing(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
 	if !ioutils.IsValidPath(clonePath) {
+		rr.prntr.PrintEmptyLines(1)
 		spnr := rr.prntr.PrepareCloneRepositorySpinner(url, branch)
 		spnr.Spin()
 		logger.Infof("Fetching anchorfiles repository for the first time...")
@@ -125,56 +138,65 @@ func cloneRepoIfMissing(rr *remoteRepositoryImpl, url string, branch string, clo
 }
 
 func resetToRevision(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+	rr.prntr.PrintEmptyLines(1)
+	// No need for a spinner if resetting to an already fetched revision
 	if err := rr.git.Reset(clonePath, revision); err != nil {
+		spnr := rr.prntr.PrepareResetToRevisionSpinner(revision)
+		spnr.Spin()
 		// TODO: identify a "revision does not exists" error code before fetching again
 		if err = rr.git.FetchShallow(clonePath, branch); err != nil {
+			spnr.StopOnFailureWithCustomMessage(fmt.Sprintf("Failed fetching repository (branch: %s)", branch))
 			return err
 		} else {
 			if err = rr.git.Reset(clonePath, revision); err != nil {
+				spnr.StopOnFailureWithCustomMessage(fmt.Sprintf(
+					"Failed resetting to revision after fetching repository (branch: %s, revision: %s)",
+					branch, revision))
 				return err
 			}
 		}
+		spnr.StopOnSuccess()
+	} else {
+		rr.prntr.PrintSuccess(fmt.Sprintf("Reset to revision %s", revision))
 	}
+
 	logger.Infof("Updated anchorfiles repo to revision. commit-hash: %s", rr.remoteConfig.Revision)
-
-	if rr.remoteConfig.AutoUpdate {
-		// TODO: add format to printer ??
-		msg := fmt.Sprintf("Mutually exclusive config values found: autoUpdate / revision. "+
-			"To allow auto update from '%s' branch latest HEAD, remove the revision from config.",
-			branch)
-
-		logger.Warning(msg)
-	}
 	return nil
 }
 
-func autoUpdateRepository(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+func readRemoteHeadRevisionFunc(rr *remoteRepositoryImpl, url string, branch string, clonePath string) (string, error) {
 	rr.prntr.PrintEmptyLines(1)
-	spnr := rr.prntr.PrepareAutoUpdateRepositorySpinner(rr.remoteConfig.Url, branch)
+	spnr := rr.prntr.PrepareReadRemoteHeadCommitHashSpinner(rr.remoteConfig.Url, branch)
 	spnr.Spin()
+	if headRevision, err := rr.git.GetRemoteHeadCommitHash(clonePath, url, branch); err != nil {
+		spnr.StopOnFailure(err)
+		return "", nil
+	} else {
+		spnr.StopOnSuccess()
+		return headRevision, nil
+	}
+}
 
+func autoUpdateRepository(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
 	logger.Info("Checking anchorfiles local origin revision...")
 	originRevision, err := rr.git.GetLocalOriginCommitHash(clonePath, branch)
 	if err != nil {
-		spnr.StopOnFailure(err)
 		return err
 	}
 
 	logger.Info("Checking anchorfiles remote HEAD revision...")
-	headRevision, err := rr.git.GetRemoteHeadCommitHash(clonePath, url, branch)
+	headRevision, err := rr.readRemoteHeadRevisionFunc(rr, url, branch, clonePath)
 	if err != nil {
-		spnr.StopOnFailure(err)
 		return err
 	}
 
 	logger.Infof("Trying to reset to revision. commit-hash: %s", headRevision)
 	if err = rr.resetToRevisionFunc(rr, clonePath, branch, headRevision); err != nil {
-		spnr.StopOnFailure(err)
 		return err
 	}
 
+	rr.prntr.PrintEmptyLines(1)
 	if originRevision != headRevision {
-		spnr.StopOnSuccess()
 		logger.Infof("Fetched remote HEAD revision. commit-hash: %s", headRevision)
 		err = rr.git.LogRevisionsDiffPretty(clonePath, originRevision, headRevision)
 		if err != nil {
@@ -183,10 +205,9 @@ func autoUpdateRepository(rr *remoteRepositoryImpl, url string, branch string, c
 			//return "", err
 		}
 	} else {
-		alreadyUpdatedMsg := "Remote repository is already up to date !"
-		logger.Info(alreadyUpdatedMsg)
-		spnr.StopOnSuccessWithCustomMessage(alreadyUpdatedMsg)
+		alreadyUpToDateMsg := "Remote repository is already up to date !"
+		logger.Info(alreadyUpToDateMsg)
+		rr.prntr.PrintSuccess(alreadyUpToDateMsg)
 	}
-	rr.prntr.PrintEmptyLines(1)
 	return nil
 }

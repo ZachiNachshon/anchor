@@ -13,6 +13,7 @@ type PrinterSpinner interface {
 	StopOnSuccess()
 	StopOnSuccessWithCustomMessage(message string)
 	StopOnFailure(err error)
+	StopOnFailureWithCustomMessage(message string)
 }
 
 type printerSpinnerImpl struct {
@@ -57,5 +58,11 @@ func (p *printerSpinnerImpl) StopOnSuccessWithCustomMessage(message string) {
 func (p *printerSpinnerImpl) StopOnFailure(err error) {
 	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
 	fmt.Printf(fmt.Sprintf(p.failureMsgFormat, err.Error()))
+	p.spnr.Stop()
+}
+
+func (p *printerSpinnerImpl) StopOnFailureWithCustomMessage(message string) {
+	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
+	fmt.Printf("%s %s", promptui.IconBad, message)
 	p.spnr.Stop()
 }

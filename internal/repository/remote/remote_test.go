@@ -416,9 +416,8 @@ var AutoUpdateFailToGetLocalOriginCommitHash = func(t *testing.T) {
 					stopOnFailureCallCount++
 				}
 				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
 				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
 					prepareSpinnerCallCount++
 					return fakeSpinner
 				}
@@ -463,9 +462,8 @@ var AutoUpdateFailToGetRemoteHeadCommitHash = func(t *testing.T) {
 					stopOnFailureCallCount++
 				}
 				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
 				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
 					prepareSpinnerCallCount++
 					return fakeSpinner
 				}
@@ -517,9 +515,8 @@ var AutoUpdateFailToResetToRevision = func(t *testing.T) {
 					stopOnFailureCallCount++
 				}
 				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
 				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
 					prepareSpinnerCallCount++
 					return fakeSpinner
 				}
@@ -578,9 +575,8 @@ var AutoUpdateDoNotFailWhenRevisionDiffPrintFails = func(t *testing.T) {
 					stopOnSuccessCallCount++
 				}
 				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
 				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
 					prepareSpinnerCallCount++
 					return fakeSpinner
 				}
@@ -645,9 +641,8 @@ var AutoUpdateRunSuccessfulAlreadyUpToDateFlow = func(t *testing.T) {
 					stopOnCustomSuccessCallCount++
 				}
 				fakePrinter := printer.CreateFakePrinter()
-				fakePrinter.PrintEmptyLinesMock = func(count int) {}
 				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareAutoUpdateRepositorySpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
 					prepareSpinnerCallCount++
 					return fakeSpinner
 				}
@@ -699,6 +694,7 @@ var LoadFailOnPreparations = func(t *testing.T) {
 					prepareCallCount++
 					return fmt.Errorf("fail to prepare")
 				}
+
 				clonePath, err := remote.Load(ctx)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Empty(t, clonePath)
@@ -725,6 +721,7 @@ var LoadFailToVerifyConfiguration = func(t *testing.T) {
 					verifyRepoConfigCallCount++
 					return fmt.Errorf("fail to verify remote repo configuration")
 				}
+
 				clonePath, err := remote.Load(ctx)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Empty(t, clonePath)
@@ -757,6 +754,11 @@ var LoadFailToCloneRepository = func(t *testing.T) {
 					cloneRepoCallCount++
 					return fmt.Errorf("fail to clone repo")
 				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				remote.prntr = fakePrinter
+
 				clonePath, err := remote.Load(ctx)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Empty(t, clonePath)
@@ -798,6 +800,11 @@ var LoadFailToResetToRevision = func(t *testing.T) {
 					resetToRevisionCallCount++
 					return fmt.Errorf("failed to reset to revision")
 				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				remote.prntr = fakePrinter
+
 				clonePath, err := remote.Load(ctx)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Empty(t, clonePath)
@@ -840,6 +847,11 @@ var LoadFailToAutoUpdateRepository = func(t *testing.T) {
 					autoUpdateRepoCallCount++
 					return fmt.Errorf("failed to auto update repository")
 				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				remote.prntr = fakePrinter
+
 				clonePath, err := remote.Load(ctx)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Empty(t, clonePath)
@@ -886,6 +898,10 @@ var LoadFailToCheckoutFromBranch = func(t *testing.T) {
 				}
 				remote.git = fakeGit
 
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				remote.prntr = fakePrinter
+
 				clonePath, err := remote.Load(ctx)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Empty(t, clonePath)
@@ -931,6 +947,10 @@ var LoadRemoteRepositorySuccessfully = func(t *testing.T) {
 					return nil
 				}
 				remote.git = fakeGit
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				remote.prntr = fakePrinter
 
 				clonePath, err := remote.Load(ctx)
 				assert.Nil(t, err, "expected to succeed")

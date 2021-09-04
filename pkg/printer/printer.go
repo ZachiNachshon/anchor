@@ -20,11 +20,14 @@ type Printer interface {
 	PrintConfiguration(cfgFilePath string, cfgText string)
 	PrintMissingInstructions()
 	PrintEmptyLines(count int)
+	PrintSuccess(message string)
+	PrintWarning(message string)
 
 	PrepareRunActionPlainer(actionId string) PrinterPlainer
 	PrepareRunActionSpinner(actionId string, scriptOutputPath string) PrinterSpinner
-	PrepareAutoUpdateRepositorySpinner(url string, branch string) PrinterSpinner
+	PrepareReadRemoteHeadCommitHashSpinner(url string, branch string) PrinterSpinner
 	PrepareCloneRepositorySpinner(url string, branch string) PrinterSpinner
+	PrepareResetToRevisionSpinner(revision string) PrinterSpinner
 }
 
 type ConfigViewTemplateItem struct {
@@ -91,6 +94,14 @@ func (p *printerImpl) PrintMissingInstructions() {
 	fmt.Printf("%sMissing file: %s%s\n\n", colors.Red, globals.InstructionsFileName, colors.Reset)
 }
 
+func (p *printerImpl) PrintSuccess(message string) {
+	fmt.Printf("%s %s", promptui.IconGood, message)
+}
+
+func (p *printerImpl) PrintWarning(message string) {
+	fmt.Printf("%s %s", promptui.IconWarn, message)
+}
+
 func (p *printerImpl) PrepareRunActionPlainer(actionId string) PrinterPlainer {
 	return NewPlainer(
 		getPlainerRunActionMessage(actionId),
@@ -105,18 +116,25 @@ func (p *printerImpl) PrepareRunActionSpinner(actionId string, scriptOutputPath 
 		getSpinnerFailureActionMessageFormat(actionId, scriptOutputPath))
 }
 
-func (p *printerImpl) PrepareAutoUpdateRepositorySpinner(url string, branch string) PrinterSpinner {
+func (p *printerImpl) PrepareReadRemoteHeadCommitHashSpinner(url string, branch string) PrinterSpinner {
 	return NewSpinner(
-		getSpinnerAutoUpdateRepoMessage(url, branch),
-		getSpinnerAutoUpdateRepoSuccessMessage(),
-		getSpinnerAutoUpdateRepoFailureMessageFormat())
+		getSpinnerReadRemoteHeadCommitHashMessage(url, branch),
+		getSpinnerReadRemoteHeadCommitHashSuccessMessage(),
+		getSpinnerReadRemoteHeadCommitHashFailureMessageFormat())
 }
 
 func (p *printerImpl) PrepareCloneRepositorySpinner(url string, branch string) PrinterSpinner {
 	return NewSpinner(
 		getCloneRepositoryMessage(url, branch),
 		getCloneRepositorySuccessMessage(),
-		getCloneRepositoryMessageFormat())
+		getCloneRepositoryFailureMessageFormat())
+}
+
+func (p *printerImpl) PrepareResetToRevisionSpinner(revision string) PrinterSpinner {
+	return NewSpinner(
+		getResetToRevisionMessage(revision),
+		getResetToRevisionSuccessMessage(revision),
+		getResetToRevisionFailureMessageFormat(revision))
 }
 
 func getPlainerRunActionMessage(actionId string) string {
@@ -147,7 +165,7 @@ func getSpinnerRunActionMessage(actionId string) string {
 }
 
 func getSpinnerSuccessActionMessage(actionId string) string {
-	return fmt.Sprintf("%s Action %s%s%s completed successfully\n\n",
+	return fmt.Sprintf("%s Action %s%s%s completed successfully",
 		promptui.IconGood, colors.Cyan, actionId, colors.Reset)
 }
 
@@ -160,16 +178,16 @@ func getSpinnerFailureActionMessageFormat(actionId string, scriptOutputPath stri
 `, promptui.IconBad, colors.Cyan, actionId, colors.Reset, scriptOutputPath)
 }
 
-func getSpinnerAutoUpdateRepoMessage(url string, branch string) string {
-	return fmt.Sprintf(" Fetching repository changes (url: %s, branch: %s)...", url, branch)
+func getSpinnerReadRemoteHeadCommitHashMessage(url string, branch string) string {
+	return fmt.Sprintf(" Reading HEAD commit-hash from remote repository (url: %s, branch: %s)...", url, branch)
 }
 
-func getSpinnerAutoUpdateRepoSuccessMessage() string {
-	return fmt.Sprintf("%s Remote repository updated successfully !", promptui.IconGood)
+func getSpinnerReadRemoteHeadCommitHashSuccessMessage() string {
+	return fmt.Sprintf("%s Read remote repository HEAD commmit-hash", promptui.IconGood)
 }
 
-func getSpinnerAutoUpdateRepoFailureMessageFormat() string {
-	return fmt.Sprintf(`%s Updated remote repository failed.
+func getSpinnerReadRemoteHeadCommitHashFailureMessageFormat() string {
+	return fmt.Sprintf(`%s Failed to read remote repository HEAD commit-hash.
     
     Reason: %%s
 
@@ -181,13 +199,29 @@ func getCloneRepositoryMessage(url string, branch string) string {
 }
 
 func getCloneRepositorySuccessMessage() string {
-	return fmt.Sprintf("%s Repository cloned successfully !", promptui.IconGood)
+	return fmt.Sprintf("%s Repository cloned successfully", promptui.IconGood)
 }
 
-func getCloneRepositoryMessageFormat() string {
+func getCloneRepositoryFailureMessageFormat() string {
 	return fmt.Sprintf(`%s Cloning remote repository failed.
     
     Reason: %%s
 
 `, promptui.IconBad)
+}
+
+func getResetToRevisionMessage(revision string) string {
+	return fmt.Sprintf(" Resetting to revision %s...", revision)
+}
+
+func getResetToRevisionSuccessMessage(revision string) string {
+	return fmt.Sprintf("%s Reset to revision %s", promptui.IconGood, revision)
+}
+
+func getResetToRevisionFailureMessageFormat(revision string) string {
+	return fmt.Sprintf(`%s Resetting to revision %s failed.
+    
+    Reason: %%s
+
+`, promptui.IconBad, revision)
 }

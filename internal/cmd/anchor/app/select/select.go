@@ -309,6 +309,7 @@ func executeInstructionAction(o *selectOrchestrator, action *models.Action, scri
 			return errors.NewPromptError(err)
 		}
 		spnr.StopOnSuccess()
+		o.prntr.PrintEmptyLines(2)
 	}
 	return nil
 }

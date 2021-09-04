@@ -44,6 +44,6 @@ func prepare(o *editOrchestrator, ctx common.Context) error {
 
 func run(o *editOrchestrator, ctx common.Context) error {
 	cfgFilePath, _ := o.cfgManager.GetConfigFilePath()
-	editScript := fmt.Sprintf("vi %s", cfgFilePath)
+	editScript := fmt.Sprintf("vi %s/config.yaml", cfgFilePath)
 	return o.s.ExecuteTTY(editScript)
 }

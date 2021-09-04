@@ -115,14 +115,16 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 var EditConfigurationFile = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
+			configFolderPath := "/path/to/config"
 			fakeCfgManager := config.CreateFakeConfigManager()
 			fakeCfgManager.GetConfigFilePathMock = func() (string, error) {
-				return "/path/to/config", nil
+				return configFolderPath, nil
 			}
 
 			fakeShell := shell.CreateFakeShell()
 			executeCallCount := 0
 			fakeShell.ExecuteTTYMock = func(script string) error {
+				assert.Equal(t, fmt.Sprintf("vi %s/config.yaml", configFolderPath), script)
 				executeCallCount++
 				return nil
 			}
