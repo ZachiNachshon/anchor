@@ -253,8 +253,8 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: InstructionWorkflowExecFailToAskBeforeRunning,
 		},
 		{
-			Name: "instruction workflow exec: fail to run",
-			Func: InstructionWorkflowExecFailToRun,
+			Name: "instruction workflow exec: tolerate run failures",
+			Func: InstructionWorkflowExecTolerateRunFailures,
 		},
 		{
 			Name: "instruction workflow exec: fail to wrap after run",
@@ -730,8 +730,12 @@ var ExecWrapFailToPressAnyKey = func(t *testing.T) {
 				pressAnyKeyCallCount++
 				return fmt.Errorf("failed to press any key")
 			}
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrintEmptyLinesMock = func(count int) {}
+
 			fakeO := NewOrchestrator()
 			fakeO.in = fakeInput
+			fakeO.prntr = fakePrinter
 
 			err := fakeO.wrapAfterExecutionFunc(fakeO)
 			assert.NotNil(t, err, "expected wrap up to fail")
@@ -756,9 +760,13 @@ var ExecWrapFailToClearScreen = func(t *testing.T) {
 				clearScreenCallCount++
 				return fmt.Errorf("failed to clean screen")
 			}
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrintEmptyLinesMock = func(count int) {}
+
 			fakeO := NewOrchestrator()
 			fakeO.in = fakeInput
 			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
 
 			err := fakeO.wrapAfterExecutionFunc(fakeO)
 			assert.NotNil(t, err, "expected clear screen to fail")
@@ -784,9 +792,13 @@ var ExecWrapWrapUpSuccessfully = func(t *testing.T) {
 				clearScreenCallCount++
 				return nil
 			}
+			fakePrinter := printer.CreateFakePrinter()
+			fakePrinter.PrintEmptyLinesMock = func(count int) {}
+
 			fakeO := NewOrchestrator()
 			fakeO.in = fakeInput
 			fakeO.s = fakeShell
+			fakeO.prntr = fakePrinter
 
 			err := fakeO.wrapAfterExecutionFunc(fakeO)
 			assert.Nil(t, err, "expected clear screen to succeed")
@@ -2150,7 +2162,7 @@ var InstructionWorkflowExecFailToAskBeforeRunning = func(t *testing.T) {
 	})
 }
 
-var InstructionWorkflowExecFailToRun = func(t *testing.T) {
+var InstructionWorkflowExecTolerateRunFailures = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
@@ -2176,12 +2188,18 @@ var InstructionWorkflowExecFailToRun = func(t *testing.T) {
 				return errors.NewPromptError(fmt.Errorf("failed to run instruction workflow"))
 			}
 
+			wrapAfterExecCallCount := 0
+			fakeO.wrapAfterExecutionFunc = func(o *selectOrchestrator) *errors.PromptError {
+				wrapAfterExecCallCount++
+				return nil
+			}
+
 			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
-			assert.Nil(t, result)
-			assert.NotNil(t, err, "expected instructions workflow execution to fail")
-			assert.Equal(t, "failed to run instruction workflow", err.GoError().Error())
+			assert.NotNil(t, result)
+			assert.Nil(t, err, "expected instructions workflow execution to succeed")
 			assert.Equal(t, 1, askBeforeCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, runInstructionCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 1, wrapAfterExecCallCount, "expected func to be called exactly once")
 		})
 	})
 }

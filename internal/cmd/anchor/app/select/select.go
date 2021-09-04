@@ -238,6 +238,7 @@ func promptApplicationSelection(o *selectOrchestrator) (*models.ApplicationInfo,
 }
 
 func wrapAfterExecution(o *selectOrchestrator) *errors.PromptError {
+	o.prntr.PrintEmptyLines(1)
 	if inputErr := o.in.PressAnyKeyToContinue(); inputErr != nil {
 		logger.Debugf("Failed to prompt user to press any key after instruction action run")
 		return errors.NewPromptError(inputErr)
@@ -309,7 +310,6 @@ func executeInstructionAction(o *selectOrchestrator, action *models.Action, scri
 			return errors.NewPromptError(err)
 		}
 		spnr.StopOnSuccess()
-		o.prntr.PrintEmptyLines(2)
 	}
 	return nil
 }
@@ -466,7 +466,7 @@ func runInstructionWorkflow(
 	for _, actionId := range workflow.ActionIds {
 		action := models.GetInstructionActionById(actions, actionId)
 		if promptErr := o.runInstructionActionFunc(o, action); promptErr != nil && !workflow.TolerateFailures {
-			logger.Debugf("failed to run workflow and failures are not tolerable. "+
+			logger.Errorf("failed to run workflow and failures are not tolerable. "+
 				"workflow: %s, action: %s", workflow.Id, action.Id)
 			return promptErr
 		}
@@ -484,7 +484,8 @@ func startInstructionWorkflowExecutionFlow(
 		return nil, promptError
 	} else if shouldRun {
 		if promptErr := o.runInstructionWorkflowFunc(o, workflow, actions); promptErr != nil {
-			return nil, promptErr
+			//return nil, promptErr
+			// Do nothing, don't break the application flow, log error to file and prompt for any input to continue
 		}
 		if promptErr := o.wrapAfterExecutionFunc(o); promptErr != nil {
 			return nil, promptErr

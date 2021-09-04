@@ -176,7 +176,6 @@ func getSpinnerFailureActionMessageFormat(actionId string, scriptOutputPath stri
     
     Reason: %%s
     Output: %s
-
 `, promptui.IconBad, colors.Cyan, actionId, colors.Reset, scriptOutputPath)
 }
 
