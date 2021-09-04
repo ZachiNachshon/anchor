@@ -54,6 +54,7 @@ func (rr *remoteRepositoryImpl) Load(ctx common.Context) (string, error) {
 	clonePath := rr.remoteConfig.ClonePath
 	url := rr.remoteConfig.Url
 	branch := rr.remoteConfig.Branch
+	rr.prntr.PrintEmptyLines(1)
 
 	if err := rr.cloneRepoIfMissingFunc(rr, url, branch, clonePath); err != nil {
 		return "", err
@@ -68,15 +69,12 @@ func (rr *remoteRepositoryImpl) Load(ctx common.Context) (string, error) {
 				"To allow auto update from '%s' branch latest HEAD, remove the revision from config.",
 				branch)
 			logger.Warning(msg)
-			rr.prntr.PrintEmptyLines(1)
 			rr.prntr.PrintWarning(msg)
 		}
-		rr.prntr.PrintEmptyLines(1)
 	} else if rr.remoteConfig.AutoUpdate {
 		if err := rr.autoUpdateRepositoryFunc(rr, url, branch, clonePath); err != nil {
 			return "", err
 		}
-		rr.prntr.PrintEmptyLines(1)
 	}
 
 	if err := rr.git.Checkout(clonePath, branch); err != nil {
@@ -124,7 +122,6 @@ func verifyRemoteRepositoryConfig(remoteCfg *config.Remote) error {
 
 func cloneRepoIfMissing(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
 	if !ioutils.IsValidPath(clonePath) {
-		rr.prntr.PrintEmptyLines(1)
 		spnr := rr.prntr.PrepareCloneRepositorySpinner(url, branch)
 		spnr.Spin()
 		logger.Infof("Fetching anchorfiles repository for the first time...")
@@ -138,8 +135,6 @@ func cloneRepoIfMissing(rr *remoteRepositoryImpl, url string, branch string, clo
 }
 
 func resetToRevision(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
-	rr.prntr.PrintEmptyLines(1)
-	// No need for a spinner if resetting to an already fetched revision
 	if err := rr.git.Reset(clonePath, revision); err != nil {
 		spnr := rr.prntr.PrepareResetToRevisionSpinner(revision)
 		spnr.Spin()
@@ -157,6 +152,7 @@ func resetToRevision(rr *remoteRepositoryImpl, clonePath string, branch string, 
 		}
 		spnr.StopOnSuccess()
 	} else {
+		// No need for a spinner if resetting to an already fetched revision
 		rr.prntr.PrintSuccess(fmt.Sprintf("Reset to revision %s", revision))
 	}
 
@@ -165,12 +161,11 @@ func resetToRevision(rr *remoteRepositoryImpl, clonePath string, branch string, 
 }
 
 func readRemoteHeadRevisionFunc(rr *remoteRepositoryImpl, url string, branch string, clonePath string) (string, error) {
-	rr.prntr.PrintEmptyLines(1)
 	spnr := rr.prntr.PrepareReadRemoteHeadCommitHashSpinner(rr.remoteConfig.Url, branch)
 	spnr.Spin()
 	if headRevision, err := rr.git.GetRemoteHeadCommitHash(clonePath, url, branch); err != nil {
 		spnr.StopOnFailure(err)
-		return "", nil
+		return "", err
 	} else {
 		spnr.StopOnSuccess()
 		return headRevision, nil
@@ -195,7 +190,6 @@ func autoUpdateRepository(rr *remoteRepositoryImpl, url string, branch string, c
 		return err
 	}
 
-	rr.prntr.PrintEmptyLines(1)
 	if originRevision != headRevision {
 		logger.Infof("Fetched remote HEAD revision. commit-hash: %s", headRevision)
 		err = rr.git.LogRevisionsDiffPretty(clonePath, originRevision, headRevision)

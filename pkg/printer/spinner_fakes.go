@@ -10,20 +10,25 @@ type fakePrinterSpinner struct {
 	StopOnSuccessMock                  func()
 	StopOnSuccessWithCustomMessageMock func(message string)
 	StopOnFailureMock                  func(err error)
+	StopOnFailureWithCustomMessageMock func(message string)
 }
 
-func (pp *fakePrinterSpinner) Spin() {
-	pp.SpinMock()
+func (ps *fakePrinterSpinner) Spin() {
+	ps.SpinMock()
 }
 
-func (pp *fakePrinterSpinner) StopOnSuccess() {
-	pp.StopOnSuccessMock()
+func (ps *fakePrinterSpinner) StopOnSuccess() {
+	ps.StopOnSuccessMock()
 }
 
-func (pp *fakePrinterSpinner) StopOnSuccessWithCustomMessage(message string) {
-	pp.StopOnSuccessWithCustomMessageMock(message)
+func (ps *fakePrinterSpinner) StopOnSuccessWithCustomMessage(message string) {
+	ps.StopOnSuccessWithCustomMessageMock(message)
 }
 
-func (pp *fakePrinterSpinner) StopOnFailure(err error) {
-	pp.StopOnFailureMock(err)
+func (ps *fakePrinterSpinner) StopOnFailure(err error) {
+	ps.StopOnFailureMock(err)
+}
+
+func (ps *fakePrinterSpinner) StopOnFailureWithCustomMessage(message string) {
+	ps.StopOnFailureWithCustomMessageMock(message)
 }

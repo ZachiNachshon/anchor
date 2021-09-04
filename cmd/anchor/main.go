@@ -46,7 +46,7 @@ var collaborators = &MainCollaborators{
 }
 
 var exitApplication = func(code int, message string) {
-	fmt.Printf("\n\n" + message + "\n\n")
+	fmt.Printf("\n" + message + "\n\n")
 	os.Exit(code)
 }
 

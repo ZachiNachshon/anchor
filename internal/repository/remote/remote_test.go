@@ -74,6 +74,14 @@ func Test_RemoteShould(t *testing.T) {
 			Func: AutoUpdateRunSuccessfulAlreadyUpToDateFlow,
 		},
 		{
+			Name: "read HEAD revision: read revision",
+			Func: ReadHeadRevisionReadRevision,
+		},
+		{
+			Name: "read HEAD revision: fail to read revision",
+			Func: ReadHeadRevisionFailToReadRevision,
+		},
+		{
 			Name: "load: fail on preparations",
 			Func: LoadFailOnPreparations,
 		},
@@ -100,6 +108,10 @@ func Test_RemoteShould(t *testing.T) {
 		{
 			Name: "load: remote repository successfully",
 			Func: LoadRemoteRepositorySuccessfully,
+		},
+		{
+			Name: "load: reset to revision and warn on auto update enabled",
+			Func: LoadResetToRevisionAndWarnOnAutoUpdateEnabled,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -282,7 +294,6 @@ var ResetToRevisionOnFirstTrySuccessfully = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
 				remoteCfg.ClonePath = ctx.AnchorFilesPath()
-				remoteCfg.AutoUpdate = true
 
 				fakeGit := git.CreateFakeGit()
 				gitResetCallCount := 0
@@ -290,12 +301,21 @@ var ResetToRevisionOnFirstTrySuccessfully = func(t *testing.T) {
 					gitResetCallCount++
 					return nil
 				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				printSuccessCallCount := 0
+				fakePrinter.PrintSuccessMock = func(message string) {
+					printSuccessCallCount++
+				}
+
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
+				remote.prntr = fakePrinter
 
 				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.Nil(t, err, "expected not to fail")
 				assert.Equal(t, 1, gitResetCallCount)
+				assert.Equal(t, 1, printSuccessCallCount)
 			})
 		})
 	})
@@ -319,14 +339,33 @@ var FailToFetchAfterFirstTryToResetFails = func(t *testing.T) {
 					gitFetchCallCount++
 					return fmt.Errorf("fail to fetch")
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnFailureCustomCallCount := 0
+				fakeSpinner.StopOnFailureWithCustomMessageMock = func(message string) {
+					stopOnFailureCustomCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrepareResetToRevisionSpinnerMock = func(revision string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
+				remote.prntr = fakePrinter
 
 				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to fetch", err.Error())
 				assert.Equal(t, 1, gitResetCallCount)
 				assert.Equal(t, 1, gitFetchCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopOnFailureCustomCallCount)
 			})
 		})
 	})
@@ -353,13 +392,32 @@ var ResetToRevisionOnSecondTrySuccessfully = func(t *testing.T) {
 					gitFetchCallCount++
 					return nil
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnSuccessCallCount := 0
+				fakeSpinner.StopOnSuccessMock = func() {
+					stopOnSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrepareResetToRevisionSpinnerMock = func(revision string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
+				remote.prntr = fakePrinter
 
 				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 2, gitResetCallCount)
 				assert.Equal(t, 1, gitFetchCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopOnSuccessCallCount)
 			})
 		})
 	})
@@ -386,14 +444,33 @@ var FailToResetToRevisionOnSecondTry = func(t *testing.T) {
 					gitFetchCallCount++
 					return nil
 				}
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnFailureCustomCallCount := 0
+				fakeSpinner.StopOnFailureWithCustomMessageMock = func(message string) {
+					stopOnFailureCustomCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrepareResetToRevisionSpinnerMock = func(revision string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
+				remote.prntr = fakePrinter
 
 				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to reset to revision 2nd try", err.Error())
 				assert.Equal(t, 2, gitResetCallCount)
 				assert.Equal(t, 1, gitFetchCallCount)
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, stopOnFailureCustomCallCount)
 			})
 		})
 	})
@@ -406,22 +483,6 @@ var AutoUpdateFailToGetLocalOriginCommitHash = func(t *testing.T) {
 				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
 				remoteCfg.ClonePath = ctx.AnchorFilesPath()
 
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
-				}
-				stopOnFailureCallCount := 0
-				fakeSpinner.StopOnFailureMock = func(err error) {
-					stopOnFailureCallCount++
-				}
-				fakePrinter := printer.CreateFakePrinter()
-				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					prepareSpinnerCallCount++
-					return fakeSpinner
-				}
-
 				fakeGit := git.CreateFakeGit()
 				gitLocalOriginCommitCallCount := 0
 				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
@@ -431,15 +492,11 @@ var AutoUpdateFailToGetLocalOriginCommitHash = func(t *testing.T) {
 
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
-				remote.prntr = fakePrinter
 
 				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to get local origin commit hash", err.Error())
-				assert.Equal(t, 1, prepareSpinnerCallCount)
-				assert.Equal(t, 1, spinCallCount)
 				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
-				assert.Equal(t, 1, stopOnFailureCallCount)
 			})
 		})
 	})
@@ -452,22 +509,6 @@ var AutoUpdateFailToGetRemoteHeadCommitHash = func(t *testing.T) {
 				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
 				remoteCfg.ClonePath = ctx.AnchorFilesPath()
 
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
-				}
-				stopOnFailureCallCount := 0
-				fakeSpinner.StopOnFailureMock = func(err error) {
-					stopOnFailureCallCount++
-				}
-				fakePrinter := printer.CreateFakePrinter()
-				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					prepareSpinnerCallCount++
-					return fakeSpinner
-				}
-
 				fakeGit := git.CreateFakeGit()
 				gitLocalOriginCommitCallCount := 0
 				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
@@ -475,24 +516,20 @@ var AutoUpdateFailToGetRemoteHeadCommitHash = func(t *testing.T) {
 					return "", nil
 				}
 
-				gitRemoteHeadCommitCallCount := 0
-				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
-					gitRemoteHeadCommitCallCount++
-					return "", fmt.Errorf("fail to get remote HEAD commit hash")
-				}
-
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
-				remote.prntr = fakePrinter
+
+				readRemoteHeadCommitCallCount := 0
+				remote.readRemoteHeadRevisionFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) (string, error) {
+					readRemoteHeadCommitCallCount++
+					return "", fmt.Errorf("fail to get remote HEAD commit hash")
+				}
 
 				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to get remote HEAD commit hash", err.Error())
-				assert.Equal(t, 1, prepareSpinnerCallCount)
-				assert.Equal(t, 1, spinCallCount)
 				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
-				assert.Equal(t, 1, gitRemoteHeadCommitCallCount)
-				assert.Equal(t, 1, stopOnFailureCallCount)
+				assert.Equal(t, 1, readRemoteHeadCommitCallCount)
 			})
 		})
 	})
@@ -505,22 +542,6 @@ var AutoUpdateFailToResetToRevision = func(t *testing.T) {
 				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
 				remoteCfg.ClonePath = ctx.AnchorFilesPath()
 
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
-				}
-				stopOnFailureCallCount := 0
-				fakeSpinner.StopOnFailureMock = func(err error) {
-					stopOnFailureCallCount++
-				}
-				fakePrinter := printer.CreateFakePrinter()
-				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					prepareSpinnerCallCount++
-					return fakeSpinner
-				}
-
 				fakeGit := git.CreateFakeGit()
 				gitLocalOriginCommitCallCount := 0
 				fakeGit.GetLocalOriginCommitHashMock = func(path string, branch string) (string, error) {
@@ -528,15 +549,14 @@ var AutoUpdateFailToResetToRevision = func(t *testing.T) {
 					return "", nil
 				}
 
-				gitRemoteHeadCommitCallCount := 0
-				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
-					gitRemoteHeadCommitCallCount++
-					return "", nil
-				}
-
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
-				remote.prntr = fakePrinter
+
+				readRemoteHeadCommitCallCount := 0
+				remote.readRemoteHeadRevisionFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) (string, error) {
+					readRemoteHeadCommitCallCount++
+					return "", nil
+				}
 
 				resetToRevisionCallCount := 0
 				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
@@ -547,12 +567,9 @@ var AutoUpdateFailToResetToRevision = func(t *testing.T) {
 				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to reset to revision", err.Error())
-				assert.Equal(t, 1, prepareSpinnerCallCount)
-				assert.Equal(t, 1, spinCallCount)
 				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
-				assert.Equal(t, 1, gitRemoteHeadCommitCallCount)
+				assert.Equal(t, 1, readRemoteHeadCommitCallCount)
 				assert.Equal(t, 1, resetToRevisionCallCount)
-				assert.Equal(t, 1, stopOnFailureCallCount)
 			})
 		})
 	})
@@ -631,20 +648,10 @@ var AutoUpdateRunSuccessfulAlreadyUpToDateFlow = func(t *testing.T) {
 				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
 				remoteCfg.ClonePath = ctx.AnchorFilesPath()
 
-				fakeSpinner := printer.CreateFakePrinterSpinner()
-				spinCallCount := 0
-				fakeSpinner.SpinMock = func() {
-					spinCallCount++
-				}
-				stopOnCustomSuccessCallCount := 0
-				fakeSpinner.StopOnSuccessWithCustomMessageMock = func(message string) {
-					stopOnCustomSuccessCallCount++
-				}
 				fakePrinter := printer.CreateFakePrinter()
-				prepareSpinnerCallCount := 0
-				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
-					prepareSpinnerCallCount++
-					return fakeSpinner
+				printSuccessCallCount := 0
+				fakePrinter.PrintSuccessMock = func(message string) {
+					printSuccessCallCount++
 				}
 
 				fakeGit := git.CreateFakeGit()
@@ -654,15 +661,15 @@ var AutoUpdateRunSuccessfulAlreadyUpToDateFlow = func(t *testing.T) {
 					return "12345", nil
 				}
 
-				gitRemoteHeadCommitCallCount := 0
-				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
-					gitRemoteHeadCommitCallCount++
-					return "12345", nil
-				}
-
 				remote := NewRemoteRepository(remoteCfg)
 				remote.git = fakeGit
 				remote.prntr = fakePrinter
+
+				readRemoteHeadCommitCallCount := 0
+				remote.readRemoteHeadRevisionFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) (string, error) {
+					readRemoteHeadCommitCallCount++
+					return "12345", nil
+				}
 
 				resetToRevisionCallCount := 0
 				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
@@ -672,12 +679,99 @@ var AutoUpdateRunSuccessfulAlreadyUpToDateFlow = func(t *testing.T) {
 
 				err := remote.autoUpdateRepositoryFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
 				assert.Nil(t, err, "expected to succeed")
-				assert.Equal(t, 1, prepareSpinnerCallCount)
-				assert.Equal(t, 1, spinCallCount)
 				assert.Equal(t, 1, gitLocalOriginCommitCallCount)
-				assert.Equal(t, 1, gitRemoteHeadCommitCallCount)
+				assert.Equal(t, 1, readRemoteHeadCommitCallCount)
 				assert.Equal(t, 1, resetToRevisionCallCount)
-				assert.Equal(t, 1, stopOnCustomSuccessCallCount)
+				assert.Equal(t, 1, printSuccessCallCount)
+			})
+		})
+	})
+}
+
+var ReadHeadRevisionReadRevision = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnSuccessCallCount := 0
+				fakeSpinner.StopOnSuccessMock = func() {
+					stopOnSuccessCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
+				fakeGit := git.CreateFakeGit()
+				gerRemoteHeadRevisionCallCount := 0
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
+					gerRemoteHeadRevisionCallCount++
+					return "12345", nil
+				}
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				headRev, err := remote.readRemoteHeadRevisionFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, gerRemoteHeadRevisionCallCount)
+				assert.Equal(t, 1, stopOnSuccessCallCount)
+				assert.Equal(t, "12345", headRev)
+			})
+		})
+	})
+}
+
+var ReadHeadRevisionFailToReadRevision = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.ClonePath = ctx.AnchorFilesPath()
+
+				fakeSpinner := printer.CreateFakePrinterSpinner()
+				spinCallCount := 0
+				fakeSpinner.SpinMock = func() {
+					spinCallCount++
+				}
+				stopOnFailureCallCount := 0
+				fakeSpinner.StopOnFailureMock = func(err error) {
+					stopOnFailureCallCount++
+				}
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrepareReadRemoteHeadCommitHashSpinnerMock = func(url string, branch string) printer.PrinterSpinner {
+					return fakeSpinner
+				}
+
+				fakeGit := git.CreateFakeGit()
+				gerRemoteHeadRevisionCallCount := 0
+				fakeGit.GetRemoteHeadCommitHashMock = func(path string, repoUrl string, branch string) (string, error) {
+					gerRemoteHeadRevisionCallCount++
+					return "", fmt.Errorf("failed to read remote HEAD revision")
+				}
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.git = fakeGit
+				remote.prntr = fakePrinter
+
+				headRev, err := remote.readRemoteHeadRevisionFunc(remote, remoteCfg.Url, remoteCfg.Branch, remoteCfg.ClonePath)
+				assert.NotNil(t, err, "expected to fail")
+				assert.Equal(t, "failed to read remote HEAD revision", err.Error())
+				assert.Empty(t, headRev, "expected not to have response")
+				assert.Equal(t, 1, spinCallCount)
+				assert.Equal(t, 1, gerRemoteHeadRevisionCallCount)
+				assert.Equal(t, 1, stopOnFailureCallCount)
 			})
 		})
 	})
@@ -958,6 +1052,66 @@ var LoadRemoteRepositorySuccessfully = func(t *testing.T) {
 				assert.Equal(t, 1, prepareCallCount)
 				assert.Equal(t, 1, verifyRepoConfigCallCount)
 				assert.Equal(t, 1, cloneRepoCallCount)
+				assert.Equal(t, 1, gitCheckoutCallCount)
+			})
+		})
+	})
+}
+
+var LoadResetToRevisionAndWarnOnAutoUpdateEnabled = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.Revision = "12345"
+				remoteCfg.AutoUpdate = true
+
+				remote := NewRemoteRepository(remoteCfg)
+				prepareCallCount := 0
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					prepareCallCount++
+					return nil
+				}
+				verifyRepoConfigCallCount := 0
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					verifyRepoConfigCallCount++
+					return nil
+				}
+				cloneRepoCallCount := 0
+				remote.cloneRepoIfMissingFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					cloneRepoCallCount++
+					return nil
+				}
+				resetToRevCallCount := 0
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+					resetToRevCallCount++
+					return nil
+				}
+
+				fakeGit := git.CreateFakeGit()
+				gitCheckoutCallCount := 0
+				fakeGit.CheckoutMock = func(path string, branch string) error {
+					gitCheckoutCallCount++
+					return nil
+				}
+				remote.git = fakeGit
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				printWarningCallCount := 0
+				fakePrinter.PrintWarningMock = func(message string) {
+					printWarningCallCount++
+				}
+				remote.prntr = fakePrinter
+
+				clonePath, err := remote.Load(ctx)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, clonePath, remoteCfg.ClonePath)
+				assert.Equal(t, 1, prepareCallCount)
+				assert.Equal(t, 1, verifyRepoConfigCallCount)
+				assert.Equal(t, 1, cloneRepoCallCount)
+				assert.Equal(t, 1, resetToRevCallCount)
+				assert.Equal(t, 1, printWarningCallCount)
 				assert.Equal(t, 1, gitCheckoutCallCount)
 			})
 		})

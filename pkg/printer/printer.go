@@ -96,10 +96,12 @@ func (p *printerImpl) PrintMissingInstructions() {
 
 func (p *printerImpl) PrintSuccess(message string) {
 	fmt.Printf("%s %s", promptui.IconGood, message)
+	fmt.Println()
 }
 
 func (p *printerImpl) PrintWarning(message string) {
 	fmt.Printf("%s %s", promptui.IconWarn, message)
+	fmt.Println()
 }
 
 func (p *printerImpl) PrepareRunActionPlainer(actionId string) PrinterPlainer {
