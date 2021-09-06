@@ -11,6 +11,7 @@ type Action struct {
 
 type Workflow struct {
 	Id               string   `yaml:"id"`
+	Title            string   `yaml:"title"`
 	Description      string   `yaml:"description"`
 	TolerateFailures bool     `yaml:"tolerateFailures"`
 	ActionIds        []string `yaml:"actionIds"`

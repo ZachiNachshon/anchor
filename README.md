@@ -31,32 +31,17 @@
   <a href="#support">Support</a> •
   <a href="#license">License</a>
 </p>
-
 <br>
 
-**Anchor** is a lightweight CLI tool that grants the **dynamic marketplace** experience for local environment needs by connecting to single/multiple remote repositories, each represent a different marketplace of executable actions.
+**Anchor** is a lightweight CLI tool that grants the **dynamic marketplace** experience for local environment by connecting to single/multiple remote repositories, each represents a different marketplace of executable actions.
 
-Every such marketplace repository allows Anchor to **centralize and organize** executable single action and/or multiple actions (workflows) in a coherent, visible and easy-to-use approach. 
+Every such marketplace repository allows Anchor to **centralize and organize** executable single **action** and/or multiple actions (**workflows**) in a coherent, visible and easy-to-use approach. 
 
-Action refers to anything that can be executed within a shell session, Anchor connects to remote git repositories, each containing a specific structure that allows anchor to understand what is available, exposing the repository content with **actions / workflows (actions-sets)** using an **interactive** selection prompter enriched with **documentation**.
+**Action** refers to anything that can be executed within a shell session, Anchor connects to remote git repositories, each containing a specific structure that allows it to understand what is available, exposing to the user the repository content of **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation**.
 
-<br>
-
-<details><summary>Create a repository with the expected structure</summary>
-<img style="vertical-align: top;" src="assets/images/anchorfiles-structure.png" height="400" >
-</details>
-
-<details><summary>Define actions/workflows within the <code>instructions.yaml</code> file</summary>
-<img style="vertical-align: top;" src="assets/images/anchorfiles-structure.png" height="400" >
-</details>
-
-<details><summary>Add the remote marketplace to <code>Anchor</code> configuration file</summary>
-<img style="vertical-align: top;" src="assets/images/anchor-config.png" width="500" >
-</details>
-
-<details><summary>Use <code>anchor select app</code> to interact with the marketplace</summary>
-<img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
-</details>
+| :heavy_exclamation_mark: WARNING |
+| :--------------------------------------- |
+| Anchor is still in **alpha stage**, breaking changes might occur, use it with caution ! |
 
 <br>
 
@@ -86,11 +71,12 @@ Action refers to anything that can be executed within a shell session, Anchor co
 <h2 id="overview">⚓️ Overview</h2>
 
 - [Why creating `Anchor`?](#why-creating-anchor)
+- [How does it work?](#how-does-it-work)
 - [Installation](docs/installation.md)
 - [Configuration](docs/configuration.md)
-- [Available Features](docs/available-features.md)
-- [Create a Marketplace Repository](docs/create-anchorfiles.md)
-- [Common Questions](docs/common-questions.md)
+- [Available features](docs/available-features.md)
+- [Create a marketplace repository](docs/create-anchorfiles.md)
+- [Common questions](docs/common-questions.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 **Maintainers / Contributors:**
@@ -101,14 +87,80 @@ Action refers to anything that can be executed within a shell session, Anchor co
 
 <h3 id="incentive">⛵ Why Creating <code>Anchor</code>?</h3>
 
-1. I beleive that local environment management should be a smooth sailing, well documented process with minimum context switches for *running scripts / installing applications / orchestrate installations / do whatever you require* on it
+1. I believe that local environment management should be a *smooth sailing*, well documented process with minimum context switches for *running scripts / installing applications / orchestrate installations / do whatever you require* on it
 1. Allowing to compose different actions from multiple channels (shell scripts, CLI utilities etc..) into a coherent well documented workflow with rollback procedure
 1. Having an action / workflow execution plan explained in plain english and managed via a central versioned controlled remote repository that can be shared with others to use
 1. Using an agnostic client that doesn't change, rather, changes are reflected based on remote marketplace state
 
 <br>
 
+<h3 id="how-does-it-work">🗺 How Does It Work?</h3>
+
+1. Create a structured repository (a.k.a anchorfiles) as the remote marketplace
+
+   <details><summary>Show</summary>
+   ```bash
+   ├── ...
+   ├── app                   
+   │   └── docker-registry               
+   │       ├── instructions.yaml
+   │       └── ...
+   │   └── docker-registry-ui               
+   │       ├── instructions.yaml
+   │       └── ...
+   │   └── jenkins
+   │       ├── instructions.yaml
+   │       └── ...   
+   │   └── traefik-dashboard
+   │       ├── some-script.sh
+   │       ├── instructions.yaml
+   │       └── ...   
+   │   └── kubernetes-dashboard
+   │       ├── instructions.yaml
+   │       └── ...            
+   │   └── ...                
+   ├── cli 
+   │   └── kubectl 
+   │       ├── instructions.yaml
+   │       └── ...
+   │   └── brew 
+   │       ├── instructions.yaml
+   │       └── ...
+   ├── k8s
+   │   └── k3s 
+   │       └── ...  
+   │   └── kind 
+   │       └── ...  
+   │   └── minikube 
+   │       └── ...  
+   │   └── ... 
+   └── ...  
+   ```
+   </details>
+   
+1. Define actions/workflows within the an ***instructions.yaml*** file
+
+   <details><summary>Show</summary>
+   <img style="vertical-align: top;" src="assets/images/anchorfiles-structure.png" height="400" >
+   </details>
+
+1. Set the remote marketplace in anchor ***config.yaml*** file
+
+   <details><summary>Show</summary>
+   <img style="vertical-align: top;" src="assets/images/anchor-config.png" width="500" >
+   </details>
+
+1. Use anchor CLI commands to interact with the marketplace
+
+   <details><summary>Show</summary>
+   <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
+   </details>
+
+<br>
+
 <h2 id="support">Support</h2>
+
+Anchor is an open source project that is currently self maintained in addition to my day job, you are welcome to show your appreciation by sending me cups of coffee using the the following link as it is a known fact that it is the fuel that drives software engineering ☕
 
 <a href="https://www.buymeacoffee.com/ZachiNachshon" target="_blank"><img src="assets/images/bmc-orig.svg" height="57" width="200" alt="Buy Me A Coffee"></a>
 

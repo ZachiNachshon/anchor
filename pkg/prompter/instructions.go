@@ -110,11 +110,11 @@ func prepareInstructionsWorkflowTemplate(activeSpacePadding string, inactiveSpac
 		Label: "{{ . }}",
 		Active: selectorEmoji + ` {{ printf ` + activeSpacePadding + ` .Id | cyan }}` +
 			`{{ if and (not ( eq .Id "` + BackActionName + `")) }}` +
-			`({{ .Description | green }})` +
+			`({{ .Title | green }})` +
 			`{{ end }}`,
 		Inactive: ` {{ printf ` + inactiveSpacePadding + ` .Id | cyan }}` +
 			`{{ if and (not ( eq .Id "` + BackActionName + `")) }}` +
-			`({{ .Description | faint }})` +
+			`({{ .Title | faint }})` +
 			`{{ end }}`,
 		Selected: selectorEmoji + " {{ .Id | red | cyan }}",
 		Details:  instructionsWorkflowPromptTemplateDetails,
