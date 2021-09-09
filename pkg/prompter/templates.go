@@ -35,7 +35,7 @@ var instructionsActionPromptTemplateDetails = `{{ if not (eq .Id "` + BackAction
   {{ "Script:" | faint }}` + createCustomSpacesString(actionLengthiestOption-7+leftPadding) + `{{ "(hidden)" }} 
 {{- end }}
 {{- if not (eq .ScriptFile "") }}
-  {{ "ScriptFile:" | faint }}` + createCustomSpacesString(actionLengthiestOption-11+leftPadding) + `{{ .ScriptFile }} 
+  {{ "Script File:" | faint }}` + createCustomSpacesString(actionLengthiestOption-12+leftPadding) + `{{ .ScriptFile }} 
 {{- end }}
 {{- if not (eq .Description "") }}
   {{ "Description:" | faint }}` + createCustomSpacesString(leftPadding) + `{{ .Description }}

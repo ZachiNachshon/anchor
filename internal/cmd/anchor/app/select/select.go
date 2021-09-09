@@ -14,6 +14,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/manifoldco/promptui"
+	"strings"
 )
 
 type AppSelectFunc func(ctx common.Context, o *selectOrchestrator) error
@@ -299,13 +300,14 @@ func executeInstructionAction(o *selectOrchestrator, action *models.Action, scri
 		}
 		spnr.StopOnSuccess()
 	} else if len(action.ScriptFile) > 0 {
+		filePath, args := extractArgsFromScriptFile(action.ScriptFile)
 		spnr.Spin()
 		if err := o.s.ExecuteScriptFileSilentlyWithOutputToFile(
 			action.AnchorfilesRepoPath,
-			action.ScriptFile,
-			scriptOutputPath); err != nil {
-
-			logger.Errorf("failed to run action. id: %s, source: script file, error: %s", action.Id, err.Error())
+			filePath,
+			scriptOutputPath,
+			args...); err != nil {
+			logger.Errorf("failed to run action. id: %s, source: script file, args: %v, error: %s", action.Id, args, err.Error())
 			spnr.StopOnFailure(err)
 			return errors.NewPromptError(err)
 		}
@@ -326,13 +328,15 @@ func executeInstructionActionVerbose(o *selectOrchestrator, action *models.Actio
 		}
 		plainer.StopOnSuccess()
 	} else if len(action.ScriptFile) > 0 {
+		filePath, args := extractArgsFromScriptFile(action.ScriptFile)
 		plainer.Start()
 		if err := o.s.ExecuteScriptFileWithOutputToFile(
 			action.AnchorfilesRepoPath,
-			action.ScriptFile,
-			scriptOutputPath); err != nil {
+			filePath,
+			scriptOutputPath,
+			args...); err != nil {
 
-			logger.Errorf("failed to run action. id: %s, source: script file, error: %s", action.Id, err.Error())
+			logger.Errorf("failed to run action. id: %s, source: script file, args: %s, error: %s", action.Id, args, err.Error())
 			plainer.StopOnFailure(err)
 			return errors.NewPromptError(err)
 		}
@@ -558,4 +562,12 @@ func enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath string, 
 			action.AnchorfilesRepoPath = anchorfilesRepoPath
 		}
 	}
+}
+
+func extractArgsFromScriptFile(scriptFile string) (string, []string) {
+	split := strings.Split(scriptFile, " ")
+	if len(split) > 1 {
+		return split[0], split[1:]
+	}
+	return split[0], nil
 }

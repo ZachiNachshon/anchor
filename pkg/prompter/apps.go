@@ -56,7 +56,7 @@ func prepareAppsSelector(
 		Label:             "",
 		Items:             apps,
 		Templates:         templates,
-		Size:              10,
+		Size:              15,
 		Searcher:          searcher,
 		StartInSearchMode: true,
 		HideSelected:      true,

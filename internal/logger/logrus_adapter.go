@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"os"
+	"path"
+	"runtime"
 )
 
 type LoggerLogrusAdapter interface {
@@ -55,7 +57,14 @@ func (lr *logrusAdapterImpl) AppendFileBasedLogger(filePath string, level string
 	}
 
 	// Log as JSON instead of the default ASCII formatter.
-	jsonFormatter := logrus.JSONFormatter{}
+	jsonFormatter := logrus.JSONFormatter{
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			// TODO: check why file/line num. fails to print to log file
+			filename := path.Base(f.File)
+			return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
+		},
+		PrettyPrint: true,
+	}
 	jsonFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	lr.fileLogger.Formatter = &jsonFormatter
 

@@ -67,7 +67,7 @@ func New() Shell {
 
 func (s *shellExecutor) ExecuteScriptFile(dir string, relativeScriptPath string, args ...string) error {
 	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
-	// Args must include the command as Args[0]
+	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
 
 	cmd := &exec.Cmd{
@@ -92,7 +92,7 @@ func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
 	args ...string) error {
 
 	path := fmt.Sprintf("%s/%s", workingDirectory, relativeScriptPath)
-	// Args must include the command as Args[0]
+	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
 
 	cmd := &exec.Cmd{
@@ -125,7 +125,7 @@ func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
 	args ...string) error {
 
 	path := fmt.Sprintf("%s/%s", workingDirectory, relativeScriptPath)
-	// Args must include the command as Args[0]
+	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
 
 	cmd := &exec.Cmd{

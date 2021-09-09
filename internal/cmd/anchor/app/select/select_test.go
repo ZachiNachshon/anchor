@@ -151,7 +151,6 @@ func Test_SelectActionShould(t *testing.T) {
 			Name: "run instruction action: run action interactive",
 			Func: RunInstructionActionRunActionInteractive,
 		},
-
 		{
 			Name: "action exec interactive: fail to exec script",
 			Func: ActionExecInteractiveFailToExecScript,
@@ -295,6 +294,10 @@ func Test_SelectActionShould(t *testing.T) {
 		{
 			Name: "add back option to workflows prompt selector",
 			Func: AddBackOptionToWorkflowPromptSelector,
+		},
+		{
+			Name: "extract args from script file",
+			Func: ExtractArgsFromScriptFile,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -2383,4 +2386,19 @@ var AddBackOptionToWorkflowPromptSelector = func(t *testing.T) {
 	instRootTestData := stubs.GenerateInstructionsTestData()
 	appendInstructionWorkflowsCustomOptions(instRootTestData.Instructions)
 	assert.EqualValues(t, prompter.BackActionName, instRootTestData.Instructions.Workflows[0].Id)
+}
+
+var ExtractArgsFromScriptFile = func(t *testing.T) {
+	expectedPath := "/path/to/script"
+	scriptNoArgs := expectedPath
+	path, args := extractArgsFromScriptFile(scriptNoArgs)
+	assert.Equal(t, "/path/to/script", path)
+	assert.Nil(t, args)
+
+	scriptMultipleArgs := fmt.Sprintf("%s %s %s", expectedPath, "--create", "--deploy")
+	path, args = extractArgsFromScriptFile(scriptMultipleArgs)
+	assert.Equal(t, "/path/to/script", path)
+	assert.Equal(t, 2, len(args))
+	assert.Equal(t, "--create", args[0])
+	assert.Equal(t, "--deploy", args[1])
 }
