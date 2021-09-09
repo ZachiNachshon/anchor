@@ -134,7 +134,7 @@ var InstructionActionPrepareFullPrompter = func(t *testing.T) {
 	selector := preparePromptInstructionsActions(instructions.Instructions.Actions)
 	assert.NotNil(t, selector)
 	assert.Equal(t, selector.Label, "")
-	assert.Equal(t, selector.Size, 10)
+	assert.Equal(t, selector.Size, 15)
 	assert.Equal(t, 2, len(selector.Items.([]*models.Action))) // + cancel button
 	assert.Equal(t, selector.StartInSearchMode, true)
 	assert.Equal(t, selector.HideSelected, true)

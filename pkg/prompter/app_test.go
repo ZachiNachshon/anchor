@@ -73,7 +73,7 @@ var AppsPrepareFullPrompter = func(t *testing.T) {
 	selector := preparePromptAppsItems(appTestData)
 	assert.NotNil(t, selector)
 	assert.Equal(t, selector.Label, "")
-	assert.Equal(t, selector.Size, 10)
+	assert.Equal(t, selector.Size, 15)
 	assert.Equal(t, 3, len(selector.Items.([]*models.ApplicationInfo))) // + cancel button
 	assert.Equal(t, selector.StartInSearchMode, true)
 	assert.Equal(t, selector.HideSelected, true)
