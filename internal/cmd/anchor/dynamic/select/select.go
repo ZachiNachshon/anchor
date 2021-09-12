@@ -17,9 +17,9 @@ import (
 	"strings"
 )
 
-type AppSelectFunc func(ctx common.Context, o *selectOrchestrator) error
+type DynamicSelectFunc func(ctx common.Context, o *selectOrchestrator) error
 
-var AppSelect = func(ctx common.Context, o *selectOrchestrator) error {
+var DynamicSelect = func(ctx common.Context, o *selectOrchestrator) error {
 	err := o.prepareFunc(o, ctx)
 	if err != nil {
 		return err
@@ -33,6 +33,9 @@ var AppSelect = func(ctx common.Context, o *selectOrchestrator) error {
 }
 
 type selectOrchestrator struct {
+	parentFolderName string
+	verbose          bool
+
 	prmpt prompter.Prompter
 	l     locator.Locator
 	e     extractor.Extractor
@@ -41,32 +44,30 @@ type selectOrchestrator struct {
 	in    input.UserInput
 	prntr printer.Printer
 
-	verbose bool
-
 	// --- CLI Command ---
 	prepareFunc func(o *selectOrchestrator, ctx common.Context) error
 	bannerFunc  func(o *selectOrchestrator)
 	runFunc     func(o *selectOrchestrator, ctx common.Context) *errors.PromptError
 
-	// --- Application ---
-	startApplicationSelectionFlowFunc func(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError
-	promptApplicationSelectionFunc    func(o *selectOrchestrator) (*models.ApplicationInfo, *errors.PromptError)
+	// --- Folder Items ---
+	startFolderItemsSelectionFlowFunc func(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError
+	promptFolderItemsSelectionFunc    func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError)
 	wrapAfterExecutionFunc            func(o *selectOrchestrator) *errors.PromptError
 
 	// --- Action ---
 	startInstructionActionSelectionFlowFunc func(
 		o *selectOrchestrator,
-		app *models.ApplicationInfo,
+		anchorFolderItem *models.AnchorFolderItemInfo,
 		instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError)
 
 	promptInstructionActionSelectionFunc func(
 		o *selectOrchestrator,
-		app *models.ApplicationInfo,
+		anchorFolderItem *models.AnchorFolderItemInfo,
 		actions []*models.Action) (*models.Action, *errors.PromptError)
 
 	extractInstructionsFunc func(
 		o *selectOrchestrator,
-		app *models.ApplicationInfo,
+		anchorFolderItem *models.AnchorFolderItemInfo,
 		anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError)
 
 	startInstructionActionExecutionFlowFunc func(
@@ -94,13 +95,13 @@ type selectOrchestrator struct {
 	// --- Workflow ---
 	startInstructionWorkflowSelectionFlowFunc func(
 		o *selectOrchestrator,
-		app *models.ApplicationInfo,
+		anchorFolderItem *models.AnchorFolderItemInfo,
 		workflows []*models.Workflow,
 		actions []*models.Action) (*models.Workflow, *errors.PromptError)
 
 	promptInstructionWorkflowSelectionFunc func(
 		o *selectOrchestrator,
-		app *models.ApplicationInfo,
+		anchorFolderItem *models.AnchorFolderItemInfo,
 		workflows []*models.Workflow) (*models.Workflow, *errors.PromptError)
 
 	startInstructionWorkflowExecutionFlowFunc func(
@@ -118,18 +119,19 @@ type selectOrchestrator struct {
 		actions []*models.Action) *errors.PromptError
 }
 
-func NewOrchestrator() *selectOrchestrator {
+func NewOrchestrator(parentFolderName string) *selectOrchestrator {
 	return &selectOrchestrator{
-		verbose: false,
+		parentFolderName: parentFolderName,
+		verbose:          false,
 
 		// --- CLI Command ---
 		bannerFunc:  banner,
 		prepareFunc: prepare,
 		runFunc:     run,
 
-		// --- Application ---
-		startApplicationSelectionFlowFunc: startApplicationSelectionFlow,
-		promptApplicationSelectionFunc:    promptApplicationSelection,
+		// --- Anchor Folder Item ---
+		startFolderItemsSelectionFlowFunc: startFolderItemsSelectionFlow,
+		promptFolderItemsSelectionFunc:    promptFolderItemsSelection,
 		wrapAfterExecutionFunc:            wrapAfterExecution,
 
 		// --- Action ---
@@ -201,37 +203,37 @@ func banner(o *selectOrchestrator) {
 }
 
 func run(o *selectOrchestrator, ctx common.Context) *errors.PromptError {
-	return o.startApplicationSelectionFlowFunc(o, ctx.AnchorFilesPath())
+	return o.startFolderItemsSelectionFlowFunc(o, ctx.AnchorFilesPath())
 }
 
-func startApplicationSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
-	if app, promptErr := o.promptApplicationSelectionFunc(o); promptErr != nil {
+func startFolderItemsSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
+	if anchorFolder, promptErr := o.promptFolderItemsSelectionFunc(o); promptErr != nil {
 		return promptErr
-	} else if app.Name == prompter.CancelActionName {
+	} else if anchorFolder.Name == prompter.CancelActionName {
 		return nil
 	} else {
-		instRoot, promptError := o.extractInstructionsFunc(o, app, anchorfilesRepoPath)
+		instRoot, promptError := o.extractInstructionsFunc(o, anchorFolder, anchorfilesRepoPath)
 		if promptError != nil {
 			o.prntr.PrintMissingInstructions()
 			_ = o.wrapAfterExecutionFunc(o)
-			return o.startApplicationSelectionFlowFunc(o, anchorfilesRepoPath)
+			return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 		}
 
-		if instructionItem, promptErr := o.startInstructionActionSelectionFlowFunc(o, app, instRoot); promptErr != nil {
+		if instructionItem, promptErr := o.startInstructionActionSelectionFlowFunc(o, anchorFolder, instRoot); promptErr != nil {
 			if promptErr.Code() == errors.InstructionMissingError {
-				return o.startApplicationSelectionFlowFunc(o, anchorfilesRepoPath)
+				return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 			}
 			return promptErr
 		} else if instructionItem.Id == prompter.BackActionName {
-			return o.startApplicationSelectionFlowFunc(o, anchorfilesRepoPath)
+			return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 		}
 		return nil
 	}
 }
 
-func promptApplicationSelection(o *selectOrchestrator) (*models.ApplicationInfo, *errors.PromptError) {
-	apps := o.l.Applications()
-	if app, err := o.prmpt.PromptApps(apps); err != nil {
+func promptFolderItemsSelection(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
+	folderItems := o.l.AnchorFolderItems(o.parentFolderName)
+	if app, err := o.prmpt.PromptAnchorFolderItemSelection(folderItems); err != nil {
 		return nil, errors.NewPromptError(err)
 	} else {
 		return app, nil
@@ -253,7 +255,7 @@ func wrapAfterExecution(o *selectOrchestrator) *errors.PromptError {
 
 func extractInstructions(
 	o *selectOrchestrator,
-	app *models.ApplicationInfo,
+	app *models.AnchorFolderItemInfo,
 	anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
 
 	path := app.InstructionsPath
@@ -347,13 +349,13 @@ func executeInstructionActionVerbose(o *selectOrchestrator, action *models.Actio
 
 func startInstructionActionSelectionFlow(
 	o *selectOrchestrator,
-	app *models.ApplicationInfo,
+	anchorFolderItem *models.AnchorFolderItemInfo,
 	instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError) {
 
 	appendInstructionActionsCustomOptions(instructionRoot.Instructions)
 	actions := instructionRoot.Instructions.Actions
 
-	if action, promptErr := o.promptInstructionActionSelectionFunc(o, app, actions); promptErr != nil {
+	if action, promptErr := o.promptInstructionActionSelectionFunc(o, anchorFolderItem, actions); promptErr != nil {
 		return nil, promptErr
 	} else if action.Id == prompter.BackActionName {
 		logger.Debugf("Selected to go back from instruction actions menu. id: %v", action.Id)
@@ -362,27 +364,27 @@ func startInstructionActionSelectionFlow(
 		appendInstructionWorkflowsCustomOptions(instructionRoot.Instructions)
 		workflows := instructionRoot.Instructions.Workflows
 		logger.Debugf("Selected to prompt for instruction workflows menu. id: %v", action.Id)
-		if _, promptErr = o.startInstructionWorkflowSelectionFlowFunc(o, app, workflows, actions); promptErr != nil {
+		if _, promptErr = o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, workflows, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
-			return o.startInstructionActionSelectionFlowFunc(o, app, instructionRoot)
+			return o.startInstructionActionSelectionFlowFunc(o, anchorFolderItem, instructionRoot)
 		}
 	} else {
 		logger.Debugf("Selected instruction action to run. id: %v", action.Id)
 		if _, promptErr = o.startInstructionActionExecutionFlowFunc(o, action); promptErr != nil {
 			return nil, promptErr
 		} else {
-			return o.startInstructionActionSelectionFlowFunc(o, app, instructionRoot)
+			return o.startInstructionActionSelectionFlowFunc(o, anchorFolderItem, instructionRoot)
 		}
 	}
 }
 
 func promptInstructionActionSelection(
 	o *selectOrchestrator,
-	app *models.ApplicationInfo,
+	anchorFolderItem *models.AnchorFolderItemInfo,
 	actions []*models.Action) (*models.Action, *errors.PromptError) {
 
-	item, err := o.prmpt.PromptInstructionActions(app.Name, actions)
+	item, err := o.prmpt.PromptInstructionActions(anchorFolderItem.Name, actions)
 	if err != nil {
 		return nil, errors.NewPromptError(err)
 	}
@@ -391,7 +393,7 @@ func promptInstructionActionSelection(
 
 func promptInstructionWorkflowSelection(
 	o *selectOrchestrator,
-	app *models.ApplicationInfo,
+	app *models.AnchorFolderItemInfo,
 	workflows []*models.Workflow) (*models.Workflow, *errors.PromptError) {
 
 	item, err := o.prmpt.PromptInstructionWorkflows(app.Name, workflows)
@@ -403,11 +405,11 @@ func promptInstructionWorkflowSelection(
 
 func startInstructionWorkflowSelectionFlow(
 	o *selectOrchestrator,
-	app *models.ApplicationInfo,
+	anchorFolderItem *models.AnchorFolderItemInfo,
 	workflows []*models.Workflow,
 	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 
-	if workflow, promptError := o.promptInstructionWorkflowSelectionFunc(o, app, workflows); promptError != nil {
+	if workflow, promptError := o.promptInstructionWorkflowSelectionFunc(o, anchorFolderItem, workflows); promptError != nil {
 		return nil, promptError
 	} else if workflow.Id == prompter.BackActionName {
 		logger.Debugf("Selected to go back from instruction workflow menu. id: %v", workflow.Id)
@@ -417,7 +419,7 @@ func startInstructionWorkflowSelectionFlow(
 		if _, promptErr := o.startInstructionWorkflowExecutionFlowFunc(o, workflow, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
-			return o.startInstructionWorkflowSelectionFlowFunc(o, app, workflows, actions)
+			return o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, workflows, actions)
 		}
 	}
 }

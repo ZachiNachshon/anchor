@@ -25,26 +25,26 @@ const (
 
 type Prompter interface {
 	PromptConfigContext(cfgContexts []*config.Context) (*config.Context, error)
-	PromptApps(appsArr []*models.ApplicationInfo) (*models.ApplicationInfo, error)
-	PromptInstructionActions(appName string, actions []*models.Action) (*models.Action, error)
-	PromptInstructionWorkflows(appName string, workflows []*models.Workflow) (*models.Workflow, error)
+	PromptAnchorFolderItemSelection(folderItems []*models.AnchorFolderItemInfo) (*models.AnchorFolderItemInfo, error)
+	PromptInstructionActions(folderItem string, actions []*models.Action) (*models.Action, error)
+	PromptInstructionWorkflows(folderItem string, workflows []*models.Workflow) (*models.Workflow, error)
 }
 
 type prompterImpl struct {
 	Prompter
 
-	runConfigCtxSelectorFunc   func(promptui.Select) (int, string, error)
-	runApplicationSelectorFunc func(promptui.Select) (int, string, error)
-	runActionSelectorFunc      func(promptui.Select) (int, string, error)
-	runWorkflowSelectorFunc    func(promptui.Select) (int, string, error)
+	runConfigCtxSelectorFunc        func(promptui.Select) (int, string, error)
+	runAnchorFolderItemSelectorFunc func(promptui.Select) (int, string, error)
+	runActionSelectorFunc           func(promptui.Select) (int, string, error)
+	runWorkflowSelectorFunc         func(promptui.Select) (int, string, error)
 }
 
 func New() *prompterImpl {
 	return &prompterImpl{
-		runConfigCtxSelectorFunc:   runPromptSelector,
-		runApplicationSelectorFunc: runPromptSelector,
-		runActionSelectorFunc:      runPromptSelector,
-		runWorkflowSelectorFunc:    runPromptSelector,
+		runConfigCtxSelectorFunc:        runPromptSelector,
+		runAnchorFolderItemSelectorFunc: runPromptSelector,
+		runActionSelectorFunc:           runPromptSelector,
+		runWorkflowSelectorFunc:         runPromptSelector,
 	}
 }
 
@@ -64,18 +64,18 @@ func (p *prompterImpl) PromptConfigContext(cfgContexts []*config.Context) (*conf
 	return cfgContextsOptions[i], nil
 }
 
-func (p *prompterImpl) PromptApps(apps []*models.ApplicationInfo) (*models.ApplicationInfo, error) {
-	setSearchAppPrompt()
-	appsSelector := preparePromptAppsItems(apps)
-	appsOptions := appsSelector.Items.([]*models.ApplicationInfo)
+func (p *prompterImpl) PromptAnchorFolderItemSelection(folderItems []*models.AnchorFolderItemInfo) (*models.AnchorFolderItemInfo, error) {
+	setSearchFolderItemPrompt()
+	folderItemsSelector := preparePromptFolderItemItems(folderItems)
+	folderItemsOptions := folderItemsSelector.Items.([]*models.AnchorFolderItemInfo)
 
-	i, _, err := p.runApplicationSelectorFunc(appsSelector)
+	i, _, err := p.runAnchorFolderItemSelectorFunc(folderItemsSelector)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debugf("Selected app value. index: %d, name: %s", i, appsOptions[i].Name)
-	return appsOptions[i], nil
+	logger.Debugf("Selected app value. index: %d, name: %s", i, folderItemsOptions[i].Name)
+	return folderItemsOptions[i], nil
 }
 
 func (p *prompterImpl) PromptInstructionActions(appName string, actions []*models.Action) (*models.Action, error) {

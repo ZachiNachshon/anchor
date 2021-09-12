@@ -11,7 +11,7 @@ var configContextPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") 
 {{ "Exit Application" | faint }}
 {{ end }}`, CancelActionName)
 
-var appsPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
+var folderItemPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
 {{ "Information:" | blue }}
 
 {{ "Name:" | faint }}	{{ .Name }}

@@ -9,9 +9,9 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 )
 
-type AppStatusFunc func(ctx common.Context, o *statusOrchestrator) error
+type DynamicStatusFunc func(ctx common.Context, o *statusOrchestrator) error
 
-var AppStatus = func(ctx common.Context, o *statusOrchestrator) error {
+var DynamicStatus = func(ctx common.Context, o *statusOrchestrator) error {
 	err := o.prepareFunc(o, ctx)
 	if err != nil {
 		return err
@@ -21,6 +21,8 @@ var AppStatus = func(ctx common.Context, o *statusOrchestrator) error {
 }
 
 type statusOrchestrator struct {
+	parentFolderName string
+
 	l                 locator.Locator
 	e                 extractor.Extractor
 	prsr              parser.Parser
@@ -34,8 +36,10 @@ type statusOrchestrator struct {
 	runFunc     func(o *statusOrchestrator, ctx common.Context) error
 }
 
-func NewOrchestrator() *statusOrchestrator {
+func NewOrchestrator(parentFolderName string) *statusOrchestrator {
 	return &statusOrchestrator{
+		parentFolderName: parentFolderName,
+
 		// --- CLI Command ---
 		bannerFunc:  banner,
 		prepareFunc: prepare,
@@ -76,16 +80,16 @@ func banner(o *statusOrchestrator) {
 }
 
 func run(o *statusOrchestrator, ctx common.Context) error {
-	var appStatus []*printer.AppStatusTemplateItem
-	for _, app := range o.l.Applications() {
-		status := &printer.AppStatusTemplateItem{
-			Name: app.Name,
+	var anchorFolderStatus []*printer.AnchorFolderItemStatusTemplate
+	for _, anchorFolderItem := range o.l.AnchorFolderItems(o.parentFolderName) {
+		status := &printer.AnchorFolderItemStatusTemplate{
+			Name: anchorFolderItem.Name,
 		}
 
-		if !ioutils.IsValidPath(app.InstructionsPath) {
+		if !ioutils.IsValidPath(anchorFolderItem.InstructionsPath) {
 			status.MissingInstructionFile = true
 		} else {
-			inst, err := o.e.ExtractInstructions(app.InstructionsPath, o.prsr)
+			inst, err := o.e.ExtractInstructions(anchorFolderItem.InstructionsPath, o.prsr)
 			status.InvalidInstructionFormat = inst == nil || err != nil
 		}
 
@@ -94,10 +98,10 @@ func run(o *statusOrchestrator, ctx common.Context) error {
 			!isValid && o.invalidStatusOnly ||
 			!o.validStatusOnly && !o.invalidStatusOnly {
 
-			appStatus = append(appStatus, status)
+			anchorFolderStatus = append(anchorFolderStatus, status)
 		}
 	}
 
-	o.prntr.PrintApplicationsStatus(appStatus)
+	o.prntr.PrintAnchorFolderItemStatus(anchorFolderStatus)
 	return nil
 }

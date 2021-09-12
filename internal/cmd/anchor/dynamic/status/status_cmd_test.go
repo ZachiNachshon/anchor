@@ -12,6 +12,8 @@ import (
 	"testing"
 )
 
+const parentAnchorFolderName = "app"
+
 func Test_StatusCommandShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
@@ -59,7 +61,7 @@ var StartStatusActionSuccessfully = func(t *testing.T) {
 					callCount++
 					return nil
 				}
-				command := NewCommand(ctx, fun)
+				command := NewCommand(ctx, parentAnchorFolderName, fun)
 				_, err := drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: status")
 				assert.Nil(t, err, "expected cli action to have no errors")
@@ -77,7 +79,7 @@ var FailStatusAction = func(t *testing.T) {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				command := NewCommand(ctx, fun)
+				command := NewCommand(ctx, parentAnchorFolderName, fun)
 				_, err := drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: status")
 				assert.NotNil(t, err, "expected cli action to fail")
@@ -92,7 +94,7 @@ var ContainCobraCommand = func(t *testing.T) {
 		var fun = func(ctx common.Context, o *statusOrchestrator) error {
 			return nil
 		}
-		anchorCmd := NewCommand(ctx, fun)
+		anchorCmd := NewCommand(ctx, parentAnchorFolderName, fun)
 		cobraCmd := anchorCmd.GetCobraCmd()
 		assert.NotNil(t, cobraCmd, "expected cobra command to exist")
 	})
@@ -103,7 +105,7 @@ var ContainContext = func(t *testing.T) {
 		var fun = func(ctx common.Context, o *statusOrchestrator) error {
 			return nil
 		}
-		anchorCmd := NewCommand(ctx, fun)
+		anchorCmd := NewCommand(ctx, parentAnchorFolderName, fun)
 		cmdCtx := anchorCmd.GetContext()
 		assert.NotNil(t, cmdCtx, "expected context to exist")
 		assert.Equal(t, ctx, cmdCtx)
@@ -112,8 +114,8 @@ var ContainContext = func(t *testing.T) {
 
 var AddItselfToParentCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		parentCmd := NewCommand(ctx, nil)
-		err := AddCommand(parentCmd, NewCommand)
+		parentCmd := NewCommand(ctx, parentAnchorFolderName, nil)
+		err := AddCommand(parentCmd, parentAnchorFolderName, NewCommand)
 		assert.Nil(t, err, "expected add command to succeed")
 		assert.True(t, parentCmd.GetCobraCmd().HasSubCommands())
 		cmds := parentCmd.GetCobraCmd().Commands()
@@ -124,7 +126,7 @@ var AddItselfToParentCommand = func(t *testing.T) {
 
 var FailOnMutualExclusiveFlags = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		command := NewCommand(ctx, nil)
+		command := NewCommand(ctx, parentAnchorFolderName, nil)
 		_ = command.initFlagsFunc(command)
 		_, err := drivers.CLI().RunCommand(command,
 			fmt.Sprintf("--%s", validStatusOnlyFlagName),
@@ -137,7 +139,7 @@ var FailOnMutualExclusiveFlags = func(t *testing.T) {
 
 var StartStatusCommandWithAllFlags = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		command := NewCommand(ctx, nil)
+		command := NewCommand(ctx, parentAnchorFolderName, nil)
 		err := command.initFlagsFunc(command)
 		assert.Nil(t, err, "expected flags init to have no errors")
 		assert.NotNil(t, command.GetCobraCmd().Flag(validStatusOnlyFlagName), "expected flag to exist")
@@ -147,17 +149,17 @@ var StartStatusCommandWithAllFlags = func(t *testing.T) {
 
 var FailToInitializeFlags = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		parentCmd := NewCommand(ctx, nil)
+		parentCmd := NewCommand(ctx, parentAnchorFolderName, nil)
 
-		var newCmdFunc NewCommandFunc = func(ctx common.Context, statusFunc AppStatusFunc) *statusCmd {
-			c := NewCommand(ctx, nil)
+		var newCmdFunc NewCommandFunc = func(ctx common.Context, parentFolderName string, statusFunc DynamicStatusFunc) *statusCmd {
+			c := NewCommand(ctx, parentAnchorFolderName, nil)
 			c.initFlagsFunc = func(o *statusCmd) error {
 				return fmt.Errorf("failed to initialize flags")
 			}
 			return c
 		}
 
-		err := AddCommand(parentCmd, newCmdFunc)
+		err := AddCommand(parentCmd, parentAnchorFolderName, newCmdFunc)
 		assert.NotNil(t, err, "expected add command to fail")
 		assert.Equal(t, "failed to initialize flags", err.Error())
 	})

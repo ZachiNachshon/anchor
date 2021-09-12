@@ -16,7 +16,7 @@ const (
 type Printer interface {
 	PrintAnchorBanner()
 	PrintAnchorVersion(version string)
-	PrintApplicationsStatus(appsStatus []*AppStatusTemplateItem)
+	PrintAnchorFolderItemStatus(anchorFolderItemsStatus []*AnchorFolderItemStatusTemplate)
 	PrintConfiguration(cfgFilePath string, cfgText string)
 	PrintMissingInstructions()
 	PrintEmptyLines(count int)
@@ -63,9 +63,9 @@ func (p *printerImpl) PrintAnchorVersion(version string) {
 	fmt.Println(version)
 }
 
-func (p *printerImpl) PrintApplicationsStatus(appsStatus []*AppStatusTemplateItem) {
+func (p *printerImpl) PrintAnchorFolderItemStatus(appsStatus []*AnchorFolderItemStatusTemplate) {
 	data := struct {
-		AppsStatusItems []*AppStatusTemplateItem
+		AppsStatusItems []*AnchorFolderItemStatusTemplate
 		Count           int
 	}{
 		appsStatus,

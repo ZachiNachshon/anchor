@@ -21,16 +21,16 @@ var validStatusOnlyFlagValue = false
 var invalidStatusOnlyFlagName = "invalid-only"
 var invalidStatusOnlyFlagValue = false
 
-type NewCommandFunc func(ctx common.Context, statusFunc AppStatusFunc) *statusCmd
+type NewCommandFunc func(ctx common.Context, parentFolderName string, statusFunc DynamicStatusFunc) *statusCmd
 
-func NewCommand(ctx common.Context, statusFunc AppStatusFunc) *statusCmd {
+func NewCommand(ctx common.Context, parentFolderName string, statusFunc DynamicStatusFunc) *statusCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "status",
 		Short: "Check status validity of supported applications",
 		Long:  `Check status validity of supported applications`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			o := NewOrchestrator()
+			o := NewOrchestrator(parentFolderName)
 			if validStatusOnlyFlagValue && invalidStatusOnlyFlagValue {
 				return fmt.Errorf("--%s and --%s flags are mutual exclusive flags", validStatusOnlyFlagName, invalidStatusOnlyFlagName)
 			}
@@ -60,20 +60,20 @@ func initFlags(c *statusCmd) error {
 		&validStatusOnlyFlagValue,
 		validStatusOnlyFlagName,
 		validStatusOnlyFlagValue,
-		fmt.Sprintf("anchor app status --%s", validStatusOnlyFlagName))
+		fmt.Sprintf("anchor <anchor-folder-item> status --%s", validStatusOnlyFlagName))
 
 	c.cobraCmd.Flags().BoolVar(
 		&invalidStatusOnlyFlagValue,
 		invalidStatusOnlyFlagName,
 		invalidStatusOnlyFlagValue,
-		fmt.Sprintf("anchor app status --%s", invalidStatusOnlyFlagName))
+		fmt.Sprintf("anchor <anchor-folder-item> status --%s", invalidStatusOnlyFlagName))
 
 	c.cobraCmd.PersistentFlags().SortFlags = false
 	return nil
 }
 
-func AddCommand(parent cmd.AnchorCommand, createCmd NewCommandFunc) error {
-	newCmd := createCmd(parent.GetContext(), AppStatus)
+func AddCommand(parent cmd.AnchorCommand, parentFolderName string, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), parentFolderName, DynamicStatus)
 	err := newCmd.initFlagsFunc(newCmd)
 	if err != nil {
 		return err

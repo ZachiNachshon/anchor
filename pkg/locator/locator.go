@@ -5,8 +5,9 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/models"
-
+	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/utils/atomics"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"os"
@@ -21,12 +22,11 @@ const (
 
 type Locator interface {
 	Scan(anchorFilesLocalPath string) *errors.LocatorError
-	Applications() []*models.ApplicationInfo
-	ApplicationsAsMap() map[string]*models.ApplicationInfo
-	Application(name string) *models.ApplicationInfo
+	AnchorFolders() []*models.AnchorFolderInfo
+	AnchorFolder(name string) *models.AnchorFolderInfo
+	AnchorFoldersAsMap() map[string]*models.AnchorFolderInfo
+	AnchorFolderItems(parentFolderName string) []*models.AnchorFolderItemInfo
 }
-
-type DirectoryIdentifier string
 
 var excludedDirectories map[string]bool
 
@@ -43,39 +43,35 @@ func init() {
 }
 
 const (
-	app                  DirectoryIdentifier = "app"
-	cli                  DirectoryIdentifier = "cli"
-	controller           DirectoryIdentifier = "controller"
-	docker               DirectoryIdentifier = "docker"
-	k8s                  DirectoryIdentifier = "k8s"
-	anchorIgnoreFileName string              = ".anchorignore"
+	anchorIgnoreFileName string = ".anchorignore"
 )
 
 type locatorImpl struct {
 	Locator
-	initialized          atomics.AtomicBool
-	anchorfilesLocalPath string
-	appDirs              map[string]*models.ApplicationInfo
-	longestAppNameLength int
+
+	initialized                       atomics.AtomicBool
+	anchorFoldersInfoMap              map[string]*models.AnchorFolderInfo
+	longestAnchorFolderNameLength     int
+	longestAnchorFolderItemNameLength int
 }
 
-func newAppContent(name string, path string) *models.ApplicationInfo {
-	return &models.ApplicationInfo{
+func newAnchorFolderItem(name string, dirPath string) *models.AnchorFolderItemInfo {
+	return &models.AnchorFolderItemInfo{
 		Name:             name,
-		DirPath:          path,
-		InstructionsPath: fmt.Sprintf("%s/%s", path, globals.InstructionsFileName),
+		DirPath:          dirPath,
+		InstructionsPath: fmt.Sprintf("%s/%s", dirPath, globals.InstructionsFileName),
 	}
 }
 
 func New() *locatorImpl {
 	return &locatorImpl{
-		appDirs: make(map[string]*models.ApplicationInfo),
+		anchorFoldersInfoMap: make(map[string]*models.AnchorFolderInfo),
 	}
 }
 
-func (l *locatorImpl) Scan(anchorfilesLocalPath string) *errors.LocatorError {
+func (l *locatorImpl) Scan(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 	if l.isInitialized() {
-		warnMsg := "scan can be called only once, using previous scan result"
+		warnMsg := "scan for instructions can be called only once, using previous scan result"
 		logger.Warning(warnMsg)
 		return errors.NewAlreadyInitializedError(fmt.Errorf(warnMsg))
 	}
@@ -84,7 +80,84 @@ func (l *locatorImpl) Scan(anchorfilesLocalPath string) *errors.LocatorError {
 		return errors.NewLocatorError(fmt.Errorf("invalid anchorfile local path. path: %s", anchorfilesLocalPath))
 	}
 
-	err := filepath.Walk(anchorfilesLocalPath,
+	err := scanForAnchorFolders(l, anchorfilesLocalPath, e, pa)
+	if err != nil {
+		return errors.NewLocatorError(err)
+	}
+
+	l.markInitialized()
+	return nil
+}
+
+func (l *locatorImpl) AnchorFolders() []*models.AnchorFolderInfo {
+	res := make([]*models.AnchorFolderInfo, 0, len(l.anchorFoldersInfoMap))
+	for _, v := range l.anchorFoldersInfoMap {
+		res = append(res, v)
+	}
+	return sortAnchorFolders(res)
+}
+
+func (l *locatorImpl) AnchorFolder(name string) *models.AnchorFolderInfo {
+	if value, exists := l.anchorFoldersInfoMap[name]; exists {
+		return value
+	}
+	return nil
+}
+
+func (l *locatorImpl) AnchorFoldersAsMap() map[string]*models.AnchorFolderInfo {
+	return l.anchorFoldersInfoMap
+}
+
+func (l *locatorImpl) AnchorFolderItems(parentFolderName string) []*models.AnchorFolderItemInfo {
+	if l.anchorFoldersInfoMap[parentFolderName] != nil &&
+		l.anchorFoldersInfoMap[parentFolderName].Items != nil {
+		items := l.anchorFoldersInfoMap[parentFolderName].Items
+		result := make([]*models.AnchorFolderItemInfo, len(items))
+		i := 0
+		for _, item := range items {
+			result[i] = item
+			i++
+		}
+		return result
+	}
+	return nil
+}
+
+func (l *locatorImpl) isInitialized() bool {
+	return l.initialized.Get()
+}
+
+func (l *locatorImpl) markInitialized() {
+	l.initialized.Set(true)
+}
+
+func (l *locatorImpl) appendAnchorFolder(anchorFolder *models.AnchorFolderInfo) {
+	l.anchorFoldersInfoMap[anchorFolder.Name] = anchorFolder
+}
+
+func (l *locatorImpl) appendAnchorFolderItem(anchorFolder *models.AnchorFolderInfo, anchorFolderItem *models.AnchorFolderItemInfo) {
+	if anchorFolder.Items == nil {
+		anchorFolder.Items = make(map[string]*models.AnchorFolderItemInfo)
+	}
+	anchorFolder.Items[anchorFolderItem.Name] = anchorFolderItem
+}
+
+// Longest anchor folder name is Used for prompter left padding
+func (l *locatorImpl) setLongestAnchorFolderName(name string) {
+	if l.longestAnchorFolderNameLength < len(name) {
+		l.longestAnchorFolderNameLength = len(name)
+	}
+}
+
+// Longest anchor folder item name is Used for prompter left padding
+func (l *locatorImpl) setLongestAnchorFolderItemName(name string) {
+	if l.longestAnchorFolderItemNameLength < len(name) {
+		l.longestAnchorFolderItemNameLength = len(name)
+	}
+}
+
+func scanForAnchorFolders(l *locatorImpl, anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) error {
+	filepath.Walk(anchorfilesLocalPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -120,64 +193,75 @@ func (l *locatorImpl) Scan(anchorfilesLocalPath string) *errors.LocatorError {
 				return filepath.SkipDir
 			}
 
-			if tryResolveApplication(l, path, name) {
-				return nil
+			resolvedAnchorFolder := tryResolveAnchorFolder(l, path, name, e, pa)
+			if resolvedAnchorFolder != nil {
+				scanForAnchorFolderItems(l, resolvedAnchorFolder)
 			}
 
 			return nil
 		})
 
-	if err != nil {
-		return errors.NewLocatorError(err)
-	}
-
-	l.markInitialized()
 	return nil
 }
 
-func (l *locatorImpl) Applications() []*models.ApplicationInfo {
-	res := make([]*models.ApplicationInfo, 0, len(l.appDirs))
-	for _, v := range l.appDirs {
-		res = append(res, v)
-	}
-	return sortApplications(res)
-}
-
-func (l *locatorImpl) ApplicationsAsMap() map[string]*models.ApplicationInfo {
-	return l.appDirs
-}
-
-func (l *locatorImpl) Application(name string) *models.ApplicationInfo {
-	if value, exists := l.appDirs[name]; exists {
-		return value
+func tryResolveAnchorFolder(l *locatorImpl, dirPath string, name string, e extractor.Extractor, pa parser.Parser) *models.AnchorFolderInfo {
+	if isAnchorFolder(dirPath) {
+		logger.Debugf("Locate anchor folder. name: %s", name)
+		if anchorFolder, err := e.ExtractAnchorFolderInfo(dirPath, pa); err != nil {
+			return nil
+		} else {
+			l.appendAnchorFolder(anchorFolder)
+			l.setLongestAnchorFolderName(name)
+			return anchorFolder
+		}
 	}
 	return nil
 }
 
-func (l *locatorImpl) isInitialized() bool {
-	return l.initialized.Get()
+func scanForAnchorFolderItems(l *locatorImpl, anchorFolder *models.AnchorFolderInfo) {
+	filepath.Walk(anchorFolder.DirPath,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// Ignore all hidden directories
+			if info.IsDir() && strings.HasPrefix(info.Name(), ".") {
+				return nil
+			}
+
+			// Skip if dir/file should be excluded
+			name := info.Name()
+			if isExcluded(name) {
+				if info.IsDir() {
+					return filepath.SkipDir
+				} else {
+					return nil
+				}
+			}
+
+			if _, ok := hasAnchorIgnoreIdentifier(path); ok {
+				return filepath.SkipDir
+			}
+
+			resolvedAnchorFolderItem := tryResolveAnchorFolderItems(l, path, name)
+			if resolvedAnchorFolderItem != nil {
+				l.appendAnchorFolderItem(anchorFolder, resolvedAnchorFolderItem)
+			}
+
+			return nil
+		})
 }
 
-func (l *locatorImpl) markInitialized() {
-	l.initialized.Set(true)
-}
-
-// Longest application name is Used for prompter left padding
-func setLongestApplicationName(l *locatorImpl, name string) {
-	if l.longestAppNameLength < len(name) {
-		l.longestAppNameLength = len(name)
+func tryResolveAnchorFolderItems(l *locatorImpl, dirPath string, name string) *models.AnchorFolderItemInfo {
+	if isAnchorFolderItem(dirPath) {
+		logger.Debugf("Locate anchor folder item. name: %s", name)
+		// Avoid unmarshalling instructions since it should be executed upon selection
+		anchorFolderItem := newAnchorFolderItem(name, dirPath)
+		l.setLongestAnchorFolderItemName(name)
+		return anchorFolderItem
 	}
-}
-
-func tryResolveApplication(l *locatorImpl, path string, name string) bool {
-	if isApp := isApplication(path); isApp {
-		logger.Debugf("Locate application. Name: %s", name)
-		appContent := newAppContent(name, path)
-		l.appDirs[name] = appContent
-		setLongestApplicationName(l, name)
-		return true
-	}
-	return false
+	return nil
 }
 
 func isExcluded(name string) bool {
@@ -187,9 +271,14 @@ func isExcluded(name string) bool {
 	return false
 }
 
-func isApplication(path string) bool {
-	dirPath := filepath.Dir(path)
-	return filepath.Base(dirPath) == string(app)
+func isAnchorFolder(dirPath string) bool {
+	commandFilePath := fmt.Sprintf("%s/%s", dirPath, globals.AnchorCommandFileName)
+	return ioutils.IsValidPath(commandFilePath)
+}
+
+func isAnchorFolderItem(dirPath string) bool {
+	instructionsFilePath := fmt.Sprintf("%s/%s", dirPath, globals.InstructionsFileName)
+	return ioutils.IsValidPath(instructionsFilePath)
 }
 
 func hasAnchorIgnoreIdentifier(path string) (string, bool) {
@@ -200,9 +289,9 @@ func hasAnchorIgnoreIdentifier(path string) (string, bool) {
 	return anchorIgnorePath, true
 }
 
-func sortApplications(apps []*models.ApplicationInfo) []*models.ApplicationInfo {
-	sort.Slice(apps, func(i, j int) bool {
-		return apps[i].Name < apps[j].Name
+func sortAnchorFolders(anchorFoldersInfo []*models.AnchorFolderInfo) []*models.AnchorFolderInfo {
+	sort.Slice(anchorFoldersInfo, func(i, j int) bool {
+		return anchorFoldersInfo[i].Name < anchorFoldersInfo[j].Name
 	})
-	return apps
+	return anchorFoldersInfo
 }

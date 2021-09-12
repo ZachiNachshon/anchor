@@ -2,11 +2,9 @@ package anchor
 
 import (
 	"github.com/ZachiNachshon/anchor/internal/cmd"
-	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/app"
-	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/cli"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/completion"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/config_cmd"
-	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/controller"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/dynamic"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/globals"
@@ -33,28 +31,19 @@ type anchorCmd struct {
 	cobraCmd *cobra.Command
 	ctx      common.Context
 
-	initFlagsFunc    func(o *anchorCmd) error
-	addAppSubCmdFunc func(
-		parent cmd.AnchorCommand,
-		preRunSequence *cmd.AnchorCollaborators,
-		createCmd app.NewCommandFunc) error
+	initFlagsFunc func(o *anchorCmd) error
 
-	addCliSubCmdFunc func(
+	addDynamicSubCommandsFunc func(
 		parent cmd.AnchorCommand,
-		preRunSequence *cmd.AnchorCollaborators,
-		createCmd cli.NewCommandFunc) error
-
-	addControllerSubCmdFunc func(
-		parent cmd.AnchorCommand,
-		preRunSequence *cmd.AnchorCollaborators,
-		createCmd controller.NewCommandFunc) error
+		anchorCollaborators *cmd.AnchorCollaborators,
+		createCmd dynamic.NewCommandsFunc) error
 
 	addConfigSubCmdFunc     func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error
 	addCompletionSubCmdFunc func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error
 	addVersionSubCmdFunc    func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error
 }
 
-var validArgs = []string{"app", "cli", "completion", "config", "controller", "version"}
+var validArgs = []string{"completion", "config", "version"}
 
 var verboseFlagValue = false
 
@@ -76,15 +65,13 @@ func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) *anchorC
 	}
 
 	return &anchorCmd{
-		cobraCmd:                rootCmd,
-		ctx:                     ctx,
-		initFlagsFunc:           initFlags,
-		addAppSubCmdFunc:        app.AddCommand,
-		addCliSubCmdFunc:        cli.AddCommand,
-		addControllerSubCmdFunc: controller.AddCommand,
-		addConfigSubCmdFunc:     config_cmd.AddCommand,
-		addCompletionSubCmdFunc: completion.AddCommand,
-		addVersionSubCmdFunc:    version.AddCommand,
+		cobraCmd:                  rootCmd,
+		ctx:                       ctx,
+		initFlagsFunc:             initFlags,
+		addDynamicSubCommandsFunc: dynamic.AddCommands,
+		addConfigSubCmdFunc:       config_cmd.AddCommand,
+		addCompletionSubCmdFunc:   completion.AddCommand,
+		addVersionSubCmdFunc:      version.AddCommand,
 	}
 }
 
@@ -117,22 +104,10 @@ func (c *anchorCmd) initialize() error {
 	}
 	//cobra.EnableCommandSorting = false
 
-	preRunSequence := AnchorPreRunSequence()
+	anchorCollaborators := GetAnchorCollaborators()
 
-	// Apps Commands
-	err = c.addAppSubCmdFunc(c, preRunSequence, app.NewCommand)
-	if err != nil {
-		return err
-	}
-
-	// CLI Commands
-	err = c.addCliSubCmdFunc(c, preRunSequence, cli.NewCommand)
-	if err != nil {
-		return err
-	}
-
-	// Controller Commands
-	err = c.addControllerSubCmdFunc(c, preRunSequence, controller.NewCommand)
+	// Dynamic Commands
+	err = c.addDynamicSubCommandsFunc(c, anchorCollaborators, dynamic.NewCommands)
 	if err != nil {
 		return err
 	}

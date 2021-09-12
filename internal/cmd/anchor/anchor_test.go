@@ -284,8 +284,8 @@ var RunPreRunSequenceSuccessfully = func(t *testing.T) {
 
 				with.HarnessAnchorfilesTestRepo(ctx)
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
-				preRunSeq := AnchorPreRunSequence()
-				err := preRunSeq.Run(ctx)
+				preRunSeq := GetAnchorCollaborators()
+				err := preRunSeq.Run(ctx, prompter.CreateFakePrompter(), shell.CreateFakeShell())
 				assert.Nil(t, err)
 			})
 		})

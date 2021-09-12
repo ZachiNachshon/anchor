@@ -1,5 +1,13 @@
 package parser
 
+var anchorFolderInfoYamlText = `
+type: application
+name: app
+command:
+  use: app
+  short: "Application commands"
+`
+
 var instructionsOnlyActionsYamlText = `
 instructions:
   actions:

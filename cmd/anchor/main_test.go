@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
+	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/stretchr/testify/assert"
@@ -143,6 +146,22 @@ var RunStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				with.HarnessAnchorfilesTestRepo(ctx)
+				// To pass local repo path validation
+				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
+
+				// Do not scan actual repo, use mocks
+				fakeLocator := locator.CreateFakeLocator("/some/path")
+				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+					return nil
+				}
+				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
+					return stubs.GenerateAnchorFolderInfoTestData()
+				}
+				reg := ctx.Registry()
+				reg.Set(locator.Identifier, fakeLocator)
+				reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
+				reg.Set(shell.Identifier, shell.CreateFakeShell())
 				err := collaborators.StartCliCommands(ctx)
 				assert.Nil(t, err)
 			})
@@ -170,6 +189,22 @@ var StartCliCommandsSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				with.HarnessAnchorfilesTestRepo(ctx)
+				// To pass local repo path validation
+				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
+
+				// Do not scan actual repo, use mocks
+				fakeLocator := locator.CreateFakeLocator("/some/path")
+				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+					return nil
+				}
+				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
+					return stubs.GenerateAnchorFolderInfoTestData()
+				}
+				reg := ctx.Registry()
+				reg.Set(locator.Identifier, fakeLocator)
+				reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
+				reg.Set(shell.Identifier, shell.CreateFakeShell())
 				err := startCliCommands(ctx)
 				assert.Nil(t, err)
 			})

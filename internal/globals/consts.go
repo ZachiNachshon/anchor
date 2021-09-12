@@ -1,6 +1,7 @@
 package globals
 
 const (
-	VerboseFlagName             = "verbose"
-	InstructionsFileName string = "instructions.yaml"
+	VerboseFlagName       string = "verbose"
+	InstructionsFileName  string = "instructions.yaml"
+	AnchorCommandFileName string = "command.yaml"
 )

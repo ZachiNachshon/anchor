@@ -14,17 +14,17 @@ type selectCmd struct {
 	ctx      common.Context
 }
 
-type NewCommandFunc func(ctx common.Context, selectFunc AppSelectFunc) *selectCmd
+type NewCommandFunc func(ctx common.Context, parentFolderName string, selectFunc DynamicSelectFunc) *selectCmd
 
-func NewCommand(ctx common.Context, selectFunc AppSelectFunc) *selectCmd {
+func NewCommand(ctx common.Context, parentFolderName string, selectFunc DynamicSelectFunc) *selectCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "select",
-		Short: "Select an application",
-		Long:  `Select an application`,
+		Short: "Select an anchor folder item",
+		Long:  `Select an anchor folder item`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			verboseFlag := cmd.Flag(globals.VerboseFlagName)
-			orchestrator := NewOrchestrator()
+			orchestrator := NewOrchestrator(parentFolderName)
 			if verboseFlag != nil {
 				if isVerbose, err := strconv.ParseBool(verboseFlag.Value.String()); err == nil {
 					orchestrator.verbose = isVerbose
@@ -48,8 +48,8 @@ func (c *selectCmd) GetContext() common.Context {
 	return c.ctx
 }
 
-func AddCommand(parent cmd.AnchorCommand, createCmd NewCommandFunc) error {
-	newCmd := createCmd(parent.GetContext(), AppSelect)
+func AddCommand(parent cmd.AnchorCommand, parentFolderName string, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), parentFolderName, DynamicSelect)
 	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

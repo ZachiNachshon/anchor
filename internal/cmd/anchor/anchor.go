@@ -11,7 +11,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
-var AnchorPreRunSequence = func() *cmd.AnchorCollaborators {
+var GetAnchorCollaborators = func() *cmd.AnchorCollaborators {
 	return &cmd.AnchorCollaborators{
 		ResolveConfigContext: loadConfigContext,
 		LoadRepository:       loadRepository,

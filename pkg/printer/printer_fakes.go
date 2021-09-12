@@ -8,7 +8,7 @@ type fakePrinter struct {
 	Printer
 	PrintAnchorBannerMock                      func()
 	PrintAnchorVersionMock                     func(version string)
-	PrintApplicationsStatusMock                func(apps []*AppStatusTemplateItem)
+	PrintAnchorFolderItemStatusMock            func(anchorFolderItemsStatus []*AnchorFolderItemStatusTemplate)
 	PrintConfigurationMock                     func(cfgFilePath string, cfgText string)
 	PrintMissingInstructionsMock               func()
 	PrintEmptyLinesMock                        func(count int)
@@ -29,8 +29,8 @@ func (p *fakePrinter) PrintAnchorVersion(version string) {
 	p.PrintAnchorVersionMock(version)
 }
 
-func (p *fakePrinter) PrintApplicationsStatus(apps []*AppStatusTemplateItem) {
-	p.PrintApplicationsStatusMock(apps)
+func (p *fakePrinter) PrintAnchorFolderItemStatus(apps []*AnchorFolderItemStatusTemplate) {
+	p.PrintAnchorFolderItemStatusMock(apps)
 }
 
 func (p *fakePrinter) PrintConfiguration(cfgFilePath string, cfgText string) {

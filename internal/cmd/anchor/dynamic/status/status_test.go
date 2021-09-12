@@ -57,7 +57,7 @@ func Test_StatusActionShould(t *testing.T) {
 var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			fakeO := NewOrchestrator()
+			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			bannerCallCount := 0
 			fakeO.bannerFunc = func(o *statusOrchestrator) {
 				bannerCallCount++
@@ -72,7 +72,7 @@ var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 				runCallCount++
 				return nil
 			}
-			err := AppStatus(ctx, fakeO)
+			err := DynamicStatus(ctx, fakeO)
 			assert.Nil(t, err, "expected not to fail app status")
 			assert.Equal(t, 1, bannerCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, prepareCallCount, "expected func to be called exactly once")
@@ -88,7 +88,7 @@ var PrintBanner = func(t *testing.T) {
 		printBannerCallCount++
 	}
 
-	fakeO := NewOrchestrator()
+	fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 	fakeO.prntr = fakePrinter
 	fakeO.bannerFunc(fakeO)
 	assert.Equal(t, 1, printBannerCallCount, "expected func to be called exactly once")
@@ -111,7 +111,8 @@ var PrepareRegistryComponents = func(t *testing.T) {
 		fakeParser := parser.CreateFakeParser()
 		reg.Set(parser.Identifier, fakeParser)
 
-		fakeO := NewOrchestrator()
+		parentFolderName := "app"
+		fakeO := NewOrchestrator(parentFolderName)
 		err := fakeO.prepareFunc(fakeO, ctx)
 		assert.Nil(t, err)
 		assert.NotNil(t, fakeO.l)
@@ -130,7 +131,7 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 		fakePrinter := printer.CreateFakePrinter()
 		fakeExtractor := extractor.CreateFakeExtractor()
 		fakeParser := parser.CreateFakeParser()
-		fakeO := NewOrchestrator()
+		fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 
 		err := fakeO.prepareFunc(fakeO, ctx)
 		assert.NotNil(t, err)
@@ -160,18 +161,20 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		path := "/some/path"
-		apps := stubs.GenerateApplicationTestData()
+		items := stubs.GenerateAnchorFolderItemsInfoTestData()
+		items[0].InstructionsPath = ""
+		items[1].InstructionsPath = ""
 
 		fakeLocator := locator.CreateFakeLocator(path)
-		locateAppsCallCount := 0
-		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
-			locateAppsCallCount++
-			return apps
+		locateAnchorFolderItemsCallCount := 0
+		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
+			locateAnchorFolderItemsCallCount++
+			return items
 		}
 
 		fakePrinter := printer.CreateFakePrinter()
 		printAppsCallCount := 0
-		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
+		fakePrinter.PrintAnchorFolderItemStatusMock = func(apps []*printer.AnchorFolderItemStatusTemplate) {
 			printAppsCallCount++
 			assert.Equal(t, 2, len(apps))
 			for _, app := range apps {
@@ -180,74 +183,74 @@ var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 			}
 		}
 
-		fakeO := NewOrchestrator()
+		fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 		fakeO.l = fakeLocator
 		fakeO.prntr = fakePrinter
 
 		err := fakeO.runFunc(fakeO, ctx)
 		assert.Nil(t, err)
-		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, locateAnchorFolderItemsCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
 	})
 }
 
 var PrintAllApplicationsStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		apps := createStatusTestData(ctx)
+		items := createStatusTestData(ctx)
 		fakeLocator := locator.CreateFakeLocator("/some/path")
-		locateAppsCallCount := 0
-		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
-			locateAppsCallCount++
-			return apps
+		locateAnchorFolderItemsCallCount := 0
+		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
+			locateAnchorFolderItemsCallCount++
+			return items
 		}
 
 		fakeExtractor := extractor.CreateFakeExtractor()
 		fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-			assert.True(t, instructionsPath == apps[0].InstructionsPath ||
-				instructionsPath == apps[1].InstructionsPath)
+			assert.True(t, instructionsPath == items[0].InstructionsPath ||
+				instructionsPath == items[1].InstructionsPath)
 			return &models.InstructionsRoot{}, nil
 		}
 
 		fakePrinter := printer.CreateFakePrinter()
 		printAppsCallCount := 0
-		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
+		fakePrinter.PrintAnchorFolderItemStatusMock = func(apps []*printer.AnchorFolderItemStatusTemplate) {
 			printAppsCallCount++
 			assert.Equal(t, 4, len(apps))
 		}
 
-		fakeO := NewOrchestrator()
+		fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 		fakeO.l = fakeLocator
 		fakeO.prntr = fakePrinter
 		fakeO.e = fakeExtractor
 
 		err := fakeO.runFunc(fakeO, ctx)
 		assert.Nil(t, err)
-		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, locateAnchorFolderItemsCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
 	})
 }
 
 var PrintApplicationsOnlyWithValidStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		apps := createStatusTestData(ctx)
+		items := createStatusTestData(ctx)
 
 		fakeLocator := locator.CreateFakeLocator("/some/path")
-		locateAppsCallCount := 0
-		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
-			locateAppsCallCount++
-			return apps
+		locateAnchorFolderItemsCallCount := 0
+		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
+			locateAnchorFolderItemsCallCount++
+			return items
 		}
 
 		fakeExtractor := extractor.CreateFakeExtractor()
 		fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-			assert.True(t, instructionsPath == apps[0].InstructionsPath ||
-				instructionsPath == apps[1].InstructionsPath)
+			assert.True(t, instructionsPath == items[0].InstructionsPath ||
+				instructionsPath == items[1].InstructionsPath)
 			return &models.InstructionsRoot{}, nil
 		}
 
 		fakePrinter := printer.CreateFakePrinter()
 		printAppsCallCount := 0
-		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
+		fakePrinter.PrintAnchorFolderItemStatusMock = func(apps []*printer.AnchorFolderItemStatusTemplate) {
 			printAppsCallCount++
 			assert.Equal(t, 2, len(apps))
 			for _, app := range apps {
@@ -256,7 +259,7 @@ var PrintApplicationsOnlyWithValidStatus = func(t *testing.T) {
 			}
 		}
 
-		fakeO := NewOrchestrator()
+		fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 		fakeO.validStatusOnly = true
 		fakeO.l = fakeLocator
 		fakeO.prntr = fakePrinter
@@ -264,32 +267,32 @@ var PrintApplicationsOnlyWithValidStatus = func(t *testing.T) {
 
 		err := fakeO.runFunc(fakeO, ctx)
 		assert.Nil(t, err)
-		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, locateAnchorFolderItemsCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
 	})
 }
 
 var PrintApplicationsOnlyWithInvalidStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		apps := createStatusTestData(ctx)
+		items := createStatusTestData(ctx)
 
 		fakeLocator := locator.CreateFakeLocator("/some/path")
-		locateAppsCallCount := 0
-		fakeLocator.ApplicationsMock = func() []*models.ApplicationInfo {
-			locateAppsCallCount++
-			return apps
+		locateAnchorFolderItemsCallCount := 0
+		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
+			locateAnchorFolderItemsCallCount++
+			return items
 		}
 
 		fakeExtractor := extractor.CreateFakeExtractor()
 		fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-			assert.True(t, instructionsPath == apps[0].InstructionsPath ||
-				instructionsPath == apps[1].InstructionsPath)
+			assert.True(t, instructionsPath == items[0].InstructionsPath ||
+				instructionsPath == items[1].InstructionsPath)
 			return &models.InstructionsRoot{}, nil
 		}
 
 		fakePrinter := printer.CreateFakePrinter()
 		printAppsCallCount := 0
-		fakePrinter.PrintApplicationsStatusMock = func(apps []*printer.AppStatusTemplateItem) {
+		fakePrinter.PrintAnchorFolderItemStatusMock = func(apps []*printer.AnchorFolderItemStatusTemplate) {
 			printAppsCallCount++
 			assert.Equal(t, 2, len(apps))
 			for _, app := range apps {
@@ -298,7 +301,7 @@ var PrintApplicationsOnlyWithInvalidStatus = func(t *testing.T) {
 			}
 		}
 
-		fakeO := NewOrchestrator()
+		fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 		fakeO.invalidStatusOnly = true
 		fakeO.l = fakeLocator
 		fakeO.prntr = fakePrinter
@@ -306,23 +309,23 @@ var PrintApplicationsOnlyWithInvalidStatus = func(t *testing.T) {
 
 		err := fakeO.runFunc(fakeO, ctx)
 		assert.Nil(t, err)
-		assert.Equal(t, 1, locateAppsCallCount, "expected func to be called exactly once")
+		assert.Equal(t, 1, locateAnchorFolderItemsCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, printAppsCallCount, "expected func to be called exactly once")
 	})
 }
 
-func createStatusTestData(ctx common.Context) []*models.ApplicationInfo {
+func createStatusTestData(ctx common.Context) []*models.AnchorFolderItemInfo {
 	with.HarnessAnchorfilesTestRepo(ctx)
-	apps := stubs.GenerateApplicationTestData()
-	apps[0].InstructionsPath = ctx.AnchorFilesPath() + "/app/first-app/instructions.yaml"
-	apps[1].InstructionsPath = ctx.AnchorFilesPath() + "/app/second-app/instructions.yaml"
+	items := stubs.GenerateAnchorFolderItemsInfoTestData()
+	items[0].InstructionsPath = ctx.AnchorFilesPath() + "/app/first-app/instructions.yaml"
+	items[1].InstructionsPath = ctx.AnchorFilesPath() + "/app/second-app/instructions.yaml"
 
-	invalidApps := make([]*models.ApplicationInfo, 2)
-	invalidApps[0] = &models.ApplicationInfo{
+	invalidApps := make([]*models.AnchorFolderItemInfo, 2)
+	invalidApps[0] = &models.AnchorFolderItemInfo{
 		InstructionsPath: ctx.AnchorFilesPath() + "/app/invalid-third-app/instructions.yaml",
 	}
-	invalidApps[1] = &models.ApplicationInfo{
+	invalidApps[1] = &models.AnchorFolderItemInfo{
 		InstructionsPath: ctx.AnchorFilesPath() + "/app/invalid-fourth-app/instructions.yaml",
 	}
-	return append(apps, invalidApps...)
+	return append(items, invalidApps...)
 }

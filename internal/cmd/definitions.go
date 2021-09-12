@@ -26,18 +26,8 @@ type AnchorCollaborators struct {
 	ScanAnchorfiles      func(ctx common.Context, repoPath string) error
 }
 
-func (c *AnchorCollaborators) Run(ctx common.Context) error {
-	p, err := ctx.Registry().SafeGet(prompter.Identifier)
-	if err != nil {
-		return err
-	}
-
-	s, err := ctx.Registry().SafeGet(shell.Identifier)
-	if err != nil {
-		return err
-	}
-
-	err = c.ResolveConfigContext(ctx, p.(prompter.Prompter), s.(shell.Shell))
+func (c *AnchorCollaborators) Run(ctx common.Context, p prompter.Prompter, s shell.Shell) error {
+	err := c.ResolveConfigContext(ctx, p, s)
 	if err != nil {
 		return err
 	}

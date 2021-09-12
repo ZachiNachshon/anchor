@@ -1,0 +1,5 @@
+type: application
+name: app
+command:
+  use: app
+  short: "Application commands"

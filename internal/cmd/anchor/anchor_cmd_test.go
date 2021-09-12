@@ -3,19 +3,24 @@ package anchor
 import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/cmd"
-	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/app"
-	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/cli"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/completion"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/config_cmd"
-	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/controller"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/dynamic"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/version"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/locator"
+	"github.com/ZachiNachshon/anchor/pkg/models"
+	"github.com/ZachiNachshon/anchor/pkg/prompter"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
+	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/drivers"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -87,6 +92,19 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 				verboseFlagValue = false
 				fakeLoggerManager := logger.CreateFakeLoggerManager()
 				command := NewCommand(ctx, fakeLoggerManager)
+
+				stubs.GenerateAnchorFolderInfoTestData()
+				command.addDynamicSubCommandsFunc = func(parent cmd.AnchorCommand, preRunSequence *cmd.AnchorCollaborators, createCmd dynamic.NewCommandsFunc) error {
+					dynamicCmd1 := &cobra.Command{
+						Use: "dynamic-cmd-1",
+					}
+					dynamicCmd2 := &cobra.Command{
+						Use: "dynamic-cmd-2",
+					}
+					parent.GetCobraCmd().AddCommand(dynamicCmd1, dynamicCmd2)
+					return nil
+				}
+
 				err := command.initialize()
 				assert.Nil(t, err)
 
@@ -98,13 +116,12 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 
 				assert.True(t, command.cobraCmd.HasSubCommands())
 				cmds := command.cobraCmd.Commands()
-				assert.Equal(t, 6, len(cmds))
-				assert.Equal(t, "app", cmds[0].Use)
-				assert.Equal(t, "cli", cmds[1].Use)
-				assert.Equal(t, "completion", cmds[2].Use)
-				assert.Equal(t, "config", cmds[3].Use)
-				assert.Equal(t, "controller", cmds[4].Use)
-				assert.Equal(t, "version", cmds[5].Use)
+				assert.Equal(t, 5, len(cmds))
+				assert.Equal(t, "completion", cmds[0].Use)
+				assert.Equal(t, "config", cmds[1].Use)
+				assert.Equal(t, "dynamic-cmd-1", cmds[2].Use)
+				assert.Equal(t, "dynamic-cmd-2", cmds[3].Use)
+				assert.Equal(t, "version", cmds[4].Use)
 			})
 		})
 	})
@@ -144,9 +161,25 @@ var FailToSetLoggerVerbosity = func(t *testing.T) {
 var RunCliRootCommandSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(lgr logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				with.HarnessAnchorfilesTestRepo(ctx)
+				// To pass local repo path validation
+				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
+
+				// Do not scan actual repo, use mocks
+				fakeLocator := locator.CreateFakeLocator("/some/path")
+				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+					return nil
+				}
+				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
+					return stubs.GenerateAnchorFolderInfoTestData()
+				}
+				reg := ctx.Registry()
+				reg.Set(locator.Identifier, fakeLocator)
+				reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
+				reg.Set(shell.Identifier, shell.CreateFakeShell())
 				err := RunCliRootCommand(ctx)
-				assert.Nil(t, err, "expected cli action to succeed")
+				assert.Nil(t, err, "expected root command to run successfully")
 			})
 		})
 	})
@@ -175,94 +208,69 @@ var FailToInitializeCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		lgrMgr := logger.CreateFakeLoggerManager()
 		newCmd := NewCommand(ctx, lgrMgr)
+
+		// Fail on initializing flags
 		newCmd.initFlagsFunc = func(o *anchorCmd) error {
 			return fmt.Errorf("failed to init flags")
 		}
 		err := newCmd.initialize()
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to init flags", err.Error())
-
 		newCmd.initFlagsFunc = func(o *anchorCmd) error {
 			return nil
 		}
-		newCmd.addAppSubCmdFunc = func(
+
+		// Fail on dynamic commands
+		newCmd.addDynamicSubCommandsFunc = func(
 			parent cmd.AnchorCommand,
 			preRunSequence *cmd.AnchorCollaborators,
-			createCmd app.NewCommandFunc) error {
-			return fmt.Errorf("failed to add app subcommand")
+			createCmd dynamic.NewCommandsFunc) error {
+			return fmt.Errorf("failed to add dynamic commands")
 		}
 		err = newCmd.initialize()
 		assert.NotNil(t, err)
-		assert.Equal(t, "failed to add app subcommand", err.Error())
-
-		newCmd.addAppSubCmdFunc = func(
+		assert.Equal(t, "failed to add dynamic commands", err.Error())
+		newCmd.addDynamicSubCommandsFunc = func(
 			parent cmd.AnchorCommand,
 			preRunSequence *cmd.AnchorCollaborators,
-			createCmd app.NewCommandFunc) error {
+			createCmd dynamic.NewCommandsFunc) error {
 			return nil
 		}
-		newCmd.addCliSubCmdFunc = func(
-			parent cmd.AnchorCommand,
-			preRunSequence *cmd.AnchorCollaborators,
-			createCmd cli.NewCommandFunc) error {
-			return fmt.Errorf("failed to add cli subcommand")
-		}
-		err = newCmd.initialize()
-		assert.NotNil(t, err)
-		assert.Equal(t, "failed to add cli subcommand", err.Error())
 
-		newCmd.addCliSubCmdFunc = func(
-			parent cmd.AnchorCommand,
-			preRunSequence *cmd.AnchorCollaborators,
-			createCmd cli.NewCommandFunc) error {
-			return nil
-		}
-		newCmd.addControllerSubCmdFunc = func(
-			parent cmd.AnchorCommand,
-			preRunSequence *cmd.AnchorCollaborators,
-			createCmd controller.NewCommandFunc) error {
-			return fmt.Errorf("failed to add controller subcommand")
-		}
-		err = newCmd.initialize()
-		assert.NotNil(t, err)
-		assert.Equal(t, "failed to add controller subcommand", err.Error())
-
-		newCmd.addControllerSubCmdFunc = func(
-			parent cmd.AnchorCommand,
-			preRunSequence *cmd.AnchorCollaborators,
-			createCmd controller.NewCommandFunc) error {
-			return nil
-		}
+		// Fail on config command
 		newCmd.addConfigSubCmdFunc = func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error {
 			return fmt.Errorf("failed to add config subcommand")
 		}
 		err = newCmd.initialize()
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add config subcommand", err.Error())
-
 		newCmd.addConfigSubCmdFunc = func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error {
 			return nil
 		}
+
+		// Fail on version command
 		newCmd.addVersionSubCmdFunc = func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error {
 			return fmt.Errorf("failed to add version subcommand")
 		}
 		err = newCmd.initialize()
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add version subcommand", err.Error())
-
 		newCmd.addVersionSubCmdFunc = func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error {
 			return nil
 		}
+
+		// Fail on completion command
 		newCmd.addCompletionSubCmdFunc = func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error {
 			return fmt.Errorf("failed to add completion subcommand")
 		}
 		err = newCmd.initialize()
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add completion subcommand", err.Error())
-
 		newCmd.addCompletionSubCmdFunc = func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error {
 			return nil
 		}
+
+		// Succeed eventually when all inti steps are valid
 		err = newCmd.initialize()
 		assert.Nil(t, err)
 	})

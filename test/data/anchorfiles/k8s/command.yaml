@@ -1,0 +1,5 @@
+type: application
+name: k8s
+command:
+  use: k8s
+  short: "Kubernetes distributions"

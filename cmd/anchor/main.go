@@ -97,9 +97,6 @@ func initConfiguration(ctx common.Context, cfgManager config.ConfigManager) erro
 func initRegistry(ctx common.Context) error {
 	reg := ctx.Registry()
 
-	l := locator.New()
-	reg.Set(locator.Identifier, l)
-
 	s := shell.New()
 	reg.Set(shell.Identifier, s)
 
@@ -108,6 +105,9 @@ func initRegistry(ctx common.Context) error {
 
 	pa := parser.New()
 	reg.Set(parser.Identifier, pa)
+
+	l := locator.New()
+	reg.Set(locator.Identifier, l)
 
 	pr := prompter.New()
 	reg.Set(prompter.Identifier, pr)
