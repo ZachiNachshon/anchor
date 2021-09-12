@@ -44,6 +44,14 @@ func Test_AnchorCommandShould(t *testing.T) {
 			Func: FailToSetLoggerVerbosity,
 		},
 		{
+			Name: "fail to run CLI root command due to missing logger from registry",
+			Func: FailToRunCliRootCommandDueToMissingLoggerFromRegistry,
+		},
+		{
+			Name: "fail to run CLI root command due to initialization error",
+			Func: FailToRunCliRootCommandDueToInitializationError,
+		},
+		{
 			Name: "run CLI root command successfully",
 			Func: RunCliRootCommandSuccessfully,
 		},
@@ -56,8 +64,8 @@ func Test_AnchorCommandShould(t *testing.T) {
 			Func: ContainContext,
 		},
 		{
-			Name: "fail to initialize command",
-			Func: FailToInitializeCommand,
+			Name: "fail on all initialization flows",
+			Func: FailOnAllInitializationFlows,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -158,6 +166,27 @@ var FailToSetLoggerVerbosity = func(t *testing.T) {
 	})
 }
 
+var FailToRunCliRootCommandDueToMissingLoggerFromRegistry = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+			err := RunCliRootCommand(ctx)
+			assert.NotNil(t, err, "expected to fail")
+			assert.Equal(t, "failed to retrieve from registry. name: logger-manager", err.Error())
+		})
+	})
+}
+
+var FailToRunCliRootCommandDueToInitializationError = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				err := RunCliRootCommand(ctx)
+				assert.NotNil(t, err, "expected to fail")
+			})
+		})
+	})
+}
+
 var RunCliRootCommandSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(lgr logger.Logger) {
@@ -204,7 +233,7 @@ var ContainContext = func(t *testing.T) {
 	})
 }
 
-var FailToInitializeCommand = func(t *testing.T) {
+var FailOnAllInitializationFlows = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		lgrMgr := logger.CreateFakeLoggerManager()
 		newCmd := NewCommand(ctx, lgrMgr)
