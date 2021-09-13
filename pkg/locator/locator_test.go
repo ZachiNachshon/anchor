@@ -62,12 +62,17 @@ var FailOnAlreadyInitialized = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
+				with.HarnessAnchorfilesTestRepo(ctx)
 				l := New()
-				locatorErr := l.Scan("/invalid/anchorfiles/path",
-					extractor.CreateFakeExtractor(),
+				fakeExtractor := extractor.CreateFakeExtractor()
+				fakeExtractor.ExtractAnchorFolderInfoMock = func(dirPath string, p parser.Parser) (*models.AnchorFolderInfo, error) {
+					return nil, nil
+				}
+				locatorErr := l.Scan(ctx.AnchorFilesPath(),
+					fakeExtractor,
 					parser.CreateFakeParser())
-				locatorErr = l.Scan("/invalid/anchorfiles/path",
-					extractor.CreateFakeExtractor(),
+				locatorErr = l.Scan(ctx.AnchorFilesPath(),
+					fakeExtractor,
 					parser.CreateFakeParser())
 				assert.NotNil(t, locatorErr.Code(), errors.AlreadyInitialized)
 			})

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/drivers"
@@ -34,6 +35,10 @@ func Test_SelectCommandShould(t *testing.T) {
 		{
 			Name: "add itself to parent command",
 			Func: AddItselfToParentCommand,
+		},
+		{
+			Name: "enable command verbosity",
+			Func: EnableCommandVerbosity,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -108,5 +113,26 @@ var AddItselfToParentCommand = func(t *testing.T) {
 		cmds := parentCmd.GetCobraCmd().Commands()
 		assert.Equal(t, 1, len(cmds))
 		assert.Equal(t, "select", cmds[0].Use)
+	})
+}
+
+var EnableCommandVerbosity = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.LoggingVerbose(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(config *config.AnchorConfig) {
+				callCount := 0
+				var fun DynamicSelectFunc = func(ctx common.Context, o *selectOrchestrator) error {
+					callCount++
+					assert.True(t, o.verbose, "expected verbose flag to exist")
+					return nil
+				}
+				command := NewCommand(ctx, stubs.AnchorFolder1Name, fun)
+				flagVal := false
+				command.GetCobraCmd().PersistentFlags().BoolVar(&flagVal, globals.VerboseFlagName, true, "")
+				_, err := drivers.CLI().RunCommand(command, fmt.Sprintf("--%s", globals.VerboseFlagName))
+				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: select")
+				assert.Nil(t, err, "expected cli action to have no errors")
+			})
+		})
 	})
 }

@@ -28,6 +28,10 @@ func Test_AnchorShould(t *testing.T) {
 			Func: ScanRepositorySuccessfully,
 		},
 		{
+			Name: "fail to resolve config context due to missing config manager",
+			Func: FailToResolveConfigContextDueToMissingConfigManager,
+		},
+		{
 			Name: "use existing current context as the active config context",
 			Func: UseExistingCurrentContentAsTheActiveConfigContext,
 		},
@@ -58,6 +62,10 @@ func Test_AnchorShould(t *testing.T) {
 		{
 			Name: "load repository files successfully",
 			Func: LoadRepositoryFilesSuccessfully,
+		},
+		{
+			Name: "fail to run pre-run sequence collaborators",
+			Func: FailToRunPreRunSequenceCollaborators,
 		},
 		{
 			Name: "run pre-run sequence successfully",
@@ -98,16 +106,30 @@ var ScanRepositorySuccessfully = func(t *testing.T) {
 	})
 }
 
+var FailToResolveConfigContextDueToMissingConfigManager = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				ctx.Registry().Set(config.Identifier, nil)
+				c := createNoOpAnchorCollaborators()
+				err := resolveConfigContext(c, ctx)
+				assert.NotNil(t, err)
+				assert.Equal(t, fmt.Sprintf("failed to retrieve from registry. name: %s", config.Identifier), err.Error())
+			})
+		})
+	})
+}
+
 var UseExistingCurrentContentAsTheActiveConfigContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			c := createNoOpAnchorCollaborators()
 			currCfgCtx := "test-curr-ctx"
 			var items = config.TemplateItems{
 				CurrentContext:   currCfgCtx,
 				FirstContextName: currCfgCtx,
 			}
 			with.Config(ctx, config.GetCustomTestConfigText(items), func(cfg *config.AnchorConfig) {
+				c := createNoOpAnchorCollaborators()
 				err := resolveConfigContext(c, ctx)
 				assert.Nil(t, err)
 				assert.Equal(t, currCfgCtx, cfg.Config.ActiveContext.Name)
@@ -266,6 +288,61 @@ var LoadRepositoryFilesSuccessfully = func(t *testing.T) {
 	})
 }
 
+var FailToRunPreRunSequenceCollaborators = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			collaborators := NewAnchorCollaborators()
+
+			// Prepare registry items
+			collaborators.prepareRegistryItemsFunc = func(c *AnchorCollaborators, ctx common.Context) error {
+				return fmt.Errorf("failed to prepare registry items")
+			}
+			err := collaborators.Run(ctx)
+			assert.NotNil(t, err)
+			assert.Equal(t, "failed to prepare registry items", err.Error())
+			collaborators.prepareRegistryItemsFunc = func(c *AnchorCollaborators, ctx common.Context) error {
+				return nil
+			}
+
+			// Resolve config context
+			collaborators.resolveConfigContextFunc = func(c *AnchorCollaborators, ctx common.Context) error {
+				return fmt.Errorf("failed to resolve config context")
+			}
+			err = collaborators.Run(ctx)
+			assert.NotNil(t, err)
+			assert.Equal(t, "failed to resolve config context", err.Error())
+			collaborators.resolveConfigContextFunc = func(c *AnchorCollaborators, ctx common.Context) error {
+				return nil
+			}
+
+			// Load repository
+			collaborators.loadRepositoryFunc = func(c *AnchorCollaborators, ctx common.Context) (string, error) {
+				return "", fmt.Errorf("failed to load repository")
+			}
+			err = collaborators.Run(ctx)
+			assert.NotNil(t, err)
+			assert.Equal(t, "failed to load repository", err.Error())
+			collaborators.loadRepositoryFunc = func(c *AnchorCollaborators, ctx common.Context) (string, error) {
+				return "", nil
+			}
+
+			// Scan anchorfiles repository
+			collaborators.scanAnchorfilesFunc = func(c *AnchorCollaborators, ctx common.Context, repoPath string) error {
+				return fmt.Errorf("failed to scan anchorfiles repo")
+			}
+			err = collaborators.Run(ctx)
+			assert.NotNil(t, err)
+			assert.Equal(t, "failed to scan anchorfiles repo", err.Error())
+			collaborators.scanAnchorfilesFunc = func(c *AnchorCollaborators, ctx common.Context, repoPath string) error {
+				return nil
+			}
+
+			err = collaborators.Run(ctx)
+			assert.Nil(t, err)
+		})
+	})
+}
+
 var RunPreRunSequenceSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
@@ -293,32 +370,32 @@ var PrepareRegistryItemsSuccessfully = func(t *testing.T) {
 		reg := ctx.Registry()
 		c := createNoOpAnchorCollaborators()
 
-		err := PrepareRegistryItems(c, ctx)
+		err := prepareRegistryItems(c, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", shell.Identifier))
 		reg.Set(shell.Identifier, shell.CreateFakeShell())
 
-		err = PrepareRegistryItems(c, ctx)
+		err = prepareRegistryItems(c, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", prompter.Identifier))
 		reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
 
-		err = PrepareRegistryItems(c, ctx)
+		err = prepareRegistryItems(c, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", locator.Identifier))
 		reg.Set(locator.Identifier, locator.CreateFakeLocator())
 
-		err = PrepareRegistryItems(c, ctx)
+		err = prepareRegistryItems(c, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", extractor.Identifier))
 		reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
 
-		err = PrepareRegistryItems(c, ctx)
+		err = prepareRegistryItems(c, ctx)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", parser.Identifier))
 		reg.Set(parser.Identifier, parser.CreateFakeParser())
 
-		err = PrepareRegistryItems(c, ctx)
+		err = prepareRegistryItems(c, ctx)
 		assert.Nil(t, err)
 	})
 }

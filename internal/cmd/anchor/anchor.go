@@ -14,7 +14,7 @@ import (
 
 func NewAnchorCollaborators() *AnchorCollaborators {
 	return &AnchorCollaborators{
-		prepareRegistryItemsFunc: PrepareRegistryItems,
+		prepareRegistryItemsFunc: prepareRegistryItems,
 		resolveConfigContextFunc: resolveConfigContext,
 		loadRepositoryFunc:       loadRepository,
 		scanAnchorfilesFunc:      scanAnchorfilesRepositoryTree,
@@ -58,7 +58,7 @@ func (c *AnchorCollaborators) Run(ctx common.Context) error {
 	return nil
 }
 
-func PrepareRegistryItems(c *AnchorCollaborators, ctx common.Context) error {
+func prepareRegistryItems(c *AnchorCollaborators, ctx common.Context) error {
 	reg := ctx.Registry()
 	if s, err := reg.SafeGet(shell.Identifier); err != nil {
 		return err

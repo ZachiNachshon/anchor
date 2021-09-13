@@ -209,7 +209,7 @@ func tryResolveAnchorFolder(l *locatorImpl, dirPath string, name string, e extra
 		logger.Debugf("Locate anchor folder. name: %s", name)
 		if anchorFolder, err := e.ExtractAnchorFolderInfo(dirPath, pa); err != nil {
 			return nil
-		} else {
+		} else if anchorFolder != nil {
 			l.appendAnchorFolder(anchorFolder)
 			l.setLongestAnchorFolderName(name)
 			return anchorFolder
