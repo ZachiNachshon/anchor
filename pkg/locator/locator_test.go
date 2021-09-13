@@ -63,8 +63,10 @@ var FailOnAlreadyInitialized = func(t *testing.T) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				l := New()
-				l.markInitialized()
 				locatorErr := l.Scan("/invalid/anchorfiles/path",
+					extractor.CreateFakeExtractor(),
+					parser.CreateFakeParser())
+				locatorErr = l.Scan("/invalid/anchorfiles/path",
 					extractor.CreateFakeExtractor(),
 					parser.CreateFakeParser())
 				assert.NotNil(t, locatorErr.Code(), errors.AlreadyInitialized)

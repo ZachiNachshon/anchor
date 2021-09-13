@@ -151,8 +151,8 @@ var RunStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
 
 				// Do not scan actual repo, use mocks
-				fakeLocator := locator.CreateFakeLocator("/some/path")
-				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+				fakeLocator := locator.CreateFakeLocator()
+				fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 					return nil
 				}
 				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
@@ -162,6 +162,8 @@ var RunStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 				reg.Set(locator.Identifier, fakeLocator)
 				reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
 				reg.Set(shell.Identifier, shell.CreateFakeShell())
+				reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
+				reg.Set(parser.Identifier, parser.CreateFakeParser())
 				err := collaborators.StartCliCommands(ctx)
 				assert.Nil(t, err)
 			})
@@ -194,8 +196,8 @@ var StartCliCommandsSuccessfully = func(t *testing.T) {
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
 
 				// Do not scan actual repo, use mocks
-				fakeLocator := locator.CreateFakeLocator("/some/path")
-				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+				fakeLocator := locator.CreateFakeLocator()
+				fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 					return nil
 				}
 				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
@@ -205,6 +207,8 @@ var StartCliCommandsSuccessfully = func(t *testing.T) {
 				reg.Set(locator.Identifier, fakeLocator)
 				reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
 				reg.Set(shell.Identifier, shell.CreateFakeShell())
+				reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
+				reg.Set(parser.Identifier, parser.CreateFakeParser())
 				err := startCliCommands(ctx)
 				assert.Nil(t, err)
 			})

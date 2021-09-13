@@ -8,8 +8,6 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/models"
-	"github.com/ZachiNachshon/anchor/pkg/prompter"
-	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/spf13/cobra"
 )
 
@@ -64,13 +62,8 @@ func (c *dynamicCmd) GetContext() common.Context {
 	return c.ctx
 }
 
-func AddCommands(parent cmd.AnchorCommand, anchorCollaborators *cmd.AnchorCollaborators, createCmds NewCommandsFunc) error {
-	l, pr, s, err := resolveFromRegistry(parent.GetContext())
-	if err != nil {
-		return err
-	}
-
-	err = anchorCollaborators.Run(parent.GetContext(), pr, s)
+func AddCommands(parent cmd.AnchorCommand, createCmds NewCommandsFunc) error {
+	l, err := resolveLocatorFromRegistry(parent.GetContext())
 	if err != nil {
 		return err
 	}
@@ -104,21 +97,10 @@ func AddCommands(parent cmd.AnchorCommand, anchorCollaborators *cmd.AnchorCollab
 	return nil
 }
 
-func resolveFromRegistry(ctx common.Context) (locator.Locator, prompter.Prompter, shell.Shell, error) {
-	l, err := ctx.Registry().SafeGet(locator.Identifier)
-	if err != nil {
-		return nil, nil, nil, err
+func resolveLocatorFromRegistry(ctx common.Context) (locator.Locator, error) {
+	if l, err := ctx.Registry().SafeGet(locator.Identifier); err != nil {
+		return nil, err
+	} else {
+		return l.(locator.Locator), nil
 	}
-
-	pr, err := ctx.Registry().SafeGet(prompter.Identifier)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	s, err := ctx.Registry().SafeGet(shell.Identifier)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	return l.(locator.Locator), pr.(prompter.Prompter), s.(shell.Shell), nil
 }

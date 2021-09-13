@@ -2,28 +2,93 @@ package anchor
 
 import (
 	"fmt"
-	"github.com/ZachiNachshon/anchor/internal/cmd"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/repository"
+	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
+	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 )
 
-var GetAnchorCollaborators = func() *cmd.AnchorCollaborators {
-	return &cmd.AnchorCollaborators{
-		ResolveConfigContext: loadConfigContext,
-		LoadRepository:       loadRepository,
-		ScanAnchorfiles:      scanAnchorfilesRepositoryTree,
+func NewAnchorCollaborators() *AnchorCollaborators {
+	return &AnchorCollaborators{
+		prepareRegistryItemsFunc: PrepareRegistryItems,
+		resolveConfigContextFunc: resolveConfigContext,
+		loadRepositoryFunc:       loadRepository,
+		scanAnchorfilesFunc:      scanAnchorfilesRepositoryTree,
 	}
 }
 
-func loadConfigContext(
-	ctx common.Context,
-	prmpt prompter.Prompter,
-	s shell.Shell) error {
+type AnchorCollaborators struct {
+	prmptr prompter.Prompter
+	s      shell.Shell
+	l      locator.Locator
+	e      extractor.Extractor
+	prsr   parser.Parser
 
+	prepareRegistryItemsFunc func(c *AnchorCollaborators, ctx common.Context) error
+	resolveConfigContextFunc func(c *AnchorCollaborators, ctx common.Context) error
+	loadRepositoryFunc       func(c *AnchorCollaborators, ctx common.Context) (string, error)
+	scanAnchorfilesFunc      func(c *AnchorCollaborators, ctx common.Context, repoPath string) error
+}
+
+func (c *AnchorCollaborators) Run(ctx common.Context) error {
+	err := c.prepareRegistryItemsFunc(c, ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.resolveConfigContextFunc(c, ctx)
+	if err != nil {
+		return err
+	}
+
+	repoPath, err := c.loadRepositoryFunc(c, ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.scanAnchorfilesFunc(c, ctx, repoPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func PrepareRegistryItems(c *AnchorCollaborators, ctx common.Context) error {
+	reg := ctx.Registry()
+	if s, err := reg.SafeGet(shell.Identifier); err != nil {
+		return err
+	} else {
+		c.s = s.(shell.Shell)
+	}
+	if prmptr, err := reg.SafeGet(prompter.Identifier); err != nil {
+		return err
+	} else {
+		c.prmptr = prmptr.(prompter.Prompter)
+	}
+	if l, err := reg.SafeGet(locator.Identifier); err != nil {
+		return err
+	} else {
+		c.l = l.(locator.Locator)
+	}
+	if e, err := reg.SafeGet(extractor.Identifier); err != nil {
+		return err
+	} else {
+		c.e = e.(extractor.Extractor)
+	}
+	if prsr, err := reg.SafeGet(parser.Identifier); err != nil {
+		return err
+	} else {
+		c.prsr = prsr.(parser.Parser)
+	}
+	return nil
+}
+
+func resolveConfigContext(c *AnchorCollaborators, ctx common.Context) error {
 	resolved, err := ctx.Registry().SafeGet(config.Identifier)
 	if err != nil {
 		return err
@@ -33,19 +98,19 @@ func loadConfigContext(
 	cfg := config.FromContext(ctx)
 	contextName := cfg.Config.CurrentContext
 	if len(contextName) == 0 {
-		if selectedCfgCtx, err := prmpt.PromptConfigContext(cfg.Config.Contexts); err != nil {
+		if selectedCfgCtx, err := c.prmptr.PromptConfigContext(cfg.Config.Contexts); err != nil {
 			return err
 		} else if selectedCfgCtx.Name == prompter.CancelActionName {
 			return fmt.Errorf("cannot proceed without selecting a configuration context, aborting")
 		} else {
-			_ = s.ClearScreen()
+			_ = c.s.ClearScreen()
 			contextName = selectedCfgCtx.Name
 		}
 	}
 	return cfgManager.SwitchActiveConfigContextByName(cfg, contextName)
 }
 
-func loadRepository(ctx common.Context) (string, error) {
+func loadRepository(c *AnchorCollaborators, ctx common.Context) (string, error) {
 	cfg := config.FromContext(ctx)
 	if repo, err := repository.GetRepositoryOriginByConfig(ctx, cfg.Config.ActiveContext.Context.Repository); err != nil {
 		return "", err
@@ -59,17 +124,11 @@ func loadRepository(ctx common.Context) (string, error) {
 	}
 }
 
-func scanAnchorfilesRepositoryTree(ctx common.Context, repoPath string) error {
-	var l locator.Locator
-	if resolved, err := ctx.Registry().SafeGet(locator.Identifier); err != nil {
-		return err
-	} else {
-		l = resolved.(locator.Locator)
-		locatorErr := l.Scan(repoPath)
-		if locatorErr != nil {
-			errMsg := fmt.Sprintf("failed to scan anchorfiles repository. error: %s", locatorErr.GoError().Error())
-			return fmt.Errorf(errMsg)
-		}
+func scanAnchorfilesRepositoryTree(c *AnchorCollaborators, ctx common.Context, repoPath string) error {
+	locatorErr := c.l.Scan(repoPath, c.e, c.prsr)
+	if locatorErr != nil {
+		errMsg := fmt.Sprintf("failed to scan anchorfiles repository. error: %s", locatorErr.GoError().Error())
+		return fmt.Errorf(errMsg)
 	}
 	return nil
 }

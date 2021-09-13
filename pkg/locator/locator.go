@@ -21,7 +21,7 @@ const (
 )
 
 type Locator interface {
-	Scan(anchorFilesLocalPath string) *errors.LocatorError
+	Scan(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError
 	AnchorFolders() []*models.AnchorFolderInfo
 	AnchorFolder(name string) *models.AnchorFolderInfo
 	AnchorFoldersAsMap() map[string]*models.AnchorFolderInfo
@@ -63,7 +63,7 @@ func newAnchorFolderItem(name string, dirPath string) *models.AnchorFolderItemIn
 	}
 }
 
-func New() *locatorImpl {
+func New() Locator {
 	return &locatorImpl{
 		anchorFoldersInfoMap: make(map[string]*models.AnchorFolderInfo),
 	}

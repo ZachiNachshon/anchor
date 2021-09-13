@@ -12,8 +12,10 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/models"
+	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/ZachiNachshon/anchor/test/data/stubs"
@@ -34,6 +36,10 @@ func Test_AnchorCommandShould(t *testing.T) {
 		{
 			Name: "init flags and sub-command upon initialization",
 			Func: InitFlagsAndSubCommandsUponInitialization,
+		},
+		{
+			Name: "fail to start pre run sequence",
+			Func: FailToStartPreRunSequence,
 		},
 		{
 			Name: "call set logger verbosity",
@@ -96,13 +102,16 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(lgr logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
-				// Append verbose flags which is a global variable to default
+				// Set default false to verbose flags since it might be true from another tests (global variable)
 				verboseFlagValue = false
 				fakeLoggerManager := logger.CreateFakeLoggerManager()
 				command := NewCommand(ctx, fakeLoggerManager)
 
 				stubs.GenerateAnchorFolderInfoTestData()
-				command.addDynamicSubCommandsFunc = func(parent cmd.AnchorCommand, preRunSequence *cmd.AnchorCollaborators, createCmd dynamic.NewCommandsFunc) error {
+				command.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
+					return nil
+				}
+				command.addDynamicSubCommandsFunc = func(parent cmd.AnchorCommand, createCmd dynamic.NewCommandsFunc) error {
 					dynamicCmd1 := &cobra.Command{
 						Use: "dynamic-cmd-1",
 					}
@@ -131,6 +140,21 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 				assert.Equal(t, "dynamic-cmd-2", cmds[3].Use)
 				assert.Equal(t, "version", cmds[4].Use)
 			})
+		})
+	})
+}
+
+var FailToStartPreRunSequence = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
+			fakeLoggerManager := logger.CreateFakeLoggerManager()
+			command := NewCommand(ctx, fakeLoggerManager)
+			command.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
+				return fmt.Errorf("failed to start pre run sequence")
+			}
+			err := command.initialize()
+			assert.NotNil(t, err, "expected to fail on pre run sequence")
+			assert.Equal(t, "failed to start pre run sequence", err.Error())
 		})
 	})
 }
@@ -196,8 +220,8 @@ var RunCliRootCommandSuccessfully = func(t *testing.T) {
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
 
 				// Do not scan actual repo, use mocks
-				fakeLocator := locator.CreateFakeLocator("/some/path")
-				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+				fakeLocator := locator.CreateFakeLocator()
+				fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 					return nil
 				}
 				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
@@ -207,6 +231,8 @@ var RunCliRootCommandSuccessfully = func(t *testing.T) {
 				reg.Set(locator.Identifier, fakeLocator)
 				reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
 				reg.Set(shell.Identifier, shell.CreateFakeShell())
+				reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
+				reg.Set(parser.Identifier, parser.CreateFakeParser())
 				err := RunCliRootCommand(ctx)
 				assert.Nil(t, err, "expected root command to run successfully")
 			})
@@ -249,20 +275,25 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 			return nil
 		}
 
+		// Fail on pre run sequence
+		newCmd.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
+			return fmt.Errorf("failed on pre run sequence")
+		}
+		err = newCmd.initialize()
+		assert.NotNil(t, err)
+		assert.Equal(t, "failed on pre run sequence", err.Error())
+		newCmd.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
+			return nil
+		}
+
 		// Fail on dynamic commands
-		newCmd.addDynamicSubCommandsFunc = func(
-			parent cmd.AnchorCommand,
-			preRunSequence *cmd.AnchorCollaborators,
-			createCmd dynamic.NewCommandsFunc) error {
+		newCmd.addDynamicSubCommandsFunc = func(parent cmd.AnchorCommand, createCmd dynamic.NewCommandsFunc) error {
 			return fmt.Errorf("failed to add dynamic commands")
 		}
 		err = newCmd.initialize()
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add dynamic commands", err.Error())
-		newCmd.addDynamicSubCommandsFunc = func(
-			parent cmd.AnchorCommand,
-			preRunSequence *cmd.AnchorCollaborators,
-			createCmd dynamic.NewCommandsFunc) error {
+		newCmd.addDynamicSubCommandsFunc = func(parent cmd.AnchorCommand, createCmd dynamic.NewCommandsFunc) error {
 			return nil
 		}
 
@@ -299,7 +330,7 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 			return nil
 		}
 
-		// Succeed eventually when all inti steps are valid
+		// Succeed eventually when all init steps are valid
 		err = newCmd.initialize()
 		assert.Nil(t, err)
 	})

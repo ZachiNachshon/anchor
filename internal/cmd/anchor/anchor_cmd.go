@@ -33,14 +33,11 @@ type anchorCmd struct {
 
 	initFlagsFunc func(o *anchorCmd) error
 
-	addDynamicSubCommandsFunc func(
-		parent cmd.AnchorCommand,
-		anchorCollaborators *cmd.AnchorCollaborators,
-		createCmd dynamic.NewCommandsFunc) error
-
-	addConfigSubCmdFunc     func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error
-	addCompletionSubCmdFunc func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error
-	addVersionSubCmdFunc    func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error
+	startPreRunSequence       func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error
+	addDynamicSubCommandsFunc func(parent cmd.AnchorCommand, createCmd dynamic.NewCommandsFunc) error
+	addConfigSubCmdFunc       func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error
+	addCompletionSubCmdFunc   func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error
+	addVersionSubCmdFunc      func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error
 }
 
 var validArgs = []string{"completion", "config", "version"}
@@ -65,9 +62,12 @@ func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) *anchorC
 	}
 
 	return &anchorCmd{
-		cobraCmd:                  rootCmd,
-		ctx:                       ctx,
-		initFlagsFunc:             initFlags,
+		cobraCmd:      rootCmd,
+		ctx:           ctx,
+		initFlagsFunc: initFlags,
+		startPreRunSequence: func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
+			return preRunSequence(parent.GetContext())
+		},
 		addDynamicSubCommandsFunc: dynamic.AddCommands,
 		addConfigSubCmdFunc:       config_cmd.AddCommand,
 		addCompletionSubCmdFunc:   completion.AddCommand,
@@ -104,10 +104,14 @@ func (c *anchorCmd) initialize() error {
 	}
 	//cobra.EnableCommandSorting = false
 
-	anchorCollaborators := GetAnchorCollaborators()
+	// Pre Run Sequence
+	err = c.startPreRunSequence(c, NewAnchorCollaborators().Run)
+	if err != nil {
+		return err
+	}
 
 	// Dynamic Commands
-	err = c.addDynamicSubCommandsFunc(c, anchorCollaborators, dynamic.NewCommands)
+	err = c.addDynamicSubCommandsFunc(c, dynamic.NewCommands)
 	if err != nil {
 		return err
 	}

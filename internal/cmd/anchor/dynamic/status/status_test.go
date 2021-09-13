@@ -97,9 +97,8 @@ var PrintBanner = func(t *testing.T) {
 var PrepareRegistryComponents = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		reg := ctx.Registry()
-		path := "/some/path"
 
-		fakeLocator := locator.CreateFakeLocator(path)
+		fakeLocator := locator.CreateFakeLocator()
 		reg.Set(locator.Identifier, fakeLocator)
 
 		fakePrinter := printer.CreateFakePrinter()
@@ -125,9 +124,8 @@ var PrepareRegistryComponents = func(t *testing.T) {
 var FailResolvingRegistryComponents = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		reg := ctx.Registry()
-		path := "/some/path"
 
-		fakeLocator := locator.CreateFakeLocator(path)
+		fakeLocator := locator.CreateFakeLocator()
 		fakePrinter := printer.CreateFakePrinter()
 		fakeExtractor := extractor.CreateFakeExtractor()
 		fakeParser := parser.CreateFakeParser()
@@ -160,12 +158,11 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 
 var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		path := "/some/path"
 		items := stubs.GenerateAnchorFolderItemsInfoTestData()
 		items[0].InstructionsPath = ""
 		items[1].InstructionsPath = ""
 
-		fakeLocator := locator.CreateFakeLocator(path)
+		fakeLocator := locator.CreateFakeLocator()
 		locateAnchorFolderItemsCallCount := 0
 		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
 			locateAnchorFolderItemsCallCount++
@@ -197,7 +194,7 @@ var PrintApplicationsWithMissingInstructionsStatus = func(t *testing.T) {
 var PrintAllApplicationsStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		items := createStatusTestData(ctx)
-		fakeLocator := locator.CreateFakeLocator("/some/path")
+		fakeLocator := locator.CreateFakeLocator()
 		locateAnchorFolderItemsCallCount := 0
 		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
 			locateAnchorFolderItemsCallCount++
@@ -234,7 +231,7 @@ var PrintApplicationsOnlyWithValidStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		items := createStatusTestData(ctx)
 
-		fakeLocator := locator.CreateFakeLocator("/some/path")
+		fakeLocator := locator.CreateFakeLocator()
 		locateAnchorFolderItemsCallCount := 0
 		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
 			locateAnchorFolderItemsCallCount++
@@ -276,7 +273,7 @@ var PrintApplicationsOnlyWithInvalidStatus = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		items := createStatusTestData(ctx)
 
-		fakeLocator := locator.CreateFakeLocator("/some/path")
+		fakeLocator := locator.CreateFakeLocator()
 		locateAnchorFolderItemsCallCount := 0
 		fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
 			locateAnchorFolderItemsCallCount++

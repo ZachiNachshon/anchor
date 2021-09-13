@@ -346,9 +346,8 @@ var PrintBanner = func(t *testing.T) {
 var PrepareRegistryComponents = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		reg := ctx.Registry()
-		path := "/some/path"
 
-		fakeLocator := locator.CreateFakeLocator(path)
+		fakeLocator := locator.CreateFakeLocator()
 		reg.Set(locator.Identifier, fakeLocator)
 
 		fakePrompter := prompter.CreateFakePrompter()
@@ -386,9 +385,8 @@ var PrepareRegistryComponents = func(t *testing.T) {
 var FailResolvingRegistryComponents = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		reg := ctx.Registry()
-		path := "/some/path"
 
-		fakeLocator := locator.CreateFakeLocator(path)
+		fakeLocator := locator.CreateFakeLocator()
 		fakePrompter := prompter.CreateFakePrompter()
 		fakePrinter := printer.CreateFakePrinter()
 		fakeExtractor := extractor.CreateFakeExtractor()
@@ -662,7 +660,7 @@ var AnchorFolderItemPromptFailToPrompt = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			items := stubs.GenerateAnchorFolderItemsInfoTestData()
 
-			fakeLocator := locator.CreateFakeLocator("/some/path")
+			fakeLocator := locator.CreateFakeLocator()
 			locateAnchorFolderItemsCallCount := 0
 			fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
 				locateAnchorFolderItemsCallCount++
@@ -696,7 +694,7 @@ var AnchorFolderItemPromptPromptSuccessfully = func(t *testing.T) {
 			items := stubs.GenerateAnchorFolderItemsInfoTestData()
 			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
 
-			fakeLocator := locator.CreateFakeLocator("/some/path")
+			fakeLocator := locator.CreateFakeLocator()
 			locateAnchorFolderItemsCallCount := 0
 			fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
 				locateAnchorFolderItemsCallCount++

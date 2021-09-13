@@ -38,10 +38,6 @@ func Test_AppCommandShould(t *testing.T) {
 			Func: AddCommandsFailToResolveFromRegistry,
 		},
 		{
-			Name: "add commands: fail on collaborators",
-			Func: AddCommandsFailOnCollaborators,
-		},
-		{
 			Name: "add commands: fail on create dynamic commands",
 			Func: AddCommandsFailOnCreateDynamicCommands,
 		},
@@ -98,59 +94,27 @@ var AddCommandsFailToResolveFromRegistry = func(t *testing.T) {
 		reg := ctx.Registry()
 		parentCmd := newCommand(ctx, nil, "")
 
-		err := AddCommands(parentCmd, nil, nil)
+		err := AddCommands(parentCmd, nil)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", locator.Identifier))
-		fakeLocator := locator.CreateFakeLocator("/some/path")
+		fakeLocator := locator.CreateFakeLocator()
 		fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
 			return nil
 		}
 		reg.Set(locator.Identifier, fakeLocator)
 
-		err = AddCommands(parentCmd, nil, nil)
-		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", prompter.Identifier))
-		reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
-
-		err = AddCommands(parentCmd, nil, nil)
-		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", shell.Identifier))
-		reg.Set(shell.Identifier, shell.CreateFakeShell())
-
-		err = AddCommands(
-			parentCmd,
-			createNoOpAnchorCollaborators(),
-			func(ctx common.Context, anchorFolders []*models.AnchorFolderInfo) ([]*dynamicCmd, error) {
-				return []*dynamicCmd{}, nil
-			})
-		assert.Nil(t, err)
-	})
-}
-
-var AddCommandsFailOnCollaborators = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		reg := ctx.Registry()
-		reg.Set(locator.Identifier, locator.CreateFakeLocator("/some/path"))
-		reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
-		reg.Set(shell.Identifier, shell.CreateFakeShell())
-
-		parentCmd := newCommand(ctx, nil, "")
-
-		collaborators := &cmd.AnchorCollaborators{
-			ResolveConfigContext: func(ctx common.Context, prmpt prompter.Prompter, s shell.Shell) error {
-				return fmt.Errorf("failed to run collaborators")
-			},
+		createCmdFunc := func(ctx common.Context, anchorFolders []*models.AnchorFolderInfo) ([]*dynamicCmd, error) {
+			return []*dynamicCmd{}, nil
 		}
-		err := AddCommands(parentCmd, collaborators, nil)
-		assert.NotNil(t, err, "expected to fail on collaborators run")
-		assert.Equal(t, "failed to run collaborators", err.Error())
+		err = AddCommands(parentCmd, createCmdFunc)
+		assert.Nil(t, err)
 	})
 }
 
 var AddCommandsFailOnCreateDynamicCommands = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		reg := ctx.Registry()
-		fakeLocator := locator.CreateFakeLocator("/some/path")
+		fakeLocator := locator.CreateFakeLocator()
 		fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
 			return nil
 		}
@@ -160,12 +124,10 @@ var AddCommandsFailOnCreateDynamicCommands = func(t *testing.T) {
 
 		parentCmd := newCommand(ctx, nil, "")
 
-		err := AddCommands(
-			parentCmd,
-			createNoOpAnchorCollaborators(),
-			func(ctx common.Context, anchorFolders []*models.AnchorFolderInfo) ([]*dynamicCmd, error) {
-				return nil, fmt.Errorf("fail to create dynamic commands")
-			})
+		createCmdFunc := func(ctx common.Context, anchorFolders []*models.AnchorFolderInfo) ([]*dynamicCmd, error) {
+			return nil, fmt.Errorf("fail to create dynamic commands")
+		}
+		err := AddCommands(parentCmd, createCmdFunc)
 		assert.NotNil(t, err, "expected to fail on dynamic commands creation")
 		assert.Equal(t, "fail to create dynamic commands", err.Error())
 	})
@@ -177,7 +139,7 @@ var AddCommandsFailToAddSubCommands = func(t *testing.T) {
 		folders := stubs.GenerateAnchorFolderInfoTestData()
 		parentCmd := newCommand(ctx, &cobra.Command{}, "")
 
-		fakeLocator := locator.CreateFakeLocator("/some/path")
+		fakeLocator := locator.CreateFakeLocator()
 		fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
 			return folders
 		}
@@ -214,7 +176,7 @@ var AddCommandsFailToAddSubCommands = func(t *testing.T) {
 			assert.Equal(t, folders, anchorFolders)
 			return []*dynamicCmd{newCmdFailSelect}, nil
 		}
-		err := AddCommands(parentCmd, createNoOpAnchorCollaborators(), createCmdsFunc)
+		err := AddCommands(parentCmd, createCmdsFunc)
 		assert.NotNil(t, err, "expected to fail adding sub command")
 		assert.Equal(t, "fail to add sub command: select ", err.Error())
 
@@ -222,7 +184,7 @@ var AddCommandsFailToAddSubCommands = func(t *testing.T) {
 			assert.Equal(t, folders, anchorFolders)
 			return []*dynamicCmd{newCmdFailStatus}, nil
 		}
-		err = AddCommands(parentCmd, createNoOpAnchorCollaborators(), createCmdsFunc)
+		err = AddCommands(parentCmd, createCmdsFunc)
 		assert.NotNil(t, err, "expected to fail adding sub command")
 		assert.Equal(t, "fail to add sub command: status", err.Error())
 
@@ -230,7 +192,7 @@ var AddCommandsFailToAddSubCommands = func(t *testing.T) {
 			assert.Equal(t, folders, anchorFolders)
 			return []*dynamicCmd{newCmdFailRun}, nil
 		}
-		err = AddCommands(parentCmd, createNoOpAnchorCollaborators(), createCmdsFunc)
+		err = AddCommands(parentCmd, createCmdsFunc)
 		assert.NotNil(t, err, "expected to fail adding sub command")
 		assert.Equal(t, "fail to add sub command: run", err.Error())
 	})
@@ -242,7 +204,7 @@ var AddCommandAddItselfToParentCommand = func(t *testing.T) {
 		folders := stubs.GenerateAnchorFolderInfoTestData()
 		parentCmd := newCommand(ctx, &cobra.Command{}, "root")
 
-		fakeLocator := locator.CreateFakeLocator("/some/path")
+		fakeLocator := locator.CreateFakeLocator()
 		fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
 			return folders
 		}
@@ -268,7 +230,7 @@ var AddCommandAddItselfToParentCommand = func(t *testing.T) {
 			assert.Equal(t, folders, anchorFolders)
 			return []*dynamicCmd{newCmdSuccess}, nil
 		}
-		err := AddCommands(parentCmd, createNoOpAnchorCollaborators(), createCmdsFunc)
+		err := AddCommands(parentCmd, createCmdsFunc)
 		assert.Nil(t, err, "expected to succeed fail adding sub commands")
 
 		assert.True(t, parentCmd.GetCobraCmd().HasSubCommands())
@@ -278,18 +240,4 @@ var AddCommandAddItselfToParentCommand = func(t *testing.T) {
 		anchorFolder1 := parentCommands[0]
 		assert.Equal(t, "test-use", anchorFolder1.Use)
 	})
-}
-
-func createNoOpAnchorCollaborators() *cmd.AnchorCollaborators {
-	return &cmd.AnchorCollaborators{
-		ResolveConfigContext: func(ctx common.Context, prmpt prompter.Prompter, s shell.Shell) error {
-			return nil
-		},
-		LoadRepository: func(ctx common.Context) (string, error) {
-			return "", nil
-		},
-		ScanAnchorfiles: func(ctx common.Context, repoPath string) error {
-			return nil
-		},
-	}
 }

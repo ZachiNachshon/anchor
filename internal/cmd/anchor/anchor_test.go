@@ -6,7 +6,9 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
+	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/ZachiNachshon/anchor/test/harness"
@@ -17,10 +19,6 @@ import (
 
 func Test_AnchorShould(t *testing.T) {
 	tests := []harness.TestsHarness{
-		{
-			Name: "fail to scan repo due to missing locator in registry",
-			Func: FailToScanRepoDueToMissingLocatorFromRegistry,
-		},
 		{
 			Name: "fail to scan repository",
 			Func: FailToScanRepository,
@@ -65,27 +63,23 @@ func Test_AnchorShould(t *testing.T) {
 			Name: "run pre-run sequence successfully",
 			Func: RunPreRunSequenceSuccessfully,
 		},
+		{
+			Name: "prepare registry items successfully",
+			Func: PrepareRegistryItemsSuccessfully,
+		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var FailToScanRepoDueToMissingLocatorFromRegistry = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		err := scanAnchorfilesRepositoryTree(ctx, "/some/path")
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "failed to retrieve from registry")
-	})
-}
-
 var FailToScanRepository = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		path := "/some/path"
-		fakeLocator := locator.CreateFakeLocator(path)
-		fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+		c := createNoOpAnchorCollaborators()
+		fakeLocator := locator.CreateFakeLocator()
+		fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 			return errors.NewLocatorError(fmt.Errorf("failed to scan"))
 		}
-		ctx.Registry().Set(locator.Identifier, fakeLocator)
-		err := scanAnchorfilesRepositoryTree(ctx, path)
+		c.l = fakeLocator
+		err := scanAnchorfilesRepositoryTree(c, ctx, "/some/path")
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "failed to scan")
 	})
@@ -93,13 +87,13 @@ var FailToScanRepository = func(t *testing.T) {
 
 var ScanRepositorySuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		path := "/some/path"
-		fakeLocator := locator.CreateFakeLocator(path)
-		fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
+		c := createNoOpAnchorCollaborators()
+		fakeLocator := locator.CreateFakeLocator()
+		fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 			return nil
 		}
-		ctx.Registry().Set(locator.Identifier, fakeLocator)
-		err := scanAnchorfilesRepositoryTree(ctx, path)
+		c.l = fakeLocator
+		err := scanAnchorfilesRepositoryTree(c, ctx, "/some/path")
 		assert.Nil(t, err)
 	})
 }
@@ -107,13 +101,14 @@ var ScanRepositorySuccessfully = func(t *testing.T) {
 var UseExistingCurrentContentAsTheActiveConfigContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
+			c := createNoOpAnchorCollaborators()
 			currCfgCtx := "test-curr-ctx"
 			var items = config.TemplateItems{
 				CurrentContext:   currCfgCtx,
 				FirstContextName: currCfgCtx,
 			}
 			with.Config(ctx, config.GetCustomTestConfigText(items), func(cfg *config.AnchorConfig) {
-				err := loadConfigContext(ctx, nil, nil)
+				err := resolveConfigContext(c, ctx)
 				assert.Nil(t, err)
 				assert.Equal(t, currCfgCtx, cfg.Config.ActiveContext.Name)
 			})
@@ -124,15 +119,17 @@ var UseExistingCurrentContentAsTheActiveConfigContext = func(t *testing.T) {
 var FailToPromptForConfigContextSelection = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			promptCfgCtxCallCount := 0
-			fakePrompter := prompter.CreateFakePrompter()
-			fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
-				promptCfgCtxCallCount++
-				return nil, fmt.Errorf("failed to prompt")
-			}
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				c := createNoOpAnchorCollaborators()
+				promptCfgCtxCallCount := 0
+				fakePrompter := prompter.CreateFakePrompter()
+				fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
+					promptCfgCtxCallCount++
+					return nil, fmt.Errorf("failed to prompt")
+				}
+				c.prmptr = fakePrompter
 				cfg.Config.CurrentContext = ""
-				err := loadConfigContext(ctx, fakePrompter, nil)
+				err := resolveConfigContext(c, ctx)
 				assert.Equal(t, 1, promptCfgCtxCallCount, "expected action to be called exactly once. name: promptConfigContext")
 				assert.NotNil(t, err)
 				assert.Equal(t, "failed to prompt", err.Error())
@@ -144,17 +141,19 @@ var FailToPromptForConfigContextSelection = func(t *testing.T) {
 var FailWhenConfigContextWasNotSelected = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			promptCfgCtxCallCount := 0
-			fakePrompter := prompter.CreateFakePrompter()
-			fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
-				promptCfgCtxCallCount++
-				return &config.Context{
-					Name: prompter.CancelActionName,
-				}, nil
-			}
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				c := createNoOpAnchorCollaborators()
+				promptCfgCtxCallCount := 0
+				fakePrompter := prompter.CreateFakePrompter()
+				fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
+					promptCfgCtxCallCount++
+					return &config.Context{
+						Name: prompter.CancelActionName,
+					}, nil
+				}
+				c.prmptr = fakePrompter
 				cfg.Config.CurrentContext = ""
-				err := loadConfigContext(ctx, fakePrompter, nil)
+				err := resolveConfigContext(c, ctx)
 				assert.Equal(t, 1, promptCfgCtxCallCount, "expected action to be called exactly once. name: promptConfigContext")
 				assert.NotNil(t, err)
 				assert.Contains(t, err.Error(), "cannot proceed without selecting a configuration context")
@@ -166,23 +165,26 @@ var FailWhenConfigContextWasNotSelected = func(t *testing.T) {
 var ClearScreenUponConfigContextSelection = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			promptCfgCtxCallCount := 0
-			fakePrompter := prompter.CreateFakePrompter()
-			fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
-				promptCfgCtxCallCount++
-				return &config.Context{
-					Name: cfgContexts[0].Name,
-				}, nil
-			}
-			clearScreenCallCount := 0
-			fakeShell := shell.CreateFakeShell()
-			fakeShell.ClearScreenMock = func() error {
-				clearScreenCallCount++
-				return nil
-			}
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				c := createNoOpAnchorCollaborators()
+				promptCfgCtxCallCount := 0
+				fakePrompter := prompter.CreateFakePrompter()
+				fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
+					promptCfgCtxCallCount++
+					return &config.Context{
+						Name: cfgContexts[0].Name,
+					}, nil
+				}
+				clearScreenCallCount := 0
+				fakeShell := shell.CreateFakeShell()
+				fakeShell.ClearScreenMock = func() error {
+					clearScreenCallCount++
+					return nil
+				}
+				c.prmptr = fakePrompter
+				c.s = fakeShell
 				cfg.Config.CurrentContext = ""
-				err := loadConfigContext(ctx, fakePrompter, fakeShell)
+				err := resolveConfigContext(c, ctx)
 				assert.Equal(t, 1, promptCfgCtxCallCount, "expected action to be called exactly once. name: promptConfigContext")
 				assert.Equal(t, 1, clearScreenCallCount, "expected action to be called exactly once. name: clearScreen")
 				assert.Nil(t, err)
@@ -194,23 +196,26 @@ var ClearScreenUponConfigContextSelection = func(t *testing.T) {
 var AvoidFailureWhenClearScreenFails = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			promptCfgCtxCallCount := 0
-			fakePrompter := prompter.CreateFakePrompter()
-			fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
-				promptCfgCtxCallCount++
-				return &config.Context{
-					Name: cfgContexts[0].Name,
-				}, nil
-			}
-			clearScreenCallCount := 0
-			fakeShell := shell.CreateFakeShell()
-			fakeShell.ClearScreenMock = func() error {
-				clearScreenCallCount++
-				return fmt.Errorf("failed to clear screen")
-			}
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				c := createNoOpAnchorCollaborators()
+				promptCfgCtxCallCount := 0
+				fakePrompter := prompter.CreateFakePrompter()
+				fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
+					promptCfgCtxCallCount++
+					return &config.Context{
+						Name: cfgContexts[0].Name,
+					}, nil
+				}
+				clearScreenCallCount := 0
+				fakeShell := shell.CreateFakeShell()
+				fakeShell.ClearScreenMock = func() error {
+					clearScreenCallCount++
+					return fmt.Errorf("failed to clear screen")
+				}
+				c.prmptr = fakePrompter
+				c.s = fakeShell
 				cfg.Config.CurrentContext = ""
-				err := loadConfigContext(ctx, fakePrompter, fakeShell)
+				err := resolveConfigContext(c, ctx)
 				assert.Equal(t, 1, promptCfgCtxCallCount, "expected action to be called exactly once. name: promptConfigContext")
 				assert.Equal(t, 1, clearScreenCallCount, "expected action to be called exactly once. name: clearScreen")
 				assert.Nil(t, err)
@@ -223,8 +228,9 @@ var FailedToResolveRepositoryOrigin = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				c := createNoOpAnchorCollaborators()
 				cfg.Config.ActiveContext.Context.Repository = nil
-				_, err := loadRepository(ctx)
+				_, err := loadRepository(c, ctx)
 				assert.NotNil(t, err)
 			})
 		})
@@ -235,8 +241,9 @@ var FailedToLoadRepository = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				c := createNoOpAnchorCollaborators()
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = "/invalid/path"
-				_, err := loadRepository(ctx)
+				_, err := loadRepository(c, ctx)
 				assert.NotNil(t, err)
 				assert.Contains(t, err.Error(), "local anchorfiles repository path is invalid")
 			})
@@ -249,8 +256,9 @@ var LoadRepositoryFilesSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				with.HarnessAnchorfilesTestRepo(ctx)
+				c := createNoOpAnchorCollaborators()
 				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
-				repoPath, err := loadRepository(ctx)
+				repoPath, err := loadRepository(c, ctx)
 				assert.Nil(t, err)
 				assert.Equal(t, ctx.AnchorFilesPath(), repoPath)
 			})
@@ -261,33 +269,73 @@ var LoadRepositoryFilesSuccessfully = func(t *testing.T) {
 var RunPreRunSequenceSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
-				fakePrompter := prompter.CreateFakePrompter()
-				fakePrompter.PromptConfigContextMock = func(cfgContexts []*config.Context) (*config.Context, error) {
-					return &config.Context{
-						Name: cfgContexts[0].Name,
-					}, nil
-				}
-				ctx.Registry().Set(prompter.Identifier, fakePrompter)
-
-				fakeShell := shell.CreateFakeShell()
-				fakeShell.ClearScreenMock = func() error {
-					return nil
-				}
-				ctx.Registry().Set(shell.Identifier, fakeShell)
-
-				fakeLocator := locator.CreateFakeLocator("/path/to/repo")
-				fakeLocator.ScanMock = func(anchorFilesLocalPath string) *errors.LocatorError {
-					return nil
-				}
-				ctx.Registry().Set(locator.Identifier, fakeLocator)
-
-				with.HarnessAnchorfilesTestRepo(ctx)
-				cfg.Config.ActiveContext.Context.Repository.Local.Path = ctx.AnchorFilesPath()
-				preRunSeq := GetAnchorCollaborators()
-				err := preRunSeq.Run(ctx, prompter.CreateFakePrompter(), shell.CreateFakeShell())
-				assert.Nil(t, err)
-			})
+			collaborators := NewAnchorCollaborators()
+			collaborators.prepareRegistryItemsFunc = func(c *AnchorCollaborators, ctx common.Context) error {
+				return nil
+			}
+			collaborators.resolveConfigContextFunc = func(c *AnchorCollaborators, ctx common.Context) error {
+				return nil
+			}
+			collaborators.loadRepositoryFunc = func(c *AnchorCollaborators, ctx common.Context) (string, error) {
+				return "", nil
+			}
+			collaborators.scanAnchorfilesFunc = func(c *AnchorCollaborators, ctx common.Context, repoPath string) error {
+				return nil
+			}
+			err := collaborators.Run(ctx)
+			assert.Nil(t, err)
 		})
 	})
+}
+
+var PrepareRegistryItemsSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		reg := ctx.Registry()
+		c := createNoOpAnchorCollaborators()
+
+		err := PrepareRegistryItems(c, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", shell.Identifier))
+		reg.Set(shell.Identifier, shell.CreateFakeShell())
+
+		err = PrepareRegistryItems(c, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", prompter.Identifier))
+		reg.Set(prompter.Identifier, prompter.CreateFakePrompter())
+
+		err = PrepareRegistryItems(c, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", locator.Identifier))
+		reg.Set(locator.Identifier, locator.CreateFakeLocator())
+
+		err = PrepareRegistryItems(c, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", extractor.Identifier))
+		reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
+
+		err = PrepareRegistryItems(c, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", parser.Identifier))
+		reg.Set(parser.Identifier, parser.CreateFakeParser())
+
+		err = PrepareRegistryItems(c, ctx)
+		assert.Nil(t, err)
+	})
+}
+
+func createNoOpAnchorCollaborators() *AnchorCollaborators {
+	return &AnchorCollaborators{
+		prepareRegistryItemsFunc: func(c *AnchorCollaborators, ctx common.Context) error {
+			return nil
+		},
+		resolveConfigContextFunc: func(c *AnchorCollaborators, ctx common.Context) error {
+			return nil
+		},
+		loadRepositoryFunc: func(c *AnchorCollaborators, ctx common.Context) (string, error) {
+			return "", nil
+		},
+		scanAnchorfilesFunc: func(c *AnchorCollaborators, ctx common.Context, repoPath string) error {
+			return nil
+		},
+	}
 }
