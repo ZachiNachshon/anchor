@@ -34,7 +34,7 @@ var DynamicSelect = func(ctx common.Context, o *selectOrchestrator) error {
 
 type selectOrchestrator struct {
 	parentFolderName string
-	verbose          bool
+	verboseFlag      bool
 
 	prmpt prompter.Prompter
 	l     locator.Locator
@@ -122,7 +122,7 @@ type selectOrchestrator struct {
 func NewOrchestrator(parentFolderName string) *selectOrchestrator {
 	return &selectOrchestrator{
 		parentFolderName: parentFolderName,
-		verbose:          false,
+		verboseFlag:      false,
 
 		// --- CLI Command ---
 		bannerFunc:  banner,
@@ -278,12 +278,12 @@ func runInstructionAction(o *selectOrchestrator, action *models.Action) *errors.
 	scriptOutputPath, _ := logger.GetDefaultScriptOutputLogFilePath()
 
 	if len(action.Script) > 0 && len(action.ScriptFile) > 0 {
-		return errors.NewPromptError(fmt.Errorf("script / scriptFile are mutual exclusive, please use either one"))
+		return errors.NewSchemaError(fmt.Errorf("script / scriptFile are mutual exclusive, please use either one"))
 	} else if len(action.Script) == 0 && len(action.ScriptFile) == 0 {
-		return errors.NewPromptError(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
+		return errors.NewSchemaError(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
 	}
 
-	if o.verbose {
+	if o.verboseFlag || action.ForceVerbose {
 		return o.executeInstructionActionVerboseFunc(o, action, scriptOutputPath)
 	} else {
 		return o.executeInstructionActionFunc(o, action, scriptOutputPath)
@@ -431,8 +431,11 @@ func startInstructionActionExecutionFlow(
 		logger.Debugf("failed to ask before running an instruction action. error: %s", promptError.GoError().Error())
 		return nil, promptError
 	} else if shouldRun {
-		// Do not break selection flow upon action failure
-		_ = o.runInstructionActionFunc(o, action)
+		// Do not break selection flow upon action failure, print warning and continue
+		if promptErr := o.runInstructionActionFunc(o, action); promptErr != nil && promptErr.Code() == errors.SchemaError {
+			// Print only errors which aren't in direct relation to the script execution, these are handled differently
+			o.prntr.PrintError(promptErr.GoError().Error())
+		}
 		if promptErr := o.wrapAfterExecutionFunc(o); promptErr != nil {
 			return nil, promptErr
 		}

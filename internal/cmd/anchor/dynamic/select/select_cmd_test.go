@@ -123,7 +123,7 @@ var EnableCommandVerbosity = func(t *testing.T) {
 				callCount := 0
 				var fun DynamicSelectFunc = func(ctx common.Context, o *selectOrchestrator) error {
 					callCount++
-					assert.True(t, o.verbose, "expected verbose flag to exist")
+					assert.True(t, o.verboseFlag, "expected verbose flag to exist")
 					return nil
 				}
 				command := NewCommand(ctx, stubs.AnchorFolder1Name, fun)

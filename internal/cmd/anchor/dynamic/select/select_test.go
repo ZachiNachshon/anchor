@@ -1165,9 +1165,7 @@ var RunInstructionActionFailOnMutualExclusiveScriptPaths = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-
 			action1.Script = "some script"
 			action1.ScriptFile = "/path/to/script"
 			err := fakeO.runInstructionActionFunc(fakeO, action1)
@@ -1201,7 +1199,7 @@ var RunInstructionActionFailToExecuteAction = func(t *testing.T) {
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verbose = true
+			fakeO.verboseFlag = true
 
 			execActionVerboseCallCount := 0
 			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
@@ -1226,7 +1224,7 @@ var RunInstructionActionFailToExecuteVerboseAction = func(t *testing.T) {
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verbose = false
+			fakeO.verboseFlag = false
 
 			execActionCallCount := 0
 			fakeO.executeInstructionActionFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
@@ -1251,7 +1249,7 @@ var RunInstructionActionRunActionVerbose = func(t *testing.T) {
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verbose = true
+			fakeO.verboseFlag = true
 			execActionVerboseCallCount := 0
 			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
 				execActionVerboseCallCount++
@@ -1274,7 +1272,7 @@ var RunInstructionActionRunActionInteractive = func(t *testing.T) {
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verbose = false
+			fakeO.verboseFlag = false
 			execActionCallCount := 0
 			fakeO.executeInstructionActionFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
 				execActionCallCount++
@@ -1537,7 +1535,7 @@ var ActionExecVerboseFailToExecScript = func(t *testing.T) {
 			action1.ScriptFile = ""
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verbose = true
+			fakeO.verboseFlag = true
 			fakeO.s = fakeShell
 			fakeO.prntr = fakePrinter
 

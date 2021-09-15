@@ -22,6 +22,7 @@ type Printer interface {
 	PrintEmptyLines(count int)
 	PrintSuccess(message string)
 	PrintWarning(message string)
+	PrintError(message string)
 
 	PrepareRunActionPlainer(actionId string) PrinterPlainer
 	PrepareRunActionSpinner(actionId string, scriptOutputPath string) PrinterSpinner
@@ -104,6 +105,11 @@ func (p *printerImpl) PrintWarning(message string) {
 	fmt.Println()
 }
 
+func (p *printerImpl) PrintError(message string) {
+	fmt.Printf("%s %s", promptui.IconBad, message)
+	fmt.Println()
+}
+
 func (p *printerImpl) PrepareRunActionPlainer(actionId string) PrinterPlainer {
 	return NewPlainer(
 		getPlainerRunActionMessage(actionId),
@@ -140,7 +146,7 @@ func (p *printerImpl) PrepareResetToRevisionSpinner(revision string) PrinterSpin
 }
 
 func getPlainerRunActionMessage(actionId string) string {
-	return fmt.Sprintf(`==> Running %s...
+	return fmt.Sprintf(`==> Running %s ...
 
 Output:`, actionId)
 }

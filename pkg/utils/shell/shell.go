@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"strings"
 
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/creack/pty"
@@ -108,12 +109,12 @@ func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
 
 	var _, stderrBuf bytes.Buffer
 	// Script execution sends output to stderr instead of stdout
-	cmd.Stderr = io.MultiWriter(os.Stderr, file)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf, file)
 
 	err = cmd.Run()
 	if err != nil {
-		errStr := string(stderrBuf.Bytes())
-		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
+		errStr := extractLastErrorLine(string(stderrBuf.Bytes()))
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), strings.TrimSpace(errStr))
 	}
 	return nil
 }
@@ -141,12 +142,12 @@ func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
 
 	var _, stderrBuf bytes.Buffer
 	// Script execution sends output to stderr instead of stdout
-	cmd.Stderr = file
+	cmd.Stderr = io.MultiWriter(&stderrBuf, file)
 
 	err = cmd.Run()
 	if err != nil {
-		errStr := string(stderrBuf.Bytes())
-		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
+		errStr := extractLastErrorLine(string(stderrBuf.Bytes()))
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), strings.TrimSpace(errStr))
 	}
 	return nil
 }
@@ -173,13 +174,13 @@ func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath st
 	}
 
 	var _, stderrBuf bytes.Buffer
-	cmd.Stdout = io.MultiWriter(os.Stdout, file)
-	cmd.Stderr = io.MultiWriter(os.Stderr, file)
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stderrBuf, file)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf, file)
 
 	err = cmd.Run()
 	if err != nil {
-		errStr := string(stderrBuf.Bytes())
-		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
+		errStr := extractLastErrorLine(string(stderrBuf.Bytes()))
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), strings.TrimSpace(errStr))
 	}
 	return nil
 }
@@ -194,12 +195,12 @@ func (s *shellExecutor) ExecuteSilentlyWithOutputToFile(script string, outputFil
 
 	var _, stderrBuf bytes.Buffer
 	cmd.Stdout = file
-	cmd.Stderr = file
+	cmd.Stderr = io.MultiWriter(&stderrBuf, file)
 
 	err = cmd.Run()
 	if err != nil {
-		errStr := string(stderrBuf.Bytes())
-		return fmt.Errorf("error: %s, stderr: %s", err.Error(), errStr)
+		errStr := extractLastErrorLine(string(stderrBuf.Bytes()))
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), strings.TrimSpace(errStr))
 	}
 	return nil
 }
@@ -292,4 +293,12 @@ func (s *shellExecutor) ClearScreen() error {
 		return err
 	}
 	return nil
+}
+
+func extractLastErrorLine(errStr string) string {
+	split := strings.SplitAfterN(errStr, "\n", 2)
+	if split != nil && len(split) > 1 {
+		return split[1]
+	}
+	return errStr
 }

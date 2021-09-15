@@ -6,6 +6,7 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"io/ioutil"
+	"os"
 	"sort"
 )
 
@@ -30,8 +31,10 @@ func (e *extractorImpl) ExtractAnchorFolderInfo(dirPath string, p parser.Parser)
 		return nil, fmt.Errorf("invalid anchor folder info path. error: %s", err.Error())
 	} else {
 		var text = string(contentByte)
+		// expand potential environment variables
+		contentByteExpanded := []byte(os.ExpandEnv(text))
 
-		if anchorFolder, err := p.ParseAnchorFolderInfo(text); err != nil {
+		if anchorFolder, err := p.ParseAnchorFolderInfo(string(contentByteExpanded)); err != nil {
 			return nil, err
 		} else {
 			if anchorFolder != nil &&
@@ -50,8 +53,10 @@ func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Pa
 		return nil, fmt.Errorf("invalid instructions path. error: %s", err.Error())
 	} else {
 		var text = string(contentByte)
+		// expand potential environment variables
+		contentByteExpanded := []byte(os.ExpandEnv(text))
 
-		if instRoot, err := p.ParseInstructions(text); err != nil {
+		if instRoot, err := p.ParseInstructions(string(contentByteExpanded)); err != nil {
 			return nil, err
 		} else {
 			if instRoot != nil && instRoot.Instructions != nil {

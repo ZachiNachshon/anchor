@@ -27,7 +27,7 @@ func NewCommand(ctx common.Context, parentFolderName string, selectFunc DynamicS
 			orchestrator := NewOrchestrator(parentFolderName)
 			if verboseFlag != nil {
 				if isVerbose, err := strconv.ParseBool(verboseFlag.Value.String()); err == nil {
-					orchestrator.verbose = isVerbose
+					orchestrator.verboseFlag = isVerbose
 				}
 			}
 			return selectFunc(ctx, orchestrator)

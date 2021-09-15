@@ -14,6 +14,7 @@ type fakePrinter struct {
 	PrintEmptyLinesMock                        func(count int)
 	PrintSuccessMock                           func(message string)
 	PrintWarningMock                           func(message string)
+	PrintErrorMock                             func(message string)
 	PrepareRunActionPlainerMock                func(actionId string) PrinterPlainer
 	PrepareRunActionSpinnerMock                func(actionId string, scriptOutputPath string) PrinterSpinner
 	PrepareReadRemoteHeadCommitHashSpinnerMock func(url string, branch string) PrinterSpinner
@@ -51,6 +52,10 @@ func (p *fakePrinter) PrintSuccess(message string) {
 
 func (p *fakePrinter) PrintWarning(message string) {
 	p.PrintWarningMock(message)
+}
+
+func (p *fakePrinter) PrintError(message string) {
+	p.PrintErrorMock(message)
 }
 
 func (p *fakePrinter) PrepareRunActionPlainer(actionId string) PrinterPlainer {

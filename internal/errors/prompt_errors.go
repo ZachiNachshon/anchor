@@ -3,9 +3,10 @@ package errors
 type ErrorCode int
 
 const (
-	GeneralPromptError      ErrorCode = 1
-	InterruptError          ErrorCode = 2
-	InstructionMissingError ErrorCode = 3
+	GeneralPromptError      ErrorCode = 10
+	InterruptError          ErrorCode = 20
+	InstructionMissingError ErrorCode = 30
+	SchemaError             ErrorCode = 40
 )
 
 type PromptError struct {
@@ -18,6 +19,14 @@ func NewPromptError(err error) *PromptError {
 	return &PromptError{
 		code:    GeneralPromptError,
 		message: "an error occurred",
+		err:     err,
+	}
+}
+
+func NewSchemaError(err error) *PromptError {
+	return &PromptError{
+		code:    SchemaError,
+		message: "invalid schema",
 		err:     err,
 	}
 }
