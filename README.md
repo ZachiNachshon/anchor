@@ -16,6 +16,9 @@
   <a href="https://github.com/ZachiNachshon/anchor/releases">
     <img src="https://img.shields.io/github/v/release/ZachiNachshon/anchor?include_prereleases&style=flat-square" alt="Go Releases"/>
   </a>
+  <a href="https://img.shields.io/github/downloads/ZachiNachshon/anchor/total">
+    <img src="https://img.shields.io/github/downloads/ZachiNachshon/anchor/total" alt="Downloads"/>
+  </a>
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
   </a>
@@ -33,11 +36,11 @@
 </p>
 <br>
 
-**Anchor** is a lightweight CLI tool that grants the **dynamic marketplace** experience for local environment by connecting to single/multiple remote repositories, each represents a different marketplace of executable actions.
+**Anchor** is a lightweight CLI tool that grants the **dynamic marketplace** experience for local / CI environment by connecting to single/multiple remote repositories, each represents a different marketplace of items, each with its own executable actions.
 
-Every such marketplace repository allows Anchor to **centralize and organize** executable single **action** and/or multiple actions (**workflows**) in a coherent, visible and easy-to-use approach. 
+Every marketplace repository allows Anchor to **centralize and organize** a set of domain items into their own categories, every domain containing a list of executable single **action** and/or grouped actions (**workflows**) per item in a coherent, visible and easy-to-use approach. 
 
-**Action** refers to anything that can be executed within a shell session, Anchor connects to remote git repositories, each containing a specific structure that allows it to understand what is available, exposing to the user the repository content of **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation**.
+**Anchor** connects to remote git repositories, each containing an opinionated structure that allows it to understand what is available, exposing to the user every **Category** as a dynamicly created CLI command, underlying domain items with their defined **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation**.
 
 | :heavy_exclamation_mark: WARNING |
 | :--------------------------------------- |
@@ -85,7 +88,7 @@ Every such marketplace repository allows Anchor to **centralize and organize** e
 
 <br>
 
-<h3 id="incentive">⛵ Why Creating <code>Anchor</code>?</h3>
+<h3 id="why-creating-anchor">⛵ Why Creating <code>Anchor</code>?</h3>
 
 1. I believe that local environment management should be a *smooth sailing*, well documented process with minimum context switches for *running scripts / installing applications / orchestrate installations / do whatever you require* on it
 1. Allowing to compose different actions from multiple channels (shell scripts, CLI utilities etc..) into a coherent well documented workflow with rollback procedure
@@ -99,43 +102,7 @@ Every such marketplace repository allows Anchor to **centralize and organize** e
 1. Create a structured repository (a.k.a anchorfiles) as the remote marketplace
 
    <details><summary>Show</summary>
-   ```bash
-   ├── ...
-   ├── app                   
-   │   └── docker-registry               
-   │       ├── instructions.yaml
-   │       └── ...
-   │   └── docker-registry-ui               
-   │       ├── instructions.yaml
-   │       └── ...
-   │   └── jenkins
-   │       ├── instructions.yaml
-   │       └── ...   
-   │   └── traefik-dashboard
-   │       ├── some-script.sh
-   │       ├── instructions.yaml
-   │       └── ...   
-   │   └── kubernetes-dashboard
-   │       ├── instructions.yaml
-   │       └── ...            
-   │   └── ...                
-   ├── cli 
-   │   └── kubectl 
-   │       ├── instructions.yaml
-   │       └── ...
-   │   └── brew 
-   │       ├── instructions.yaml
-   │       └── ...
-   ├── k8s
-   │   └── k3s 
-   │       └── ...  
-   │   └── kind 
-   │       └── ...  
-   │   └── minikube 
-   │       └── ...  
-   │   └── ... 
-   └── ...  
-   ```
+
    </details>
    
 1. Define actions/workflows within the an ***instructions.yaml*** file
