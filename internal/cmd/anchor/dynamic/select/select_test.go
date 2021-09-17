@@ -28,6 +28,10 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: CompleteRunnerMethodSuccessfully,
 		},
 		{
+			Name: "start the selection flow when run is called",
+			Func: StartTheSelectionFlowWhenRunIsCalled,
+		},
+		{
 			Name: "print banner",
 			Func: PrintBanner,
 		},
@@ -38,6 +42,14 @@ func Test_SelectActionShould(t *testing.T) {
 		{
 			Name: "fail resolving registry components",
 			Func: FailResolvingRegistryComponents,
+		},
+		{
+			Name: "fail preparing registry items",
+			Func: FailPreparingRegistryItems,
+		},
+		{
+			Name: "fail to run selection for dynamic command",
+			Func: FailToRunSelectionForDynamicCommand,
 		},
 		{
 			Name: "anchor folder item selection: cancel selection successfully",
@@ -144,8 +156,12 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: RunInstructionActionFailToExecuteVerboseAction,
 		},
 		{
-			Name: "run instruction action: run action verbose",
-			Func: RunInstructionActionRunActionVerbose,
+			Name: "run instruction action: run action with verbose from flag",
+			Func: RunInstructionActionRunActionWithVerboseFromFlag,
+		},
+		{
+			Name: "run instruction action: run action with forced verbose from schema",
+			Func: RunInstructionActionRunActionWithForcedVerboseFromSchema,
 		},
 		{
 			Name: "run instruction action: run action interactive",
@@ -330,6 +346,22 @@ var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 	})
 }
 
+var StartTheSelectionFlowWhenRunIsCalled = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			startFolderItemSelectionCallCount := 0
+			fakeO.startFolderItemsSelectionFlowFunc = func(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
+				startFolderItemSelectionCallCount++
+				return nil
+			}
+			err := fakeO.runFunc(fakeO, ctx)
+			assert.Nil(t, err, "expected not to fail anchor folder item status")
+			assert.Equal(t, 1, startFolderItemSelectionCallCount, "expected func to be called exactly once")
+		})
+	})
+}
+
 var PrintBanner = func(t *testing.T) {
 	fakePrinter := printer.CreateFakePrinter()
 	printBannerCallCount := 0
@@ -433,6 +465,51 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 
 		err = fakeO.prepareFunc(fakeO, ctx)
 		assert.Nil(t, err)
+	})
+}
+
+var FailPreparingRegistryItems = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			prepareRegistryItemsCallCount := 0
+			fakeO.prepareFunc = func(o *selectOrchestrator, ctx common.Context) error {
+				prepareRegistryItemsCallCount++
+				return fmt.Errorf("failed to prepare registry items")
+			}
+			err := DynamicSelect(ctx, fakeO)
+			assert.NotNil(t, err, "expected to fail")
+			assert.Equal(t, "failed to prepare registry items", err.Error())
+			assert.Equal(t, 1, prepareRegistryItemsCallCount, "expected func to be called exactly once")
+		})
+	})
+}
+
+var FailToRunSelectionForDynamicCommand = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			prepareRegistryItemsCallCount := 0
+			fakeO.prepareFunc = func(o *selectOrchestrator, ctx common.Context) error {
+				prepareRegistryItemsCallCount++
+				return nil
+			}
+			bannerCallCount := 0
+			fakeO.bannerFunc = func(o *selectOrchestrator) {
+				bannerCallCount++
+			}
+			runCallCount := 0
+			fakeO.runFunc = func(o *selectOrchestrator, ctx common.Context) *errors.PromptError {
+				runCallCount++
+				return errors.NewPromptError(fmt.Errorf("failed to run selection"))
+			}
+			err := DynamicSelect(ctx, fakeO)
+			assert.NotNil(t, err, "expected to fail")
+			assert.Equal(t, "failed to run selection", err.Error())
+			assert.Equal(t, 1, prepareRegistryItemsCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 1, bannerCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 1, runCallCount, "expected func to be called exactly once")
+		})
 	})
 }
 
@@ -1242,7 +1319,7 @@ var RunInstructionActionFailToExecuteVerboseAction = func(t *testing.T) {
 	})
 }
 
-var RunInstructionActionRunActionVerbose = func(t *testing.T) {
+var RunInstructionActionRunActionWithVerboseFromFlag = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
@@ -1256,8 +1333,32 @@ var RunInstructionActionRunActionVerbose = func(t *testing.T) {
 				return nil
 			}
 
-			action1.Script = "some script"
+			action1.Script = "some script with verbose from flag"
 			action1.ScriptFile = ""
+			err := fakeO.runInstructionActionFunc(fakeO, action1)
+			assert.Nil(t, err)
+			assert.Equal(t, 1, execActionVerboseCallCount, "expected to be called exactly once")
+		})
+	})
+}
+
+var RunInstructionActionRunActionWithForcedVerboseFromSchema = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1.ForceVerbose = true
+
+			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			fakeO.verboseFlag = false
+			execActionVerboseCallCount := 0
+			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
+				execActionVerboseCallCount++
+				return nil
+			}
+
+			action1.Script = ""
+			action1.ScriptFile = "some script with forced verbose from schema"
 			err := fakeO.runInstructionActionFunc(fakeO, action1)
 			assert.Nil(t, err)
 			assert.Equal(t, 1, execActionVerboseCallCount, "expected to be called exactly once")
@@ -1754,7 +1855,8 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 			runInstructionCallCount := 0
 			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
 				runInstructionCallCount++
-				return errors.NewPromptError(fmt.Errorf("failed to run instruction"))
+				// Schema error should not fail the selection flow
+				return errors.NewSchemaError(fmt.Errorf("failed to run instruction"))
 			}
 
 			wrapCallCount := 0
@@ -1763,11 +1865,19 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 				return nil
 			}
 
+			fakePrinter := printer.CreateFakePrinter()
+			printErrorCallCount := 0
+			fakePrinter.PrintErrorMock = func(message string) {
+				printErrorCallCount++
+			}
+
+			fakeO.prntr = fakePrinter
 			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
 			assert.Nil(t, err, "expected not to fail instructions action selection")
 			assert.NotNil(t, result)
 			assert.Equal(t, 1, askBeforeCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, runInstructionCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 1, printErrorCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, wrapCallCount, "expected func to be called exactly once")
 		})
 	})
