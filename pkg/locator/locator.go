@@ -118,7 +118,7 @@ func (l *locatorImpl) AnchorFolderItems(parentFolderName string) []*models.Ancho
 			result[i] = item
 			i++
 		}
-		return result
+		return sortAnchorFoldersItems(result)
 	}
 	return nil
 }
@@ -294,4 +294,11 @@ func sortAnchorFolders(anchorFoldersInfo []*models.AnchorFolderInfo) []*models.A
 		return anchorFoldersInfo[i].Name < anchorFoldersInfo[j].Name
 	})
 	return anchorFoldersInfo
+}
+
+func sortAnchorFoldersItems(anchorFoldersItemInfo []*models.AnchorFolderItemInfo) []*models.AnchorFolderItemInfo {
+	sort.Slice(anchorFoldersItemInfo, func(i, j int) bool {
+		return anchorFoldersItemInfo[i].Name < anchorFoldersItemInfo[j].Name
+	})
+	return anchorFoldersItemInfo
 }
