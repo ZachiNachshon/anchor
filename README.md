@@ -40,7 +40,7 @@
 
 Every marketplace repository allows Anchor to **centralize and organize** a set of domain items into their own categories, every domain containing a list of executable single **action** and/or grouped actions (**workflows**) per item in a coherent, visible and easy-to-use approach. 
 
-**Anchor** connects to remote git repositories, each containing an opinionated structure that allows it to understand what is available, exposing to the user every **Category** as a dynamicly created CLI command, underlying domain items with their defined **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation**.
+**Anchor** connects to remote git repositories containing an opinionated structure that allows it to understand what is available, exposing pre-defined **categories** as a dynamicly created CLI commands with their underlying domain items as **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation**.
 
 | :heavy_exclamation_mark: WARNING |
 | :--------------------------------------- |
@@ -84,13 +84,13 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 **Maintainers / Contributors:**
 
-- [Contribute Guides](docs/contribute-guides.md)
+- [Contribute Guides](docs/contribute.md)
 
 <br>
 
 <h3 id="why-creating-anchor">⛵ Why Creating <code>Anchor</code>?</h3>
 
-1. I believe that local environment management should be a *smooth sailing*, well documented process with minimum context switches for *running scripts / installing applications / orchestrate installations / do whatever you require* on it
+1. I believe that local environment management should be a *smooth sailing* - documented process with minimum context switches for *running scripts / installing applications / orchestrate installations / do whatever you require* on it
 1. Allowing to compose different actions from multiple channels (shell scripts, CLI utilities etc..) into a coherent well documented workflow with rollback procedure
 1. Having an action / workflow execution plan explained in plain english and managed via a central versioned controlled remote repository that can be shared with others to use
 1. Using an agnostic client that doesn't change, rather, changes are reflected based on remote marketplace state
@@ -99,13 +99,21 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 <h3 id="how-does-it-work">🗺 How Does It Work?</h3>
 
+This is a quick overview just to get a grasp of how simple it is to use *anchor*, a detailed guide can be found on the [create a marketplace repository](docs/create-anchorfiles.md) section.
+
+To quickly get started follow these steps: 
+
 1. Create a structured repository (a.k.a anchorfiles) as the remote marketplace
 
    <details><summary>Show</summary>
-
    </details>
-   
-1. Define actions/workflows within the an ***instructions.yaml*** file
+
+1. Create dynamic CLI command(s) using a ***command.yaml*** schema on the remote repository 
+
+   <details><summary>Show</summary>
+   </details>
+
+1. Define actions/workflows for every dynamic CLI command using an ***instructions.yaml*** file
 
    <details><summary>Show</summary>
    <img style="vertical-align: top;" src="assets/images/anchorfiles-structure.png" height="400" >
