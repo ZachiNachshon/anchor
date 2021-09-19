@@ -75,16 +75,14 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 - [Why creating `Anchor`?](#why-creating-anchor)
 - [How does it work?](#how-does-it-work)
-- [Installation](docs/installation.md)
 - [Configuration](docs/configuration.md)
 - [Available features](docs/available-features.md)
 - [Create a marketplace repository](docs/create-anchorfiles.md)
-- [Common questions](docs/common-questions.md)
-- [Troubleshooting](docs/troubleshooting.md)
 
 **Maintainers / Contributors:**
 
-- [Contribute Guides](docs/contribute.md)
+- [Installation](docs/installation.md)
+- [Contribute guides](docs/contribute.md)
 
 <br>
 
@@ -98,8 +96,6 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 <br>
 
 <h3 id="how-does-it-work">🗺 How Does It Work?</h3>
-
-This is a quick overview just to get a grasp of how simple it is to use *anchor*, a detailed guide can be found on the [create a marketplace repository](docs/create-anchorfiles.md) section.
 
 To quickly get started follow these steps: 
 
@@ -130,6 +126,10 @@ To quickly get started follow these steps:
    <details><summary>Show</summary>
    <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
    </details>
+
+| :bulb: Note |
+| :--------------------------------------- |
+| This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>Detailed guide can be found on the [create a marketplace repository](docs/create-anchorfiles.md) section. |
 
 <br>
 
