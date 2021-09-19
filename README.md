@@ -99,20 +99,22 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 To quickly get started follow these steps: 
 
-1. Create a structured repository (a.k.a anchorfiles) as the remote marketplace
+1. Create a structured repository (a.k.a *anchorfiles*) as the remote marketplace
 
    <details><summary>Show</summary>
+   <img style="vertical-align: top;" src="assets/images/anchor-repo-structure.png" height="700" >
    </details>
 
-1. Create dynamic CLI command(s) using a ***command.yaml*** schema on the remote repository 
+1. Create dynamic CLI command(s) using ***command.yaml*** schemas on the remote repository 
 
    <details><summary>Show</summary>
+   <img style="vertical-align: top;" src="assets/images/anchor-yaml-commands-example.png" height="500" >
    </details>
 
-1. Define actions/workflows for every dynamic CLI command using an ***instructions.yaml*** file
+1. Define actions / workflows for every dynamic CLI command using an ***instructions.yaml*** file
 
    <details><summary>Show</summary>
-   <img style="vertical-align: top;" src="assets/images/anchorfiles-structure.png" height="400" >
+   <img style="vertical-align: top;" src="assets/images/anchor-instructions-example.png" height="700" >
    </details>
 
 1. Set the remote marketplace in anchor ***config.yaml*** file
@@ -121,10 +123,20 @@ To quickly get started follow these steps:
    <img style="vertical-align: top;" src="assets/images/anchor-config.png" width="500" >
    </details>
 
-1. Use anchor CLI commands to interact with the marketplace
+1. Select which `anchor` dynamically created CLI command to use
 
    <details><summary>Show</summary>
+   <img style="vertical-align: top;" src="assets/images/anchor-cli-commands-example.png" width="500" >
+   </details>
+
+1. Select a domain item and an action to execute interactively
+
+   <details><summary>Show Domain Item Selection</summary>
    <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
+   </details>
+
+   <details><summary>Show Domain Item Action Selection</summary>
+   <img style="vertical-align: top;" src="assets/images/dynamic/anchor-install-app-docker-registry.png" width="500" >
    </details>
 
    | :bulb: Note |
