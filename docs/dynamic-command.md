@@ -111,6 +111,10 @@ anchor app status
 <img style="vertical-align: top;" src="../assets/images/dynamic/anchor-app-status.png" height="400" >
 </details>
 
+| :bulb: Note                                                  |
+| :----------------------------------------------------------- |
+| The `instructions.yaml` file support environment variables substitution that takes place before the file is being processed. Use the env vars as in a regular scripts i.e. `$PWD`, `$YOUR_ENV_VAR` etc... |
+
 <br>
 
 <h3 id="add-action">Add a New Command Action</h3>
