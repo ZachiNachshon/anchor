@@ -23,7 +23,7 @@ var configViewTemplate = `{{ "Configuration Path:" | cyan }}
 {{ .ConfigText | yellow }}
 `
 
-var appStatusTemplate = `{{ "There are " | cyan }}{{ .Count | green }}{{ " available applications:" | cyan }}
+var appStatusTemplate = `{{ "There are " | cyan }}{{ .Count | green }}{{ " available items:" | cyan }}
 
 {{ range $element := .AppsStatusItems }}
   {{- if (eq $element.IsValid true) }} ` +

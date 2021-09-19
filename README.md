@@ -127,9 +127,9 @@ To quickly get started follow these steps:
    <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
    </details>
 
-| :bulb: Note |
-| :--------------------------------------- |
-| This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>Detailed guide can be found on the [create a marketplace repository](docs/create-anchorfiles.md) section. |
+   | :bulb: Note |
+   | :--------------------------------------- |
+   | This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>Detailed guide can be found on the [create a marketplace repository](docs/create-anchorfiles.md) section. |
 
 <br>
 

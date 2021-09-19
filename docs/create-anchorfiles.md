@@ -53,11 +53,11 @@ command:
 ```
 
 <details><summary>Show Command</summary>
-<img style="vertical-align: top;" src="../assets/images/markeplace/anchor-cli-cmd.png" height="400" >
+<img style="vertical-align: top;" src="../assets/images/marketplace/anchor-cli-cmd.png" height="400" >
 </details>
 
 <details><summary>Show Sub-Commands</summary>
-<img style="vertical-align: top;" src="../assets/images/markeplace/anchor-cli-sub-cmds.png" height="400" >
+<img style="vertical-align: top;" src="../assets/images/marketplace/anchor-cli-sub-cmds.png" height="400" >
 </details>
 
 <br>
@@ -95,15 +95,15 @@ instructions:
 ```
 
 <details><summary>Show Item Selection</summary>
-<img style="vertical-align: top;" src="../assets/images/markeplace/anchor-select.png" height="400" >
+<img style="vertical-align: top;" src="../assets/images/marketplace/anchor-select.png" height="400" >
 </details>
 
-<details><summary>Show Action Seelction</summary>
-<img style="vertical-align: top;" src="../assets/images/markeplace/anchor-select-cli-actions.png" height="400" >
+<details><summary>Show Action Selection</summary>
+<img style="vertical-align: top;" src="../assets/images/marketplace/anchor-select-cli-actions.png" height="400" >
 </details>
 
-<details><summary>Show Workflow Seelction</summary>
-<img style="vertical-align: top;" src="../assets/images/markeplace/anchor-select-cli-workflows.png" height="400" >
+<details><summary>Show Workflow Selection</summary>
+<img style="vertical-align: top;" src="../assets/images/marketplace/anchor-select-cli-workflows.png" height="400" >
 </details>
 <br>
 
@@ -120,4 +120,4 @@ anchor config set-context-entry ops-team-context \
 
 | :bulb: Note |
 | :--------------------------------------- |
-| There are additional fine grained configurations available for registring a new remote repository, please check the [Configuration](./configuration.md) section for further information. |
+| There are additional fine grained configurations available for registering a new remote repository, please check the [Configuration](./configuration.md) section for further information. |

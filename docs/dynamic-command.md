@@ -22,7 +22,7 @@
 
 <h3 id="overview">Overview</h3>
 
-Every remote markeplace repository `anchor` is configured to work with can have a set of YAML files that allows to customize the way `anchor` interacts with it, exposing different dynamically generated CLI commands with their respective actions / workflows (actions-set).
+Every remote marketplace repository `anchor` is configured to work with can have a set of YAML files that allows to customize the way `anchor` interacts with it, exposing different dynamically generated CLI commands with their respective actions / workflows (actions-set).
 
 | :bulb: Note                                                  |
 | :----------------------------------------------------------- |
@@ -91,7 +91,7 @@ Dynamic command items are being defined via an `instructions.yaml` file, it cont
 
 <h4 id="command-file">The <code>instructions.yaml</code> file</h4>
 
-The structure of a single domain item instruction file is of the following structure:
+The structure of a single domain item instruction file is of the following:
 
 ```yaml
 instructions:
@@ -101,7 +101,7 @@ instructions:
     ...
 ```
 
-To list all available domian items of a single dynamic command, we can issue a pre-defined `status` sub-command to print its comprising items:
+To list all available domain items of a single dynamic command, we can issue a pre-defined `status` sub-command to print its comprising items:
 
 ```bash
 anchor app status
@@ -128,9 +128,9 @@ Action is part of the dynamic command item instructions. It is a single executab
 | `description`                                                | `string` |                   |
 | Longer info about the action responsibilities, shown on the information section - off the interactive selector |          |                   |
 | `script`                                                     | `string` |                   |
-| Free text script content to get executed upon selection |          |                   |
+| Free text script content to get executed upon selection, ***mutually exclusive to `scriptFile`*** |          |                   |
 | `scriptFile`                                                 | `string` |              |
-| Scripted file to get executed upon selection, path is releative to repository root folder<br><br>*For an item named `test-app` located at path `repo-root/my-k8s-apps/test-app/my-scripts/hello.sh`, the `scriptFile` path should be `my-k8s-apps/test-app/my-scripts/hello.sh`* |          |                   |
+| Scripted file to get executed upon selection, path is releative to repository root folder, ***mutually exclusive to `script`***<br><br>*For an item named `test-app` located at path `repo-root/my-k8s-apps/test-app/my-scripts/hello.sh`, the `scriptFile` path should be `my-k8s-apps/test-app/my-scripts/hello.sh`* |          |                   |
 | `forceVerbose`                                                 | `bool`   | False             |
 | Print action execution output to *stdout* rather than only a spinner indicator for success / failure |||
 
@@ -167,7 +167,7 @@ anchor app select
 
 <h3 id="add-workflow">Create a Workflow (Action-Set)</h3>
 
-Workflow is an actions-set, meaning, it allows execution of pre-defined actions in a serialized manner. It is a multi executable instruction definition.
+Workflow is an actions-set, meaning, it allows execution of pre-defined actions in a serialized manner. It is a multi executable instructions definitions.
 
 <h4 id="workflow-attributes">Attributes</h4>
 
@@ -188,7 +188,7 @@ Workflow is an actions-set, meaning, it allows execution of pre-defined actions 
 
 <h4 id="workflow-structure">YAML Structure</h4>
 
-To create a single action, use the following structure:
+To create a workflow, use the following structure:
 
 ```yaml
 instructions:

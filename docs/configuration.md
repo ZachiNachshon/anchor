@@ -36,7 +36,7 @@ Anchor configuration is comprised of a single/multiple config contexts. Every co
 
 <h3 id="set-context-entry">Set Context Entry</h3>
 
-Update an existing registered remote markeplace repository values and/or add a new one. It is possible to control each remote repository with default values and/or custom ones. Every remote marketplace repository is identified with a ***config context*** name.
+Update an existing registered remote marketplace repository values and/or add a new one. It is possible to control each remote repository with default values and/or custom ones. Every remote marketplace repository is identified with a ***config context*** name.
 
 <h4 id="set-context-usage">Usage</h4>
 
