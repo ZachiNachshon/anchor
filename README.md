@@ -75,9 +75,9 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 - [Why creating `Anchor`?](#why-creating-anchor)
 - [How does it work?](#how-does-it-work)
+- [Create a marketplace repository](docs/create-anchorfiles.md)
 - [Configuration](docs/configuration.md)
 - [Available features](docs/available-features.md)
-- [Create a marketplace repository](docs/create-anchorfiles.md)
 
 **Maintainers / Contributors:**
 
