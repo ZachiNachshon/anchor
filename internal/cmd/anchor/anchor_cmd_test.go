@@ -122,7 +122,8 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 					return nil
 				}
 
-				err := command.initialize()
+				shouldStartPreRunSeq := false
+				err := command.initialize(shouldStartPreRunSeq)
 				assert.Nil(t, err)
 
 				assert.True(t, command.cobraCmd.HasPersistentFlags())
@@ -152,7 +153,8 @@ var FailToStartPreRunSequence = func(t *testing.T) {
 			command.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
 				return fmt.Errorf("failed to start pre run sequence")
 			}
-			err := command.initialize()
+			shouldStartPreRunSeq := true
+			err := command.initialize(shouldStartPreRunSeq)
 			assert.NotNil(t, err, "expected to fail on pre run sequence")
 			assert.Equal(t, "failed to start pre run sequence", err.Error())
 		})
@@ -193,7 +195,8 @@ var FailToSetLoggerVerbosity = func(t *testing.T) {
 var FailToRunCliRootCommandDueToMissingLoggerFromRegistry = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
-			err := RunCliRootCommand(ctx)
+			shouldStartPreRunSeq := false
+			err := RunCliRootCommand(ctx, shouldStartPreRunSeq)
 			assert.NotNil(t, err, "expected to fail")
 			assert.Equal(t, "failed to retrieve from registry. name: logger-manager", err.Error())
 		})
@@ -204,7 +207,8 @@ var FailToRunCliRootCommandDueToInitializationError = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(lgr logger.Logger) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
-				err := RunCliRootCommand(ctx)
+				shouldStartPreRunSeq := false
+				err := RunCliRootCommand(ctx, shouldStartPreRunSeq)
 				assert.NotNil(t, err, "expected to fail")
 			})
 		})
@@ -233,7 +237,8 @@ var RunCliRootCommandSuccessfully = func(t *testing.T) {
 				reg.Set(shell.Identifier, shell.CreateFakeShell())
 				reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
 				reg.Set(parser.Identifier, parser.CreateFakeParser())
-				err := RunCliRootCommand(ctx)
+				shouldStartPreRunSeq := false
+				err := RunCliRootCommand(ctx, shouldStartPreRunSeq)
 				assert.Nil(t, err, "expected root command to run successfully")
 			})
 		})
@@ -268,7 +273,8 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 		newCmd.initFlagsFunc = func(o *anchorCmd) error {
 			return fmt.Errorf("failed to init flags")
 		}
-		err := newCmd.initialize()
+		shouldStartPreRunSeq := false
+		err := newCmd.initialize(shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to init flags", err.Error())
 		newCmd.initFlagsFunc = func(o *anchorCmd) error {
@@ -279,7 +285,7 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 		newCmd.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
 			return fmt.Errorf("failed on pre run sequence")
 		}
-		err = newCmd.initialize()
+		err = newCmd.initialize(true)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed on pre run sequence", err.Error())
 		newCmd.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
@@ -290,7 +296,7 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 		newCmd.addDynamicSubCommandsFunc = func(parent cmd.AnchorCommand, createCmd dynamic.NewCommandsFunc) error {
 			return fmt.Errorf("failed to add dynamic commands")
 		}
-		err = newCmd.initialize()
+		err = newCmd.initialize(shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add dynamic commands", err.Error())
 		newCmd.addDynamicSubCommandsFunc = func(parent cmd.AnchorCommand, createCmd dynamic.NewCommandsFunc) error {
@@ -301,7 +307,7 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 		newCmd.addConfigSubCmdFunc = func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error {
 			return fmt.Errorf("failed to add config subcommand")
 		}
-		err = newCmd.initialize()
+		err = newCmd.initialize(shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add config subcommand", err.Error())
 		newCmd.addConfigSubCmdFunc = func(parent cmd.AnchorCommand, createCmd config_cmd.NewCommandFunc) error {
@@ -312,7 +318,7 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 		newCmd.addVersionSubCmdFunc = func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error {
 			return fmt.Errorf("failed to add version subcommand")
 		}
-		err = newCmd.initialize()
+		err = newCmd.initialize(shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add version subcommand", err.Error())
 		newCmd.addVersionSubCmdFunc = func(parent cmd.AnchorCommand, createCmd version.NewCommandFunc) error {
@@ -323,7 +329,7 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 		newCmd.addCompletionSubCmdFunc = func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error {
 			return fmt.Errorf("failed to add completion subcommand")
 		}
-		err = newCmd.initialize()
+		err = newCmd.initialize(shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to add completion subcommand", err.Error())
 		newCmd.addCompletionSubCmdFunc = func(root cmd.AnchorCommand, createCmd completion.NewCommandFunc) error {
@@ -331,7 +337,7 @@ var FailOnAllInitializationFlows = func(t *testing.T) {
 		}
 
 		// Succeed eventually when all init steps are valid
-		err = newCmd.initialize()
+		err = newCmd.initialize(shouldStartPreRunSeq)
 		assert.Nil(t, err)
 	})
 }

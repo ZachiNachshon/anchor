@@ -81,6 +81,7 @@ func (rr *remoteRepositoryImpl) Load(ctx common.Context) (string, error) {
 		return "", err
 	}
 
+	rr.prntr.PrintEmptyLines(1)
 	return clonePath, nil
 }
 
