@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/internal/registry"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
@@ -15,13 +16,16 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"os"
+	"strings"
 )
+
+var excludedCommandsFromPreRunSequence = []string{"config", "version", "completion"}
 
 type MainCollaborators struct {
 	Logger           func(ctx common.Context, loggerManager logger.LoggerManager) error
 	Configuration    func(ctx common.Context, configManager config.ConfigManager) error
 	Registry         func(ctx common.Context) error
-	StartCliCommands func(ctx common.Context) error
+	StartCliCommands func(ctx common.Context, shouldStartPreRunSeq bool) error
 }
 
 var GetCollaborators = func() *MainCollaborators {
@@ -40,8 +44,8 @@ var collaborators = &MainCollaborators{
 	Registry: func(ctx common.Context) error {
 		return initRegistry(ctx)
 	},
-	StartCliCommands: func(ctx common.Context) error {
-		return startCliCommands(ctx)
+	StartCliCommands: func(ctx common.Context, shouldStartPreRunSeq bool) error {
+		return startCliCommands(ctx, shouldStartPreRunSeq)
 	},
 }
 
@@ -121,11 +125,11 @@ func initRegistry(ctx common.Context) error {
 	return nil
 }
 
-func startCliCommands(ctx common.Context) error {
-	return anchor.RunCliRootCommand(ctx)
+func startCliCommands(ctx common.Context, shouldStartPreRunSeq bool) error {
+	return anchor.RunCliRootCommand(ctx, shouldStartPreRunSeq)
 }
 
-func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators) error {
+func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollaborators, shouldStartPreRunSeq bool) error {
 	loggerManager := logger.NewManager()
 	err := collaborators.Logger(ctx, loggerManager)
 	if err != nil {
@@ -140,16 +144,33 @@ func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollabora
 	if err != nil {
 		return err
 	}
-	err = collaborators.StartCliCommands(ctx)
+	err = collaborators.StartCliCommands(ctx, shouldStartPreRunSeq)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+func isPreRunSequenceExcludedCommand(args []string) bool {
+	if args == nil {
+		return false
+	} else if len(args) == 1 && strings.EqualFold(args[0], globals.CLIRootCommandName) {
+		return false
+	} else if len(args) > 1 {
+		commandName := args[1]
+		for _, excludedCmd := range excludedCommandsFromPreRunSequence {
+			if strings.EqualFold(excludedCmd, commandName) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func main() {
+	shouldStartPreRunSeq := !isPreRunSequenceExcludedCommand(os.Args)
 	ctx := common.EmptyAnchorContext(registry.Initialize())
-	err := runCollaboratorsInSequence(ctx, GetCollaborators())
+	err := runCollaboratorsInSequence(ctx, GetCollaborators(), shouldStartPreRunSeq)
 	if err != nil {
 		exitApplication(1, err.Error())
 	}

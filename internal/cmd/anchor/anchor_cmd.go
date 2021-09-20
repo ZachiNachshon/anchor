@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RunCliRootCommand(ctx common.Context) error {
+func RunCliRootCommand(ctx common.Context, shouldStartPreRunSeq bool) error {
 	if result, err := ctx.Registry().SafeGet(logger.Identifier); err != nil {
 		return err
 	} else {
 		loggerManager := result.(logger.LoggerManager)
 		c := NewCommand(ctx, loggerManager)
-		err = c.initialize()
+		err = c.initialize(shouldStartPreRunSeq)
 		if err != nil {
 			return err
 		}
@@ -95,7 +95,7 @@ func (c *anchorCmd) GetContext() common.Context {
 	return c.ctx
 }
 
-func (c *anchorCmd) initialize() error {
+func (c *anchorCmd) initialize(shouldStartPreRunSeq bool) error {
 	// Cannot run on the command Run() method itself since we must initialize the logger
 	// logger must be available at the PersistentPreRun() stage
 	err := c.initFlagsFunc(c)
@@ -105,9 +105,14 @@ func (c *anchorCmd) initialize() error {
 	//cobra.EnableCommandSorting = false
 
 	// Pre Run Sequence
-	err = c.startPreRunSequence(c, NewAnchorCollaborators().Run)
-	if err != nil {
-		return err
+	if shouldStartPreRunSeq {
+		logger.Infof("starting pre run sequence for command...")
+		err = c.startPreRunSequence(c, NewAnchorCollaborators().Run)
+		if err != nil {
+			return err
+		}
+	} else {
+		logger.Infof("excluded command identified, skipping pre run sequence")
 	}
 
 	// Dynamic Commands

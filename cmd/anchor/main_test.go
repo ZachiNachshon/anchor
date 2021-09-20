@@ -99,6 +99,22 @@ func Test_MainShould(t *testing.T) {
 			Name: "initialize registry successfully",
 			Func: InitializeRegistrySuccessfully,
 		},
+		{
+			Name: "run pre run sequence: do nothing when no args",
+			Func: PreRunSequenceDoNothingWhenNoArgs,
+		},
+		{
+			Name: "run pre run sequence: run for root command",
+			Func: PreRunSequenceRunForRootCommand,
+		},
+		{
+			Name: "run pre run sequence: do not run for excluded command",
+			Func: PreRunSequenceDoNotRunForExcludedCommand,
+		},
+		{
+			Name: "run pre run sequence: run for non excluded command",
+			Func: PreRunSequenceRunForNonExcludedCommand,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -164,7 +180,8 @@ var RunStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 				reg.Set(shell.Identifier, shell.CreateFakeShell())
 				reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
 				reg.Set(parser.Identifier, parser.CreateFakeParser())
-				err := collaborators.StartCliCommands(ctx)
+				shouldStartPreRunSeq := false
+				err := collaborators.StartCliCommands(ctx, shouldStartPreRunSeq)
 				assert.Nil(t, err)
 			})
 		})
@@ -209,7 +226,8 @@ var StartCliCommandsSuccessfully = func(t *testing.T) {
 				reg.Set(shell.Identifier, shell.CreateFakeShell())
 				reg.Set(extractor.Identifier, extractor.CreateFakeExtractor())
 				reg.Set(parser.Identifier, parser.CreateFakeParser())
-				err := startCliCommands(ctx)
+				shouldStartPreRunSeq := false
+				err := startCliCommands(ctx, shouldStartPreRunSeq)
 				assert.Nil(t, err)
 			})
 		})
@@ -231,7 +249,7 @@ var StartMainEntryPointSuccessfully = func(t *testing.T) {
 						Registry: func(ctx common.Context) error {
 							return nil
 						},
-						StartCliCommands: func(ctx common.Context) error {
+						StartCliCommands: func(ctx common.Context, shouldStartPreRunSeq bool) error {
 							return nil
 						},
 					}
@@ -269,13 +287,14 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 				registryCallCount++
 				return nil
 			},
-			StartCliCommands: func(ctx common.Context) error {
+			StartCliCommands: func(ctx common.Context, shouldStartPreRunSeq bool) error {
 				callOrder = append(callOrder, "start")
 				startCallCount++
 				return nil
 			},
 		}
-		err := runCollaboratorsInSequence(ctx, testCollaborators)
+		shouldStartPreRunSeq := false
+		err := runCollaboratorsInSequence(ctx, testCollaborators, shouldStartPreRunSeq)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, loggerCallCount, "expected collaborator to be called exactly once. name: logger")
 		assert.Equal(t, 1, configCallCount, "expected collaborator to be called exactly once. name: configuration")
@@ -296,7 +315,8 @@ var FailToRunCollaboratorsInSequence = func(t *testing.T) {
 				return fmt.Errorf("failed to init logger")
 			},
 		}
-		err := runCollaboratorsInSequence(ctx, testCollaborators)
+		shouldStartPreRunSeq := false
+		err := runCollaboratorsInSequence(ctx, testCollaborators, shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to init logger", err.Error())
 
@@ -308,7 +328,7 @@ var FailToRunCollaboratorsInSequence = func(t *testing.T) {
 				return fmt.Errorf("failed to init configuration")
 			},
 		}
-		err = runCollaboratorsInSequence(ctx, testCollaborators)
+		err = runCollaboratorsInSequence(ctx, testCollaborators, shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to init configuration", err.Error())
 
@@ -323,7 +343,7 @@ var FailToRunCollaboratorsInSequence = func(t *testing.T) {
 				return fmt.Errorf("failed to init registry")
 			},
 		}
-		err = runCollaboratorsInSequence(ctx, testCollaborators)
+		err = runCollaboratorsInSequence(ctx, testCollaborators, shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to init registry", err.Error())
 
@@ -337,11 +357,11 @@ var FailToRunCollaboratorsInSequence = func(t *testing.T) {
 			Registry: func(ctx common.Context) error {
 				return nil
 			},
-			StartCliCommands: func(ctx common.Context) error {
+			StartCliCommands: func(ctx common.Context, shouldStartPreRunSeq bool) error {
 				return fmt.Errorf("failed to start cli commands")
 			},
 		}
-		err = runCollaboratorsInSequence(ctx, testCollaborators)
+		err = runCollaboratorsInSequence(ctx, testCollaborators, shouldStartPreRunSeq)
 		assert.NotNil(t, err)
 		assert.Equal(t, "failed to start cli commands", err.Error())
 	})
@@ -562,4 +582,24 @@ var InitializeRegistrySuccessfully = func(t *testing.T) {
 		in, _ := reg.SafeGet(input.Identifier)
 		assert.NotNil(t, in, "expected item from registry to exist. name: input")
 	})
+}
+
+var PreRunSequenceDoNothingWhenNoArgs = func(t *testing.T) {
+	shouldStartPreRunSeq := isPreRunSequenceExcludedCommand(nil)
+	assert.False(t, shouldStartPreRunSeq)
+}
+
+var PreRunSequenceRunForRootCommand = func(t *testing.T) {
+	shouldStartPreRunSeq := isPreRunSequenceExcludedCommand([]string{"anchor"})
+	assert.False(t, shouldStartPreRunSeq)
+}
+
+var PreRunSequenceDoNotRunForExcludedCommand = func(t *testing.T) {
+	shouldStartPreRunSeq := isPreRunSequenceExcludedCommand([]string{"anchor", "config"})
+	assert.True(t, shouldStartPreRunSeq)
+}
+
+var PreRunSequenceRunForNonExcludedCommand = func(t *testing.T) {
+	shouldStartPreRunSeq := isPreRunSequenceExcludedCommand([]string{"anchor", "some_command"})
+	assert.False(t, shouldStartPreRunSeq)
 }
