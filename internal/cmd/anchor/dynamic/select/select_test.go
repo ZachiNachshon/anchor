@@ -1347,7 +1347,7 @@ var RunInstructionActionRunActionWithForcedVerboseFromSchema = func(t *testing.T
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			action1.ForceVerbose = true
+			action1.ShowOutput = true
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			fakeO.verboseFlag = false

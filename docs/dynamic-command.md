@@ -134,9 +134,9 @@ Action is part of the dynamic command item instructions. It is a single executab
 | `script`                                                     | `string` |                   |
 | Free text script content to get executed upon selection, ***mutually exclusive to `scriptFile`*** |          |                   |
 | `scriptFile`                                                 | `string` |              |
-| Scripted file to get executed upon selection, path is releative to repository root folder, ***mutually exclusive to `script`***<br><br>*For an item named `test-app` located at path `repo-root/my-k8s-apps/test-app/my-scripts/hello.sh`, the `scriptFile` path should be `my-k8s-apps/test-app/my-scripts/hello.sh`* |          |                   |
-| `forceVerbose`                                                 | `bool`   | False             |
-| Print action execution output to *stdout* rather than only a spinner indicator for success / failure |||
+| Scripted file to get executed upon selection, path is relative to repository root folder, ***mutually exclusive to `script`***<br><br>*For an item named `test-app` located at path `repo-root/my-k8s-apps/test-app/my-scripts/hello.sh`, the `scriptFile` path should be `my-k8s-apps/test-app/my-scripts/hello.sh`* |          |                   |
+| `showOutput`                                                 | `bool`   | False             |
+| Print action execution output to *stdout* rather than using a spinner indicator for success / failure |||
 
 <br>
 

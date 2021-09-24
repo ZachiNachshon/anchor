@@ -283,7 +283,7 @@ func runInstructionAction(o *selectOrchestrator, action *models.Action) *errors.
 		return errors.NewSchemaError(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
 	}
 
-	if o.verboseFlag || action.ForceVerbose {
+	if o.verboseFlag || action.ShowOutput {
 		return o.executeInstructionActionVerboseFunc(o, action, scriptOutputPath)
 	} else {
 		return o.executeInstructionActionFunc(o, action, scriptOutputPath)
