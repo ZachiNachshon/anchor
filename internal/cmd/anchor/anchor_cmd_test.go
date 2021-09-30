@@ -42,6 +42,10 @@ func Test_AnchorCommandShould(t *testing.T) {
 			Func: FailToStartPreRunSequence,
 		},
 		{
+			Name: "start pre run sequence runs sequence as expected",
+			Func: StartPreRunSequenceRunsSequenceAsExpected,
+		},
+		{
 			Name: "call set logger verbosity",
 			Func: CallSetLoggerVerbosity,
 		},
@@ -157,6 +161,23 @@ var FailToStartPreRunSequence = func(t *testing.T) {
 			err := command.initialize(shouldStartPreRunSeq)
 			assert.NotNil(t, err, "expected to fail on pre run sequence")
 			assert.Equal(t, "failed to start pre run sequence", err.Error())
+		})
+	})
+}
+
+var StartPreRunSequenceRunsSequenceAsExpected = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(lgr logger.Logger) {
+			fakeLoggerManager := logger.CreateFakeLoggerManager()
+			command := NewCommand(ctx, fakeLoggerManager)
+			preRunSeqCallCount := 0
+			preRunSeqFunc := func(ctx common.Context) error {
+				preRunSeqCallCount++
+				return nil
+			}
+			err := command.startPreRunSequence(command, preRunSeqFunc)
+			assert.Nil(t, err, "expected to succeed on pre run sequence")
+			assert.Equal(t, 1, preRunSeqCallCount, "expected action to be called exactly once")
 		})
 	})
 }

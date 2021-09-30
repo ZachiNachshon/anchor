@@ -7,6 +7,7 @@ instructions:
         echo "Hello"
         echo "World"
         sleep 2
+      showOutput: true
 #      scriptFile: app/first-app/sub-folder/hello_world.sh
 
     - id: goodbye-world
