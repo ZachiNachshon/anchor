@@ -87,14 +87,23 @@ var InstructionActionGenerateRunMessageForApplicationContext = func(t *testing.T
 var InstructionActionGenerateRunMessageForKubernetesContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
+			k8sCmdsBank := make(map[string]bool)
+			k8sCmdsBank["echo ${KUBECONFIG}"] = true
+			k8sCmdsBank["kubectl config current-context"] = true
+			k8sCmdsBank["kubectl config view --minify -o jsonpath='{.clusters[*].name}'"] = true
+			k8sCmdsBank["kubectl config view --minify  -o jsonpath='{.users[*].name}'"] = true
+			k8sCmdsBank["kubectl config view --minify -o jsonpath='{.clusters[*].cluster.server}'"] = true
+
 			fakeShell := shell.CreateFakeShell()
 			execReturnOutputCallCount := 0
 			fakeShell.ExecuteReturnOutputMock = func(script string) (string, error) {
-				if execReturnOutputCallCount < 5 {
+				if _, exists := k8sCmdsBank[script]; exists {
 					execReturnOutputCallCount++
+					delete(k8sCmdsBank, script)
 					return "", fmt.Errorf("failed to exec script")
+				} else {
+					return "", nil
 				}
-				return "", nil
 			}
 
 			for i := 0; i < 5; i++ {

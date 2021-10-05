@@ -58,6 +58,7 @@ The `my-k8s-apps` folder should have a `command.yaml` file which contains the sc
 ```yaml
 type: application
 name: k8s-application
+description: "K8s applications available to install on the Ops team cluster"
 command:
   use: app
   short: "Kubernetes Application"
@@ -135,7 +136,9 @@ Action is part of the dynamic command item instructions. It is a single executab
 | Free text script content to get executed upon selection, ***mutually exclusive to `scriptFile`*** |          |                   |
 | `scriptFile`                                                 | `string` |              |
 | Scripted file to get executed upon selection, path is relative to repository root folder, ***mutually exclusive to `script`***<br><br>*For an item named `test-app` located at path `repo-root/my-k8s-apps/test-app/my-scripts/hello.sh`, the `scriptFile` path should be `my-k8s-apps/test-app/my-scripts/hello.sh`* |          |                   |
-| `showOutput`                                                 | `bool`   | False             |
+| `context`                                                     | `string` | `application` |
+| Context scope of the action, affects the pre-action execution flow with custom prompt messages<br>Available values:<br>  • `application` - prints basic prompt message before action is executed  <br>  • `kubernetes` - prints Kubernetes current context information before action is executed |  `string`        |  |
+| `showOutput`                                                 | `bool`   | `false`       |
 | Print action execution output to *stdout* rather than using a spinner indicator for success / failure |||
 
 <br>
@@ -183,8 +186,10 @@ Workflow is an actions-set, meaning, it allows execution of pre-defined actions 
 | Short title about what this workflow is all about, appended to the interactive selector |          |                   |
 | `description`                                                | `string` |                   |
 | Longer info about the workflow responsibilities, shown on the information section - off the interactive selector |          |                   |
-| `tolerateFailures`                 | `bool`   | False             |
+| `tolerateFailures`                 | `bool`   | `false`       |
 | Continue to the next action upon failure or fail the entire workflow |||
+| `context`                                                     | `string` | `application` |
+| Context scope of the workflow, affects the selection flow with custom prompt messages<br>Available values:<br>  • `application` - prints basic prompt message before workflow is executed  <br>  • `kubernetes` - prints Kubernetes current context information before workflow is executed |  `string`        |  |
 | `actionIds`                                         | `string[]` |              |
 | List of ordered action ids to get executed upon workflow selection |          |                   |
 

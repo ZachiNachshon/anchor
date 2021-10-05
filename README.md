@@ -123,7 +123,7 @@ To quickly get started follow these steps:
    <img style="vertical-align: top;" src="assets/images/anchor-config.png" width="500" >
    </details>
 
-1. Select which `anchor` dynamically created CLI command to use
+1. Select the dynamically created `anchor` CLI command to use
 
    <details><summary>Show</summary>
    <img style="vertical-align: top;" src="assets/images/anchor-cli-commands-example.png" width="500" >
