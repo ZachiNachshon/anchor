@@ -182,7 +182,7 @@ var GetHeadCommitHashSuccessfully = func(t *testing.T) {
 			url := "git@some-repo"
 			revision := "l33tf4k3c0mm1757r1n6"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteWithOutputMock = func(script string) (string, error) {
+			fakeShell.ExecuteReturnOutputMock = func(script string) (string, error) {
 				expected := fmt.Sprintf(`git -C %s ls-remote %s %s`, clonePath, url, branch)
 				assert.Equal(t, expected, script)
 				return revision, nil
@@ -201,7 +201,7 @@ var GetLocalOriginCommitHashSuccessfully = func(t *testing.T) {
 			branch := "my-branch"
 			revision := "l33tf4k3c0mm1757r1n6"
 			fakeShell := shell.CreateFakeShell()
-			fakeShell.ExecuteWithOutputMock = func(script string) (string, error) {
+			fakeShell.ExecuteReturnOutputMock = func(script string) (string, error) {
 				expected := fmt.Sprintf(`git -C %s rev-parse origin/%s`, clonePath, branch)
 				assert.Equal(t, expected, script)
 				return revision, nil

@@ -1,5 +1,5 @@
-type: application
 name: app
+description: "Example applications"
 command:
   use: app
   short: "Application commands"

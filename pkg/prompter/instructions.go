@@ -2,12 +2,63 @@ package prompter
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/models"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/manifoldco/promptui"
 	"strings"
 )
+
+const kubernetesContextPreMessage = "Kubernetes context identified:"
+
+func prepareFailedKubernetesContextMessage(err error) string {
+	logger.Errorf("failed to generate kubernetes context prompt. error: %s", err.Error())
+	return kubernetesContextPreMessage + fmt.Sprintf("\n\n%s%s%s\n\n",
+		colors.Red, "Failed to retrieve Kubernetes cluster information !", colors.Reset)
+}
+
+func GenerateKubernetesRunInstructionMessage(s shell.Shell, id string, instType string, title string) string {
+	k8sConfigPath, err := s.ExecuteReturnOutput("echo ${KUBECONFIG}")
+	if err != nil {
+		return prepareFailedKubernetesContextMessage(err) + GenerateRunInstructionMessage(id, instType, title)
+	}
+
+	k8sCurrCtx, err := s.ExecuteReturnOutput("kubectl config current-context")
+	if err != nil {
+		return prepareFailedKubernetesContextMessage(err) + GenerateRunInstructionMessage(id, instType, title)
+	}
+
+	// Use --minify flag to see only the configuration information associated with the current context
+	k8sClusters, err := s.ExecuteReturnOutput("kubectl config view --minify -o jsonpath='{.clusters[*].name}'")
+	if err != nil {
+		return prepareFailedKubernetesContextMessage(err) + GenerateRunInstructionMessage(id, instType, title)
+	}
+
+	k8sUsers, err := s.ExecuteReturnOutput("kubectl config view --minify  -o jsonpath='{.users[*].name}'")
+	if err != nil {
+		return prepareFailedKubernetesContextMessage(err) + GenerateRunInstructionMessage(id, instType, title)
+	}
+
+	k8sServers, err := s.ExecuteReturnOutput("kubectl config view --minify -o jsonpath='{.clusters[*].cluster.server}'")
+	if err != nil {
+		return prepareFailedKubernetesContextMessage(err) + GenerateRunInstructionMessage(id, instType, title)
+	}
+
+	contextMsg := fmt.Sprintf(`%s
+
+  Config Path......: %s
+  Current Context..: %s
+  Cluster..........: %s
+  User.............: %s
+  Server...........: %s
+
+`, kubernetesContextPreMessage, strings.TrimSpace(k8sConfigPath), strings.TrimSpace(k8sCurrCtx),
+		strings.TrimSpace(k8sClusters), strings.TrimSpace(k8sUsers), strings.TrimSpace(k8sServers))
+
+	return contextMsg + GenerateRunInstructionMessage(id, instType, title)
+}
 
 func GenerateRunInstructionMessage(id string, instType string, title string) string {
 	return fmt.Sprintf("Run instruction %s %s'%s'%s %s(%s)%s?",

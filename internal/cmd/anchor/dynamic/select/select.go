@@ -72,10 +72,12 @@ type selectOrchestrator struct {
 
 	startInstructionActionExecutionFlowFunc func(
 		o *selectOrchestrator,
+		globals *models.Globals,
 		action *models.Action) (*models.Action, *errors.PromptError)
 
 	askBeforeRunningInstructionActionFunc func(
 		o *selectOrchestrator,
+		globals *models.Globals,
 		action *models.Action) (bool, *errors.PromptError)
 
 	runInstructionActionFunc func(
@@ -96,6 +98,7 @@ type selectOrchestrator struct {
 	startInstructionWorkflowSelectionFlowFunc func(
 		o *selectOrchestrator,
 		anchorFolderItem *models.AnchorFolderItemInfo,
+		globals *models.Globals,
 		workflows []*models.Workflow,
 		actions []*models.Action) (*models.Workflow, *errors.PromptError)
 
@@ -106,11 +109,13 @@ type selectOrchestrator struct {
 
 	startInstructionWorkflowExecutionFlowFunc func(
 		o *selectOrchestrator,
+		globals *models.Globals,
 		workflow *models.Workflow,
 		actions []*models.Action) (*models.Workflow, *errors.PromptError)
 
 	askBeforeRunningInstructionWorkflowFunc func(
 		o *selectOrchestrator,
+		globals *models.Globals,
 		workflow *models.Workflow) (bool, *errors.PromptError)
 
 	runInstructionWorkflowFunc func(
@@ -268,6 +273,7 @@ func extractInstructions(
 			instructionsRoot = models.EmptyInstructionsRoot()
 		} else {
 			enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath, instructionsRoot.Instructions.Actions)
+			fillInstructionGlobals(instructionsRoot)
 		}
 		return instructionsRoot, nil
 	}
@@ -364,14 +370,14 @@ func startInstructionActionSelectionFlow(
 		appendInstructionWorkflowsCustomOptions(instructionRoot.Instructions)
 		workflows := instructionRoot.Instructions.Workflows
 		logger.Debugf("Selected to prompt for instruction workflows menu. id: %v", action.Id)
-		if _, promptErr = o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, workflows, actions); promptErr != nil {
+		if _, promptErr = o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, instructionRoot.Globals, workflows, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
 			return o.startInstructionActionSelectionFlowFunc(o, anchorFolderItem, instructionRoot)
 		}
 	} else {
 		logger.Debugf("Selected instruction action to run. id: %v", action.Id)
-		if _, promptErr = o.startInstructionActionExecutionFlowFunc(o, action); promptErr != nil {
+		if _, promptErr = o.startInstructionActionExecutionFlowFunc(o, instructionRoot.Globals, action); promptErr != nil {
 			return nil, promptErr
 		} else {
 			return o.startInstructionActionSelectionFlowFunc(o, anchorFolderItem, instructionRoot)
@@ -406,6 +412,7 @@ func promptInstructionWorkflowSelection(
 func startInstructionWorkflowSelectionFlow(
 	o *selectOrchestrator,
 	anchorFolderItem *models.AnchorFolderItemInfo,
+	globals *models.Globals,
 	workflows []*models.Workflow,
 	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 
@@ -416,18 +423,20 @@ func startInstructionWorkflowSelectionFlow(
 		return workflow, nil
 	} else {
 		logger.Debugf("Selected instruction workflow to run. id: %v", workflow.Id)
-		if _, promptErr := o.startInstructionWorkflowExecutionFlowFunc(o, workflow, actions); promptErr != nil {
+		if _, promptErr := o.startInstructionWorkflowExecutionFlowFunc(o, globals, workflow, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
-			return o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, workflows, actions)
+			return o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, globals, workflows, actions)
 		}
 	}
 }
 
 func startInstructionActionExecutionFlow(
 	o *selectOrchestrator,
+	globals *models.Globals,
 	action *models.Action) (*models.Action, *errors.PromptError) {
-	if shouldRun, promptError := o.askBeforeRunningInstructionActionFunc(o, action); promptError != nil {
+
+	if shouldRun, promptError := o.askBeforeRunningInstructionActionFunc(o, globals, action); promptError != nil {
 		logger.Debugf("failed to ask before running an instruction action. error: %s", promptError.GoError().Error())
 		return nil, promptError
 	} else if shouldRun {
@@ -445,8 +454,16 @@ func startInstructionActionExecutionFlow(
 
 func askBeforeRunningInstructionAction(
 	o *selectOrchestrator,
+	globals *models.Globals,
 	action *models.Action) (bool, *errors.PromptError) {
-	question := prompter.GenerateRunInstructionMessage(action.Id, "action", action.Title)
+
+	var question = ""
+	instContext := getInstructionActionContext(globals, action)
+	if instContext == models.ApplicationContext {
+		question = prompter.GenerateRunInstructionMessage(action.Id, "action", action.Title)
+	} else if instContext == models.KubernetesContext {
+		question = prompter.GenerateKubernetesRunInstructionMessage(o.s, action.Id, "action", action.Title)
+	}
 	if res, err := o.in.AskYesNoQuestion(question); err != nil {
 		return false, errors.NewPromptError(err)
 	} else {
@@ -456,9 +473,16 @@ func askBeforeRunningInstructionAction(
 
 func askBeforeRunningInstructionWorkflow(
 	o *selectOrchestrator,
+	globals *models.Globals,
 	workflow *models.Workflow) (bool, *errors.PromptError) {
-	// TODO: Change description since it might be too long
-	question := prompter.GenerateRunInstructionMessage(workflow.Id, "workflow", workflow.Description)
+
+	var question = ""
+	instContext := getInstructionWorkflowContext(globals, workflow)
+	if instContext == models.ApplicationContext {
+		question = prompter.GenerateRunInstructionMessage(workflow.Id, "workflow", workflow.Title)
+	} else if instContext == models.KubernetesContext {
+		question = prompter.GenerateKubernetesRunInstructionMessage(o.s, workflow.Id, "workflow", workflow.Title)
+	}
 	if res, err := o.in.AskYesNoQuestion(question); err != nil {
 		return false, errors.NewPromptError(err)
 	} else {
@@ -485,10 +509,11 @@ func runInstructionWorkflow(
 
 func startInstructionWorkflowExecutionFlow(
 	o *selectOrchestrator,
+	globals *models.Globals,
 	workflow *models.Workflow,
 	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 
-	if shouldRun, promptError := o.askBeforeRunningInstructionWorkflowFunc(o, workflow); promptError != nil {
+	if shouldRun, promptError := o.askBeforeRunningInstructionWorkflowFunc(o, globals, workflow); promptError != nil {
 		logger.Debugf("failed to ask before running an instruction workflow. error: %s", promptError.GoError().Error())
 		return nil, promptError
 	} else if shouldRun {
@@ -569,10 +594,38 @@ func enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath string, 
 	}
 }
 
+func fillInstructionGlobals(instRoot *models.InstructionsRoot) {
+	if instRoot.Globals == nil {
+		instRoot.Globals = models.EmptyGlobals()
+	}
+}
+
 func extractArgsFromScriptFile(scriptFile string) (string, []string) {
 	split := strings.Split(scriptFile, " ")
 	if len(split) > 1 {
 		return split[0], split[1:]
 	}
 	return split[0], nil
+}
+
+func getInstructionActionContext(globals *models.Globals, action *models.Action) string {
+	// action context always take precedence over global context
+	if len(action.Context) > 0 {
+		return action.Context
+	} else if len(globals.Context) > 0 {
+		return globals.Context
+	}
+	// default to application context
+	return models.ApplicationContext
+}
+
+func getInstructionWorkflowContext(globals *models.Globals, workflow *models.Workflow) string {
+	// workflow context always take precedence over global context
+	if len(workflow.Context) > 0 {
+		return workflow.Context
+	} else if len(globals.Context) > 0 {
+		return globals.Context
+	}
+	// default to application context
+	return models.ApplicationContext
 }

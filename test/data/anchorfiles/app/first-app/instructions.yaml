@@ -1,3 +1,6 @@
+globals:
+  context: application
+
 instructions:
   actions:
     - id: hello-world
@@ -8,7 +11,9 @@ instructions:
         echo "World"
         sleep 2
       showOutput: true
-#      scriptFile: app/first-app/sub-folder/hello_world.sh
+      context: kubernetes
+    #      context: application
+    #      scriptFile: app/first-app/sub-folder/hello_world.sh
 
     - id: goodbye-world
       title: "Goodbye World"
@@ -20,13 +25,16 @@ instructions:
 
   workflows:
     - id: talk-to-the-world
+      title: "Print workflow greetings"
       description: "Talk to the world, starting from hello up to goodbye"
       tolerateFailures: true
+      context: kubernetes
       actionIds:
         - hello-world
         - global-hello-world
         - goodbye-world
     - id: talk-to-the-world-again
+      title: "Print workflow greetings with failure"
       description: "Talk to the world again, now only with hello"
       tolerateFailures: false
       actionIds:

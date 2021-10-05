@@ -6,9 +6,9 @@ import (
 
 const (
 	// Anchor Folder 1
-	AnchorFolder1Type         = "application"
 	AnchorFolder1Name         = "app"
 	AnchorFolder1DirPath      = "/anchorfiles/app"
+	AnchorFolder1Description  = "folder1 description"
 	AnchorFolder1CommandUse   = "app"
 	AnchorFolder1CommandShort = "Application commands"
 
@@ -37,6 +37,7 @@ const (
 	// Anchor Folder 1: Item 2
 	AnchorFolder1Item2Name             = "app-2"
 	AnchorFolder1Item2DirPath          = "/anchorfiles/app/app-2"
+	AnchorFolder2Description           = "folder2 description"
 	AnchorFolder1Item2InstructionsPath = "/anchorfiles/app/app-2/instructions.yaml"
 
 	// Anchor Folder 1: Item 2: Action 1
@@ -46,7 +47,6 @@ const (
 	AnchorFolder1Item2Action1ScriptFile  = "/anchorfiles/app/app-2/script-action1.sh"
 
 	// Anchor Folder 2
-	AnchorFolder2Type         = "kubernetes"
 	AnchorFolder2Name         = "k8s"
 	AnchorFolder2DirPath      = "/anchorfiles/k8s"
 	AnchorFolder2CommandUse   = "k8s"
@@ -138,13 +138,13 @@ var anchorFolder1 = func() *models.AnchorFolderInfo {
 	item1 := anchorFolder1Item1()
 	item2 := anchorFolder1Item2()
 	return &models.AnchorFolderInfo{
-		Type:    AnchorFolder1Type,
 		Name:    AnchorFolder1Name,
 		DirPath: AnchorFolder1DirPath,
 		Command: &models.AnchorFolderCommand{
 			Use:   AnchorFolder1CommandUse,
 			Short: AnchorFolder1CommandShort,
 		},
+		Description: AnchorFolder1Description,
 		Items: map[string]*models.AnchorFolderItemInfo{
 			item1.Name: item1,
 			item2.Name: item2,
@@ -207,13 +207,13 @@ var anchorFolder1Item2Action1 = func() *models.Action {
 var anchorFolder2 = func() *models.AnchorFolderInfo {
 	item1 := anchorFolder2Item1()
 	return &models.AnchorFolderInfo{
-		Type:    AnchorFolder2Type,
 		Name:    AnchorFolder2Name,
 		DirPath: AnchorFolder2DirPath,
 		Command: &models.AnchorFolderCommand{
 			Use:   AnchorFolder2CommandUse,
 			Short: AnchorFolder2CommandShort,
 		},
+		Description: AnchorFolder2Description,
 		Items: map[string]*models.AnchorFolderItemInfo{
 			item1.Name: item1,
 		},

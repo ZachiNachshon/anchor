@@ -1,5 +1,5 @@
-type: application
 name: app-ignored
+description: "Example ignored applications"
 command:
   use: app-ignored
   short: "Application commands- IGNORED"

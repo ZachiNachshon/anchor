@@ -13,7 +13,7 @@ type fakeShell struct {
 	ExecuteScriptFileMock                         func(dir string, relativeScriptPath string, args ...string) error
 	ExecuteScriptFileWithOutputToFileMock         func(dir string, relativeScriptPath string, outputFilePath string, args ...string) error
 	ExecuteScriptFileSilentlyWithOutputToFileMock func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error
-	ExecuteWithOutputMock                         func(script string) (string, error)
+	ExecuteReturnOutputMock                       func(script string) (string, error)
 	ExecuteTTYMock                                func(script string) error
 	ExecuteInBackgroundMock                       func(script string) error
 	ClearScreenMock                               func() error
@@ -58,7 +58,7 @@ func (s *fakeShell) ExecuteScriptFileSilentlyWithOutputToFile(
 }
 
 func (s *fakeShell) ExecuteReturnOutput(script string) (string, error) {
-	return s.ExecuteWithOutputMock(script)
+	return s.ExecuteReturnOutputMock(script)
 }
 
 func (s *fakeShell) ExecuteTTY(script string) error {

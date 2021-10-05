@@ -38,7 +38,6 @@ var ParseAnchorFolderInfoSuccessfully = func(t *testing.T) {
 	anchorFolderInfo, err := parser.ParseAnchorFolderInfo(anchorFolderInfoYamlText)
 	assert.Nil(t, err, "expected parser to succeed")
 	assert.NotNil(t, anchorFolderInfo, "expected a valid anchor folder info YAML")
-	assert.NotEmpty(t, anchorFolderInfo.Type, "expected valid attribute: type")
 	assert.NotEmpty(t, anchorFolderInfo.Name, "expected valid attribute: name")
 	assert.Empty(t, anchorFolderInfo.DirPath, "expected emtpy attribute: dirPath")
 	assert.Nil(t, anchorFolderInfo.Items, "expected emtpy attribute: items")

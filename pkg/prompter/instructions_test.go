@@ -2,9 +2,13 @@ package prompter
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/common"
+	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/models"
+	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/harness"
+	"github.com/ZachiNachshon/anchor/test/with"
 	"github.com/manifoldco/promptui"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -13,8 +17,12 @@ import (
 func Test_InstructionsPrompterShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
-			Name: "instruction action: generate run message",
-			Func: InstructionActionGenerateRunMessage,
+			Name: "instruction action: generate run message for application context",
+			Func: InstructionActionGenerateRunMessageForApplicationContext,
+		},
+		{
+			Name: "instruction action: generate run message for kubernetes context",
+			Func: InstructionActionGenerateRunMessageForKubernetesContext,
 		},
 		{
 			Name: "instructions action: set search prompt",
@@ -68,12 +76,42 @@ func Test_InstructionsPrompterShould(t *testing.T) {
 	harness.RunTests(t, tests)
 }
 
-var InstructionActionGenerateRunMessage = func(t *testing.T) {
+var InstructionActionGenerateRunMessageForApplicationContext = func(t *testing.T) {
 	message := GenerateRunInstructionMessage("test-id", "action", "run instruction action from test")
 	assert.NotEmpty(t, message)
 	assert.Contains(t, message, "test-id", "expected id")
 	assert.Contains(t, message, "action", "expected instruction type")
 	assert.Contains(t, message, "run instruction action from test", "expected title")
+}
+
+var InstructionActionGenerateRunMessageForKubernetesContext = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			fakeShell := shell.CreateFakeShell()
+			execReturnOutputCallCount := 0
+			fakeShell.ExecuteReturnOutputMock = func(script string) (string, error) {
+				if execReturnOutputCallCount < 5 {
+					execReturnOutputCallCount++
+					return "", fmt.Errorf("failed to exec script")
+				}
+				return "", nil
+			}
+
+			for i := 0; i < 5; i++ {
+				message := GenerateKubernetesRunInstructionMessage(fakeShell, "test-id", "action", "run instruction action from test")
+				assert.NotEmpty(t, message)
+				assert.Contains(t, message, "Failed to retrieve Kubernetes cluster information !", "expected failure message")
+				assert.Contains(t, message, "action", "expected instruction type")
+				assert.Contains(t, message, "run instruction action from test", "expected title")
+			}
+
+			message := GenerateKubernetesRunInstructionMessage(fakeShell, "test-id", "action", "run instruction action from test")
+			assert.NotEmpty(t, message)
+			assert.NotContains(t, message, "Failed to retrieve Kubernetes cluster information !", "expected failure message")
+			assert.Contains(t, message, "action", "expected instruction type")
+			assert.Contains(t, message, "run instruction action from test", "expected title")
+		})
+	})
 }
 
 var InstructionActionSetSearchPrompt = func(t *testing.T) {

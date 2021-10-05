@@ -28,8 +28,8 @@ var instructionsActionPromptTemplateDetails = `{{ if not (eq .Id "` + BackAction
 {{- if not (eq .Id "") }}
   {{ "Id:" | faint }}` + createCustomSpacesString(actionLengthiestOption-3+leftPadding) + `{{ .Id }}
 {{- end }}
-{{- if not (eq .Title "") }}
-  {{ "Title:" | faint }}` + createCustomSpacesString(actionLengthiestOption-6+leftPadding) + `{{ .Title }}
+{{- if not (eq .Context "") }}
+  {{ "Context:" | faint }}` + createCustomSpacesString(actionLengthiestOption-8+leftPadding) + `{{ .Context }}
 {{- end }}
 {{- if not (eq .Script "") }} 
   {{ "Script:" | faint }}` + createCustomSpacesString(actionLengthiestOption-7+leftPadding) + `{{ "(hidden)" }} 
@@ -50,6 +50,9 @@ var instructionsWorkflowPromptTemplateDetails = `{{ if not (eq .Id "` + BackActi
 
 {{- if not (eq .Id "") }}
   {{ "Id:" | faint }}` + createCustomSpacesString(workflowLengthiestOption-3+leftPadding) + `{{ .Id }}
+{{- end }}
+{{- if not (eq .Context "") }}
+  {{ "Context:" | faint }}` + createCustomSpacesString(workflowLengthiestOption-8+leftPadding) + `{{ .Context }}
 {{- end }}
 {{- if true }}
   {{ "Tolerate Failures:" | faint }}` + createCustomSpacesString(leftPadding) + `{{ .TolerateFailures }}

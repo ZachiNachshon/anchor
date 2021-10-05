@@ -1,5 +1,9 @@
 package models
 
+func EmptyGlobals() *Globals {
+	return &Globals{}
+}
+
 func EmptyActions() []*Action {
 	return make([]*Action, 0, 0)
 }
@@ -32,10 +36,20 @@ func GetInstructionWorkflowById(workflows []*Workflow, id string) *Workflow {
 }
 
 type InstructionsRoot struct {
+	Globals      *Globals      `yaml:"globals"`
 	Instructions *Instructions `yaml:"instructions"`
+}
+
+type Globals struct {
+	Context string `yaml:"context"`
 }
 
 type Instructions struct {
 	Actions   []*Action   `yaml:"actions"`
 	Workflows []*Workflow `yaml:"workflows"`
 }
+
+const (
+	ApplicationContext = "application"
+	KubernetesContext  = "kubernetes"
+)

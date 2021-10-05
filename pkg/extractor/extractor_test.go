@@ -85,11 +85,11 @@ var AnchorFolderInfoExtractCommandSuccessfully = func(t *testing.T) {
 	anchorFolders, err := ext.ExtractAnchorFolderInfo(folderPath, parser.New())
 	assert.Nil(t, err, "expected item extraction to succeed")
 	assert.NotNil(t, anchorFolders)
-	assert.NotEmpty(t, anchorFolders.Type)
 	assert.NotEmpty(t, anchorFolders.Name)
 	assert.NotEmpty(t, anchorFolders.Command.Use)
 	assert.NotEmpty(t, anchorFolders.Command.Short)
 	assert.NotEmpty(t, anchorFolders.DirPath)
+	assert.NotEmpty(t, anchorFolders.Description)
 	assert.Nil(t, anchorFolders.Items)
 }
 

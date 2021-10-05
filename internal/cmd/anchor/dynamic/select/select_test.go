@@ -228,8 +228,12 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: InstructionActionExecFailToAskYesNoQuestion,
 		},
 		{
-			Name: "instruction action exec flow: ask yes/no question successfully",
-			Func: InstructionActionExecAskYesNoQuestionSuccessfully,
+			Name: "instruction action exec: ask yes/no question for application context",
+			Func: InstructionActionExecAskYesNoQuestionForApplicationContext,
+		},
+		{
+			Name: "instruction action exec: ask yes/no question for kubernetes context",
+			Func: InstructionActionExecAskYesNoQuestionForKubernetesContext,
 		},
 		{
 			Name: "instruction workflow selection: fail to prompt",
@@ -252,8 +256,12 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: InstructionWorkflowExecFailToAskYesNoQuestion,
 		},
 		{
-			Name: "instruction workflow exec: ask yes/no question successfully",
-			Func: InstructionWorkflowExecAskYesNoQuestionSuccessfully,
+			Name: "instruction workflow exec: ask yes/no question for application context",
+			Func: InstructionWorkflowExecAskYesNoQuestionForApplicationContext,
+		},
+		{
+			Name: "instruction workflow exec: ask yes/no question for kubernetes context",
+			Func: InstructionWorkflowExecAskYesNoQuestionForKubernetesContext,
 		},
 		{
 			Name: "instruction workflow prompt: fail to prompt",
@@ -314,6 +322,18 @@ func Test_SelectActionShould(t *testing.T) {
 		{
 			Name: "extract args from script file",
 			Func: ExtractArgsFromScriptFile,
+		},
+		{
+			Name: "fill instructions globals with defaults if missing from schema",
+			Func: FillInstructionsGlobalsWithDefaultsIfMissingFromSchema,
+		},
+		{
+			Name: "resolve instructions action context successfully",
+			Func: ResolveInstructionActionContextSuccessfully,
+		},
+		{
+			Name: "resolve instructions workflow context successfully",
+			Func: ResolveInstructionWorkflowContextSuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -963,6 +983,7 @@ var InstructionActionSelectionFailWorkflowSelection = func(t *testing.T) {
 			fakeO.startInstructionWorkflowSelectionFlowFunc = func(
 				o *selectOrchestrator,
 				anchorFolderItem *models.AnchorFolderItemInfo,
+				globals *models.Globals,
 				workflows []*models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 				workflowSelectionCallCount++
@@ -1009,6 +1030,7 @@ var InstructionActionSelectionSucceedWorkflowSelection = func(t *testing.T) {
 			fakeO.startInstructionWorkflowSelectionFlowFunc = func(
 				o *selectOrchestrator,
 				anchorFolderItem *models.AnchorFolderItemInfo,
+				globals *models.Globals,
 				workflows []*models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 				workflowSelectionCallCount++
@@ -1046,7 +1068,10 @@ var InstructionActionSelectionFailActionExecution = func(t *testing.T) {
 			}
 
 			instActionExecCallCount := 0
-			fakeO.startInstructionActionExecutionFlowFunc = func(o *selectOrchestrator, action *models.Action) (*models.Action, *errors.PromptError) {
+			fakeO.startInstructionActionExecutionFlowFunc = func(
+				o *selectOrchestrator,
+				globals *models.Globals,
+				action *models.Action) (*models.Action, *errors.PromptError) {
 				instActionExecCallCount++
 				assert.Equal(t, action1, action)
 				return nil, errors.NewPromptError(fmt.Errorf("failed to exec instruction action"))
@@ -1088,7 +1113,10 @@ var InstructionActionSelectionSucceedActionExecution = func(t *testing.T) {
 			}
 
 			instActionExecCallCount := 0
-			fakeO.startInstructionActionExecutionFlowFunc = func(o *selectOrchestrator, action *models.Action) (*models.Action, *errors.PromptError) {
+			fakeO.startInstructionActionExecutionFlowFunc = func(
+				o *selectOrchestrator,
+				globals *models.Globals,
+				action *models.Action) (*models.Action, *errors.PromptError) {
 				instActionExecCallCount++
 				assert.Equal(t, action1, action)
 				return nil, nil
@@ -1825,12 +1853,12 @@ var InstructionActionExecFailToAskBeforeRunning = func(t *testing.T) {
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			askBeforeCallCount := 0
-			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) (bool, *errors.PromptError) {
+			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
 				return false, errors.NewPromptError(fmt.Errorf("failed to ask"))
 			}
 
-			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
+			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, models.EmptyGlobals(), action1)
 			assert.Nil(t, result)
 			assert.NotNil(t, err, "expected instructions action execution to fail")
 			assert.Equal(t, "failed to ask", err.GoError().Error())
@@ -1847,7 +1875,7 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			askBeforeCallCount := 0
-			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) (bool, *errors.PromptError) {
+			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
 				return true, nil
 			}
@@ -1872,7 +1900,7 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 			}
 
 			fakeO.prntr = fakePrinter
-			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
+			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, models.EmptyGlobals(), action1)
 			assert.Nil(t, err, "expected not to fail instructions action selection")
 			assert.NotNil(t, result)
 			assert.Equal(t, 1, askBeforeCallCount, "expected func to be called exactly once")
@@ -1891,7 +1919,7 @@ var InstructionActionExecFailToWrapAfterRun = func(t *testing.T) {
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			askBeforeCallCount := 0
-			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) (bool, *errors.PromptError) {
+			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
 				return true, nil
 			}
@@ -1908,7 +1936,7 @@ var InstructionActionExecFailToWrapAfterRun = func(t *testing.T) {
 				return errors.NewPromptError(fmt.Errorf("failed to wrap"))
 			}
 
-			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
+			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, models.EmptyGlobals(), action1)
 			assert.Nil(t, result)
 			assert.NotNil(t, err, "expected instructions action execution to fail")
 			assert.Equal(t, "failed to wrap", err.GoError().Error())
@@ -1927,7 +1955,7 @@ var InstructionActionExecRunSuccessfully = func(t *testing.T) {
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			askBeforeCallCount := 0
-			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) (bool, *errors.PromptError) {
+			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
 				return true, nil
 			}
@@ -1944,7 +1972,7 @@ var InstructionActionExecRunSuccessfully = func(t *testing.T) {
 				return nil
 			}
 
-			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, action1)
+			result, err := fakeO.startInstructionActionExecutionFlowFunc(fakeO, models.EmptyGlobals(), action1)
 			assert.NotNil(t, result)
 			assert.Nil(t, err, "expected instructions action execution to succeed")
 			assert.Equal(t, 1, askBeforeCallCount, "expected func to be called exactly once")
@@ -1970,7 +1998,7 @@ var InstructionActionExecFailToAskYesNoQuestion = func(t *testing.T) {
 			}
 
 			fakeO.in = fakeInput
-			result, err := fakeO.askBeforeRunningInstructionActionFunc(fakeO, action1)
+			result, err := fakeO.askBeforeRunningInstructionActionFunc(fakeO, models.EmptyGlobals(), action1)
 			assert.False(t, result)
 			assert.NotNil(t, err, "expected ask yes/no question to fail")
 			assert.Equal(t, "failed to ask", err.GoError().Error())
@@ -1979,11 +2007,13 @@ var InstructionActionExecFailToAskYesNoQuestion = func(t *testing.T) {
 	})
 }
 
-var InstructionActionExecAskYesNoQuestionSuccessfully = func(t *testing.T) {
+var InstructionActionExecAskYesNoQuestionForApplicationContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1.Context = models.ApplicationContext
+			globals := models.EmptyGlobals()
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
@@ -1994,10 +2024,44 @@ var InstructionActionExecAskYesNoQuestionSuccessfully = func(t *testing.T) {
 			}
 
 			fakeO.in = fakeInput
-			result, err := fakeO.askBeforeRunningInstructionActionFunc(fakeO, action1)
+			result, err := fakeO.askBeforeRunningInstructionActionFunc(fakeO, globals, action1)
 			assert.True(t, result)
 			assert.Nil(t, err, "expected ask yes/no question to succeed")
 			assert.Equal(t, 1, askYesNoCallCount, "expected func to be called exactly once")
+		})
+	})
+}
+
+var InstructionActionExecAskYesNoQuestionForKubernetesContext = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1.Context = models.KubernetesContext
+			globals := models.EmptyGlobals()
+
+			fakeShell := shell.CreateFakeShell()
+			execReturnOutputCallCount := 0
+			fakeShell.ExecuteReturnOutputMock = func(script string) (string, error) {
+				execReturnOutputCallCount++
+				return "", nil
+			}
+
+			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			fakeInput := input.CreateFakeUserInput()
+			askYesNoCallCount := 0
+			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
+				askYesNoCallCount++
+				return true, nil
+			}
+
+			fakeO.in = fakeInput
+			fakeO.s = fakeShell
+			result, err := fakeO.askBeforeRunningInstructionActionFunc(fakeO, globals, action1)
+			assert.True(t, result)
+			assert.Nil(t, err, "expected ask yes/no question to succeed")
+			assert.Equal(t, 1, askYesNoCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 5, execReturnOutputCallCount)
 		})
 	})
 }
@@ -2020,6 +2084,7 @@ var InstructionWorkflowSelectionFailToPrompt = func(t *testing.T) {
 			}
 
 			result, err := fakeO.startInstructionWorkflowSelectionFlowFunc(fakeO, item1,
+				models.EmptyGlobals(),
 				instRootTestData.Instructions.Workflows,
 				instRootTestData.Instructions.Actions)
 
@@ -2051,6 +2116,7 @@ var InstructionWorkflowSelectionGoBack = func(t *testing.T) {
 			}
 
 			result, err := fakeO.startInstructionWorkflowSelectionFlowFunc(fakeO, item1,
+				models.EmptyGlobals(),
 				instRootTestData.Instructions.Workflows,
 				instRootTestData.Instructions.Actions)
 
@@ -2084,6 +2150,7 @@ var InstructionWorkflowSelectionFailWorkflowExecution = func(t *testing.T) {
 			workflowExecCallCount := 0
 			fakeO.startInstructionWorkflowExecutionFlowFunc = func(
 				o *selectOrchestrator,
+				globals *models.Globals,
 				workflow *models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 				workflowExecCallCount++
@@ -2091,6 +2158,7 @@ var InstructionWorkflowSelectionFailWorkflowExecution = func(t *testing.T) {
 			}
 
 			result, err := fakeO.startInstructionWorkflowSelectionFlowFunc(fakeO, item1,
+				models.EmptyGlobals(),
 				instRootTestData.Instructions.Workflows,
 				instRootTestData.Instructions.Actions)
 
@@ -2132,6 +2200,7 @@ var InstructionWorkflowSelectionSucceedWorkflowExecution = func(t *testing.T) {
 			workflowExecCallCount := 0
 			fakeO.startInstructionWorkflowExecutionFlowFunc = func(
 				o *selectOrchestrator,
+				globals *models.Globals,
 				workflow *models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 				workflowExecCallCount++
@@ -2140,6 +2209,7 @@ var InstructionWorkflowSelectionSucceedWorkflowExecution = func(t *testing.T) {
 			}
 
 			result, err := fakeO.startInstructionWorkflowSelectionFlowFunc(fakeO, item1,
+				models.EmptyGlobals(),
 				instRootTestData.Instructions.Workflows,
 				instRootTestData.Instructions.Actions)
 
@@ -2167,7 +2237,7 @@ var InstructionWorkflowExecFailToAskYesNoQuestion = func(t *testing.T) {
 			}
 
 			fakeO.in = fakeInput
-			result, err := fakeO.askBeforeRunningInstructionWorkflowFunc(fakeO, app1Workflow1)
+			result, err := fakeO.askBeforeRunningInstructionWorkflowFunc(fakeO, models.EmptyGlobals(), app1Workflow1)
 			assert.False(t, result)
 			assert.NotNil(t, err, "expected ask yes/no question to fail")
 			assert.Equal(t, "failed to ask", err.GoError().Error())
@@ -2176,11 +2246,13 @@ var InstructionWorkflowExecFailToAskYesNoQuestion = func(t *testing.T) {
 	})
 }
 
-var InstructionWorkflowExecAskYesNoQuestionSuccessfully = func(t *testing.T) {
+var InstructionWorkflowExecAskYesNoQuestionForApplicationContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			globals := models.EmptyGlobals()
+			app1Workflow1.Context = models.ApplicationContext
 
 			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
@@ -2191,10 +2263,44 @@ var InstructionWorkflowExecAskYesNoQuestionSuccessfully = func(t *testing.T) {
 			}
 
 			fakeO.in = fakeInput
-			result, err := fakeO.askBeforeRunningInstructionWorkflowFunc(fakeO, app1Workflow1)
+			result, err := fakeO.askBeforeRunningInstructionWorkflowFunc(fakeO, globals, app1Workflow1)
 			assert.True(t, result)
 			assert.Nil(t, err, "expected ask yes/no question to succeed")
 			assert.Equal(t, 1, askYesNoCallCount, "expected func to be called exactly once")
+		})
+	})
+}
+
+var InstructionWorkflowExecAskYesNoQuestionForKubernetesContext = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			instRootTestData := stubs.GenerateInstructionsTestData()
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			globals := models.EmptyGlobals()
+			app1Workflow1.Context = models.KubernetesContext
+
+			fakeShell := shell.CreateFakeShell()
+			execReturnOutputCallCount := 0
+			fakeShell.ExecuteReturnOutputMock = func(script string) (string, error) {
+				execReturnOutputCallCount++
+				return "", nil
+			}
+
+			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			fakeInput := input.CreateFakeUserInput()
+			askYesNoCallCount := 0
+			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
+				askYesNoCallCount++
+				return true, nil
+			}
+
+			fakeO.in = fakeInput
+			fakeO.s = fakeShell
+			result, err := fakeO.askBeforeRunningInstructionWorkflowFunc(fakeO, globals, app1Workflow1)
+			assert.True(t, result)
+			assert.Nil(t, err, "expected ask yes/no question to succeed")
+			assert.Equal(t, 1, askYesNoCallCount, "expected func to be called exactly once")
+			assert.Equal(t, 5, execReturnOutputCallCount)
 		})
 	})
 }
@@ -2262,13 +2368,14 @@ var InstructionWorkflowExecFailToAskBeforeRunning = func(t *testing.T) {
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
+				globals *models.Globals,
 				workflow *models.Workflow) (bool, *errors.PromptError) {
 
 				askBeforeCallCount++
 				return false, errors.NewPromptError(fmt.Errorf("failed to ask"))
 			}
 
-			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
+			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, models.EmptyGlobals(), app1Workflow1, instRootTestData.Instructions.Actions)
 			assert.Nil(t, result)
 			assert.NotNil(t, err, "expected instructions workflow execution to fail")
 			assert.Equal(t, "failed to ask", err.GoError().Error())
@@ -2287,6 +2394,7 @@ var InstructionWorkflowExecTolerateRunFailures = func(t *testing.T) {
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
+				globals *models.Globals,
 				workflow *models.Workflow) (bool, *errors.PromptError) {
 
 				askBeforeCallCount++
@@ -2309,7 +2417,7 @@ var InstructionWorkflowExecTolerateRunFailures = func(t *testing.T) {
 				return nil
 			}
 
-			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
+			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, models.EmptyGlobals(), app1Workflow1, instRootTestData.Instructions.Actions)
 			assert.NotNil(t, result)
 			assert.Nil(t, err, "expected instructions workflow execution to succeed")
 			assert.Equal(t, 1, askBeforeCallCount, "expected func to be called exactly once")
@@ -2329,6 +2437,7 @@ var InstructionWorkflowExecFailToWrapAfterRun = func(t *testing.T) {
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
+				globals *models.Globals,
 				workflow *models.Workflow) (bool, *errors.PromptError) {
 
 				askBeforeCallCount++
@@ -2351,7 +2460,7 @@ var InstructionWorkflowExecFailToWrapAfterRun = func(t *testing.T) {
 				return errors.NewPromptError(fmt.Errorf("failed to wrap"))
 			}
 
-			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
+			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, models.EmptyGlobals(), app1Workflow1, instRootTestData.Instructions.Actions)
 			assert.Nil(t, result)
 			assert.NotNil(t, err, "expected instructions action execution to fail")
 			assert.Equal(t, "failed to wrap", err.GoError().Error())
@@ -2372,6 +2481,7 @@ var InstructionWorkflowExecRunSuccessfully = func(t *testing.T) {
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
+				globals *models.Globals,
 				workflow *models.Workflow) (bool, *errors.PromptError) {
 
 				askBeforeCallCount++
@@ -2394,7 +2504,7 @@ var InstructionWorkflowExecRunSuccessfully = func(t *testing.T) {
 				return nil
 			}
 
-			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
+			result, err := fakeO.startInstructionWorkflowExecutionFlowFunc(fakeO, models.EmptyGlobals(), app1Workflow1, instRootTestData.Instructions.Actions)
 			assert.NotNil(t, result)
 			assert.Nil(t, err, "expected instructions action execution to succeed")
 			assert.Equal(t, 1, askBeforeCallCount, "expected func to be called exactly once")
@@ -2513,4 +2623,53 @@ var ExtractArgsFromScriptFile = func(t *testing.T) {
 	assert.Equal(t, 2, len(args))
 	assert.Equal(t, "--create", args[0])
 	assert.Equal(t, "--deploy", args[1])
+}
+
+var FillInstructionsGlobalsWithDefaultsIfMissingFromSchema = func(t *testing.T) {
+	instRootTestData := stubs.GenerateInstructionsTestData()
+	fillInstructionGlobals(instRootTestData)
+	assert.NotNil(t, instRootTestData.Globals, "expected non nil globals object")
+	assert.Empty(t, instRootTestData.Globals, "expected empty globals object")
+}
+
+var ResolveInstructionActionContextSuccessfully = func(t *testing.T) {
+	instRootTestData := stubs.GenerateInstructionsTestData()
+	action := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+	globals := models.EmptyGlobals()
+
+	globals.Context = models.KubernetesContext
+	action.Context = ""
+	ctxResult := getInstructionActionContext(globals, action)
+	assert.Equal(t, ctxResult, models.KubernetesContext)
+
+	globals.Context = ""
+	action.Context = models.ApplicationContext
+	ctxResult = getInstructionActionContext(globals, action)
+	assert.Equal(t, ctxResult, models.ApplicationContext)
+
+	globals.Context = ""
+	action.Context = ""
+	ctxResult = getInstructionActionContext(globals, action)
+	assert.Equal(t, ctxResult, models.ApplicationContext)
+}
+
+var ResolveInstructionWorkflowContextSuccessfully = func(t *testing.T) {
+	instRootTestData := stubs.GenerateInstructionsTestData()
+	workflow := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+	globals := models.EmptyGlobals()
+
+	globals.Context = models.KubernetesContext
+	workflow.Context = ""
+	ctxResult := getInstructionWorkflowContext(globals, workflow)
+	assert.Equal(t, ctxResult, models.KubernetesContext)
+
+	globals.Context = ""
+	workflow.Context = models.ApplicationContext
+	ctxResult = getInstructionWorkflowContext(globals, workflow)
+	assert.Equal(t, ctxResult, models.ApplicationContext)
+
+	globals.Context = ""
+	workflow.Context = ""
+	ctxResult = getInstructionWorkflowContext(globals, workflow)
+	assert.Equal(t, ctxResult, models.ApplicationContext)
 }
