@@ -13,16 +13,16 @@ type PrinterPlainer interface {
 type printerPlainerImpl struct {
 	PrinterPlainer
 
-	runMsg     string
-	successMsg string
-	failureMsg string
+	runMsg           string
+	successMsg       string
+	failureMsgFormat string
 }
 
 func NewPlainer(runMsg string, successMsg string, failureMsg string) PrinterPlainer {
 	return &printerPlainerImpl{
-		runMsg:     runMsg,
-		successMsg: successMsg,
-		failureMsg: failureMsg,
+		runMsg:           runMsg,
+		successMsg:       successMsg,
+		failureMsgFormat: failureMsg,
 	}
 }
 
@@ -37,5 +37,5 @@ func (p *printerPlainerImpl) StopOnSuccess() {
 
 func (p *printerPlainerImpl) StopOnFailure(err error) {
 	//_, _ = fmt.Fprintf(os.Stdout, "\r \r")
-	fmt.Printf(p.failureMsg)
+	fmt.Printf(fmt.Sprintf(p.failureMsgFormat, err.Error()))
 }

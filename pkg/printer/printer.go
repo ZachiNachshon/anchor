@@ -146,9 +146,7 @@ func (p *printerImpl) PrepareResetToRevisionSpinner(revision string) PrinterSpin
 }
 
 func getPlainerRunActionMessage(actionId string) string {
-	return fmt.Sprintf(`==> Running %s ...
-
-Output:`, actionId)
+	return fmt.Sprintf("==> Running %s...", actionId)
 }
 
 func getPlainerSuccessActionMessage(actionId string) string {
@@ -162,6 +160,9 @@ Result:
 
 func getPlainerFailureActionMessageFormat(actionId string) string {
 	return fmt.Sprintf(`
+Reason:
+%%s
+
 Result:
 %s Action %s%s%s failed
 
