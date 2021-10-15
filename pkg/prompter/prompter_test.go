@@ -29,15 +29,15 @@ func Test_PrompterShould(t *testing.T) {
 		},
 		{
 			Name: "anchor folder item: fail to prompt",
-			Func: AnchorFolderItemFailToPrompt,
+			Func: CommandFolderItemFailToPrompt,
 		},
 		{
 			Name: "anchor folder item: prompt successfully",
-			Func: AnchorFolderItemPromptSuccessfully,
+			Func: CommandFolderItemPromptSuccessfully,
 		},
 		{
 			Name: "anchor folder item: cancel selection",
-			Func: AnchorFolderItemCancelSelection,
+			Func: CommandFolderItemCancelSelection,
 		},
 		{
 			Name: "actions: fail to prompt",
@@ -154,48 +154,48 @@ config:
 	})
 }
 
-var AnchorFolderItemFailToPrompt = func(t *testing.T) {
+var CommandFolderItemFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			anchorFolderItems := stubs.GenerateAnchorFolderItemsInfoTestData()
+			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
 			prompter := New()
-			prompter.runAnchorFolderItemSelectorFunc = func(p promptui.Select) (int, string, error) {
+			prompter.runCommandFolderItemSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", fmt.Errorf("failed to select anchor folder item")
 			}
-			_, err := prompter.PromptAnchorFolderItemSelection(anchorFolderItems)
+			_, err := prompter.PromptCommandFolderItemSelection(commandFolderItems)
 			assert.NotNil(t, err, "expected to fail")
 			assert.Equal(t, "failed to select anchor folder item", err.Error())
 		})
 	})
 }
 
-var AnchorFolderItemPromptSuccessfully = func(t *testing.T) {
+var CommandFolderItemPromptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			anchorFolderItems := stubs.GenerateAnchorFolderItemsInfoTestData()
-			anchorFolderItems1 := stubs.GetAnchorFolderItemByName(anchorFolderItems, stubs.AnchorFolder1Item1Name)
+			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
+			commandFolderItems1 := stubs.GetCommandFolderItemByName(commandFolderItems, stubs.CommandFolder1Item1Name)
 			prompter := New()
-			prompter.runAnchorFolderItemSelectorFunc = func(p promptui.Select) (int, string, error) {
+			prompter.runCommandFolderItemSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 1, "", nil
 			}
-			selectedAnchorFolderItem, err := prompter.PromptAnchorFolderItemSelection(anchorFolderItems)
+			selectedCommandFolderItem, err := prompter.PromptCommandFolderItemSelection(commandFolderItems)
 			assert.Nil(t, err, "expected to succeed")
-			assert.Equal(t, anchorFolderItems1.Name, selectedAnchorFolderItem.Name)
+			assert.Equal(t, commandFolderItems1.Name, selectedCommandFolderItem.Name)
 		})
 	})
 }
 
-var AnchorFolderItemCancelSelection = func(t *testing.T) {
+var CommandFolderItemCancelSelection = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			anchorFolderItems := stubs.GenerateAnchorFolderItemsInfoTestData()
+			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
 			prompter := New()
-			prompter.runAnchorFolderItemSelectorFunc = func(p promptui.Select) (int, string, error) {
+			prompter.runCommandFolderItemSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", nil
 			}
-			selectedAnchorFolderItem, err := prompter.PromptAnchorFolderItemSelection(anchorFolderItems)
+			selectedCommandFolderItem, err := prompter.PromptCommandFolderItemSelection(commandFolderItems)
 			assert.Nil(t, err, "expected to succeed")
-			assert.Equal(t, CancelActionName, selectedAnchorFolderItem.Name)
+			assert.Equal(t, CancelActionName, selectedCommandFolderItem.Name)
 		})
 	})
 }
@@ -203,14 +203,14 @@ var AnchorFolderItemCancelSelection = func(t *testing.T) {
 var ActionsFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			anchorFolderItems := stubs.GenerateAnchorFolderItemsInfoTestData()
-			anchorFolderItems1 := stubs.GetAnchorFolderItemByName(anchorFolderItems, stubs.AnchorFolder1Item1Name)
+			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
+			commandFolderItems1 := stubs.GetCommandFolderItemByName(commandFolderItems, stubs.CommandFolder1Item1Name)
 			instData := stubs.GenerateInstructionsTestData()
 			prompter := New()
 			prompter.runActionSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", fmt.Errorf("failed to select action")
 			}
-			_, err := prompter.PromptInstructionActions(anchorFolderItems1.Name, instData.Instructions.Actions)
+			_, err := prompter.PromptInstructionActions(commandFolderItems1.Name, instData.Instructions.Actions)
 			assert.NotNil(t, err, "expected to fail")
 			assert.Equal(t, "failed to select action", err.Error())
 		})
@@ -220,15 +220,15 @@ var ActionsFailToPrompt = func(t *testing.T) {
 var ActionsPromptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			anchorFolderItems := stubs.GenerateAnchorFolderItemsInfoTestData()
-			anchorFolderItems1 := stubs.GetAnchorFolderItemByName(anchorFolderItems, stubs.AnchorFolder1Item1Name)
+			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
+			commandFolderItems1 := stubs.GetCommandFolderItemByName(commandFolderItems, stubs.CommandFolder1Item1Name)
 			instData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			prompter := New()
 			prompter.runActionSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", nil
 			}
-			selectedAction, err := prompter.PromptInstructionActions(anchorFolderItems1.Name, instData.Instructions.Actions)
+			selectedAction, err := prompter.PromptInstructionActions(commandFolderItems1.Name, instData.Instructions.Actions)
 			assert.Nil(t, err, "expected to succeed")
 			assert.Equal(t, action1.Id, selectedAction.Id)
 		})
@@ -238,14 +238,14 @@ var ActionsPromptSuccessfully = func(t *testing.T) {
 var WorkflowsFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			anchorFolderItems := stubs.GenerateAnchorFolderItemsInfoTestData()
-			anchorFolderItems1 := stubs.GetAnchorFolderItemByName(anchorFolderItems, stubs.AnchorFolder1Item1Name)
+			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
+			commandFolderItems1 := stubs.GetCommandFolderItemByName(commandFolderItems, stubs.CommandFolder1Item1Name)
 			instData := stubs.GenerateInstructionsTestData()
 			prompter := New()
 			prompter.runWorkflowSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", fmt.Errorf("failed to select workflow")
 			}
-			_, err := prompter.PromptInstructionWorkflows(anchorFolderItems1.Name, instData.Instructions.Workflows)
+			_, err := prompter.PromptInstructionWorkflows(commandFolderItems1.Name, instData.Instructions.Workflows)
 			assert.NotNil(t, err, "expected to fail")
 			assert.Equal(t, "failed to select workflow", err.Error())
 		})
@@ -255,15 +255,15 @@ var WorkflowsFailToPrompt = func(t *testing.T) {
 var WorkflowsPromptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			anchorFolderItems := stubs.GenerateAnchorFolderItemsInfoTestData()
-			anchorFolderItems1 := stubs.GetAnchorFolderItemByName(anchorFolderItems, stubs.AnchorFolder1Item1Name)
+			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
+			commandFolderItems1 := stubs.GetCommandFolderItemByName(commandFolderItems, stubs.CommandFolder1Item1Name)
 			instData := stubs.GenerateInstructionsTestData()
-			workflow1 := stubs.GetInstructionWorkflowById(instData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			workflow1 := stubs.GetInstructionWorkflowById(instData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 			prompter := New()
 			prompter.runWorkflowSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", nil
 			}
-			selectedWorkflow, err := prompter.PromptInstructionWorkflows(anchorFolderItems1.Name, instData.Instructions.Workflows)
+			selectedWorkflow, err := prompter.PromptInstructionWorkflows(commandFolderItems1.Name, instData.Instructions.Workflows)
 			assert.Nil(t, err, "expected to succeed")
 			assert.Equal(t, workflow1.Id, selectedWorkflow.Id)
 		})

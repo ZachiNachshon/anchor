@@ -72,6 +72,8 @@ func (rr *remoteRepositoryImpl) Load(ctx common.Context) (string, error) {
 			rr.prntr.PrintWarning(msg)
 		}
 	} else if rr.remoteConfig.AutoUpdate {
+		// TODO: do we want to avoid from failing the flow if auto-update failed?
+		//       maybe add tolerateAutoUpdateFailures to remote config ?
 		if err := rr.autoUpdateRepositoryFunc(rr, url, branch, clonePath); err != nil {
 			return "", err
 		}

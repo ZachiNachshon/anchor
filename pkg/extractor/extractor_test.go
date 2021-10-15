@@ -13,7 +13,7 @@ import (
 
 const anchorfilesTestRelativePath string = "test/data/anchorfiles"
 
-func prepareAnchorFolderTestPath() string {
+func prepareCommandFolderTestPath() string {
 	path, _ := ioutils.GetWorkingDirectory()
 	return fmt.Sprintf("%s/%s/%s", ioutils.GetRepositoryAbsoluteRootPath(path),
 		anchorfilesTestRelativePath, "app")
@@ -28,19 +28,19 @@ func Test_ExtractorShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
 			Name: "anchor folder info: fail to extract on invalid path",
-			Func: AnchorFolderInfoFailedToExtractOnInvalidPath,
+			Func: CommandFolderInfoFailedToExtractOnInvalidPath,
 		},
 		{
 			Name: "anchor folder info: fail to parse extracted command",
-			Func: AnchorFolderInfoFailedToParseExtractedCommand,
+			Func: CommandFolderInfoFailedToParseExtractedCommand,
 		},
 		{
 			Name: "anchor folder info: extract command successfully",
-			Func: AnchorFolderInfoExtractCommandSuccessfully,
+			Func: CommandFolderInfoExtractCommandSuccessfully,
 		},
 		{
 			Name: "anchor folder info: missing command attributes",
-			Func: AnchorFolderInfoMissingCommandAttributes,
+			Func: CommandFolderInfoMissingCommandAttributes,
 		},
 		{
 			Name: "instructions: fail to extract on invalid path",
@@ -58,57 +58,57 @@ func Test_ExtractorShould(t *testing.T) {
 	harness.RunTests(t, tests)
 }
 
-var AnchorFolderInfoFailedToExtractOnInvalidPath = func(t *testing.T) {
+var CommandFolderInfoFailedToExtractOnInvalidPath = func(t *testing.T) {
 	ext := New()
-	instRoot, err := ext.ExtractAnchorFolderInfo("/invalid/path", parser.New())
+	instRoot, err := ext.ExtractCommandFolderInfo("/invalid/path", parser.New())
 	assert.NotNil(t, err, "expected extractor to fail")
 	assert.Contains(t, err.Error(), "invalid anchor folder info path")
 	assert.Nil(t, instRoot)
 }
 
-var AnchorFolderInfoFailedToParseExtractedCommand = func(t *testing.T) {
-	folderPath := prepareAnchorFolderTestPath()
+var CommandFolderInfoFailedToParseExtractedCommand = func(t *testing.T) {
+	folderPath := prepareCommandFolderTestPath()
 	ext := New()
 	fakeParser := parser.CreateFakeParser()
-	fakeParser.ParseAnchorFolderInfoMock = func(text string) (*models.AnchorFolderInfo, error) {
+	fakeParser.ParseCommandFolderInfoMock = func(text string) (*models.CommandFolderInfo, error) {
 		return nil, fmt.Errorf("failed to parse")
 	}
-	instRoot, err := ext.ExtractAnchorFolderInfo(folderPath, fakeParser)
+	instRoot, err := ext.ExtractCommandFolderInfo(folderPath, fakeParser)
 	assert.NotNil(t, err, "expected extractor to fail")
 	assert.Contains(t, err.Error(), "failed to parse")
 	assert.Nil(t, instRoot)
 }
 
-var AnchorFolderInfoExtractCommandSuccessfully = func(t *testing.T) {
-	folderPath := prepareAnchorFolderTestPath()
+var CommandFolderInfoExtractCommandSuccessfully = func(t *testing.T) {
+	folderPath := prepareCommandFolderTestPath()
 	ext := New()
-	anchorFolders, err := ext.ExtractAnchorFolderInfo(folderPath, parser.New())
+	commandFolders, err := ext.ExtractCommandFolderInfo(folderPath, parser.New())
 	assert.Nil(t, err, "expected item extraction to succeed")
-	assert.NotNil(t, anchorFolders)
-	assert.NotEmpty(t, anchorFolders.Name)
-	assert.NotEmpty(t, anchorFolders.Command.Use)
-	assert.NotEmpty(t, anchorFolders.Command.Short)
-	assert.NotEmpty(t, anchorFolders.DirPath)
-	assert.NotEmpty(t, anchorFolders.Description)
-	assert.Nil(t, anchorFolders.Items)
+	assert.NotNil(t, commandFolders)
+	assert.NotEmpty(t, commandFolders.Name)
+	assert.NotEmpty(t, commandFolders.Command.Use)
+	assert.NotEmpty(t, commandFolders.Command.Short)
+	assert.NotEmpty(t, commandFolders.DirPath)
+	assert.NotEmpty(t, commandFolders.Description)
+	assert.Nil(t, commandFolders.Items)
 }
 
-var AnchorFolderInfoMissingCommandAttributes = func(t *testing.T) {
-	folderPath := prepareAnchorFolderTestPath()
+var CommandFolderInfoMissingCommandAttributes = func(t *testing.T) {
+	folderPath := prepareCommandFolderTestPath()
 	ext := New()
 	fakeParser := parser.CreateFakeParser()
-	fakeParser.ParseAnchorFolderInfoMock = func(text string) (*models.AnchorFolderInfo, error) {
-		return &models.AnchorFolderInfo{
-			Command: &models.AnchorFolderCommand{
+	fakeParser.ParseCommandFolderInfoMock = func(text string) (*models.CommandFolderInfo, error) {
+		return &models.CommandFolderInfo{
+			Command: &models.CommandFolderCommand{
 				Use:   "",
 				Short: "",
 			},
 		}, nil
 	}
-	anchorFolders, err := ext.ExtractAnchorFolderInfo(folderPath, fakeParser)
+	commandFolders, err := ext.ExtractCommandFolderInfo(folderPath, fakeParser)
 	assert.NotNil(t, err, "expected item extraction to fail")
 	assert.Equal(t, "bad anchor folder command file structure", err.Error())
-	assert.Nil(t, anchorFolders)
+	assert.Nil(t, commandFolders)
 }
 
 var InstructionsFailedToExtractOnInvalidPath = func(t *testing.T) {

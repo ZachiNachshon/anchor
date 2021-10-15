@@ -1,14 +1,12 @@
 package _select
 
 import (
-	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/dynamic/runner"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
-	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/models"
-	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
@@ -20,7 +18,11 @@ import (
 type DynamicSelectFunc func(ctx common.Context, o *selectOrchestrator) error
 
 var DynamicSelect = func(ctx common.Context, o *selectOrchestrator) error {
-	err := o.prepareFunc(o, ctx)
+	err := o.runner.PrepareFunc(o.runner, ctx)
+	if err != nil {
+		return err
+	}
+	err = o.prepareFunc(o, ctx)
 	if err != nil {
 		return err
 	}
@@ -33,13 +35,13 @@ var DynamicSelect = func(ctx common.Context, o *selectOrchestrator) error {
 }
 
 type selectOrchestrator struct {
-	parentFolderName string
-	verboseFlag      bool
+	verboseFlag       bool
+	commandFolderName string
+
+	runner *runner.ActionRunnerOrchestrator
 
 	prmpt prompter.Prompter
 	l     locator.Locator
-	e     extractor.Extractor
-	prsr  parser.Parser
 	s     shell.Shell
 	in    input.UserInput
 	prntr printer.Printer
@@ -51,24 +53,19 @@ type selectOrchestrator struct {
 
 	// --- Folder Items ---
 	startFolderItemsSelectionFlowFunc func(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError
-	promptFolderItemsSelectionFunc    func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError)
+	promptFolderItemsSelectionFunc    func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError)
 	wrapAfterExecutionFunc            func(o *selectOrchestrator) *errors.PromptError
 
 	// --- Action ---
 	startInstructionActionSelectionFlowFunc func(
 		o *selectOrchestrator,
-		anchorFolderItem *models.AnchorFolderItemInfo,
+		commandFolderItem *models.CommandFolderItemInfo,
 		instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError)
 
 	promptInstructionActionSelectionFunc func(
 		o *selectOrchestrator,
-		anchorFolderItem *models.AnchorFolderItemInfo,
+		commandFolderItem *models.CommandFolderItemInfo,
 		actions []*models.Action) (*models.Action, *errors.PromptError)
-
-	extractInstructionsFunc func(
-		o *selectOrchestrator,
-		anchorFolderItem *models.AnchorFolderItemInfo,
-		anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError)
 
 	startInstructionActionExecutionFlowFunc func(
 		o *selectOrchestrator,
@@ -80,31 +77,17 @@ type selectOrchestrator struct {
 		globals *models.Globals,
 		action *models.Action) (bool, *errors.PromptError)
 
-	runInstructionActionFunc func(
-		o *selectOrchestrator,
-		action *models.Action) *errors.PromptError
-
-	executeInstructionActionFunc func(
-		o *selectOrchestrator,
-		action *models.Action,
-		scriptOutputPath string) *errors.PromptError
-
-	executeInstructionActionVerboseFunc func(
-		o *selectOrchestrator,
-		action *models.Action,
-		scriptOutputPath string) *errors.PromptError
-
 	// --- Workflow ---
 	startInstructionWorkflowSelectionFlowFunc func(
 		o *selectOrchestrator,
-		anchorFolderItem *models.AnchorFolderItemInfo,
+		commandFolderItem *models.CommandFolderItemInfo,
 		globals *models.Globals,
 		workflows []*models.Workflow,
 		actions []*models.Action) (*models.Workflow, *errors.PromptError)
 
 	promptInstructionWorkflowSelectionFunc func(
 		o *selectOrchestrator,
-		anchorFolderItem *models.AnchorFolderItemInfo,
+		commandFolderItem *models.CommandFolderItemInfo,
 		workflows []*models.Workflow) (*models.Workflow, *errors.PromptError)
 
 	startInstructionWorkflowExecutionFlowFunc func(
@@ -117,17 +100,13 @@ type selectOrchestrator struct {
 		o *selectOrchestrator,
 		globals *models.Globals,
 		workflow *models.Workflow) (bool, *errors.PromptError)
-
-	runInstructionWorkflowFunc func(
-		o *selectOrchestrator,
-		workflow *models.Workflow,
-		actions []*models.Action) *errors.PromptError
 }
 
-func NewOrchestrator(parentFolderName string) *selectOrchestrator {
+func NewOrchestrator(runner *runner.ActionRunnerOrchestrator, commandFolderName string) *selectOrchestrator {
 	return &selectOrchestrator{
-		parentFolderName: parentFolderName,
-		verboseFlag:      false,
+		commandFolderName: commandFolderName,
+		verboseFlag:       false,
+		runner:            runner,
 
 		// --- CLI Command ---
 		bannerFunc:  banner,
@@ -142,19 +121,14 @@ func NewOrchestrator(parentFolderName string) *selectOrchestrator {
 		// --- Action ---
 		startInstructionActionSelectionFlowFunc: startInstructionActionSelectionFlow,
 		promptInstructionActionSelectionFunc:    promptInstructionActionSelection,
-		extractInstructionsFunc:                 extractInstructions,
 		startInstructionActionExecutionFlowFunc: startInstructionActionExecutionFlow,
 		askBeforeRunningInstructionActionFunc:   askBeforeRunningInstructionAction,
-		runInstructionActionFunc:                runInstructionAction,
-		executeInstructionActionFunc:            executeInstructionAction,
-		executeInstructionActionVerboseFunc:     executeInstructionActionVerbose,
 
 		// --- Workflow ---
 		startInstructionWorkflowSelectionFlowFunc: startInstructionWorkflowSelectionFlow,
 		promptInstructionWorkflowSelectionFunc:    promptInstructionWorkflowSelection,
 		startInstructionWorkflowExecutionFlowFunc: startInstructionWorkflowExecutionFlow,
 		askBeforeRunningInstructionWorkflowFunc:   askBeforeRunningInstructionWorkflow,
-		runInstructionWorkflowFunc:                runInstructionWorkflow,
 	}
 }
 
@@ -169,18 +143,6 @@ func prepare(o *selectOrchestrator, ctx common.Context) error {
 		return err
 	} else {
 		o.prmpt = resolved.(prompter.Prompter)
-	}
-
-	if resolved, err := ctx.Registry().SafeGet(extractor.Identifier); err != nil {
-		return err
-	} else {
-		o.e = resolved.(extractor.Extractor)
-	}
-
-	if resolved, err := ctx.Registry().SafeGet(parser.Identifier); err != nil {
-		return err
-	} else {
-		o.prsr = resolved.(parser.Parser)
 	}
 
 	if resolved, err := ctx.Registry().SafeGet(printer.Identifier); err != nil {
@@ -212,19 +174,19 @@ func run(o *selectOrchestrator, ctx common.Context) *errors.PromptError {
 }
 
 func startFolderItemsSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
-	if anchorFolder, promptErr := o.promptFolderItemsSelectionFunc(o); promptErr != nil {
+	if commandFolder, promptErr := o.promptFolderItemsSelectionFunc(o); promptErr != nil {
 		return promptErr
-	} else if anchorFolder.Name == prompter.CancelActionName {
+	} else if commandFolder.Name == prompter.CancelActionName {
 		return nil
 	} else {
-		instRoot, promptError := o.extractInstructionsFunc(o, anchorFolder, anchorfilesRepoPath)
+		instRoot, promptError := o.runner.ExtractInstructionsFunc(o.runner, commandFolder, anchorfilesRepoPath)
 		if promptError != nil {
 			o.prntr.PrintMissingInstructions()
 			_ = o.wrapAfterExecutionFunc(o)
 			return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 		}
 
-		if instructionItem, promptErr := o.startInstructionActionSelectionFlowFunc(o, anchorFolder, instRoot); promptErr != nil {
+		if instructionItem, promptErr := o.startInstructionActionSelectionFlowFunc(o, commandFolder, instRoot); promptErr != nil {
 			if promptErr.Code() == errors.InstructionMissingError {
 				return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 			}
@@ -236,9 +198,9 @@ func startFolderItemsSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath st
 	}
 }
 
-func promptFolderItemsSelection(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
-	folderItems := o.l.AnchorFolderItems(o.parentFolderName)
-	if app, err := o.prmpt.PromptAnchorFolderItemSelection(folderItems); err != nil {
+func promptFolderItemsSelection(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
+	folderItems := o.l.CommandFolderItems(o.commandFolderName)
+	if app, err := o.prmpt.PromptCommandFolderItemSelection(folderItems); err != nil {
 		return nil, errors.NewPromptError(err)
 	} else {
 		return app, nil
@@ -258,110 +220,15 @@ func wrapAfterExecution(o *selectOrchestrator) *errors.PromptError {
 	return nil
 }
 
-func extractInstructions(
-	o *selectOrchestrator,
-	app *models.AnchorFolderItemInfo,
-	anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
-
-	path := app.InstructionsPath
-	if instructionsRoot, err := o.e.ExtractInstructions(path, o.prsr); err != nil {
-		logger.Warningf("Failed to extract instructions from file. error: %s", err.Error())
-		return nil, errors.NewInstructionMissingError(err)
-	} else {
-		if instructionsRoot == nil || instructionsRoot.Instructions == nil {
-			// Perform the same prompt selection flow (back action etc..) on empty instructions due to invalid schema
-			instructionsRoot = models.EmptyInstructionsRoot()
-		} else {
-			enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath, instructionsRoot.Instructions.Actions)
-			fillInstructionGlobals(instructionsRoot)
-		}
-		return instructionsRoot, nil
-	}
-}
-
-func runInstructionAction(o *selectOrchestrator, action *models.Action) *errors.PromptError {
-	logger.Debugf("Running action: %v...", action.Id)
-	scriptOutputPath, _ := logger.GetDefaultScriptOutputLogFilePath()
-
-	if len(action.Script) > 0 && len(action.ScriptFile) > 0 {
-		return errors.NewSchemaError(fmt.Errorf("script / scriptFile are mutual exclusive, please use either one"))
-	} else if len(action.Script) == 0 && len(action.ScriptFile) == 0 {
-		return errors.NewSchemaError(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
-	}
-
-	if o.verboseFlag || action.ShowOutput {
-		return o.executeInstructionActionVerboseFunc(o, action, scriptOutputPath)
-	} else {
-		return o.executeInstructionActionFunc(o, action, scriptOutputPath)
-	}
-}
-
-func executeInstructionAction(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
-	spnr := o.prntr.PrepareRunActionSpinner(action.Id, scriptOutputPath)
-
-	if len(action.Script) > 0 {
-		spnr.Spin()
-		if err := o.s.ExecuteSilentlyWithOutputToFile(action.Script, scriptOutputPath); err != nil {
-			logger.Errorf("failed to run action. id: %s, source: script, error: %s", action.Id, err.Error())
-			spnr.StopOnFailure(err)
-			return errors.NewPromptError(err)
-		}
-		spnr.StopOnSuccess()
-	} else if len(action.ScriptFile) > 0 {
-		filePath, args := extractArgsFromScriptFile(action.ScriptFile)
-		spnr.Spin()
-		if err := o.s.ExecuteScriptFileSilentlyWithOutputToFile(
-			action.AnchorfilesRepoPath,
-			filePath,
-			scriptOutputPath,
-			args...); err != nil {
-			logger.Errorf("failed to run action. id: %s, source: script file, args: %v, error: %s", action.Id, args, err.Error())
-			spnr.StopOnFailure(err)
-			return errors.NewPromptError(err)
-		}
-		spnr.StopOnSuccess()
-	}
-	return nil
-}
-
-func executeInstructionActionVerbose(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
-	plainer := o.prntr.PrepareRunActionPlainer(action.Id)
-
-	if len(action.Script) > 0 {
-		plainer.Start()
-		if err := o.s.ExecuteWithOutputToFile(action.Script, scriptOutputPath); err != nil {
-			plainer.StopOnFailure(err)
-			logger.Errorf("failed to run action. id: %s, source: script, error: %s", action.Id, err.Error())
-			return errors.NewPromptError(err)
-		}
-		plainer.StopOnSuccess()
-	} else if len(action.ScriptFile) > 0 {
-		filePath, args := extractArgsFromScriptFile(action.ScriptFile)
-		plainer.Start()
-		if err := o.s.ExecuteScriptFileWithOutputToFile(
-			action.AnchorfilesRepoPath,
-			filePath,
-			scriptOutputPath,
-			args...); err != nil {
-
-			logger.Errorf("failed to run action. id: %s, source: script file, args: %s, error: %s", action.Id, args, err.Error())
-			plainer.StopOnFailure(err)
-			return errors.NewPromptError(err)
-		}
-		plainer.StopOnSuccess()
-	}
-	return nil
-}
-
 func startInstructionActionSelectionFlow(
 	o *selectOrchestrator,
-	anchorFolderItem *models.AnchorFolderItemInfo,
+	commandFolderItem *models.CommandFolderItemInfo,
 	instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError) {
 
 	appendInstructionActionsCustomOptions(instructionRoot.Instructions)
 	actions := instructionRoot.Instructions.Actions
 
-	if action, promptErr := o.promptInstructionActionSelectionFunc(o, anchorFolderItem, actions); promptErr != nil {
+	if action, promptErr := o.promptInstructionActionSelectionFunc(o, commandFolderItem, actions); promptErr != nil {
 		return nil, promptErr
 	} else if action.Id == prompter.BackActionName {
 		logger.Debugf("Selected to go back from instruction actions menu. id: %v", action.Id)
@@ -370,27 +237,27 @@ func startInstructionActionSelectionFlow(
 		appendInstructionWorkflowsCustomOptions(instructionRoot.Instructions)
 		workflows := instructionRoot.Instructions.Workflows
 		logger.Debugf("Selected to prompt for instruction workflows menu. id: %v", action.Id)
-		if _, promptErr = o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, instructionRoot.Globals, workflows, actions); promptErr != nil {
+		if _, promptErr = o.startInstructionWorkflowSelectionFlowFunc(o, commandFolderItem, instructionRoot.Globals, workflows, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
-			return o.startInstructionActionSelectionFlowFunc(o, anchorFolderItem, instructionRoot)
+			return o.startInstructionActionSelectionFlowFunc(o, commandFolderItem, instructionRoot)
 		}
 	} else {
 		logger.Debugf("Selected instruction action to run. id: %v", action.Id)
 		if _, promptErr = o.startInstructionActionExecutionFlowFunc(o, instructionRoot.Globals, action); promptErr != nil {
 			return nil, promptErr
 		} else {
-			return o.startInstructionActionSelectionFlowFunc(o, anchorFolderItem, instructionRoot)
+			return o.startInstructionActionSelectionFlowFunc(o, commandFolderItem, instructionRoot)
 		}
 	}
 }
 
 func promptInstructionActionSelection(
 	o *selectOrchestrator,
-	anchorFolderItem *models.AnchorFolderItemInfo,
+	commandFolderItem *models.CommandFolderItemInfo,
 	actions []*models.Action) (*models.Action, *errors.PromptError) {
 
-	item, err := o.prmpt.PromptInstructionActions(anchorFolderItem.Name, actions)
+	item, err := o.prmpt.PromptInstructionActions(commandFolderItem.Name, actions)
 	if err != nil {
 		return nil, errors.NewPromptError(err)
 	}
@@ -399,10 +266,10 @@ func promptInstructionActionSelection(
 
 func promptInstructionWorkflowSelection(
 	o *selectOrchestrator,
-	app *models.AnchorFolderItemInfo,
+	commandFolderItem *models.CommandFolderItemInfo,
 	workflows []*models.Workflow) (*models.Workflow, *errors.PromptError) {
 
-	item, err := o.prmpt.PromptInstructionWorkflows(app.Name, workflows)
+	item, err := o.prmpt.PromptInstructionWorkflows(commandFolderItem.Name, workflows)
 	if err != nil {
 		return nil, errors.NewPromptError(err)
 	}
@@ -411,12 +278,12 @@ func promptInstructionWorkflowSelection(
 
 func startInstructionWorkflowSelectionFlow(
 	o *selectOrchestrator,
-	anchorFolderItem *models.AnchorFolderItemInfo,
+	commandFolderItem *models.CommandFolderItemInfo,
 	globals *models.Globals,
 	workflows []*models.Workflow,
 	actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 
-	if workflow, promptError := o.promptInstructionWorkflowSelectionFunc(o, anchorFolderItem, workflows); promptError != nil {
+	if workflow, promptError := o.promptInstructionWorkflowSelectionFunc(o, commandFolderItem, workflows); promptError != nil {
 		return nil, promptError
 	} else if workflow.Id == prompter.BackActionName {
 		logger.Debugf("Selected to go back from instruction workflow menu. id: %v", workflow.Id)
@@ -426,7 +293,7 @@ func startInstructionWorkflowSelectionFlow(
 		if _, promptErr := o.startInstructionWorkflowExecutionFlowFunc(o, globals, workflow, actions); promptErr != nil {
 			return nil, promptErr
 		} else {
-			return o.startInstructionWorkflowSelectionFlowFunc(o, anchorFolderItem, globals, workflows, actions)
+			return o.startInstructionWorkflowSelectionFlowFunc(o, commandFolderItem, globals, workflows, actions)
 		}
 	}
 }
@@ -441,7 +308,7 @@ func startInstructionActionExecutionFlow(
 		return nil, promptError
 	} else if shouldRun {
 		// Do not break selection flow upon action failure, print warning and continue
-		if promptErr := o.runInstructionActionFunc(o, action); promptErr != nil && promptErr.Code() == errors.SchemaError {
+		if promptErr := o.runner.RunInstructionActionFunc(o.runner, action); promptErr != nil && promptErr.Code() == errors.SchemaError {
 			// Print only errors which aren't in direct relation to the script execution, these are handled differently
 			o.prntr.PrintError(promptErr.GoError().Error())
 		}
@@ -490,23 +357,6 @@ func askBeforeRunningInstructionWorkflow(
 	}
 }
 
-func runInstructionWorkflow(
-	o *selectOrchestrator,
-	workflow *models.Workflow,
-	actions []*models.Action) *errors.PromptError {
-
-	logger.Debugf("Running workflow: %v...", workflow.Id)
-	for _, actionId := range workflow.ActionIds {
-		action := models.GetInstructionActionById(actions, actionId)
-		if promptErr := o.runInstructionActionFunc(o, action); promptErr != nil && !workflow.TolerateFailures {
-			logger.Errorf("failed to run workflow and failures are not tolerable. "+
-				"workflow: %s, action: %s", workflow.Id, action.Id)
-			return promptErr
-		}
-	}
-	return nil
-}
-
 func startInstructionWorkflowExecutionFlow(
 	o *selectOrchestrator,
 	globals *models.Globals,
@@ -517,7 +367,7 @@ func startInstructionWorkflowExecutionFlow(
 		logger.Debugf("failed to ask before running an instruction workflow. error: %s", promptError.GoError().Error())
 		return nil, promptError
 	} else if shouldRun {
-		if promptErr := o.runInstructionWorkflowFunc(o, workflow, actions); promptErr != nil {
+		if promptErr := o.runner.RunInstructionWorkflowFunc(o.runner, workflow, actions); promptErr != nil {
 			//return nil, promptErr
 			// Do nothing, don't break the application flow, log error to file and prompt for any input to continue
 		}
@@ -581,23 +431,6 @@ func appendInstructionWorkflowsCustomOptions(instructions *models.Instructions) 
 	enrichedWorkflowsList = append(enrichedWorkflowsList, backAction)
 	enrichedWorkflowsList = append(enrichedWorkflowsList, workflows...)
 	instructions.Workflows = enrichedWorkflowsList
-}
-
-func enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath string, actions []*models.Action) {
-	if actions == nil {
-		return
-	}
-	for _, action := range actions {
-		if action.ScriptFile != "" {
-			action.AnchorfilesRepoPath = anchorfilesRepoPath
-		}
-	}
-}
-
-func fillInstructionGlobals(instRoot *models.InstructionsRoot) {
-	if instRoot.Globals == nil {
-		instRoot.Globals = models.EmptyGlobals()
-	}
 }
 
 func extractArgsFromScriptFile(scriptFile string) (string, []string) {

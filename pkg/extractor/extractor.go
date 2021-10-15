@@ -15,7 +15,7 @@ const (
 )
 
 type Extractor interface {
-	ExtractAnchorFolderInfo(dirPath string, p parser.Parser) (*models.AnchorFolderInfo, error)
+	ExtractCommandFolderInfo(dirPath string, p parser.Parser) (*models.CommandFolderInfo, error)
 	ExtractInstructions(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error)
 }
 
@@ -25,7 +25,7 @@ func New() Extractor {
 	return &extractorImpl{}
 }
 
-func (e *extractorImpl) ExtractAnchorFolderInfo(dirPath string, p parser.Parser) (*models.AnchorFolderInfo, error) {
+func (e *extractorImpl) ExtractCommandFolderInfo(dirPath string, p parser.Parser) (*models.CommandFolderInfo, error) {
 	commandFilePath := fmt.Sprintf("%s/%s", dirPath, globals.AnchorCommandFileName)
 	if contentByte, err := ioutil.ReadFile(commandFilePath); err != nil {
 		return nil, fmt.Errorf("invalid anchor folder info path. error: %s", err.Error())
@@ -34,14 +34,14 @@ func (e *extractorImpl) ExtractAnchorFolderInfo(dirPath string, p parser.Parser)
 		// expand potential environment variables
 		contentByteExpanded := []byte(os.ExpandEnv(text))
 
-		if anchorFolder, err := p.ParseAnchorFolderInfo(string(contentByteExpanded)); err != nil {
+		if commandFolder, err := p.ParseCommandFolderInfo(string(contentByteExpanded)); err != nil {
 			return nil, err
 		} else {
-			if anchorFolder != nil &&
-				len(anchorFolder.Command.Use) > 0 &&
-				len(anchorFolder.Command.Short) > 0 {
-				anchorFolder.DirPath = dirPath
-				return anchorFolder, nil
+			if commandFolder != nil &&
+				len(commandFolder.Command.Use) > 0 &&
+				len(commandFolder.Command.Short) > 0 {
+				commandFolder.DirPath = dirPath
+				return commandFolder, nil
 			}
 			return nil, fmt.Errorf("bad anchor folder command file structure")
 		}

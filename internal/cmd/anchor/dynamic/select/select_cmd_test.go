@@ -53,7 +53,7 @@ var StartSelectActionSuccessfully = func(t *testing.T) {
 					callCount++
 					return nil
 				}
-				command := NewCommand(ctx, stubs.AnchorFolder1Name, fun)
+				command := NewCommand(ctx, stubs.CommandFolder1Name, fun)
 				_, err := drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: select")
 				assert.Nil(t, err, "expected cli action to have no errors")
@@ -71,7 +71,7 @@ var FailSelectAction = func(t *testing.T) {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
-				command := NewCommand(ctx, stubs.AnchorFolder1Name, fun)
+				command := NewCommand(ctx, stubs.CommandFolder1Name, fun)
 				_, err := drivers.CLI().RunCommand(command)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: select")
 				assert.NotNil(t, err, "expected cli action to fail")
@@ -86,7 +86,7 @@ var ContainCobraCommand = func(t *testing.T) {
 		var fun = func(ctx common.Context, o *selectOrchestrator) error {
 			return nil
 		}
-		anchorCmd := NewCommand(ctx, stubs.AnchorFolder1Name, fun)
+		anchorCmd := NewCommand(ctx, stubs.CommandFolder1Name, fun)
 		cobraCmd := anchorCmd.GetCobraCmd()
 		assert.NotNil(t, cobraCmd, "expected cobra command to exist")
 	})
@@ -97,7 +97,7 @@ var ContainContext = func(t *testing.T) {
 		var fun = func(ctx common.Context, o *selectOrchestrator) error {
 			return nil
 		}
-		anchorCmd := NewCommand(ctx, stubs.AnchorFolder1Name, fun)
+		anchorCmd := NewCommand(ctx, stubs.CommandFolder1Name, fun)
 		cmdCtx := anchorCmd.GetContext()
 		assert.NotNil(t, cmdCtx, "expected context to exist")
 		assert.Equal(t, ctx, cmdCtx)
@@ -106,8 +106,8 @@ var ContainContext = func(t *testing.T) {
 
 var AddItselfToParentCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
-		parentCmd := NewCommand(ctx, stubs.AnchorFolder1Name, nil)
-		err := AddCommand(parentCmd, stubs.AnchorFolder1Name, NewCommand)
+		parentCmd := NewCommand(ctx, stubs.CommandFolder1Name, nil)
+		err := AddCommand(parentCmd, stubs.CommandFolder1Name, NewCommand)
 		assert.Nil(t, err, "expected add command to succeed")
 		assert.True(t, parentCmd.GetCobraCmd().HasSubCommands())
 		cmds := parentCmd.GetCobraCmd().Commands()
@@ -126,7 +126,7 @@ var EnableCommandVerbosity = func(t *testing.T) {
 					assert.True(t, o.verboseFlag, "expected verbose flag to exist")
 					return nil
 				}
-				command := NewCommand(ctx, stubs.AnchorFolder1Name, fun)
+				command := NewCommand(ctx, stubs.CommandFolder1Name, fun)
 				flagVal := false
 				command.GetCobraCmd().PersistentFlags().BoolVar(&flagVal, globals.VerboseFlagName, true, "")
 				_, err := drivers.CLI().RunCommand(command, fmt.Sprintf("--%s", globals.VerboseFlagName))

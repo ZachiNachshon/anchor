@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
-func preparePromptFolderItemItems(folderItems []*models.AnchorFolderItemInfo) promptui.Select {
+func preparePromptFolderItemItems(folderItems []*models.CommandFolderItemInfo) promptui.Select {
 	folderItemsEnhanced := appendFolderItemsCustomOptions(folderItems)
 	folderItemsTemplate := prepareFolderItemsTemplate()
 	folderItemsSearcher := prepareFolderItemsSearcher(folderItemsEnhanced)
 	return prepareFolderItemsSelector(folderItemsEnhanced, folderItemsTemplate, folderItemsSearcher)
 }
 
-func appendFolderItemsCustomOptions(folderItems []*models.AnchorFolderItemInfo) []*models.AnchorFolderItemInfo {
-	folderItemsDirs := make([]*models.AnchorFolderItemInfo, 0, len(folderItems)+1)
-	cancel := &models.AnchorFolderItemInfo{
+func appendFolderItemsCustomOptions(folderItems []*models.CommandFolderItemInfo) []*models.CommandFolderItemInfo {
+	folderItemsDirs := make([]*models.CommandFolderItemInfo, 0, len(folderItems)+1)
+	cancel := &models.CommandFolderItemInfo{
 		Name: CancelActionName,
 	}
 	folderItemsDirs = append(folderItemsDirs, cancel)
@@ -38,7 +38,7 @@ func prepareFolderItemsTemplate() *promptui.SelectTemplates {
 	}
 }
 
-func prepareFolderItemsSearcher(folderItems []*models.AnchorFolderItemInfo) func(input string, index int) bool {
+func prepareFolderItemsSearcher(folderItems []*models.CommandFolderItemInfo) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := folderItems[index]
 		name := strings.Replace(strings.ToLower(item.Name), " ", "", -1)
@@ -48,7 +48,7 @@ func prepareFolderItemsSearcher(folderItems []*models.AnchorFolderItemInfo) func
 }
 
 func prepareFolderItemsSelector(
-	folderItems []*models.AnchorFolderItemInfo,
+	folderItems []*models.CommandFolderItemInfo,
 	templates *promptui.SelectTemplates,
 	searcher func(input string, index int) bool) promptui.Select {
 

@@ -13,35 +13,35 @@ func Test_FolderItemsPrompterShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
 			Name: "anchor folder items: append custom prompt options",
-			Func: AnchorFolderItemsAppendCustomPromptOptions,
+			Func: CommandFolderItemsAppendCustomPromptOptions,
 		},
 		{
 			Name: "anchor folder items: set search prompt",
-			Func: AnchorFolderItemsSetSearchPrompt,
+			Func: CommandFolderItemsSetSearchPrompt,
 		},
 		{
 			Name: "anchor folder items: prepare template",
-			Func: AnchorFolderItemsPrepareTemplate,
+			Func: CommandFolderItemsPrepareTemplate,
 		},
 		{
 			Name: "anchor folder items: prepare searcher",
-			Func: AnchorFolderItemsPrepareSearcher,
+			Func: CommandFolderItemsPrepareSearcher,
 		},
 		{
 			Name: "anchor folder items: prepare full prompter",
-			Func: AnchorFolderItemsPrepareFullPrompter,
+			Func: CommandFolderItemsPrepareFullPrompter,
 		},
 	}
 	harness.RunTests(t, tests)
 }
 
-var AnchorFolderItemsAppendCustomPromptOptions = func(t *testing.T) {
-	folderItemsTestData := stubs.GenerateAnchorFolderItemsInfoTestData()
+var CommandFolderItemsAppendCustomPromptOptions = func(t *testing.T) {
+	folderItemsTestData := stubs.GenerateCommandFolderItemsInfoTestData()
 	result := appendFolderItemsCustomOptions(folderItemsTestData)
 	assert.EqualValues(t, CancelActionName, result[0].Name)
 }
 
-var AnchorFolderItemsSetSearchPrompt = func(t *testing.T) {
+var CommandFolderItemsSetSearchPrompt = func(t *testing.T) {
 	oldSearchPrompt := promptui.SearchPrompt
 	setSearchFolderItemPrompt()
 	newSearchPrompt := promptui.SearchPrompt
@@ -50,7 +50,7 @@ var AnchorFolderItemsSetSearchPrompt = func(t *testing.T) {
 	assert.Contains(t, newSearchPrompt, "Search:")
 }
 
-var AnchorFolderItemsPrepareTemplate = func(t *testing.T) {
+var CommandFolderItemsPrepareTemplate = func(t *testing.T) {
 	template := prepareFolderItemsTemplate()
 	assert.NotNil(t, template)
 	assert.Contains(t, template.Active, selectorEmoji)
@@ -58,8 +58,8 @@ var AnchorFolderItemsPrepareTemplate = func(t *testing.T) {
 	assert.NotEmpty(t, template.Details, "expected details to exist")
 }
 
-var AnchorFolderItemsPrepareSearcher = func(t *testing.T) {
-	folderItemsTestData := stubs.GenerateAnchorFolderItemsInfoTestData()
+var CommandFolderItemsPrepareSearcher = func(t *testing.T) {
+	folderItemsTestData := stubs.GenerateCommandFolderItemsInfoTestData()
 	searcherFunc := prepareFolderItemsSearcher(folderItemsTestData)
 	assert.NotNil(t, searcherFunc)
 	found := searcherFunc("app-1", 0)
@@ -68,13 +68,13 @@ var AnchorFolderItemsPrepareSearcher = func(t *testing.T) {
 	assert.False(t, notFound)
 }
 
-var AnchorFolderItemsPrepareFullPrompter = func(t *testing.T) {
-	folderItemsTestData := stubs.GenerateAnchorFolderItemsInfoTestData()
+var CommandFolderItemsPrepareFullPrompter = func(t *testing.T) {
+	folderItemsTestData := stubs.GenerateCommandFolderItemsInfoTestData()
 	selector := preparePromptFolderItemItems(folderItemsTestData)
 	assert.NotNil(t, selector)
 	assert.Equal(t, selector.Label, "")
 	assert.Equal(t, selector.Size, 15)
-	assert.Equal(t, 3, len(selector.Items.([]*models.AnchorFolderItemInfo))) // + cancel button
+	assert.Equal(t, 3, len(selector.Items.([]*models.CommandFolderItemInfo))) // + cancel button
 	assert.Equal(t, selector.StartInSearchMode, true)
 	assert.Equal(t, selector.HideSelected, true)
 }

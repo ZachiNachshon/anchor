@@ -21,16 +21,16 @@ var validStatusOnlyFlagValue = false
 var invalidStatusOnlyFlagName = "invalid-only"
 var invalidStatusOnlyFlagValue = false
 
-type NewCommandFunc func(ctx common.Context, parentFolderName string, statusFunc DynamicStatusFunc) *statusCmd
+type NewCommandFunc func(ctx common.Context, commandFolderName string, statusFunc DynamicStatusFunc) *statusCmd
 
-func NewCommand(ctx common.Context, parentFolderName string, statusFunc DynamicStatusFunc) *statusCmd {
+func NewCommand(ctx common.Context, commandFolderName string, statusFunc DynamicStatusFunc) *statusCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "status",
-		Short: "Check status validity of supported applications",
-		Long:  `Check status validity of supported applications`,
+		Short: "Check status validity of supported dynamic commands",
+		Long:  `Check status validity of supported dynamic commands`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			o := NewOrchestrator(parentFolderName)
+			o := NewOrchestrator(commandFolderName)
 			if validStatusOnlyFlagValue && invalidStatusOnlyFlagValue {
 				return fmt.Errorf("--%s and --%s flags are mutual exclusive flags", validStatusOnlyFlagName, invalidStatusOnlyFlagName)
 			}
@@ -72,8 +72,8 @@ func initFlags(c *statusCmd) error {
 	return nil
 }
 
-func AddCommand(parent cmd.AnchorCommand, parentFolderName string, createCmd NewCommandFunc) error {
-	newCmd := createCmd(parent.GetContext(), parentFolderName, DynamicStatus)
+func AddCommand(parent cmd.AnchorCommand, commandFolderName string, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), commandFolderName, DynamicStatus)
 	err := newCmd.initFlagsFunc(newCmd)
 	if err != nil {
 		return err

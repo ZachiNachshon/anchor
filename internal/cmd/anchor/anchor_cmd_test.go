@@ -111,7 +111,7 @@ var InitFlagsAndSubCommandsUponInitialization = func(t *testing.T) {
 				fakeLoggerManager := logger.CreateFakeLoggerManager()
 				command := NewCommand(ctx, fakeLoggerManager)
 
-				stubs.GenerateAnchorFolderInfoTestData()
+				stubs.GenerateCommandFolderInfoTestData()
 				command.startPreRunSequence = func(parent cmd.AnchorCommand, preRunSequence func(ctx common.Context) error) error {
 					return nil
 				}
@@ -249,8 +249,8 @@ var RunCliRootCommandSuccessfully = func(t *testing.T) {
 				fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 					return nil
 				}
-				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
-					return stubs.GenerateAnchorFolderInfoTestData()
+				fakeLocator.CommandFoldersMock = func() []*models.CommandFolderInfo {
+					return stubs.GenerateCommandFolderInfoTestData()
 				}
 				reg := ctx.Registry()
 				reg.Set(locator.Identifier, fakeLocator)

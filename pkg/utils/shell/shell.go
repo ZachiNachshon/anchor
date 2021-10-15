@@ -107,8 +107,8 @@ func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
 		return err
 	}
 
-	var _, stderrBuf bytes.Buffer
-	// Script execution sends output to stderr instead of stdout
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf, file)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf, file)
 
 	err = cmd.Run()
@@ -140,8 +140,8 @@ func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
 		return err
 	}
 
-	var _, stderrBuf bytes.Buffer
-	// Script execution sends output to stderr instead of stdout
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(&stdoutBuf, file)
 	cmd.Stderr = io.MultiWriter(&stderrBuf, file)
 
 	err = cmd.Run()

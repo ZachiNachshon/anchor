@@ -10,12 +10,12 @@ var CreateFakeParser = func() *fakeParserImpl {
 
 type fakeParserImpl struct {
 	Parser
-	ParseAnchorFolderInfoMock func(text string) (*models.AnchorFolderInfo, error)
-	ParseInstructionsMock     func(text string) (*models.InstructionsRoot, error)
+	ParseCommandFolderInfoMock func(text string) (*models.CommandFolderInfo, error)
+	ParseInstructionsMock      func(text string) (*models.InstructionsRoot, error)
 }
 
-func (p *fakeParserImpl) ParseAnchorFolderInfo(text string) (*models.AnchorFolderInfo, error) {
-	return p.ParseAnchorFolderInfoMock(text)
+func (p *fakeParserImpl) ParseCommandFolderInfo(text string) (*models.CommandFolderInfo, error) {
+	return p.ParseCommandFolderInfoMock(text)
 }
 
 func (p *fakeParserImpl) ParseInstructions(text string) (*models.InstructionsRoot, error) {

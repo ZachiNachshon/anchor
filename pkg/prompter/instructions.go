@@ -65,8 +65,8 @@ func GenerateRunInstructionMessage(id string, instType string, title string) str
 		instType, colors.Cyan, id, colors.Reset, colors.Purple, title, colors.Reset)
 }
 
-func setSearchInstructionsPrompt(anchorFolderItemName string) {
-	promptui.SearchPrompt = fmt.Sprintf("%sSearch%s %s%s :%s ", colors.Blue, colors.Green, anchorFolderItemName, colors.Blue, colors.Reset)
+func setSearchInstructionsPrompt(commandItemName string) {
+	promptui.SearchPrompt = fmt.Sprintf("%sSearch%s %s%s :%s ", colors.Blue, colors.Green, commandItemName, colors.Blue, colors.Reset)
 }
 
 func preparePromptInstructionsActions(actions []*models.Action) promptui.Select {

@@ -10,11 +10,11 @@ func Test_ParserShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
 			Name: "parse anchor folder info successfully",
-			Func: ParseAnchorFolderInfoSuccessfully,
+			Func: ParseCommandFolderInfoSuccessfully,
 		},
 		{
 			Name: "fail to parse anchor folder info ",
-			Func: FailToParseAnchorFolderInfo,
+			Func: FailToParseCommandFolderInfo,
 		},
 		{
 			Name: "parse instruction actions successfully",
@@ -32,27 +32,27 @@ func Test_ParserShould(t *testing.T) {
 	harness.RunTests(t, tests)
 }
 
-var ParseAnchorFolderInfoSuccessfully = func(t *testing.T) {
+var ParseCommandFolderInfoSuccessfully = func(t *testing.T) {
 	parser := New()
 
-	anchorFolderInfo, err := parser.ParseAnchorFolderInfo(anchorFolderInfoYamlText)
+	commandFolderInfo, err := parser.ParseCommandFolderInfo(commandFolderInfoYamlText)
 	assert.Nil(t, err, "expected parser to succeed")
-	assert.NotNil(t, anchorFolderInfo, "expected a valid anchor folder info YAML")
-	assert.NotEmpty(t, anchorFolderInfo.Name, "expected valid attribute: name")
-	assert.Empty(t, anchorFolderInfo.DirPath, "expected emtpy attribute: dirPath")
-	assert.Nil(t, anchorFolderInfo.Items, "expected emtpy attribute: items")
+	assert.NotNil(t, commandFolderInfo, "expected a valid anchor folder info YAML")
+	assert.NotEmpty(t, commandFolderInfo.Name, "expected valid attribute: name")
+	assert.Empty(t, commandFolderInfo.DirPath, "expected emtpy attribute: dirPath")
+	assert.Nil(t, commandFolderInfo.Items, "expected emtpy attribute: items")
 
-	anchorFolderCmd := anchorFolderInfo.Command
-	assert.Equal(t, "app", anchorFolderCmd.Use)
-	assert.Equal(t, "Application commands", anchorFolderCmd.Short)
+	commandFolderCmd := commandFolderInfo.Command
+	assert.Equal(t, "app", commandFolderCmd.Use)
+	assert.Equal(t, "Application commands", commandFolderCmd.Short)
 }
 
-var FailToParseAnchorFolderInfo = func(t *testing.T) {
+var FailToParseCommandFolderInfo = func(t *testing.T) {
 	parser := New()
 	invalidYamlText := "@#$%!@#<invalid> yaml: -anchor folder info"
-	anchorFolderInfo, err := parser.ParseAnchorFolderInfo(invalidYamlText)
+	commandFolderInfo, err := parser.ParseCommandFolderInfo(invalidYamlText)
 	assert.NotNil(t, err, "expected to fail")
-	assert.Empty(t, anchorFolderInfo)
+	assert.Empty(t, commandFolderInfo)
 }
 
 var ParseInstructionActionsSuccessfully = func(t *testing.T) {

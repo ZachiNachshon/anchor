@@ -11,8 +11,8 @@ func New() Parser {
 	return &yamlParser{}
 }
 
-func (p *yamlParser) ParseAnchorFolderInfo(yamlText string) (*models.AnchorFolderInfo, error) {
-	items := &models.AnchorFolderInfo{}
+func (p *yamlParser) ParseCommandFolderInfo(yamlText string) (*models.CommandFolderInfo, error) {
+	items := &models.CommandFolderInfo{}
 	if err := converters.UnmarshalYamlToObj(yamlText, items); err != nil {
 		return nil, err
 	}

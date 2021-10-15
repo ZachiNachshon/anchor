@@ -1,19 +1,19 @@
 package models
 
-type AnchorFolderInfo struct {
-	Name        string               `yaml:"name"`
-	Command     *AnchorFolderCommand `yaml:"command"`
-	Description string               `yaml:"description"`
-	Items       map[string]*AnchorFolderItemInfo
+type CommandFolderInfo struct {
+	Name        string                `yaml:"name"`
+	Command     *CommandFolderCommand `yaml:"command"`
+	Description string                `yaml:"description"`
+	Items       map[string]*CommandFolderItemInfo
 	DirPath     string
 }
 
-type AnchorFolderCommand struct {
+type CommandFolderCommand struct {
 	Use   string `yaml:"use"`
 	Short string `yaml:"short"`
 }
 
-type AnchorFolderItemInfo struct {
+type CommandFolderItemInfo struct {
 	Name             string
 	DirPath          string
 	InstructionsPath string

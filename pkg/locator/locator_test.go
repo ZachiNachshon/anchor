@@ -27,15 +27,15 @@ func Test_LocatorShould(t *testing.T) {
 		},
 		{
 			Name: "not return anchor folder if missing from scan",
-			Func: NotReturnAnchorFolderIfMissingFromScan,
+			Func: NotReturnCommandFolderIfMissingFromScan,
 		},
 		{
 			Name: "scan anchorfiles test repo and find expected anchor folders",
-			Func: ScanAndFindExpectedAnchorFolders,
+			Func: ScanAndFindExpectedCommandFolders,
 		},
 		{
 			Name: "not locate any anchor folders due bad YAML",
-			Func: NotLocateAnyAnchorFoldersDueToBadYaml,
+			Func: NotLocateAnyCommandFoldersDueToBadYaml,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -65,7 +65,7 @@ var FailOnAlreadyInitialized = func(t *testing.T) {
 				with.HarnessAnchorfilesTestRepo(ctx)
 				l := New()
 				fakeExtractor := extractor.CreateFakeExtractor()
-				fakeExtractor.ExtractAnchorFolderInfoMock = func(dirPath string, p parser.Parser) (*models.AnchorFolderInfo, error) {
+				fakeExtractor.ExtractCommandFolderInfoMock = func(dirPath string, p parser.Parser) (*models.CommandFolderInfo, error) {
 					return nil, nil
 				}
 				locatorErr := l.Scan(ctx.AnchorFilesPath(),
@@ -80,20 +80,20 @@ var FailOnAlreadyInitialized = func(t *testing.T) {
 	})
 }
 
-var NotReturnAnchorFolderIfMissingFromScan = func(t *testing.T) {
+var NotReturnCommandFolderIfMissingFromScan = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				l := New()
-				result := l.AnchorFolder("not-exists")
+				result := l.CommandFolderByName("not-exists")
 				assert.Nil(t, result, "should not identify application after scan took place")
 			})
 		})
 	})
 }
 
-var ScanAndFindExpectedAnchorFolders = func(t *testing.T) {
+var ScanAndFindExpectedCommandFolders = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
@@ -104,26 +104,26 @@ var ScanAndFindExpectedAnchorFolders = func(t *testing.T) {
 					extractor.New(),
 					parser.New())
 				assert.Nil(t, err, "expect locator to scan successfully")
-				anchorFolders := l.AnchorFolders()
-				assert.Equal(t, 3, len(anchorFolders), "expected 3 anchor folders but found %v", len(anchorFolders))
+				commandFolders := l.CommandFolders()
+				assert.Equal(t, 3, len(commandFolders), "expected 3 anchor folders but found %v", len(commandFolders))
 
 				// Anchor Folders
-				anchorFoldersAsMap := l.AnchorFoldersAsMap()
-				assert.Equal(t, 3, len(anchorFoldersAsMap), "expected map of 3 anchor folders")
-				assert.NotNil(t, l.AnchorFolder("app"))
-				assert.Nil(t, l.AnchorFolder("app-ignored"))
-				assert.NotNil(t, l.AnchorFolder("controller"))
-				assert.NotNil(t, l.AnchorFolder("k8s"))
+				commandFoldersAsMap := l.CommandFoldersAsMap()
+				assert.Equal(t, 3, len(commandFoldersAsMap), "expected map of 3 anchor folders")
+				assert.NotNil(t, l.CommandFolderByName("app"))
+				assert.Nil(t, l.CommandFolderByName("app-ignored"))
+				assert.NotNil(t, l.CommandFolderByName("controller"))
+				assert.NotNil(t, l.CommandFolderByName("k8s"))
 
 				// Anchor Folder: App
-				appAnchorFolder := l.AnchorFolder("app")
-				assert.Equal(t, "app", appAnchorFolder.Name)
-				assert.NotNil(t, appAnchorFolder.Command)
-				assert.Equal(t, "app", appAnchorFolder.Command.Use)
-				assert.Equal(t, "Application commands", appAnchorFolder.Command.Short)
+				appCommandFolder := l.CommandFolderByName("app")
+				assert.Equal(t, "app", appCommandFolder.Name)
+				assert.NotNil(t, appCommandFolder.Command)
+				assert.Equal(t, "app", appCommandFolder.Command.Use)
+				assert.Equal(t, "Application commands", appCommandFolder.Command.Short)
 
 				// Anchor Folder Items: App
-				appItems := l.AnchorFolderItems("app")
+				appItems := l.CommandFolderItems("app")
 				assert.NotNil(t, appItems, "expected to have valid items for anchor folder: app")
 				assert.NotNil(t, 2, len(appItems), "expected 2 items for anchor folder: app")
 				firstAppName := "first-app"
@@ -135,21 +135,21 @@ var ScanAndFindExpectedAnchorFolders = func(t *testing.T) {
 	})
 }
 
-var NotLocateAnyAnchorFoldersDueToBadYaml = func(t *testing.T) {
+var NotLocateAnyCommandFoldersDueToBadYaml = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			yamlConfigText := config.GetDefaultTestConfigText()
 			with.Config(ctx, yamlConfigText, func(config *config.AnchorConfig) {
 				with.HarnessAnchorfilesTestRepo(ctx)
 				fakeExtractor := extractor.CreateFakeExtractor()
-				fakeExtractor.ExtractAnchorFolderInfoMock = func(dirPath string, p parser.Parser) (*models.AnchorFolderInfo, error) {
+				fakeExtractor.ExtractCommandFolderInfoMock = func(dirPath string, p parser.Parser) (*models.CommandFolderInfo, error) {
 					return nil, fmt.Errorf("failed to extract anchor folder info")
 				}
 				l := New()
 				err := l.Scan(ctx.AnchorFilesPath(), fakeExtractor, parser.CreateFakeParser())
 				assert.Nil(t, err, "expect locator to scan successfully")
-				anchorFolders := l.AnchorFolders()
-				assert.Equal(t, 0, len(anchorFolders), "expected no anchor folders to be found")
+				commandFolders := l.CommandFolders()
+				assert.Equal(t, 0, len(commandFolders), "expected no anchor folders to be found")
 			})
 		})
 	})

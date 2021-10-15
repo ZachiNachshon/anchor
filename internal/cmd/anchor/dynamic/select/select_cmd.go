@@ -2,6 +2,7 @@ package _select
 
 import (
 	"github.com/ZachiNachshon/anchor/internal/cmd"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/dynamic/runner"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/spf13/cobra"
@@ -14,9 +15,9 @@ type selectCmd struct {
 	ctx      common.Context
 }
 
-type NewCommandFunc func(ctx common.Context, parentFolderName string, selectFunc DynamicSelectFunc) *selectCmd
+type NewCommandFunc func(ctx common.Context, commandFolderName string, selectFunc DynamicSelectFunc) *selectCmd
 
-func NewCommand(ctx common.Context, parentFolderName string, selectFunc DynamicSelectFunc) *selectCmd {
+func NewCommand(ctx common.Context, commandFolderName string, selectFunc DynamicSelectFunc) *selectCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "select",
 		Short: "Select an anchor folder item",
@@ -24,7 +25,8 @@ func NewCommand(ctx common.Context, parentFolderName string, selectFunc DynamicS
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			verboseFlag := cmd.Flag(globals.VerboseFlagName)
-			orchestrator := NewOrchestrator(parentFolderName)
+			r := runner.NewOrchestrator(commandFolderName)
+			orchestrator := NewOrchestrator(r, commandFolderName)
 			if verboseFlag != nil {
 				if isVerbose, err := strconv.ParseBool(verboseFlag.Value.String()); err == nil {
 					orchestrator.verboseFlag = isVerbose
@@ -48,8 +50,8 @@ func (c *selectCmd) GetContext() common.Context {
 	return c.ctx
 }
 
-func AddCommand(parent cmd.AnchorCommand, parentFolderName string, createCmd NewCommandFunc) error {
-	newCmd := createCmd(parent.GetContext(), parentFolderName, DynamicSelect)
+func AddCommand(parent cmd.AnchorCommand, commandFolderName string, createCmd NewCommandFunc) error {
+	newCmd := createCmd(parent.GetContext(), commandFolderName, DynamicSelect)
 	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

@@ -13,30 +13,30 @@ var CreateFakeLocator = func() *fakeLocatorImpl {
 
 type fakeLocatorImpl struct {
 	Locator
-	localRepoPath          string
-	ScanMock               func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError
-	AnchorFoldersMock      func() []*models.AnchorFolderInfo
-	AnchorFolderMock       func(name string) *models.AnchorFolderInfo
-	AnchorFoldersAsMapMock func() map[string]*models.AnchorFolderInfo
-	AnchorFolderItemsMock  func(parentFolderName string) []*models.AnchorFolderItemInfo
+	localRepoPath           string
+	ScanMock                func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError
+	CommandFoldersMock      func() []*models.CommandFolderInfo
+	CommandFolderByNameMock func(name string) *models.CommandFolderInfo
+	CommandFoldersAsMapMock func() map[string]*models.CommandFolderInfo
+	CommandFolderItemsMock  func(commandFolderName string) []*models.CommandFolderItemInfo
 }
 
 func (l *fakeLocatorImpl) Scan(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 	return l.ScanMock(anchorfilesLocalPath, e, pa)
 }
 
-func (l *fakeLocatorImpl) AnchorFolders() []*models.AnchorFolderInfo {
-	return l.AnchorFoldersMock()
+func (l *fakeLocatorImpl) CommandFolders() []*models.CommandFolderInfo {
+	return l.CommandFoldersMock()
 }
 
-func (l *fakeLocatorImpl) AnchorFoldersAsMap() map[string]*models.AnchorFolderInfo {
-	return l.AnchorFoldersAsMapMock()
+func (l *fakeLocatorImpl) CommandFoldersAsMap() map[string]*models.CommandFolderInfo {
+	return l.CommandFoldersAsMapMock()
 }
 
-func (l *fakeLocatorImpl) AnchorFolder(name string) *models.AnchorFolderInfo {
-	return l.AnchorFolderMock(name)
+func (l *fakeLocatorImpl) CommandFolderByName(name string) *models.CommandFolderInfo {
+	return l.CommandFolderByNameMock(name)
 }
 
-func (l *fakeLocatorImpl) AnchorFolderItems(parentFolderName string) []*models.AnchorFolderItemInfo {
-	return l.AnchorFolderItemsMock(parentFolderName)
+func (l *fakeLocatorImpl) CommandFolderItems(commandFolderName string) []*models.CommandFolderItemInfo {
+	return l.CommandFolderItemsMock(commandFolderName)
 }

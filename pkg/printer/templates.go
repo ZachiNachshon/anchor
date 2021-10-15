@@ -4,14 +4,14 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-type AnchorFolderItemStatusTemplate struct {
+type CommandFolderItemStatusTemplate struct {
 	Name                     string
 	IsValid                  bool
 	MissingInstructionFile   bool
 	InvalidInstructionFormat bool
 }
 
-func (as *AnchorFolderItemStatusTemplate) CalculateValidity() bool {
+func (as *CommandFolderItemStatusTemplate) CheckValidity() bool {
 	as.IsValid = !as.MissingInstructionFile && !as.InvalidInstructionFormat
 	return as.IsValid
 }

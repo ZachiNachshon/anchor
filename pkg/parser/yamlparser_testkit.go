@@ -1,6 +1,6 @@
 package parser
 
-var anchorFolderInfoYamlText = `
+var commandFolderInfoYamlText = `
 type: application
 name: app
 command:

@@ -171,8 +171,8 @@ var RunStartCliCommandsCollaboratorSuccessfully = func(t *testing.T) {
 				fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 					return nil
 				}
-				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
-					return stubs.GenerateAnchorFolderInfoTestData()
+				fakeLocator.CommandFoldersMock = func() []*models.CommandFolderInfo {
+					return stubs.GenerateCommandFolderInfoTestData()
 				}
 				reg := ctx.Registry()
 				reg.Set(locator.Identifier, fakeLocator)
@@ -217,8 +217,8 @@ var StartCliCommandsSuccessfully = func(t *testing.T) {
 				fakeLocator.ScanMock = func(anchorfilesLocalPath string, e extractor.Extractor, pa parser.Parser) *errors.LocatorError {
 					return nil
 				}
-				fakeLocator.AnchorFoldersMock = func() []*models.AnchorFolderInfo {
-					return stubs.GenerateAnchorFolderInfoTestData()
+				fakeLocator.CommandFoldersMock = func() []*models.CommandFolderInfo {
+					return stubs.GenerateCommandFolderInfoTestData()
 				}
 				reg := ctx.Registry()
 				reg.Set(locator.Identifier, fakeLocator)

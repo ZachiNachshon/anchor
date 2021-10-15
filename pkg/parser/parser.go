@@ -7,6 +7,6 @@ const (
 )
 
 type Parser interface {
-	ParseAnchorFolderInfo(text string) (*models.AnchorFolderInfo, error)
+	ParseCommandFolderInfo(text string) (*models.CommandFolderInfo, error)
 	ParseInstructions(text string) (*models.InstructionsRoot, error)
 }

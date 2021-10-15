@@ -17,17 +17,17 @@ type dynamicCmd struct {
 	ctx         common.Context
 	commandName string
 
-	addRunSubCmdFunc    func(parent cmd.AnchorCommand, parentFolderName string, createCmd run.NewCommandFunc) error
-	addSelectSubCmdFunc func(parent cmd.AnchorCommand, parentFolderName string, createCmd _select.NewCommandFunc) error
-	addStatusSubCmdFunc func(parent cmd.AnchorCommand, parentFolderName string, createCmd status.NewCommandFunc) error
+	addRunSubCmdFunc    func(parent cmd.AnchorCommand, commandFolderName string, createCmd run.NewCommandFunc) error
+	addSelectSubCmdFunc func(parent cmd.AnchorCommand, commandFolderName string, createCmd _select.NewCommandFunc) error
+	addStatusSubCmdFunc func(parent cmd.AnchorCommand, commandFolderName string, createCmd status.NewCommandFunc) error
 }
 
-type NewCommandsFunc func(ctx common.Context, anchorFolders []*models.AnchorFolderInfo) ([]*dynamicCmd, error)
+type NewCommandsFunc func(ctx common.Context, commandFolders []*models.CommandFolderInfo) ([]*dynamicCmd, error)
 
-func NewCommands(ctx common.Context, anchorFolders []*models.AnchorFolderInfo) ([]*dynamicCmd, error) {
-	var cmds = make([]*dynamicCmd, len(anchorFolders))
-	for i := 0; i < len(anchorFolders); i++ {
-		aFolder := anchorFolders[i]
+func NewCommands(ctx common.Context, commandFolders []*models.CommandFolderInfo) ([]*dynamicCmd, error) {
+	var cmds = make([]*dynamicCmd, len(commandFolders))
+	for i := 0; i < len(commandFolders); i++ {
+		aFolder := commandFolders[i]
 		cobraCmd := newCobraCommand(aFolder)
 		newDynamicCmd := newCommand(ctx, cobraCmd, aFolder.Name)
 		cmds[i] = newDynamicCmd
@@ -47,10 +47,10 @@ func newCommand(ctx common.Context, cobraCmd *cobra.Command, name string) *dynam
 	}
 }
 
-func newCobraCommand(anchorFolder *models.AnchorFolderInfo) *cobra.Command {
+func newCobraCommand(commandFolder *models.CommandFolderInfo) *cobra.Command {
 	return &cobra.Command{
-		Use:   anchorFolder.Command.Use,
-		Short: anchorFolder.Command.Short,
+		Use:   commandFolder.Command.Use,
+		Short: commandFolder.Command.Short,
 	}
 }
 
@@ -68,8 +68,8 @@ func AddCommands(parent cmd.AnchorCommand, createCmds NewCommandsFunc) error {
 		return err
 	}
 
-	anchorFolders := l.AnchorFolders()
-	newCmds, err := createCmds(parent.GetContext(), anchorFolders)
+	commandFolders := l.CommandFolders()
+	newCmds, err := createCmds(parent.GetContext(), commandFolders)
 	if err != nil {
 		return err
 	}

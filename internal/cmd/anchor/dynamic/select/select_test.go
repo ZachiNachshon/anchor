@@ -2,13 +2,12 @@ package _select
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/dynamic/runner"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/errors"
 	"github.com/ZachiNachshon/anchor/internal/logger"
-	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
 	"github.com/ZachiNachshon/anchor/pkg/models"
-	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/prompter"
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
@@ -53,35 +52,35 @@ func Test_SelectActionShould(t *testing.T) {
 		},
 		{
 			Name: "anchor folder item selection: cancel selection successfully",
-			Func: AnchorFolderItemSelectionCancelSelectionSuccessfully,
+			Func: CommandFolderItemSelectionCancelSelectionSuccessfully,
 		},
 		{
 			Name: "anchor folder item selection: fail to prompt",
-			Func: AnchorFolderItemSelectionFailToPrompt,
+			Func: CommandFolderItemSelectionFailToPrompt,
 		},
 		{
 			Name: "anchor folder item selection: fail to extract instructions",
-			Func: AnchorFolderItemSelectionFailToExtractInstructions,
+			Func: CommandFolderItemSelectionFailToExtractInstructions,
 		},
 		{
 			Name: "anchor folder item selection: go back from instruction action selection",
-			Func: AnchorFolderItemSelectionGoBackFromInstructionActionSelection,
+			Func: CommandFolderItemSelectionGoBackFromInstructionActionSelection,
 		},
 		{
 			Name: "anchor folder item selection: instruction action selection missing error",
-			Func: AnchorFolderItemSelectionInstructionActionSelectionMissingError,
+			Func: CommandFolderItemSelectionInstructionActionSelectionMissingError,
 		},
 		{
 			Name: "anchor folder item selection: complete successfully",
-			Func: AnchorFolderItemSelectionCompleteSuccessfully,
+			Func: CommandFolderItemSelectionCompleteSuccessfully,
 		},
 		{
 			Name: "anchor folder item prompt: fail to prompt",
-			Func: AnchorFolderItemPromptFailToPrompt,
+			Func: CommandFolderItemPromptFailToPrompt,
 		},
 		{
 			Name: "anchor folder item prompt: prompt successfully",
-			Func: AnchorFolderItemPromptPromptSuccessfully,
+			Func: CommandFolderItemPromptPromptSuccessfully,
 		},
 		{
 			Name: "exec wrap: fail to press any key",
@@ -126,86 +125,6 @@ func Test_SelectActionShould(t *testing.T) {
 		{
 			Name: "instruction action prompt: prompt successfully",
 			Func: InstructionActionPromptPromptSuccessfully,
-		},
-		{
-			Name: "extract instructions: fail when missing",
-			Func: ExtractInstructionsFailWhenMissing,
-		},
-		{
-			Name: "extract instructions: prompt empty when invalid schema",
-			Func: ExtractInstructionsPromptEmptyWhenInvalidSchema,
-		},
-		{
-			Name: "extract instructions: prompt enriched actions",
-			Func: ExtractInstructionsPromptEnrichedActions,
-		},
-		{
-			Name: "run instruction action: fail on mutual exclusive scripts origin",
-			Func: RunInstructionActionFailOnMutualExclusiveScriptPaths,
-		},
-		{
-			Name: "run instruction action: fail on missing script to run",
-			Func: RunInstructionActionFailOnMissingScriptToExec,
-		},
-		{
-			Name: "run instruction action: fail to execute action",
-			Func: RunInstructionActionFailToExecuteAction,
-		},
-		{
-			Name: "run instruction action: fail to execute verbose action",
-			Func: RunInstructionActionFailToExecuteVerboseAction,
-		},
-		{
-			Name: "run instruction action: run action with verbose from flag",
-			Func: RunInstructionActionRunActionWithVerboseFromFlag,
-		},
-		{
-			Name: "run instruction action: run action with forced verbose from schema",
-			Func: RunInstructionActionRunActionWithForcedVerboseFromSchema,
-		},
-		{
-			Name: "run instruction action: run action interactive",
-			Func: RunInstructionActionRunActionInteractive,
-		},
-		{
-			Name: "action exec interactive: fail to exec script",
-			Func: ActionExecInteractiveFailToExecScript,
-		},
-		{
-			Name: "action exec interactive: exec script successfully",
-			Func: ActionExecInteractiveExecScriptSuccessfully,
-		},
-		{
-			Name: "action exec interactive: fail to exec script file",
-			Func: ActionExecInteractiveFailToExecScriptFile,
-		},
-		{
-			Name: "action exec interactive: exec script file successfully",
-			Func: ActionExecInteractiveExecScriptFileSuccessfully,
-		},
-		{
-			Name: "action exec interactive: no op when nothing to exec",
-			Func: ActionExecInteractiveNoOpWhenNothingToExec,
-		},
-		{
-			Name: "action exec verbose: fail to exec script",
-			Func: ActionExecVerboseFailToExecScript,
-		},
-		{
-			Name: "action exec verbose: exec script successfully",
-			Func: ActionExecVerboseExecScriptSuccessfully,
-		},
-		{
-			Name: "action exec verbose: fail to exec script file",
-			Func: ActionExecVerboseFailToExecScriptFile,
-		},
-		{
-			Name: "action exec verbose: exec script file successfully",
-			Func: ActionExecVerboseExecScriptFileSuccessfully,
-		},
-		{
-			Name: "action exec verbose: no op when nothing to exec",
-			Func: ActionExecVerboseNoOpWhenNothingToExec,
 		},
 		{
 			Name: "instruction action exec flow: fail to ask before running",
@@ -288,14 +207,6 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: InstructionWorkflowExecRunSuccessfully,
 		},
 		{
-			Name: "run instruction workflow: fail to run actions",
-			Func: RunInstructionWorkflowFailToRunActions,
-		},
-		{
-			Name: "run instruction workflow: run actions successfully",
-			Func: RunInstructionWorkflowRunActionsSuccessfully,
-		},
-		{
 			Name: "manage prompt error: missing inner go error",
 			Func: ManagePromptErrorMissingInnerGoError,
 		},
@@ -324,10 +235,6 @@ func Test_SelectActionShould(t *testing.T) {
 			Func: ExtractArgsFromScriptFile,
 		},
 		{
-			Name: "fill instructions globals with defaults if missing from schema",
-			Func: FillInstructionsGlobalsWithDefaultsIfMissingFromSchema,
-		},
-		{
 			Name: "resolve instructions action context successfully",
 			Func: ResolveInstructionActionContextSuccessfully,
 		},
@@ -342,7 +249,14 @@ func Test_SelectActionShould(t *testing.T) {
 var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			runnerPrepareCallCount := 0
+			fakeRunner.PrepareFunc = func(o *runner.ActionRunnerOrchestrator, ctx common.Context) error {
+				runnerPrepareCallCount++
+				return nil
+			}
+			fakeO := NewOrchestrator(fakeRunner, cmdFolderName)
 			bannerCallCount := 0
 			fakeO.bannerFunc = func(o *selectOrchestrator) {
 				bannerCallCount++
@@ -359,6 +273,7 @@ var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 			}
 			err := DynamicSelect(ctx, fakeO)
 			assert.Nil(t, err, "expected not to fail anchor folder item status")
+			assert.Equal(t, 1, runnerPrepareCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, bannerCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, prepareCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, runCallCount, "expected func to be called exactly once")
@@ -369,7 +284,9 @@ var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 var StartTheSelectionFlowWhenRunIsCalled = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			startFolderItemSelectionCallCount := 0
 			fakeO.startFolderItemsSelectionFlowFunc = func(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
 				startFolderItemSelectionCallCount++
@@ -389,7 +306,9 @@ var PrintBanner = func(t *testing.T) {
 		printBannerCallCount++
 	}
 
-	fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+	cmdFolderName := stubs.CommandFolder1Name
+	fakeRunner := runner.NewOrchestrator(cmdFolderName)
+	fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 	fakeO.prntr = fakePrinter
 	fakeO.bannerFunc(fakeO)
 	assert.Equal(t, 1, printBannerCallCount, "expected func to be called exactly once")
@@ -408,26 +327,20 @@ var PrepareRegistryComponents = func(t *testing.T) {
 		fakePrinter := printer.CreateFakePrinter()
 		reg.Set(printer.Identifier, fakePrinter)
 
-		fakeExtractor := extractor.CreateFakeExtractor()
-		reg.Set(extractor.Identifier, fakeExtractor)
-
-		fakeParser := parser.CreateFakeParser()
-		reg.Set(parser.Identifier, fakeParser)
-
 		fakeShell := shell.CreateFakeShell()
 		reg.Set(shell.Identifier, fakeShell)
 
 		fakeInput := input.CreateFakeUserInput()
 		reg.Set(input.Identifier, fakeInput)
 
-		fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+		cmdFolderName := stubs.CommandFolder1Name
+		fakeRunner := runner.NewOrchestrator(cmdFolderName)
+		fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 		err := fakeO.prepareFunc(fakeO, ctx)
 
 		assert.Nil(t, err)
 		assert.NotNil(t, fakeO.l)
 		assert.NotNil(t, fakeO.prmpt)
-		assert.NotNil(t, fakeO.e)
-		assert.NotNil(t, fakeO.prsr)
 		assert.NotNil(t, fakeO.prntr)
 		assert.NotNil(t, fakeO.s)
 		assert.NotNil(t, fakeO.in)
@@ -441,12 +354,12 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 		fakeLocator := locator.CreateFakeLocator()
 		fakePrompter := prompter.CreateFakePrompter()
 		fakePrinter := printer.CreateFakePrinter()
-		fakeExtractor := extractor.CreateFakeExtractor()
-		fakeParser := parser.CreateFakeParser()
 		fakeShell := shell.CreateFakeShell()
 		fakeInput := input.CreateFakeUserInput()
 
-		fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+		cmdFolderName := stubs.CommandFolder1Name
+		fakeRunner := runner.NewOrchestrator(cmdFolderName)
+		fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 
 		err := fakeO.prepareFunc(fakeO, ctx)
 		assert.NotNil(t, err)
@@ -457,16 +370,6 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", prompter.Identifier))
 		reg.Set(prompter.Identifier, fakePrompter)
-
-		err = fakeO.prepareFunc(fakeO, ctx)
-		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", extractor.Identifier))
-		reg.Set(extractor.Identifier, fakeExtractor)
-
-		err = fakeO.prepareFunc(fakeO, ctx)
-		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", parser.Identifier))
-		reg.Set(parser.Identifier, fakeParser)
 
 		err = fakeO.prepareFunc(fakeO, ctx)
 		assert.NotNil(t, err)
@@ -491,7 +394,12 @@ var FailResolvingRegistryComponents = func(t *testing.T) {
 var FailPreparingRegistryItems = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeRunner.PrepareFunc = func(o *runner.ActionRunnerOrchestrator, ctx common.Context) error {
+				return nil
+			}
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			prepareRegistryItemsCallCount := 0
 			fakeO.prepareFunc = func(o *selectOrchestrator, ctx common.Context) error {
 				prepareRegistryItemsCallCount++
@@ -508,7 +416,12 @@ var FailPreparingRegistryItems = func(t *testing.T) {
 var FailToRunSelectionForDynamicCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeRunner.PrepareFunc = func(o *runner.ActionRunnerOrchestrator, ctx common.Context) error {
+				return nil
+			}
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			prepareRegistryItemsCallCount := 0
 			fakeO.prepareFunc = func(o *selectOrchestrator, ctx common.Context) error {
 				prepareRegistryItemsCallCount++
@@ -533,14 +446,16 @@ var FailToRunSelectionForDynamicCommand = func(t *testing.T) {
 	})
 }
 
-var AnchorFolderItemSelectionCancelSelectionSuccessfully = func(t *testing.T) {
+var CommandFolderItemSelectionCancelSelectionSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
+			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
 				promptCallCount++
-				return &models.AnchorFolderItemInfo{
+				return &models.CommandFolderItemInfo{
 					Name: prompter.CancelActionName,
 				}, nil
 			}
@@ -551,12 +466,14 @@ var AnchorFolderItemSelectionCancelSelectionSuccessfully = func(t *testing.T) {
 	})
 }
 
-var AnchorFolderItemSelectionFailToPrompt = func(t *testing.T) {
+var CommandFolderItemSelectionFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
+			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
 				promptCallCount++
 				return nil, errors.NewPromptError(fmt.Errorf("failed to prompt"))
 			}
@@ -568,15 +485,17 @@ var AnchorFolderItemSelectionFailToPrompt = func(t *testing.T) {
 	})
 }
 
-var AnchorFolderItemSelectionFailToExtractInstructions = func(t *testing.T) {
+var CommandFolderItemSelectionFailToExtractInstructions = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
+			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
 				promptCallCount++
 				if promptCallCount == 1 {
 					return item1, nil
@@ -587,12 +506,12 @@ var AnchorFolderItemSelectionFailToExtractInstructions = func(t *testing.T) {
 			}
 
 			extractorCallCount := 0
-			fakeO.extractInstructionsFunc = func(
-				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+			fakeRunner.ExtractInstructionsFunc = func(
+				o *runner.ActionRunnerOrchestrator,
+				commandFolderItem *models.CommandFolderItemInfo,
 				anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
 				extractorCallCount++
-				assert.Equal(t, anchorFolderItem.InstructionsPath, item1.InstructionsPath)
+				assert.Equal(t, commandFolderItem.InstructionsPath, item1.InstructionsPath)
 				return nil, errors.NewPromptError(fmt.Errorf("failed to extract instructions"))
 			}
 
@@ -613,16 +532,18 @@ var AnchorFolderItemSelectionFailToExtractInstructions = func(t *testing.T) {
 	})
 }
 
-var AnchorFolderItemSelectionGoBackFromInstructionActionSelection = func(t *testing.T) {
+var CommandFolderItemSelectionGoBackFromInstructionActionSelection = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
+			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
 				promptCallCount++
 				if promptCallCount == 1 {
 					return item1, nil
@@ -633,9 +554,9 @@ var AnchorFolderItemSelectionGoBackFromInstructionActionSelection = func(t *test
 			}
 
 			extractorCallCount := 0
-			fakeO.extractInstructionsFunc = func(
-				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+			fakeRunner.ExtractInstructionsFunc = func(
+				o *runner.ActionRunnerOrchestrator,
+				commandFolderItem *models.CommandFolderItemInfo,
 				anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
 				extractorCallCount++
 				return instRootTestData, nil
@@ -644,7 +565,7 @@ var AnchorFolderItemSelectionGoBackFromInstructionActionSelection = func(t *test
 			instActionSelectionCallCount := 0
 			fakeO.startInstructionActionSelectionFlowFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError) {
 				instActionSelectionCallCount++
 				return &models.Action{
@@ -662,16 +583,18 @@ var AnchorFolderItemSelectionGoBackFromInstructionActionSelection = func(t *test
 	})
 }
 
-var AnchorFolderItemSelectionInstructionActionSelectionMissingError = func(t *testing.T) {
+var CommandFolderItemSelectionInstructionActionSelectionMissingError = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
+			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
 				promptCallCount++
 				if promptCallCount == 1 {
 					return item1, nil
@@ -682,9 +605,9 @@ var AnchorFolderItemSelectionInstructionActionSelectionMissingError = func(t *te
 			}
 
 			extractorCallCount := 0
-			fakeO.extractInstructionsFunc = func(
-				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+			fakeRunner.ExtractInstructionsFunc = func(
+				o *runner.ActionRunnerOrchestrator,
+				commandFolderItem *models.CommandFolderItemInfo,
 				anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
 				extractorCallCount++
 				return instRootTestData, nil
@@ -693,7 +616,7 @@ var AnchorFolderItemSelectionInstructionActionSelectionMissingError = func(t *te
 			instActionSelectionCallCount := 0
 			fakeO.startInstructionActionSelectionFlowFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError) {
 				instActionSelectionCallCount++
 				return nil, errors.NewInstructionMissingError(fmt.Errorf("missing instruction"))
@@ -709,38 +632,40 @@ var AnchorFolderItemSelectionInstructionActionSelectionMissingError = func(t *te
 	})
 }
 
-var AnchorFolderItemSelectionCompleteSuccessfully = func(t *testing.T) {
+var CommandFolderItemSelectionCompleteSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.AnchorFolderItemInfo, *errors.PromptError) {
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
+			fakeO.promptFolderItemsSelectionFunc = func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
 				promptCallCount++
 				return item1, nil
 			}
 
 			extractorCallCount := 0
-			fakeO.extractInstructionsFunc = func(
-				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+			fakeRunner.ExtractInstructionsFunc = func(
+				o *runner.ActionRunnerOrchestrator,
+				commandFolderItem *models.CommandFolderItemInfo,
 				anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
 				extractorCallCount++
-				assert.Equal(t, item1, anchorFolderItem)
+				assert.Equal(t, item1, commandFolderItem)
 				return instRootTestData, nil
 			}
 
 			instActionSelectionCallCount := 0
 			fakeO.startInstructionActionSelectionFlowFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				instructionRoot *models.InstructionsRoot) (*models.Action, *errors.PromptError) {
 				instActionSelectionCallCount++
-				assert.Equal(t, item1, anchorFolderItem)
-				return stubs.GetInstructionActionById(instructionRoot.Instructions, stubs.AnchorFolder1Item1Action1Id), nil
+				assert.Equal(t, item1, commandFolderItem)
+				return stubs.GetInstructionActionById(instructionRoot.Instructions, stubs.CommandFolder1Item1Action1Id), nil
 			}
 
 			err := fakeO.startFolderItemsSelectionFlowFunc(fakeO, ctx.AnchorFilesPath())
@@ -752,26 +677,28 @@ var AnchorFolderItemSelectionCompleteSuccessfully = func(t *testing.T) {
 	})
 }
 
-var AnchorFolderItemPromptFailToPrompt = func(t *testing.T) {
+var CommandFolderItemPromptFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
 
 			fakeLocator := locator.CreateFakeLocator()
-			locateAnchorFolderItemsCallCount := 0
-			fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
-				locateAnchorFolderItemsCallCount++
+			locateCommandFolderItemsCallCount := 0
+			fakeLocator.CommandFolderItemsMock = func(commandFolderName string) []*models.CommandFolderItemInfo {
+				locateCommandFolderItemsCallCount++
 				return items
 			}
 
 			promptCallCount := 0
 			fakePrompter := prompter.CreateFakePrompter()
-			fakePrompter.PromptAnchorFolderItemSelectionMock = func(appsArr []*models.AnchorFolderItemInfo) (*models.AnchorFolderItemInfo, error) {
+			fakePrompter.PromptCommandFolderItemSelectionMock = func(appsArr []*models.CommandFolderItemInfo) (*models.CommandFolderItemInfo, error) {
 				promptCallCount++
 				return nil, fmt.Errorf("failed to prompt for items")
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.l = fakeLocator
 			fakeO.prmpt = fakePrompter
 
@@ -779,40 +706,42 @@ var AnchorFolderItemPromptFailToPrompt = func(t *testing.T) {
 			assert.Nil(t, result)
 			assert.NotNil(t, err, "expected prompt to fail")
 			assert.Equal(t, "failed to prompt for items", err.GoError().Error())
-			assert.Equal(t, 1, locateAnchorFolderItemsCallCount)
+			assert.Equal(t, 1, locateCommandFolderItemsCallCount)
 			assert.Equal(t, 1, promptCallCount)
 		})
 	})
 }
 
-var AnchorFolderItemPromptPromptSuccessfully = func(t *testing.T) {
+var CommandFolderItemPromptPromptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 
 			fakeLocator := locator.CreateFakeLocator()
-			locateAnchorFolderItemsCallCount := 0
-			fakeLocator.AnchorFolderItemsMock = func(parentFolderName string) []*models.AnchorFolderItemInfo {
-				locateAnchorFolderItemsCallCount++
+			locateCommandFolderItemsCallCount := 0
+			fakeLocator.CommandFolderItemsMock = func(commandFolderName string) []*models.CommandFolderItemInfo {
+				locateCommandFolderItemsCallCount++
 				return items
 			}
 
 			promptCallCount := 0
 			fakePrompter := prompter.CreateFakePrompter()
-			fakePrompter.PromptAnchorFolderItemSelectionMock = func(appsArr []*models.AnchorFolderItemInfo) (*models.AnchorFolderItemInfo, error) {
+			fakePrompter.PromptCommandFolderItemSelectionMock = func(appsArr []*models.CommandFolderItemInfo) (*models.CommandFolderItemInfo, error) {
 				promptCallCount++
 				return item1, nil
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.l = fakeLocator
 			fakeO.prmpt = fakePrompter
 
 			result, err := fakeO.promptFolderItemsSelectionFunc(fakeO)
 			assert.Nil(t, err, "expected prompt to succeed")
 			assert.NotNil(t, result, "expected prompt response")
-			assert.Equal(t, 1, locateAnchorFolderItemsCallCount)
+			assert.Equal(t, 1, locateCommandFolderItemsCallCount)
 			assert.Equal(t, 1, promptCallCount)
 			assert.Equal(t, item1, result)
 		})
@@ -831,7 +760,9 @@ var ExecWrapFailToPressAnyKey = func(t *testing.T) {
 			fakePrinter := printer.CreateFakePrinter()
 			fakePrinter.PrintEmptyLinesMock = func(count int) {}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.in = fakeInput
 			fakeO.prntr = fakePrinter
 
@@ -861,7 +792,9 @@ var ExecWrapFailToClearScreen = func(t *testing.T) {
 			fakePrinter := printer.CreateFakePrinter()
 			fakePrinter.PrintEmptyLinesMock = func(count int) {}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.in = fakeInput
 			fakeO.s = fakeShell
 			fakeO.prntr = fakePrinter
@@ -893,7 +826,9 @@ var ExecWrapWrapUpSuccessfully = func(t *testing.T) {
 			fakePrinter := printer.CreateFakePrinter()
 			fakePrinter.PrintEmptyLinesMock = func(count int) {}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.in = fakeInput
 			fakeO.s = fakeShell
 			fakeO.prntr = fakePrinter
@@ -909,15 +844,17 @@ var ExecWrapWrapUpSuccessfully = func(t *testing.T) {
 var InstructionActionSelectionFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.promptInstructionActionSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				actions []*models.Action) (*models.Action, *errors.PromptError) {
 				promptCallCount++
 				return nil, errors.NewInterruptError(fmt.Errorf("failed to prompt"))
@@ -935,15 +872,17 @@ var InstructionActionSelectionFailToPrompt = func(t *testing.T) {
 var InstructionActionSelectionGoBack = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.promptInstructionActionSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				actions []*models.Action) (*models.Action, *errors.PromptError) {
 				promptCallCount++
 				return &models.Action{
@@ -963,15 +902,17 @@ var InstructionActionSelectionGoBack = func(t *testing.T) {
 var InstructionActionSelectionFailWorkflowSelection = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			promptCallCount := 0
 			fakeO.promptInstructionActionSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				actions []*models.Action) (*models.Action, *errors.PromptError) {
 				promptCallCount++
 				return &models.Action{
@@ -982,7 +923,7 @@ var InstructionActionSelectionFailWorkflowSelection = func(t *testing.T) {
 			workflowSelectionCallCount := 0
 			fakeO.startInstructionWorkflowSelectionFlowFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				globals *models.Globals,
 				workflows []*models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
@@ -1003,17 +944,19 @@ var InstructionActionSelectionFailWorkflowSelection = func(t *testing.T) {
 var InstructionActionSelectionSucceedWorkflowSelection = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			promptCallCount := 0
 			fakeO.promptInstructionActionSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				actions []*models.Action) (*models.Action, *errors.PromptError) {
-				assert.Equal(t, item1, anchorFolderItem)
+				assert.Equal(t, item1, commandFolderItem)
 				promptCallCount++
 				if promptCallCount == 1 {
 					return &models.Action{
@@ -1029,12 +972,12 @@ var InstructionActionSelectionSucceedWorkflowSelection = func(t *testing.T) {
 			workflowSelectionCallCount := 0
 			fakeO.startInstructionWorkflowSelectionFlowFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				globals *models.Globals,
 				workflows []*models.Workflow,
 				actions []*models.Action) (*models.Workflow, *errors.PromptError) {
 				workflowSelectionCallCount++
-				assert.Equal(t, item1, anchorFolderItem)
+				assert.Equal(t, item1, commandFolderItem)
 				return nil, nil
 			}
 
@@ -1051,18 +994,20 @@ var InstructionActionSelectionSucceedWorkflowSelection = func(t *testing.T) {
 var InstructionActionSelectionFailActionExecution = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			promptCallCount := 0
 			fakeO.promptInstructionActionSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				actions []*models.Action) (*models.Action, *errors.PromptError) {
-				assert.Equal(t, item1, anchorFolderItem)
+				assert.Equal(t, item1, commandFolderItem)
 				promptCallCount++
 				return action1, nil
 			}
@@ -1090,18 +1035,20 @@ var InstructionActionSelectionFailActionExecution = func(t *testing.T) {
 var InstructionActionSelectionSucceedActionExecution = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			promptCallCount := 0
 			fakeO.promptInstructionActionSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				actions []*models.Action) (*models.Action, *errors.PromptError) {
-				assert.Equal(t, item1, anchorFolderItem)
+				assert.Equal(t, item1, commandFolderItem)
 				promptCallCount++
 				if promptCallCount == 1 {
 					return action1, nil
@@ -1135,8 +1082,8 @@ var InstructionActionSelectionSucceedActionExecution = func(t *testing.T) {
 var InstructionActionPromptFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
@@ -1146,7 +1093,9 @@ var InstructionActionPromptFailToPrompt = func(t *testing.T) {
 				return nil, fmt.Errorf("failed to prompt for instruction actions")
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.prmpt = fakePrompter
 
 			result, err := fakeO.promptInstructionActionSelectionFunc(fakeO, item1, instRootTestData.Instructions.Actions)
@@ -1161,10 +1110,10 @@ var InstructionActionPromptFailToPrompt = func(t *testing.T) {
 var InstructionActionPromptPromptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			promptCallCount := 0
 			fakePrompter := prompter.CreateFakePrompter()
@@ -1173,7 +1122,9 @@ var InstructionActionPromptPromptSuccessfully = func(t *testing.T) {
 				return action1, nil
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.prmpt = fakePrompter
 
 			result, err := fakeO.promptInstructionActionSelectionFunc(fakeO, item1, instRootTestData.Instructions.Actions)
@@ -1185,673 +1136,15 @@ var InstructionActionPromptPromptSuccessfully = func(t *testing.T) {
 	})
 }
 
-var ExtractInstructionsFailWhenMissing = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
-
-			extractInstructionsCallCount := 0
-			fakeExtractor := extractor.CreateFakeExtractor()
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-				extractInstructionsCallCount++
-				return nil, fmt.Errorf("failed to extract instructions")
-			}
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.e = fakeExtractor
-
-			result, err := fakeO.extractInstructionsFunc(fakeO, item1, ctx.AnchorFilesPath())
-			assert.Nil(t, result)
-			assert.NotNil(t, err, "expected instructions extraction to fail")
-			assert.Equal(t, errors.InstructionMissingError, err.Code())
-			assert.Equal(t, 1, extractInstructionsCallCount)
-		})
-	})
-}
-
-var ExtractInstructionsPromptEmptyWhenInvalidSchema = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
-
-			extractInstructionsCallCount := 0
-			fakeExtractor := extractor.CreateFakeExtractor()
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-				extractInstructionsCallCount++
-				assert.Equal(t, item1.InstructionsPath, instructionsPath)
-				return nil, nil
-			}
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.e = fakeExtractor
-
-			result, err := fakeO.extractInstructionsFunc(fakeO, item1, ctx.AnchorFilesPath())
-			assert.NotNil(t, result)
-			assert.Nil(t, err, "expected instructions extraction to succeed")
-			assert.Equal(t, 1, extractInstructionsCallCount)
-			assert.Equal(t, models.EmptyInstructionsRoot(), result)
-		})
-	})
-}
-
-var ExtractInstructionsPromptEnrichedActions = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			with.HarnessAnchorfilesTestRepo(ctx)
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
-			instRootTestData := stubs.GenerateInstructionsTestData()
-
-			extractInstructionsCallCount := 0
-			fakeExtractor := extractor.CreateFakeExtractor()
-			fakeExtractor.ExtractInstructionsMock = func(instructionsPath string, p parser.Parser) (*models.InstructionsRoot, error) {
-				extractInstructionsCallCount++
-				assert.Equal(t, item1.InstructionsPath, instructionsPath)
-				return instRootTestData, nil
-			}
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.e = fakeExtractor
-
-			result, err := fakeO.extractInstructionsFunc(fakeO, item1, ctx.AnchorFilesPath())
-			assert.NotNil(t, result)
-			assert.Nil(t, err, "expected instructions extraction to succeed")
-			assert.Equal(t, 1, extractInstructionsCallCount)
-			assert.Contains(t, ctx.AnchorFilesPath(), result.Instructions.Actions[0].AnchorfilesRepoPath)
-			assert.Contains(t, ctx.AnchorFilesPath(), result.Instructions.Actions[1].AnchorfilesRepoPath)
-		})
-	})
-}
-
-var RunInstructionActionFailOnMutualExclusiveScriptPaths = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			action1.Script = "some script"
-			action1.ScriptFile = "/path/to/script"
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
-			assert.NotNil(t, err, "expected instructions execution to fail")
-			assert.Contains(t, err.GoError().Error(), "script / scriptFile are mutual exclusive")
-		})
-	})
-}
-
-var RunInstructionActionFailOnMissingScriptToExec = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-
-			action1.Script = ""
-			action1.ScriptFile = ""
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
-			assert.NotNil(t, err, "expected instructions execution to fail")
-			assert.Contains(t, err.GoError().Error(), "missing script or scriptFile")
-		})
-	})
-}
-
-var RunInstructionActionFailToExecuteAction = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verboseFlag = true
-
-			execActionVerboseCallCount := 0
-			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
-				execActionVerboseCallCount++
-				return errors.NewPromptError(fmt.Errorf("failed to execute action"))
-			}
-
-			action1.Script = "some script"
-			action1.ScriptFile = ""
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
-			assert.NotNil(t, err, "expected instructions execution to fail")
-			assert.Contains(t, err.GoError().Error(), "failed to execute action")
-			assert.Equal(t, 1, execActionVerboseCallCount)
-		})
-	})
-}
-
-var RunInstructionActionFailToExecuteVerboseAction = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verboseFlag = false
-
-			execActionCallCount := 0
-			fakeO.executeInstructionActionFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
-				execActionCallCount++
-				return errors.NewPromptError(fmt.Errorf("failed to execute action"))
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = "/path/to/script"
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
-			assert.NotNil(t, err, "expected instructions execution to fail")
-			assert.Contains(t, err.GoError().Error(), "failed to execute action")
-			assert.Equal(t, 1, execActionCallCount, "expected func to be called exactly once")
-		})
-	})
-}
-
-var RunInstructionActionRunActionWithVerboseFromFlag = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verboseFlag = true
-			execActionVerboseCallCount := 0
-			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
-				execActionVerboseCallCount++
-				return nil
-			}
-
-			action1.Script = "some script with verbose from flag"
-			action1.ScriptFile = ""
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
-			assert.Nil(t, err)
-			assert.Equal(t, 1, execActionVerboseCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var RunInstructionActionRunActionWithForcedVerboseFromSchema = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			action1.ShowOutput = true
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verboseFlag = false
-			execActionVerboseCallCount := 0
-			fakeO.executeInstructionActionVerboseFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
-				execActionVerboseCallCount++
-				return nil
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = "some script with forced verbose from schema"
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
-			assert.Nil(t, err)
-			assert.Equal(t, 1, execActionVerboseCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var RunInstructionActionRunActionInteractive = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verboseFlag = false
-			execActionCallCount := 0
-			fakeO.executeInstructionActionFunc = func(o *selectOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
-				execActionCallCount++
-				return nil
-			}
-			action1.Script = "some script"
-			action1.ScriptFile = ""
-			err := fakeO.runInstructionActionFunc(fakeO, action1)
-			assert.Nil(t, err)
-			assert.Equal(t, 1, execActionCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecInteractiveFailToExecScript = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakeSpinner := printer.CreateFakePrinterSpinner()
-			spinCallCount := 0
-			fakeSpinner.SpinMock = func() {
-				spinCallCount++
-			}
-
-			stopOnFailureCallCount := 0
-			fakeSpinner.StopOnFailureMock = func(err error) {
-				stopOnFailureCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
-				return fakeSpinner
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteSilentlyWithOutputToFileMock = func(script string, outputFilePath string) error {
-				execCallCount++
-				assert.Equal(t, "some script", script)
-				return fmt.Errorf("fail to execute")
-			}
-
-			action1.Script = "some script"
-			action1.ScriptFile = ""
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionAction(fakeO, action1, "")
-			assert.NotNil(t, err)
-			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecInteractiveExecScriptSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakeSpinner := printer.CreateFakePrinterSpinner()
-			spinCallCount := 0
-			fakeSpinner.SpinMock = func() {
-				spinCallCount++
-			}
-
-			stopOnSuccessCallCount := 0
-			fakeSpinner.StopOnSuccessMock = func() {
-				stopOnSuccessCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
-				return fakeSpinner
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteSilentlyWithOutputToFileMock = func(script string, outputFilePath string) error {
-				execCallCount++
-				assert.Equal(t, "some script", script)
-				return nil
-			}
-
-			action1.Script = "some script"
-			action1.ScriptFile = ""
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionAction(fakeO, action1, "")
-			assert.Nil(t, err)
-			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecInteractiveFailToExecScriptFile = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakeSpinner := printer.CreateFakePrinterSpinner()
-			spinCallCount := 0
-			fakeSpinner.SpinMock = func() {
-				spinCallCount++
-			}
-
-			stopOnFailureCallCount := 0
-			fakeSpinner.StopOnFailureMock = func(err error) {
-				stopOnFailureCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
-				return fakeSpinner
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
-				execCallCount++
-				assert.Equal(t, "/path/to/script", relativeScriptPath)
-				return fmt.Errorf("fail to execute")
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = "/path/to/script"
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionAction(fakeO, action1, "")
-			assert.NotNil(t, err, "expected  to fail")
-			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecInteractiveExecScriptFileSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakeSpinner := printer.CreateFakePrinterSpinner()
-			spinCallCount := 0
-			fakeSpinner.SpinMock = func() {
-				spinCallCount++
-			}
-
-			stopOnSuccessCallCount := 0
-			fakeSpinner.StopOnSuccessMock = func() {
-				stopOnSuccessCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
-				return fakeSpinner
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
-				execCallCount++
-				assert.Equal(t, "/path/to/script", relativeScriptPath)
-				return nil
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = "/path/to/script"
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionAction(fakeO, action1, "")
-			assert.Nil(t, err)
-			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecInteractiveNoOpWhenNothingToExec = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
-			fakeSpinner := printer.CreateFakePrinterSpinner()
-			spinCallCount := 0
-			fakeSpinner.SpinMock = func() {
-				spinCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionSpinnerMock = func(actionId string, scriptOutputPath string) printer.PrinterSpinner {
-				return fakeSpinner
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = ""
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionAction(fakeO, action1, "")
-			assert.Nil(t, err)
-			assert.Equal(t, 0, spinCallCount, "expected no calls to be made")
-		})
-	})
-}
-
-var ActionExecVerboseFailToExecScript = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakePlainer := printer.CreateFakePrinterPlainer()
-			startCallCount := 0
-			fakePlainer.StartMock = func() {
-				startCallCount++
-			}
-
-			stopOnFailureCallCount := 0
-			fakePlainer.StopOnFailureMock = func(err error) {
-				stopOnFailureCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
-				return fakePlainer
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteWithOutputToFileMock = func(script string, outputFilePath string) error {
-				execCallCount++
-				assert.Equal(t, "some script", script)
-				return fmt.Errorf("fail to execute")
-			}
-
-			action1.Script = "some script"
-			action1.ScriptFile = ""
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.verboseFlag = true
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionActionVerbose(fakeO, action1, "")
-			assert.NotNil(t, err)
-			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecVerboseExecScriptSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakePlainer := printer.CreateFakePrinterPlainer()
-			startCallCount := 0
-			fakePlainer.StartMock = func() {
-				startCallCount++
-			}
-
-			stopOnSuccessCallCount := 0
-			fakePlainer.StopOnSuccessMock = func() {
-				stopOnSuccessCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
-				return fakePlainer
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteWithOutputToFileMock = func(script string, outputFilePath string) error {
-				execCallCount++
-				assert.Equal(t, "some script", script)
-				return nil
-			}
-
-			action1.Script = "some script"
-			action1.ScriptFile = ""
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionActionVerbose(fakeO, action1, "")
-			assert.Nil(t, err)
-			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecVerboseFailToExecScriptFile = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakePlainer := printer.CreateFakePrinterPlainer()
-			startCallCount := 0
-			fakePlainer.StartMock = func() {
-				startCallCount++
-			}
-
-			stopOnFailureCallCount := 0
-			fakePlainer.StopOnFailureMock = func(err error) {
-				stopOnFailureCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
-				return fakePlainer
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
-				execCallCount++
-				assert.Equal(t, "/path/to/script", relativeScriptPath)
-				return fmt.Errorf("fail to execute")
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = "/path/to/script"
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionActionVerbose(fakeO, action1, "")
-			assert.NotNil(t, err, "expected  to fail")
-			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecVerboseExecScriptFileSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-			fakeShell := shell.CreateFakeShell()
-
-			fakePlainer := printer.CreateFakePrinterPlainer()
-			startCallCount := 0
-			fakePlainer.StartMock = func() {
-				startCallCount++
-			}
-
-			stopOnSuccessCallCount := 0
-			fakePlainer.StopOnSuccessMock = func() {
-				stopOnSuccessCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
-				return fakePlainer
-			}
-
-			execCallCount := 0
-			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
-				execCallCount++
-				assert.Equal(t, "/path/to/script", relativeScriptPath)
-				return nil
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = "/path/to/script"
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.s = fakeShell
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionActionVerbose(fakeO, action1, "")
-			assert.Nil(t, err)
-			assert.Equal(t, 1, startCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
-			assert.Equal(t, 1, stopOnSuccessCallCount, "expected to be called exactly once")
-		})
-	})
-}
-
-var ActionExecVerboseNoOpWhenNothingToExec = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
-
-			fakePlainer := printer.CreateFakePrinterPlainer()
-			startCallCount := 0
-			fakePlainer.StartMock = func() {
-				startCallCount++
-			}
-
-			fakePrinter := printer.CreateFakePrinter()
-			fakePrinter.PrepareRunActionPlainerMock = func(actionId string) printer.PrinterPlainer {
-				return fakePlainer
-			}
-
-			action1.Script = ""
-			action1.ScriptFile = ""
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			fakeO.prntr = fakePrinter
-
-			err := executeInstructionActionVerbose(fakeO, action1, "")
-			assert.Nil(t, err)
-			assert.Equal(t, 0, startCallCount, "expected no calls to be made")
-		})
-	})
-}
-
 var InstructionActionExecFailToAskBeforeRunning = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
@@ -1871,9 +1164,11 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
@@ -1881,7 +1176,7 @@ var InstructionActionExecFailToRun = func(t *testing.T) {
 			}
 
 			runInstructionCallCount := 0
-			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
+			fakeRunner.RunInstructionActionFunc = func(o *runner.ActionRunnerOrchestrator, action *models.Action) *errors.PromptError {
 				runInstructionCallCount++
 				// Schema error should not fail the selection flow
 				return errors.NewSchemaError(fmt.Errorf("failed to run instruction"))
@@ -1915,9 +1210,11 @@ var InstructionActionExecFailToWrapAfterRun = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
@@ -1925,7 +1222,7 @@ var InstructionActionExecFailToWrapAfterRun = func(t *testing.T) {
 			}
 
 			runInstructionCallCount := 0
-			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
+			fakeRunner.RunInstructionActionFunc = func(o *runner.ActionRunnerOrchestrator, action *models.Action) *errors.PromptError {
 				runInstructionCallCount++
 				return nil
 			}
@@ -1951,9 +1248,11 @@ var InstructionActionExecRunSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionActionFunc = func(o *selectOrchestrator, globals *models.Globals, action *models.Action) (bool, *errors.PromptError) {
 				askBeforeCallCount++
@@ -1961,7 +1260,7 @@ var InstructionActionExecRunSuccessfully = func(t *testing.T) {
 			}
 
 			runInstructionCallCount := 0
-			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
+			fakeRunner.RunInstructionActionFunc = func(o *runner.ActionRunnerOrchestrator, action *models.Action) *errors.PromptError {
 				runInstructionCallCount++
 				return nil
 			}
@@ -1987,9 +1286,11 @@ var InstructionActionExecFailToAskYesNoQuestion = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
 			askYesNoCallCount := 0
 			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
@@ -2011,11 +1312,13 @@ var InstructionActionExecAskYesNoQuestionForApplicationContext = func(t *testing
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			action1.Context = models.ApplicationContext
 			globals := models.EmptyGlobals()
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
 			askYesNoCallCount := 0
 			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
@@ -2036,7 +1339,7 @@ var InstructionActionExecAskYesNoQuestionForKubernetesContext = func(t *testing.
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			action1.Context = models.KubernetesContext
 			globals := models.EmptyGlobals()
 
@@ -2047,7 +1350,9 @@ var InstructionActionExecAskYesNoQuestionForKubernetesContext = func(t *testing.
 				return "", nil
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
 			askYesNoCallCount := 0
 			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
@@ -2069,15 +1374,17 @@ var InstructionActionExecAskYesNoQuestionForKubernetesContext = func(t *testing.
 var InstructionWorkflowSelectionFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.promptInstructionWorkflowSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				workflows []*models.Workflow) (*models.Workflow, *errors.PromptError) {
 				promptCallCount++
 				return nil, errors.NewInterruptError(fmt.Errorf("failed to prompt"))
@@ -2099,15 +1406,17 @@ var InstructionWorkflowSelectionFailToPrompt = func(t *testing.T) {
 var InstructionWorkflowSelectionGoBack = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.promptInstructionWorkflowSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				workflows []*models.Workflow) (*models.Workflow, *errors.PromptError) {
 				promptCallCount++
 				return &models.Workflow{
@@ -2131,15 +1440,17 @@ var InstructionWorkflowSelectionGoBack = func(t *testing.T) {
 var InstructionWorkflowSelectionFailWorkflowExecution = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			promptCallCount := 0
 			fakeO.promptInstructionWorkflowSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				workflows []*models.Workflow) (*models.Workflow, *errors.PromptError) {
 				promptCallCount++
 				return &models.Workflow{
@@ -2174,19 +1485,21 @@ var InstructionWorkflowSelectionFailWorkflowExecution = func(t *testing.T) {
 var InstructionWorkflowSelectionSucceedWorkflowExecution = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			promptCallCount := 0
 			fakeO.promptInstructionWorkflowSelectionFunc = func(
 				o *selectOrchestrator,
-				anchorFolderItem *models.AnchorFolderItemInfo,
+				commandFolderItem *models.CommandFolderItemInfo,
 				workflows []*models.Workflow) (*models.Workflow, *errors.PromptError) {
 
-				assert.Equal(t, item1, anchorFolderItem)
+				assert.Equal(t, item1, commandFolderItem)
 				promptCallCount++
 				if promptCallCount == 1 {
 					return app1Workflow1, nil
@@ -2226,9 +1539,11 @@ var InstructionWorkflowExecFailToAskYesNoQuestion = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
 			askYesNoCallCount := 0
 			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
@@ -2250,11 +1565,13 @@ var InstructionWorkflowExecAskYesNoQuestionForApplicationContext = func(t *testi
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 			globals := models.EmptyGlobals()
 			app1Workflow1.Context = models.ApplicationContext
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
 			askYesNoCallCount := 0
 			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
@@ -2275,7 +1592,7 @@ var InstructionWorkflowExecAskYesNoQuestionForKubernetesContext = func(t *testin
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 			globals := models.EmptyGlobals()
 			app1Workflow1.Context = models.KubernetesContext
 
@@ -2286,7 +1603,9 @@ var InstructionWorkflowExecAskYesNoQuestionForKubernetesContext = func(t *testin
 				return "", nil
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeInput := input.CreateFakeUserInput()
 			askYesNoCallCount := 0
 			fakeInput.AskYesNoQuestionMock = func(question string) (bool, error) {
@@ -2308,8 +1627,8 @@ var InstructionWorkflowExecAskYesNoQuestionForKubernetesContext = func(t *testin
 var InstructionWorkflowPromptFailToPrompt = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
 
 			promptCallCount := 0
@@ -2319,7 +1638,9 @@ var InstructionWorkflowPromptFailToPrompt = func(t *testing.T) {
 				return nil, fmt.Errorf("failed to prompt for instruction workflow")
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.prmpt = fakePrompter
 
 			result, err := fakeO.promptInstructionWorkflowSelectionFunc(fakeO, item1, instRootTestData.Instructions.Workflows)
@@ -2334,10 +1655,10 @@ var InstructionWorkflowPromptFailToPrompt = func(t *testing.T) {
 var InstructionWorkflowPromptPromptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
-			items := stubs.GenerateAnchorFolderItemsInfoTestData()
-			item1 := stubs.GetAnchorFolderItemByName(items, stubs.AnchorFolder1Item1Name)
+			items := stubs.GenerateCommandFolderItemsInfoTestData()
+			item1 := stubs.GetCommandFolderItemByName(items, stubs.CommandFolder1Item1Name)
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
 			promptCallCount := 0
 			fakePrompter := prompter.CreateFakePrompter()
@@ -2346,7 +1667,9 @@ var InstructionWorkflowPromptPromptSuccessfully = func(t *testing.T) {
 				return app1Workflow1, nil
 			}
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			fakeO.prmpt = fakePrompter
 
 			result, err := fakeO.promptInstructionWorkflowSelectionFunc(fakeO, item1, instRootTestData.Instructions.Workflows)
@@ -2362,9 +1685,11 @@ var InstructionWorkflowExecFailToAskBeforeRunning = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
@@ -2388,9 +1713,11 @@ var InstructionWorkflowExecTolerateRunFailures = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
@@ -2402,8 +1729,8 @@ var InstructionWorkflowExecTolerateRunFailures = func(t *testing.T) {
 			}
 
 			runInstructionCallCount := 0
-			fakeO.runInstructionWorkflowFunc = func(
-				o *selectOrchestrator,
+			fakeRunner.RunInstructionWorkflowFunc = func(
+				o *runner.ActionRunnerOrchestrator,
 				workflow *models.Workflow,
 				actions []*models.Action) *errors.PromptError {
 
@@ -2431,9 +1758,11 @@ var InstructionWorkflowExecFailToWrapAfterRun = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
@@ -2445,8 +1774,8 @@ var InstructionWorkflowExecFailToWrapAfterRun = func(t *testing.T) {
 			}
 
 			runInstructionCallCount := 0
-			fakeO.runInstructionWorkflowFunc = func(
-				o *selectOrchestrator,
+			fakeRunner.RunInstructionWorkflowFunc = func(
+				o *runner.ActionRunnerOrchestrator,
 				workflow *models.Workflow,
 				actions []*models.Action) *errors.PromptError {
 
@@ -2475,9 +1804,11 @@ var InstructionWorkflowExecRunSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
+			cmdFolderName := stubs.CommandFolder1Name
+			fakeRunner := runner.NewOrchestrator(cmdFolderName)
+			fakeO := NewOrchestrator(fakeRunner, stubs.CommandFolder1Name)
 			askBeforeCallCount := 0
 			fakeO.askBeforeRunningInstructionWorkflowFunc = func(
 				o *selectOrchestrator,
@@ -2489,8 +1820,8 @@ var InstructionWorkflowExecRunSuccessfully = func(t *testing.T) {
 			}
 
 			runInstructionCallCount := 0
-			fakeO.runInstructionWorkflowFunc = func(
-				o *selectOrchestrator,
+			fakeRunner.RunInstructionWorkflowFunc = func(
+				o *runner.ActionRunnerOrchestrator,
 				workflow *models.Workflow,
 				actions []*models.Action) *errors.PromptError {
 
@@ -2511,49 +1842,6 @@ var InstructionWorkflowExecRunSuccessfully = func(t *testing.T) {
 			assert.Equal(t, 1, runInstructionCallCount, "expected func to be called exactly once")
 			assert.Equal(t, 1, wrapAfterExecCallCount, "expected func to be called exactly once")
 			assert.Equal(t, result, app1Workflow1)
-		})
-	})
-}
-
-var RunInstructionWorkflowFailToRunActions = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			runInstActionCallCount := 0
-			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
-				runInstActionCallCount++
-				return errors.NewPromptError(fmt.Errorf("failed to run action"))
-			}
-
-			err := fakeO.runInstructionWorkflowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
-			assert.NotNil(t, err)
-			assert.Equal(t, "failed to run action", err.GoError().Error())
-			assert.Equal(t, 1, runInstActionCallCount, "expected func to be called exactly once")
-		})
-	})
-}
-
-var RunInstructionWorkflowRunActionsSuccessfully = func(t *testing.T) {
-	with.Context(func(ctx common.Context) {
-		with.Logging(ctx, t, func(logger logger.Logger) {
-			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
-
-			fakeO := NewOrchestrator(stubs.AnchorFolder1Name)
-			runInstActionCallCount := 0
-			fakeO.runInstructionActionFunc = func(o *selectOrchestrator, action *models.Action) *errors.PromptError {
-				runInstActionCallCount++
-				act := stubs.GetInstructionActionById(instRootTestData.Instructions, action.Id)
-				assert.NotNil(t, act, "expected action to exist")
-				return nil
-			}
-
-			err := fakeO.runInstructionWorkflowFunc(fakeO, app1Workflow1, instRootTestData.Instructions.Actions)
-			assert.Nil(t, err)
-			assert.Equal(t, 2, runInstActionCallCount, "expected func to be called the amount of actions")
 		})
 	})
 }
@@ -2625,16 +1913,9 @@ var ExtractArgsFromScriptFile = func(t *testing.T) {
 	assert.Equal(t, "--deploy", args[1])
 }
 
-var FillInstructionsGlobalsWithDefaultsIfMissingFromSchema = func(t *testing.T) {
-	instRootTestData := stubs.GenerateInstructionsTestData()
-	fillInstructionGlobals(instRootTestData)
-	assert.NotNil(t, instRootTestData.Globals, "expected non nil globals object")
-	assert.Empty(t, instRootTestData.Globals, "expected empty globals object")
-}
-
 var ResolveInstructionActionContextSuccessfully = func(t *testing.T) {
 	instRootTestData := stubs.GenerateInstructionsTestData()
-	action := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Action1Id)
+	action := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 	globals := models.EmptyGlobals()
 
 	globals.Context = models.KubernetesContext
@@ -2655,7 +1936,7 @@ var ResolveInstructionActionContextSuccessfully = func(t *testing.T) {
 
 var ResolveInstructionWorkflowContextSuccessfully = func(t *testing.T) {
 	instRootTestData := stubs.GenerateInstructionsTestData()
-	workflow := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.AnchorFolder1Item1Workflow1Id)
+	workflow := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 	globals := models.EmptyGlobals()
 
 	globals.Context = models.KubernetesContext

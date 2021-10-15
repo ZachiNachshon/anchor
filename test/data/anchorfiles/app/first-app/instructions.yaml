@@ -17,11 +17,11 @@ instructions:
 
     - id: goodbye-world
       title: "Goodbye World"
-      scriptFile: app/first-app/sub-folder/goodbye_world.sh
+      scriptFile: app/first-app/sub-folder/goodbye_world.sh ${PWD} ${ANY_CUSTOM_ENV_VAR}
 
     - id: global-hello-world
       title: "Global Hello World"
-      scriptFile: k8s/scripts/global_hello_world.sh
+      scriptFile: k8s/scripts/global_hello_world.sh ${USER_NAME}
 
   workflows:
     - id: talk-to-the-world

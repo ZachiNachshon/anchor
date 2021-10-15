@@ -16,8 +16,9 @@ const (
 type Printer interface {
 	PrintAnchorBanner()
 	PrintAnchorVersion(version string)
-	PrintAnchorFolderItemStatus(anchorFolderItemsStatus []*AnchorFolderItemStatusTemplate)
+	PrintCommandFolderItemStatus(commandFolderItemsStatus []*CommandFolderItemStatusTemplate)
 	PrintConfiguration(cfgFilePath string, cfgText string)
+	PrintMissingCommand(name string)
 	PrintMissingInstructions()
 	PrintEmptyLines(count int)
 	PrintSuccess(message string)
@@ -64,9 +65,9 @@ func (p *printerImpl) PrintAnchorVersion(version string) {
 	fmt.Println(version)
 }
 
-func (p *printerImpl) PrintAnchorFolderItemStatus(appsStatus []*AnchorFolderItemStatusTemplate) {
+func (p *printerImpl) PrintCommandFolderItemStatus(appsStatus []*CommandFolderItemStatusTemplate) {
 	data := struct {
-		AppsStatusItems []*AnchorFolderItemStatusTemplate
+		AppsStatusItems []*CommandFolderItemStatusTemplate
 		Count           int
 	}{
 		appsStatus,
@@ -89,6 +90,10 @@ func (p *printerImpl) PrintConfiguration(cfgFilePath string, cfgText string) {
 	} else {
 		fmt.Print(text)
 	}
+}
+
+func (p *printerImpl) PrintMissingCommand(name string) {
+	fmt.Printf("%sCannot identify dynamic command: %s%s\n\n", colors.Red, name, colors.Reset)
 }
 
 func (p *printerImpl) PrintMissingInstructions() {

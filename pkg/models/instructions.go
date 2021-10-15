@@ -37,6 +37,7 @@ func GetInstructionWorkflowById(workflows []*Workflow, id string) *Workflow {
 
 type InstructionsRoot struct {
 	Globals      *Globals      `yaml:"globals"`
+	Name         string        `yaml:"name"`
 	Instructions *Instructions `yaml:"instructions"`
 }
 

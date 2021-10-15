@@ -21,7 +21,7 @@ var DynamicStatus = func(ctx common.Context, o *statusOrchestrator) error {
 }
 
 type statusOrchestrator struct {
-	parentFolderName string
+	commandFolderName string
 
 	l                 locator.Locator
 	e                 extractor.Extractor
@@ -36,9 +36,9 @@ type statusOrchestrator struct {
 	runFunc     func(o *statusOrchestrator, ctx common.Context) error
 }
 
-func NewOrchestrator(parentFolderName string) *statusOrchestrator {
+func NewOrchestrator(commandFolderName string) *statusOrchestrator {
 	return &statusOrchestrator{
-		parentFolderName: parentFolderName,
+		commandFolderName: commandFolderName,
 
 		// --- CLI Command ---
 		bannerFunc:  banner,
@@ -80,28 +80,32 @@ func banner(o *statusOrchestrator) {
 }
 
 func run(o *statusOrchestrator, ctx common.Context) error {
-	var anchorFolderStatus []*printer.AnchorFolderItemStatusTemplate
-	for _, anchorFolderItem := range o.l.AnchorFolderItems(o.parentFolderName) {
-		status := &printer.AnchorFolderItemStatusTemplate{
-			Name: anchorFolderItem.Name,
+	var commandFolderItemsStatus []*printer.CommandFolderItemStatusTemplate
+	for _, commandFolderItem := range o.l.CommandFolderItems(o.commandFolderName) {
+		status := &printer.CommandFolderItemStatusTemplate{
+			// use the folder name as the default name, overwrite if name attribute is used explicitly
+			Name: commandFolderItem.Name,
 		}
 
-		if !ioutils.IsValidPath(anchorFolderItem.InstructionsPath) {
+		if !ioutils.IsValidPath(commandFolderItem.InstructionsPath) {
 			status.MissingInstructionFile = true
 		} else {
-			inst, err := o.e.ExtractInstructions(anchorFolderItem.InstructionsPath, o.prsr)
+			inst, err := o.e.ExtractInstructions(commandFolderItem.InstructionsPath, o.prsr)
 			status.InvalidInstructionFormat = inst == nil || err != nil
+			//if inst != nil && len(inst.Name) > 0 {
+			//	status.Name = inst.Name
+			//}
 		}
 
-		isValid := status.CalculateValidity()
+		isValid := status.CheckValidity()
 		if isValid && o.validStatusOnly ||
 			!isValid && o.invalidStatusOnly ||
 			!o.validStatusOnly && !o.invalidStatusOnly {
 
-			anchorFolderStatus = append(anchorFolderStatus, status)
+			commandFolderItemsStatus = append(commandFolderItemsStatus, status)
 		}
 	}
 
-	o.prntr.PrintAnchorFolderItemStatus(anchorFolderStatus)
+	o.prntr.PrintCommandFolderItemStatus(commandFolderItemsStatus)
 	return nil
 }

@@ -15,7 +15,7 @@ var folderItemPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
 {{ "Information:" | blue }}
 
 {{ "Name:" | faint }}	{{ .Name }}
-{{ "Overview:" | faint }}	{{ .DirPath }}
+{{ "Description:" | faint }}	{{ .Description }}
 {{ else }}
 Exit Application
 {{ end }}`, CancelActionName)
