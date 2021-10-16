@@ -1,17 +1,17 @@
 <h3 align="center" id="anchor-logo"><img src="assets/anchor-logo.png" height="300"></h3>
 
 <p align="center">
-  <a href="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor/pivot">
-    <img src="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor/pivot" alt="Go Version"/>
+  <a href="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor/master">
+    <img src="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor/master" alt="Go Version"/>
   </a>
-  <a href="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=pivot">
-    <img src="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=pivot" alt="GitHub CI status"/>
+  <a href="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=master">
+    <img src="https://github.com/ZachiNachshon/anchor/actions/workflows/ci.yaml/badge.svg?branch=master" alt="GitHub CI status"/>
   </a>
   <a href="https://goreportcard.com/badge/ZachiNachshon/anchor">
     <img src="https://goreportcard.com/badge/ZachiNachshon/anchor" alt="Go Report Card"/>
   </a>
-  <a href="https://coveralls.io/repos/github/ZachiNachshon/anchor/badge.svg?branch=pivot">
-    <img src="https://coveralls.io/repos/github/ZachiNachshon/anchor/badge.svg?branch=pivot" alt="Go Coverage"/>
+  <a href="https://coveralls.io/repos/github/ZachiNachshon/anchor/badge.svg?branch=master">
+    <img src="https://coveralls.io/repos/github/ZachiNachshon/anchor/badge.svg?branch=master" alt="Go Coverage"/>
   </a>
   <a href="https://github.com/ZachiNachshon/anchor/releases">
     <img src="https://img.shields.io/github/v/release/ZachiNachshon/anchor?include_prereleases&style=flat-square" alt="Go Releases"/>
