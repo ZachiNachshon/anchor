@@ -4,9 +4,10 @@
 - [Add a Dynamic Command](#add-command)
   - [Folder Structure](#command-folder-structure)
   - [The `command.yaml` file](#command-file)
-- [List Dynamic Commands Items](#status)
+- [Add Dynamic Commands Items](#status)
   - [Folder Structure](#items-folder-structure)
   - [The `instructions.yaml` file](#instructions-file)
+  - [Contextual Instruction](#contextual-instruction)
 - [Add a New Command Action](#add-action)
   - [Attributes](#action-attributes)
   - [YAML Structure](#action-structure)
@@ -56,11 +57,10 @@ For example, let's create a domain category for Kubernetes deployed applications
 The `my-k8s-apps` folder should have a `command.yaml` file which contains the schema of a dynamically generated CLI command:
 
 ```yaml
-type: application
 name: k8s-application
 description: "K8s applications available to install on the Ops team cluster"
 command:
-  use: app
+  use: k8s-app
   short: "Kubernetes Application"
 ```
 
@@ -70,9 +70,9 @@ command:
 
 <br>
 
-<h3 id="status">List Dynamic Commands Items</h3>
+<h3 id="status">Add Dynamic Commands Items</h3>
 
-Dynamic command items are being defined via an `instructions.yaml` file, it contains a set of instructions of what is available for that specific domain item and how to interact with it.
+Dynamic command items are being defined via an `instructions.yaml` file, it contains a set of instructions of what is available for that specific command item and how to interact with it.
 
 <h4 id="items-folder-structure">Folder Structure</h4>
 
@@ -92,7 +92,7 @@ Dynamic command items are being defined via an `instructions.yaml` file, it cont
 
 <h4 id="command-file">The <code>instructions.yaml</code> file</h4>
 
-The structure of a single domain item instruction file is of the following:
+The structure of a single command item instruction file is of the following:
 
 ```yaml
 instructions:
@@ -102,10 +102,10 @@ instructions:
     ...
 ```
 
-To list all available domain items of a single dynamic command, we can issue a pre-defined `status` sub-command to print its comprising items:
+To list all available command items of a single dynamic command, we can issue a pre-defined `status` sub-command to print its comprising items:
 
 ```bash
-anchor app status
+anchor k8s-app status
 ```
 
 <details><summary>Show Dynamic CLI Command Items</summary>
@@ -114,7 +114,42 @@ anchor app status
 
 | :bulb: Note                                                  |
 | :----------------------------------------------------------- |
-| The `instructions.yaml` file support environment variables substitution that takes place before the file is being processed. Use the env vars as in a regular scripts i.e. `$PWD`, `$YOUR_ENV_VAR` etc... |
+| The `instructions.yaml` file support environment variables substitution, use the env vars as in a regular scripts i.e. `$PWD`, `$YOUR_ENV_VAR` etc... |
+
+<br>
+
+<h4 id="contextual-instruction">Contextual Instructions</h4>
+
+Every `instruction.yaml` file have an option to define a unified global context for all its comprising actions / workflows, these affects the pre execution flow with custom prompt messages.
+
+```yaml
+globals:
+  context: <context-in-here>
+  
+instructions:
+  actions:
+    ...
+  workflows:
+    ...
+```
+
+Available contexts:
+
+- `application`:  prints basic prompt message before action is executed
+  
+   <details><summary>Show Context Prompter: Application</summary>
+      <img style="vertical-align: top;" src="../assets/images/dynamic/anchor-context-app.png" height="200" >
+   </details>
+   
+- `kubernetes`: prints Kubernetes *current context* information before action is executed
+  
+   <details><summary>Show Context Prompter: Kubernetes</summary>
+      <img style="vertical-align: top;" src="../assets/images/dynamic/anchor-context-k8s.png" height="300" >
+   </details>
+
+| :bulb: Note                                                  |
+| :----------------------------------------------------------- |
+| If an action / workspace overrides the `context` attribute and it differs from the global one then the overridden context will be the one in use. |
 
 <br>
 
@@ -163,13 +198,12 @@ instructions:
 To run the action interactively based on previous examples, run the following CLI command:
 
 ```bash
-anchor app select
+anchor k8s-app select
 ```
 
 <details><summary>Show Interactive Action Selector</summary>
 <img style="vertical-align: top;" src="../assets/images/dynamic/anchor-select-app-hello.png" height="400" >
 </details>
-
 <br>
 
 <h3 id="add-workflow">Create a Workflow (Action-Set)</h3>
@@ -224,7 +258,7 @@ instructions:
 To run the workflow interactively based on previous examples, run the following CLI command and select `workflows...` from the selector menu:
 
 ```bash
-anchor app select
+anchor k8s-app select
 ```
 
 <details><summary>Show Interactive Workflow Selector</summary>
@@ -267,22 +301,37 @@ The folder structure should be as follows:
 We will interact with `anchor` using the following command to start the interactive selector:
 
 ```bash
-anchor app select
+anchor k8s-app select
 ```
 
-<details><summary>Show Application Selector Example</summary>
+<details><summary>Show Command Items Selector Example</summary>
 <img style="vertical-align: top;" src="../assets/images/dynamic/anchor-select-app.png" height="400" >
 </details>
 
-<details><summary>Show Application Actions Selector Example</summary>
+<details><summary>Show Command Item Actions Selector Example</summary>
 <img style="vertical-align: top;" src="../assets/images/dynamic/anchor-install-app-docker-registry.png" height="400" >
 </details>
-
 <br>
 
 <h3 id="run">Interact with <code>anchor</code> Non-Interactively</h3>
 
-// TBD...
+There is an alternative to the interactive `select` command for cases that needs to avoid input prompter, such as CI systems.
+
+To run an action / workflow directly via CLI command, use the following format:
+
+```bash
+// Run an action
+anchor <command-name> run <command-item-name> --action=<action-id>
+
+// Run a workflow
+anchor <command-name> run <command-item-name> --workflow=<workflow-id>
+```
+
+***Important:** action and workflow are mutuallly exclusive, only one of them can be used every run* 
+
+| :bulb: Note                                                  |
+| :----------------------------------------------------------- |
+| For convenience, the interactive `select` flow also suggest the alternative `run` command printed on the `Information` section. |
 
 <br>
 

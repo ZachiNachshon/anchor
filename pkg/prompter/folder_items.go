@@ -34,7 +34,7 @@ func prepareFolderItemsTemplate() *promptui.SelectTemplates {
 		Active:   selectorEmoji + " {{ .Name | cyan }}",
 		Inactive: "  {{ .Name | cyan }}",
 		Selected: selectorEmoji + " {{ .Name | red | cyan }}",
-		Details:  folderItemPromptTemplateDetails,
+		Details:  commandItemPromptTemplateDetails,
 	}
 }
 

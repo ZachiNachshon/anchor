@@ -1,3 +1,5 @@
+
+
 <h1 id="create-anchorfiles" align="center">Create a Marketplace Repository<br><br></h1>
 
 - [Repository Structure](#structure)
@@ -15,8 +17,8 @@ This is an example template of a marketplace respository:
 
    ```bash
    ├── ...
-   ├── <domain-category-folder>                   
-   │   └── <domain-item-folder>               
+   ├── <command-folder>                   
+   │   └── <command-folder-item>               
    │       ├── instructions.yaml
    │       ├── <additional-files-and-folders>
    │       └── ...       
@@ -35,18 +37,18 @@ This file represent a dynamicly created CLI command, every folder containing the
 Use the following format to create a dynamic marketplace command:
 
 ```yaml
-type: application
-name: <domain-category-name>
+name: <command-name>
+description: <command-long-description>
 command:
-  use: <command-usage>
-  short: <command-description>
+  use: <command-cli-usage>
+  short: <command-cli-short-description>
 ```
 
 Example:
 
 ```yaml
-type: application
 name: cli-utilities
+decription: "Ops utilities for managing a local/CI environment" 
 command:
   use: cli
   short: "Ops Team CLI Utilities"
@@ -64,9 +66,9 @@ command:
 
 <h3 id="instruction">The <code>instruction.yaml</code> file</h3>
 
-This file purpose is declaring which actions / workflows are avaiable for a specific domain item and how one should interact with it. The `instructions.yaml` file is a list of actions / workflows that gets picked up by *anchor* scan once the domain category CLI command is being selected.
+This file purpose is declaring which actions / workflows are avaiable for a specific command folder item and how one should interact with it. The `instructions.yaml` file is a list of actions / workflows that gets picked up by *anchor* CLI scan once a command folder is being selected.
 
-Use the following format to declare a set of instructions for a specific domain item:
+Use the following format to declare a set of instructions for a command folder item:
 
 ```yaml
 instructions:
@@ -74,7 +76,7 @@ instructions:
     - id: do-something-special
       title: "Do something special"
       description: "Execute internal script with --hello flag"
-      scriptfile: <domain-category-folder>/scripts/do_something.sh --hello
+      scriptfile: <command-folder>/scripts/do_something.sh --hello=${USER_NAME}
       
     - id: greet-user
       title: "Greet user"

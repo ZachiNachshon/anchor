@@ -11,7 +11,7 @@ instructions:
         echo "World"
         sleep 2
       showOutput: true
-      context: kubernetes
+#      context: kubernetes
     #      context: application
     #      scriptFile: app/first-app/sub-folder/hello_world.sh
 

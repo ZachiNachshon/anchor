@@ -51,8 +51,8 @@ type locatorImpl struct {
 
 	initialized                    atomics.AtomicBool
 	commandFoldersInfoMap          map[string]*models.CommandFolderInfo
-	longestcommandFolderNameLength int
-	longestcommandItemNameLength   int
+	longestCommandFolderNameLength int
+	longestCommandItemNameLength   int
 }
 
 func newCommandFolderItem(name string, dirPath string) *models.CommandFolderItemInfo {
@@ -143,16 +143,16 @@ func (l *locatorImpl) appendCommandFolderItem(commandFolder *models.CommandFolde
 }
 
 // Longest anchor folder name is Used for prompter left padding
-func (l *locatorImpl) setLongestcommandFolderName(name string) {
-	if l.longestcommandFolderNameLength < len(name) {
-		l.longestcommandFolderNameLength = len(name)
+func (l *locatorImpl) setLongestCommandFolderName(name string) {
+	if l.longestCommandFolderNameLength < len(name) {
+		l.longestCommandFolderNameLength = len(name)
 	}
 }
 
 // Longest anchor folder item name is Used for prompter left padding
-func (l *locatorImpl) setLongestcommandItemName(name string) {
-	if l.longestcommandItemNameLength < len(name) {
-		l.longestcommandItemNameLength = len(name)
+func (l *locatorImpl) setLongestCommandItemName(name string) {
+	if l.longestCommandItemNameLength < len(name) {
+		l.longestCommandItemNameLength = len(name)
 	}
 }
 
@@ -211,7 +211,7 @@ func tryResolveCommandFolder(l *locatorImpl, dirPath string, name string, e extr
 			return nil
 		} else if commandFolder != nil {
 			l.appendCommandFolder(commandFolder)
-			l.setLongestcommandFolderName(name)
+			l.setLongestCommandFolderName(name)
 			return commandFolder
 		}
 	}
@@ -258,7 +258,7 @@ func tryResolveCommandFolderItems(l *locatorImpl, dirPath string, name string) *
 		logger.Debugf("Locate anchor folder item. name: %s", name)
 		// Avoid unmarshalling instructions since it should be executed upon selection
 		commandFolderItem := newCommandFolderItem(name, dirPath)
-		l.setLongestcommandItemName(name)
+		l.setLongestCommandItemName(name)
 		return commandFolderItem
 	}
 	return nil

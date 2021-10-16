@@ -36,11 +36,11 @@
 </p>
 <br>
 
-**Anchor** is a lightweight CLI tool that grants the **dynamic marketplace** experience for local / CI environment by connecting to single/multiple remote repositories, each represents a different marketplace of items, each with its own executable actions.
+**Anchor** is a lightweight CLI tool that grants the **dynamic marketplace** experience for local / CI environment by connecting to single/multiple remote repositories, each represents a different marketplace of domain, each with its own executable actions.
 
 Every marketplace repository allows Anchor to **centralize and organize** a set of domain items into their own categories, every domain containing a list of executable single **action** and/or grouped actions (**workflows**) per item in a coherent, visible and easy-to-use approach. 
 
-**Anchor** connects to remote git repositories containing an opinionated structure that allows it to understand what is available, exposing pre-defined **categories** as a dynamicly created CLI commands with their underlying domain items as **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation**.
+**Anchor** connects to remote git repositories containing an opinionated structure that allows it to understand what is available, exposing pre-defined **categories** as a dynamicly created CLI commands with their underlying domain items as **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation** or in a **non-interactive** mode via direct CLI command.
 
 | :heavy_exclamation_mark: WARNING |
 | :--------------------------------------- |
@@ -111,34 +111,46 @@ To quickly get started follow these steps:
    <img style="vertical-align: top;" src="assets/images/anchor-yaml-commands-example.png" height="500" >
    </details>
 
-1. Define actions / workflows for every dynamic CLI command using an ***instructions.yaml*** file
+1. Define actions / workflows for every dynamic CLI command item using an ***instructions.yaml*** file
 
    <details><summary>Show</summary>
    <img style="vertical-align: top;" src="assets/images/anchor-instructions-example.png" height="700" >
    </details>
 
-1. Set the remote marketplace in anchor ***config.yaml*** file
+1. Use the remote marketplace in anchor ***config.yaml*** file
 
    <details><summary>Show</summary>
    <img style="vertical-align: top;" src="assets/images/anchor-config.png" width="500" >
    </details>
 
-1. Select the dynamically created `anchor` CLI command to use
+1. Run `anchor` and select the dynamically created CLI command(s) to use
 
    <details><summary>Show</summary>
    <img style="vertical-align: top;" src="assets/images/anchor-cli-commands-example.png" width="500" >
    </details>
 
-1. Select a domain item and an action to execute interactively
+1. Select a command item and an action / workflow to execute interactively
 
-   <details><summary>Show Domain Item Selection</summary>
+   <details><summary>Show Command Item Selection</summary>
    <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
    </details>
 
-   <details><summary>Show Domain Item Action Selection</summary>
+   <details><summary>Show Command Item Action Selection</summary>
    <img style="vertical-align: top;" src="assets/images/dynamic/anchor-install-app-docker-registry.png" width="500" >
    </details>
 
+1. Alternatively, run a command item action / workflow non-interactively
+
+   <details><summary>Show Complete Run Command</summary>
+   <p>
+   
+   ```bash
+   anchor app run docker-registry --action=install-docker-registry
+   ```
+   
+   </p>
+   </details>
+   
    | :bulb: Note |
    | :--------------------------------------- |
    | This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>Detailed guide can be found on the [create a marketplace repository](docs/create-anchorfiles.md) section. |
