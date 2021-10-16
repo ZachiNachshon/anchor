@@ -16,15 +16,16 @@ builds:
     main: ./cmd/anchor/main.go
 
 archives:
-  - replacements:
+  -
+    replacements:
       darwin: Darwin
       linux: Linux
       windows: Windows
       386: i386
       amd64: x86_64
-      files:
-        - README.md
-        - LICENSE
+    files:
+      - README.md
+      - LICENSE
 
 checksum:
   name_template: 'checksums.txt'
@@ -40,14 +41,24 @@ changelog:
       - '^docs:'
       - '^test:'
 
+release:
+  github:
+    owner: ZachiNachshon
+    name: anchor
+
 brews:
   - name: "{{ .ProjectName }}"
     tap:
       owner: ZachiNachshon
       name: homebrew-tap
+
     folder: Formula
+    url_template: "https://github.com/ZachiNachshon/{{ .ProjectName }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+
+    homepage: "https://ZachiNachshon.github.io/{{ .ProjectName }}/"
     description: Dynamic versioned controlled remote marketplace for local / CI environments
     license: MIT
+
     test: |
       system "#{bin}/{{ .ProjectName }} --version"
     dependencies:
