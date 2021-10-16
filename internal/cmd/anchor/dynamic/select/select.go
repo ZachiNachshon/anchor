@@ -52,9 +52,9 @@ type selectOrchestrator struct {
 	runFunc     func(o *selectOrchestrator, ctx common.Context) *errors.PromptError
 
 	// --- Folder Items ---
-	startFolderItemsSelectionFlowFunc func(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError
-	promptFolderItemsSelectionFunc    func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError)
-	wrapAfterExecutionFunc            func(o *selectOrchestrator) *errors.PromptError
+	startCommandItemsSelectionFlowFunc func(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError
+	promptCommandItemsSelectionFunc    func(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError)
+	wrapAfterExecutionFunc             func(o *selectOrchestrator) *errors.PromptError
 
 	// --- Action ---
 	startInstructionActionSelectionFlowFunc func(
@@ -114,9 +114,9 @@ func NewOrchestrator(runner *runner.ActionRunnerOrchestrator, commandFolderName 
 		runFunc:     run,
 
 		// --- Anchor Folder Item ---
-		startFolderItemsSelectionFlowFunc: startFolderItemsSelectionFlow,
-		promptFolderItemsSelectionFunc:    promptFolderItemsSelection,
-		wrapAfterExecutionFunc:            wrapAfterExecution,
+		startCommandItemsSelectionFlowFunc: startCommandItemsSelectionFlow,
+		promptCommandItemsSelectionFunc:    promptCommandItemsSelection,
+		wrapAfterExecutionFunc:             wrapAfterExecution,
 
 		// --- Action ---
 		startInstructionActionSelectionFlowFunc: startInstructionActionSelectionFlow,
@@ -170,11 +170,11 @@ func banner(o *selectOrchestrator) {
 }
 
 func run(o *selectOrchestrator, ctx common.Context) *errors.PromptError {
-	return o.startFolderItemsSelectionFlowFunc(o, ctx.AnchorFilesPath())
+	return o.startCommandItemsSelectionFlowFunc(o, ctx.AnchorFilesPath())
 }
 
-func startFolderItemsSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
-	if commandFolder, promptErr := o.promptFolderItemsSelectionFunc(o); promptErr != nil {
+func startCommandItemsSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
+	if commandFolder, promptErr := o.promptCommandItemsSelectionFunc(o); promptErr != nil {
 		return promptErr
 	} else if commandFolder.Name == prompter.CancelActionName {
 		return nil
@@ -183,22 +183,22 @@ func startFolderItemsSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath st
 		if promptError != nil {
 			o.prntr.PrintMissingInstructions()
 			_ = o.wrapAfterExecutionFunc(o)
-			return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
+			return o.startCommandItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 		}
 
 		if instructionItem, promptErr := o.startInstructionActionSelectionFlowFunc(o, commandFolder, instRoot); promptErr != nil {
 			if promptErr.Code() == errors.InstructionMissingError {
-				return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
+				return o.startCommandItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 			}
 			return promptErr
 		} else if instructionItem.Id == prompter.BackActionName {
-			return o.startFolderItemsSelectionFlowFunc(o, anchorfilesRepoPath)
+			return o.startCommandItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 		}
 		return nil
 	}
 }
 
-func promptFolderItemsSelection(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
+func promptCommandItemsSelection(o *selectOrchestrator) (*models.CommandFolderItemInfo, *errors.PromptError) {
 	folderItems := o.l.CommandFolderItems(o.commandFolderName)
 	if app, err := o.prmpt.PromptCommandFolderItemSelection(folderItems); err != nil {
 		return nil, errors.NewPromptError(err)
@@ -396,7 +396,7 @@ func managePromptError(promptErr *errors.PromptError) error {
 func appendInstructionActionsCustomOptions(instructions *models.Instructions) {
 	actions := instructions.Actions
 
-	if ac := models.GetInstructionActionById(actions, prompter.BackActionName); ac != nil {
+	if ac := models.GetActionById(actions, prompter.BackActionName); ac != nil {
 		return
 	}
 
@@ -420,7 +420,7 @@ func appendInstructionActionsCustomOptions(instructions *models.Instructions) {
 func appendInstructionWorkflowsCustomOptions(instructions *models.Instructions) {
 	workflows := instructions.Workflows
 
-	if wf := models.GetInstructionWorkflowById(workflows, prompter.BackActionName); wf != nil {
+	if wf := models.GetWorkflowById(workflows, prompter.BackActionName); wf != nil {
 		return
 	}
 

@@ -20,6 +20,10 @@ import (
 func Test_RunnerShould(t *testing.T) {
 	tests := []harness.TestsHarness{
 		{
+			Name: "fail resolving registry components",
+			Func: FailResolvingRegistryComponents,
+		},
+		{
 			Name: "fill instructions globals with defaults if missing from schema",
 			Func: FillInstructionsGlobalsWithDefaultsIfMissingFromSchema,
 		},
@@ -111,8 +115,59 @@ func Test_RunnerShould(t *testing.T) {
 			Name: "run instruction workflow: run actions successfully",
 			Func: RunInstructionWorkflowRunActionsSuccessfully,
 		},
+		{
+			Name: "extract multiple args from action script file attribute",
+			Func: ExtractMultipleArgsFromActionScriptFileAttribute,
+		},
+		{
+			Name: "extract single command from action script file attribute",
+			Func: ExtractSingleCommandFromActionScriptFileAttribute,
+		},
+		{
+			Name: "enrich actions with working dir canonical path",
+			Func: EnrichActionsWithWorkingDirCanonicalPath,
+		},
 	}
 	harness.RunTests(t, tests)
+}
+
+var FailResolvingRegistryComponents = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		reg := ctx.Registry()
+		cmdFolderName := stubs.CommandFolder1Name
+		fakeO := NewOrchestrator(cmdFolderName)
+
+		err := fakeO.PrepareFunc(fakeO, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", extractor.Identifier))
+
+		fakeExtractor := extractor.CreateFakeExtractor()
+		reg.Set(extractor.Identifier, fakeExtractor)
+
+		err = fakeO.PrepareFunc(fakeO, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", parser.Identifier))
+
+		fakeParser := parser.CreateFakeParser()
+		reg.Set(parser.Identifier, fakeParser)
+
+		err = fakeO.PrepareFunc(fakeO, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", printer.Identifier))
+
+		fakePrinter := printer.CreateFakePrinter()
+		reg.Set(printer.Identifier, fakePrinter)
+
+		err = fakeO.PrepareFunc(fakeO, ctx)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), fmt.Sprintf("failed to retrieve from registry. name: %s", shell.Identifier))
+
+		fakeShell := shell.CreateFakeShell()
+		reg.Set(shell.Identifier, fakeShell)
+
+		err = fakeO.PrepareFunc(fakeO, ctx)
+		assert.Nil(t, err)
+	})
 }
 
 var FillInstructionsGlobalsWithDefaultsIfMissingFromSchema = func(t *testing.T) {
@@ -126,7 +181,7 @@ var ActionExecFailToExecScript = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakeSpinner := printer.CreateFakePrinterSpinner()
@@ -172,7 +227,7 @@ var ActionExecExecScriptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakeSpinner := printer.CreateFakePrinterSpinner()
@@ -218,7 +273,7 @@ var ActionExecFailToExecScriptFile = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakeSpinner := printer.CreateFakePrinterSpinner()
@@ -264,7 +319,7 @@ var ActionExecExecScriptFileSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakeSpinner := printer.CreateFakePrinterSpinner()
@@ -310,7 +365,7 @@ var ActionExecNoOpWhenNothingToExec = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeSpinner := printer.CreateFakePrinterSpinner()
 			spinCallCount := 0
@@ -340,7 +395,7 @@ var ActionExecVerboseFailToExecScript = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakePlainer := printer.CreateFakePrinterPlainer()
@@ -387,7 +442,7 @@ var ActionExecVerboseExecScriptSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakePlainer := printer.CreateFakePrinterPlainer()
@@ -433,7 +488,7 @@ var ActionExecVerboseFailToExecScriptFile = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakePlainer := printer.CreateFakePrinterPlainer()
@@ -479,7 +534,7 @@ var ActionExecVerboseExecScriptFileSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeShell := shell.CreateFakeShell()
 
 			fakePlainer := printer.CreateFakePrinterPlainer()
@@ -525,7 +580,7 @@ var ActionExecVerboseNoOpWhenNothingToExec = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakePlainer := printer.CreateFakePrinterPlainer()
 			startCallCount := 0
@@ -584,7 +639,7 @@ var RunInstructionActionFailOnMutualExclusiveScriptPaths = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 			action1.Script = "some script"
 			action1.ScriptFile = "/path/to/script"
@@ -599,7 +654,7 @@ var RunInstructionActionFailOnMissingScriptToExec = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 
@@ -616,7 +671,7 @@ var RunInstructionActionFailToExecuteAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 			fakeO.verboseFlag = true
@@ -641,7 +696,7 @@ var RunInstructionActionFailToExecuteVerboseAction = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 			fakeO.verboseFlag = false
@@ -666,7 +721,7 @@ var RunInstructionActionRunActionWithVerboseFromFlag = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 			fakeO.verboseFlag = true
@@ -689,7 +744,7 @@ var RunInstructionActionRunActionWithForcedVerboseFromSchema = func(t *testing.T
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			action1.ShowOutput = true
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
@@ -713,7 +768,7 @@ var RunInstructionActionRunActionInteractive = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 			fakeO.verboseFlag = false
@@ -735,7 +790,7 @@ var RunInstructionWorkflowFailToRunActions = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
+			app1Workflow1 := models.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 			runInstActionCallCount := 0
@@ -756,13 +811,13 @@ var RunInstructionWorkflowRunActionsSuccessfully = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
-			app1Workflow1 := stubs.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
+			app1Workflow1 := models.GetInstructionWorkflowById(instRootTestData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
 			runInstActionCallCount := 0
 			fakeO.RunInstructionActionFunc = func(o *ActionRunnerOrchestrator, action *models.Action) *errors.PromptError {
 				runInstActionCallCount++
-				act := stubs.GetInstructionActionById(instRootTestData.Instructions, action.Id)
+				act := models.GetInstructionActionById(instRootTestData.Instructions, action.Id)
 				assert.NotNil(t, act, "expected action to exist")
 				return nil
 			}
@@ -823,4 +878,37 @@ var ExtractInstructionsReturnEmptyOnInvalidSchema = func(t *testing.T) {
 			assert.Equal(t, models.EmptyInstructionsRoot(), result)
 		})
 	})
+}
+
+var ExtractMultipleArgsFromActionScriptFileAttribute = func(t *testing.T) {
+	scriptFile := "/path/to/script ${PWD} --custom=flag"
+	cmd, args := extractArgsFromScriptFile(scriptFile)
+	assert.NotEmpty(t, cmd)
+	assert.Equal(t, "/path/to/script", cmd)
+	assert.Len(t, args, 2)
+	assert.Equal(t, "${PWD}", args[0])
+	assert.Equal(t, "--custom=flag", args[1])
+}
+
+var ExtractSingleCommandFromActionScriptFileAttribute = func(t *testing.T) {
+	scriptFile := "/path/to/script"
+	cmd, args := extractArgsFromScriptFile(scriptFile)
+	assert.NotEmpty(t, cmd)
+	assert.Equal(t, "/path/to/script", cmd)
+	assert.Nil(t, args)
+}
+
+var EnrichActionsWithWorkingDirCanonicalPath = func(t *testing.T) {
+	anchorfilesRepoPath := "/path/to/anchorfiles/repo"
+	instData := stubs.GenerateInstructionsTestData()
+	enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath, nil)
+	for _, action := range instData.Instructions.Actions {
+		assert.Empty(t, action.AnchorfilesRepoPath)
+	}
+
+	enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath, instData.Instructions.Actions)
+	for _, action := range instData.Instructions.Actions {
+		assert.NotEmpty(t, action.AnchorfilesRepoPath)
+		assert.Equal(t, anchorfilesRepoPath, action.AnchorfilesRepoPath)
+	}
 }

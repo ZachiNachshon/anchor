@@ -86,6 +86,10 @@ func Test_RunActionShould(t *testing.T) {
 			Name: "run workflow: run instruction workflow successfully",
 			Func: RunWorkflowRunInstructionWorkflowSuccessfully,
 		},
+		{
+			Name: "no-op when active run func was not defined",
+			Func: NoOpWhenActiveRunFuncWasNotDefined,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -498,4 +502,10 @@ var RunWorkflowRunInstructionWorkflowSuccessfully = func(t *testing.T) {
 		assert.Equal(t, 1, extractInstCallCount)
 		assert.Equal(t, 1, runInstCallCount)
 	})
+}
+
+var NoOpWhenActiveRunFuncWasNotDefined = func(t *testing.T) {
+	fakeO := NewOrchestrator(nil, "", "")
+	err := fakeO.activeRunFunc(nil, nil, nil, "")
+	assert.Nil(t, err, "expected extraction to succeed")
 }

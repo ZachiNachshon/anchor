@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/ZachiNachshon/anchor/test/with"
@@ -223,7 +224,7 @@ var ActionsPromptSuccessfully = func(t *testing.T) {
 			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
 			commandFolderItems1 := stubs.GetCommandFolderItemByName(commandFolderItems, stubs.CommandFolder1Item1Name)
 			instData := stubs.GenerateInstructionsTestData()
-			action1 := stubs.GetInstructionActionById(instData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			action1 := models.GetInstructionActionById(instData.Instructions, stubs.CommandFolder1Item1Action1Id)
 			prompter := New()
 			prompter.runActionSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", nil
@@ -258,7 +259,7 @@ var WorkflowsPromptSuccessfully = func(t *testing.T) {
 			commandFolderItems := stubs.GenerateCommandFolderItemsInfoTestData()
 			commandFolderItems1 := stubs.GetCommandFolderItemByName(commandFolderItems, stubs.CommandFolder1Item1Name)
 			instData := stubs.GenerateInstructionsTestData()
-			workflow1 := stubs.GetInstructionWorkflowById(instData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
+			workflow1 := models.GetInstructionWorkflowById(instData.Instructions, stubs.CommandFolder1Item1Workflow1Id)
 			prompter := New()
 			prompter.runWorkflowSelectorFunc = func(p promptui.Select) (int, string, error) {
 				return 0, "", nil

@@ -8,7 +8,6 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
 	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
-	"github.com/ZachiNachshon/anchor/test/data/stubs"
 	"strings"
 )
 
@@ -116,8 +115,7 @@ func runAction(o *runOrchestrator, ctx common.Context, cmdFolderItem *models.Com
 	if instructionsRoot, promptError := o.runner.ExtractInstructionsFunc(o.runner, cmdFolderItem, ctx.AnchorFilesPath()); promptError != nil {
 		return promptError.GoError()
 	} else {
-		// TODO: remove from test package
-		action := stubs.GetInstructionActionById(instructionsRoot.Instructions, actionId)
+		action := models.GetInstructionActionById(instructionsRoot.Instructions, actionId)
 		if action == nil {
 			return fmt.Errorf("%sCannot identify action by id: %s%s", colors.Red, actionId, colors.Reset)
 		}
@@ -135,7 +133,7 @@ func runWorkflow(o *runOrchestrator, ctx common.Context, cmdFolderItem *models.C
 	if instructionsRoot, promptError := o.runner.ExtractInstructionsFunc(o.runner, cmdFolderItem, ctx.AnchorFilesPath()); promptError != nil {
 		return promptError.GoError()
 	} else {
-		workflow := stubs.GetInstructionWorkflowById(instructionsRoot.Instructions, workflowId)
+		workflow := models.GetInstructionWorkflowById(instructionsRoot.Instructions, workflowId)
 		if workflow == nil {
 			return fmt.Errorf("%sCannot identify workflow by id: %s%s", colors.Red, workflowId, colors.Reset)
 		}

@@ -17,7 +17,25 @@ func EmptyInstructionsRoot() *InstructionsRoot {
 	}
 }
 
-func GetInstructionActionById(actions []*Action, id string) *Action {
+func GetInstructionActionById(instructions *Instructions, actionId string) *Action {
+	for _, v := range instructions.Actions {
+		if v.Id == actionId {
+			return v
+		}
+	}
+	return nil
+}
+
+func GetInstructionWorkflowById(instructions *Instructions, workflowId string) *Workflow {
+	for _, v := range instructions.Workflows {
+		if v.Id == workflowId {
+			return v
+		}
+	}
+	return nil
+}
+
+func GetActionById(actions []*Action, id string) *Action {
 	for _, v := range actions {
 		if v.Id == id {
 			return v
@@ -26,7 +44,7 @@ func GetInstructionActionById(actions []*Action, id string) *Action {
 	return nil
 }
 
-func GetInstructionWorkflowById(workflows []*Workflow, id string) *Workflow {
+func GetWorkflowById(workflows []*Workflow, id string) *Workflow {
 	for _, v := range workflows {
 		if v.Id == id {
 			return v

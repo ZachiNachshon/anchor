@@ -116,24 +116,6 @@ func GetCommandFolderItemByName(appsArr []*models.CommandFolderItemInfo, name st
 	return nil
 }
 
-func GetInstructionActionById(instructions *models.Instructions, actionId string) *models.Action {
-	for _, v := range instructions.Actions {
-		if v.Id == actionId {
-			return v
-		}
-	}
-	return nil
-}
-
-func GetInstructionWorkflowById(instructions *models.Instructions, workflowId string) *models.Workflow {
-	for _, v := range instructions.Workflows {
-		if v.Id == workflowId {
-			return v
-		}
-	}
-	return nil
-}
-
 var commandFolder1 = func() *models.CommandFolderInfo {
 	item1 := commandFolder1Item1()
 	item2 := commandFolder1Item2()
