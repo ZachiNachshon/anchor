@@ -4,7 +4,7 @@
 - [Add a Dynamic Command](#add-command)
   - [Folder Structure](#command-folder-structure)
   - [The `command.yaml` file](#command-file)
-- [Add Dynamic Commands Items](#status)
+- [Add a Dynamic Command Item](#add-command-item)
   - [Folder Structure](#items-folder-structure)
   - [The `instructions.yaml` file](#instructions-file)
   - [Contextual Instruction](#contextual-instruction)
@@ -70,7 +70,7 @@ command:
 
 <br>
 
-<h3 id="status">Add Dynamic Commands Items</h3>
+<h3 id="add-command-item">Add a Dynamic Command Item</h3>
 
 Dynamic command items are being defined via an `instructions.yaml` file, it contains a set of instructions of what is available for that specific command item and how to interact with it.
 

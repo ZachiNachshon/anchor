@@ -4,7 +4,11 @@ GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 default: help
 
 .PHONY: build
-build: fmtcheck ## Build project, format check and install to bin folder
+build: fmtcheck ## Build project with format check
+	go build ./cmd/anchor/*.go
+
+.PHONY: build-with-binary
+build-with-binary: fmtcheck ## Build project with format check and install to bin folder
 	go build -o $(GOPATH)/bin/anchor ./cmd/anchor/*.go
 
 .PHONY: build-ci

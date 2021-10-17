@@ -3,10 +3,8 @@ package version
 import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
+	"github.com/ZachiNachshon/anchor/resources"
 )
-
-// TODO: take from versioned file
-const version = "v0.0.1"
 
 type VersionVersionFunc func(ctx common.Context, o *versionOrchestrator) error
 
@@ -42,6 +40,10 @@ func prepare(o *versionOrchestrator, ctx common.Context) error {
 }
 
 func run(o *versionOrchestrator, ctx common.Context) error {
-	o.prntr.PrintAnchorVersion(version)
-	return nil
+	if version, err := resources.VersionFile.ReadFile("version.txt"); err != nil {
+		return err
+	} else {
+		o.prntr.PrintAnchorVersion(string(version))
+		return nil
+	}
 }
