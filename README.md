@@ -57,17 +57,18 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 <h2 id="quickstart">⚡️ QuickStart</h2>
 
-1. Download and install `anchor` binary
+The fastest way (for `macOS` and `Linux`) to install `anchor` is using [Homebrew](https://brew.sh/). For additional installation methods [read here](docs/installation.md).
 
-   ```bash
-   curl -sfL https://get.anchor/install.sh | sh -
-   ```
+```bash
+# Tap to formulas repository
+brew tap ZachiNachshon/tap
 
-2. Setup config with a dynamic remote marketplace
+# Install package
+brew install anchor
 
-   ```bash
-   curl -sfL https://get.anchor/setup-config.sh | sh -
-   ```
+# Alternatively, tap and install via a single command
+brew install ZachiNachshon/tap/anchor
+```
 
 <br>
 
@@ -81,7 +82,7 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 **Maintainers / Contributors:**
 
-- [Installation](docs/installation.md)
+- [Other installation methods](docs/installation.md)
 - [Contribute guides](docs/contribute.md)
 
 <br>

@@ -5,10 +5,10 @@ default: help
 
 .PHONY: build
 build: fmtcheck ## Build project with format check
-	go build ./cmd/anchor/*.go
+	go build -o ./anchor ./cmd/anchor/*.go
 
 .PHONY: build-with-binary
-build-with-binary: fmtcheck ## Build project with format check and install to bin folder
+build-with-binary: fmtcheck ## Build project with format check and install to ${GOPATH}/bin folder
 	go build -o $(GOPATH)/bin/anchor ./cmd/anchor/*.go
 
 .PHONY: build-ci
@@ -50,7 +50,7 @@ run-tests-dockerized: ## Run tests suites dockerized
 #        -c 'cd /home/anchor; go test -v $(TEST) -json -cover'
 
 .PHONY: release
-release: fmtcheck ## Create release artifacts with format check
+release: fmtcheck ## Create release artifacts in GitHub with format check
 	@sh -c "'$(CURDIR)/scripts/release.sh'"
 
 help:

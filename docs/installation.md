@@ -1,18 +1,54 @@
 <h1 id="installation" align="center">⎈ Installation<br><br></h1>
 
+- [Pre-Built Release](#pre-built-release)
+- [Build from Source](#build-from-source)
+
 <br>
 
-**Install using binary**
+<h2 id="pre-built-release">Pre-Built Release</h2>
 
-- Download your OS and ARCH relevant binary from [releases](https://github.com/ZachiNachshon/anchor/releases), unzip and place in `/usr/bin` or `usr/local/bin` or add to `$PATH`
-
-**Install using Go**
-
-- Without source code
+1. Download and install `anchor` binary
 
    ```bash
-   ~$ go get github.com/ZachiNachshon/anchor@v0.3.0
+   curl -sfL https://get.anchor/install.sh | sh -
    ```
+
+1. Setup config with a dynamic remote marketplace
+
+   ```bash
+   curl -sfL https://get.anchor/setup-config.sh | sh -
+   ```
+
+<br>
+
+
+<h2 id="pre-built-release">Build from Source</h2>
+
+1. Clone `anchor` repository
+
+   ```bash
+   git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
+   ```
+   
+1. Build binary
+
+   ```bash
+   make build
+   ```
+   
+1. Copy binary to the bin folder in use
+
+   ```bash
+   # Make sure '${HOME}/.local/bin' exists in PATH
+   cp anchor ${HOME}/.local/bin
+   
+   # Alternatively, copy directly to /usr/local.bin
+   cp anchor /usr/local/bin
+   ```
+
+   | :bulb: Note |
+   | :--------------------------------------- |
+   | Another option is to save the binary in a unified location and create a symlink to the bin folder in use. |
 
 <br>
 
