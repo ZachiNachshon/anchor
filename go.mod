@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/manifoldco/promptui v0.8.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
