@@ -7,7 +7,7 @@ require (
 	github.com/creack/pty v1.1.14
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/manifoldco/promptui v0.8.0
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
