@@ -8,7 +8,7 @@
   - [Folder Structure](#items-folder-structure)
   - [The `instructions.yaml` file](#instructions-file)
   - [Contextual Instruction](#contextual-instruction)
-- [Add a New Command Action](#add-action)
+- [Add a New Command Item Action](#add-action)
   - [Attributes](#action-attributes)
   - [YAML Structure](#action-structure)
   - [Interactive CLI](#action-interactive-cli)
@@ -153,7 +153,7 @@ Available contexts:
 
 <br>
 
-<h3 id="add-action">Add a New Command Action</h3>
+<h3 id="add-action">Add a New Command Item Action</h3>
 
 Action is part of the dynamic command item instructions. It is a single executable instruction definition.
 
