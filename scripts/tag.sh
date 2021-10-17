@@ -2,9 +2,8 @@
 
 source ./scripts/logger.sh
 
-_prompt_for_tag() {
-  read -p "Enter tag (v0.0.0): v" input
-  echo -e ${input}
+_read_from_file() {
+  echo $(cat ./resources/version.txt)
 }
 
 _push_remote_tag() {
@@ -26,8 +25,9 @@ _push_remote_tag() {
 
 # Delete local tag: git tag -d <tag-name>
 # Delete remote tag: git push --delete origin <tag-name>
-create_tag() {
-  tag="v$(_prompt_for_tag)"
+create_tag_based_on_version_file() {
+  tag="v$(_read_from_file)"
+  log_info "Successfully read tag from version file"
   _push_remote_tag "${tag}"
 }
 

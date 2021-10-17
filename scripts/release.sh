@@ -4,7 +4,7 @@ source ./scripts/logger.sh
 source ./scripts/tag.sh
 
 main() {
-  tag=$(create_tag)
+  tag=$(create_tag_based_on_version_file)
 
   if [[ -z "${tag}" ]]; then
     log_fatal "Cannot release due to invalid tag"
