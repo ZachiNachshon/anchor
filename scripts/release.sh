@@ -1,28 +1,20 @@
 #!/usr/bin/env bash
 
-prompt_for_tag() {
-  read -p "GitHub tag must be created prior to release.
-Enter tag (v0.0.0): v" input
-  echo -e ${input}
-}
+source ./scripts/logger.sh
+source ./scripts/tag.sh
 
 main() {
-  tag=$(prompt_for_tag)
+  tag=$(create_tag)
 
-  if [[ ! -z "${tag}" ]]; then
-    echo "Creating GitHub tag: ${tag}"
-    git tag ${tag}
-    git push origin tag ${tag}
-  else
-    echo "Tag cannot be empty, aborting."
-    exit 1
+  if [[ -z "${tag}" ]]; then
+    log_fatal "Cannot release due to invalid tag"
   fi
 
   if [[ ! -z "${GITHUB_TOKEN}" ]]; then
-    echo "Releasing binaries... (tag: ${tag})"
+    log_info "Releasing binaries... (tag: ${tag})"
     goreleaser release --rm-dist
   else
-    echo "ERROR: GITHUB_TOKEN is not set"
+    log_fatal "missing env var GITHUB_TOKEN"
   fi
 }
 
