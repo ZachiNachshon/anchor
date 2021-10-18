@@ -35,11 +35,13 @@ snapshot:
   name_template: "{{ .Tag }}"
 
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
+  skip: true
+#  sort: asc
+#  use: github
+#  filters:
+#    exclude:
+#      - '^docs:'
+#      - '^test'
 
 release:
   github:
