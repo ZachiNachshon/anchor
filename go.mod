@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/briandowns/spinner v1.16.0
-	github.com/creack/pty v1.1.14
+	github.com/creack/pty v1.1.17
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/manifoldco/promptui v0.8.0
 	github.com/sirupsen/logrus v1.8.1
