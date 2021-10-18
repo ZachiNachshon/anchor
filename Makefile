@@ -50,7 +50,7 @@ run-tests-dockerized: ## Run tests suites dockerized
 #        -c 'cd /home/anchor; go test -v $(TEST) -json -cover'
 
 .PHONY: release
-release: fmtcheck ## Create release artifacts in GitHub with format check
+release: fmtcheck ## Create release artifacts in GitHub with version from resources/version.txt
 	@sh -c "'$(CURDIR)/scripts/release.sh'"
 
 help:
