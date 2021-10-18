@@ -57,18 +57,23 @@ Every marketplace repository allows Anchor to **centralize and organize** a set 
 
 <h2 id="quickstart">⚡️ QuickStart</h2>
 
-The fastest way (for `macOS` and `Linux`) to install `anchor` is using [Homebrew](https://brew.sh/). For additional installation methods [read here](docs/installation.md).
+The fastest way (for `macOS` and `Linux`) to install `anchor` is using [Homebrew](https://brew.sh/):
 
 ```bash
-# Tap to formulas repository
-brew tap ZachiNachshon/tap
-
-# Install package
-brew install anchor
-
-# Alternatively, tap and install via a single command
 brew install ZachiNachshon/tap/anchor
 ```
+
+Alternatively, tap into the formula to have brew search capabilities on that tap formulas:
+
+```bash
+# Tap
+brew tap ZachiNachshon/tap
+
+# Install
+brew install anchor
+```
+
+For additional installation methods [read here](docs/installation.md).
 
 <br>
 

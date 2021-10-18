@@ -8,11 +8,11 @@ build: fmtcheck ## Build project with format check
 	go build -o ./anchor ./cmd/anchor/*.go
 
 .PHONY: build-with-binary
-build-with-binary: fmtcheck ## Build project with format check and install to ${GOPATH}/bin folder
+build-with-binary: fmtcheck ## Build project with format check and install to GOPATH/bin
 	go build -o $(GOPATH)/bin/anchor ./cmd/anchor/*.go
 
 .PHONY: build-ci
-build-ci: fmtcheck ## Build project, format check and install to bin folder on CI
+build-ci: fmtcheck ## Build project with format check and install to GOBIN on CI
 	go build ./...
 	go install ./cmd/anchor/*.go
 

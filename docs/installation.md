@@ -30,25 +30,25 @@
    git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
    ```
    
-1. Build binary
+1. Build a binary
 
    ```bash
    make build
    ```
    
-1. Copy binary to the bin folder in use
+1. Copy the binary to the bin folder in use
 
    ```bash
-   # Make sure '${HOME}/.local/bin' exists in PATH
+   # Make sure '${HOME}/.local/bin' exists in PATH or sourced on every new session
    cp anchor ${HOME}/.local/bin
    
-   # Alternatively, copy directly to /usr/local.bin
+   # Alternatively, copy directly to /usr/local/bin
    cp anchor /usr/local/bin
    ```
 
    | :bulb: Note |
    | :--------------------------------------- |
-   | Another option is to save the binary in a unified location and create a symlink to the bin folder in use. |
+   | Another option is to save the binary in a unified location and create a symlink within the bin folder. |
 
 <br>
 
