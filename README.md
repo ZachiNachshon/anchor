@@ -105,17 +105,14 @@ For additional installation methods [read here](docs/installation.md).
 
 <h3 id="how-does-it-work">🐳 How Does It Work?</h3>
 
-<br>
-
-<h5 id="live-demo">Live demo</h5>
+<h4 id="live-demo">Live demo</h4>
 
 <details><summary>See <code>anchor</code> live in action</summary>
 <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
 </details>
-
 <br>
 
-<h5 id="try-it">Try it by yourself</h5>
+<h4 id="playground">Playground</h4>
 
 Take `anchor` for a spin using the following steps, connect to a remote playground repository and check the different use-cases it might be used for:
 
