@@ -105,12 +105,13 @@ For additional installation methods [read here](docs/installation.md).
 
 <h3 id="how-does-it-work">🐳 How Does It Work?</h3>
 
+This section contains a running `anchor` CLI live demo and instructions for interacting with a remote playground marketplace.
+
 <h4 id="live-demo">Live demo</h4>
 
 <details><summary>See <code>anchor</code> live in action</summary>
 <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
 </details>
-<br>
 
 <h4 id="playground">Playground</h4>
 
@@ -137,13 +138,13 @@ Take `anchor` for a spin using the following steps, connect to a remote playgrou
    anchor ops-team select
    ```
 
-1. Run an action directly from the playground non-interactively
+1. Run an action directly from the playground non-interactively:
 
    ```bash
    anchor ops-team run greeter --action=hello-world
    ```
 
-1. Run a workflow directly from the playground non-interactively
+1. Run a workflow directly from the playground non-interactively:
 
    ```bash
    anchor ops-team run greeter --workflow=good-manners-simulation
