@@ -25,7 +25,7 @@ OS_ARCH=Darwin_x86_64
 # Create a temporary folder
 repo_temp_path=$(mktemp -d ${TMPDIR:-/tmp}/anchor-repo.XXXXXX)
 cwd=$(pwd)
-cd ${repo_path}
+cd ${repo_temp_path}
 
 # Download & extract
 echo -e "\nDownloading anchor to temp directory...\n"
