@@ -120,7 +120,7 @@ anchor k8s-app status
 
 <h4 id="contextual-instruction">Contextual Instructions</h4>
 
-Every `instruction.yaml` file have an option to define a unified global context for all its comprising actions / workflows, these affects the pre execution flow with custom prompt messages.
+Every `instructions.yaml` file have an option to define a unified global context for all its comprising actions / workflows, these affects the pre execution flow with custom prompt messages.
 
 ```yaml
 globals:

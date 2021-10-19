@@ -45,8 +45,8 @@ run-tests-ci: ## Run tests suite on CI containerized environment
 run-tests-containerized: ## Run tests suite locally containerized
 	docker run -it \
         -v $(PWD):/home/anchor \
-        --entrypoint /bin/sh golang:1.14.15 \
-        -c 'cd /home/anchor; make run-tests-ci'
+        --entrypoint /bin/sh golang:1.16 \
+        -c 'go get github.com/mfridman/tparse; cd /home/anchor; make run-tests-ci'
 #        -c 'cd /home/anchor; go test -v $(TEST) -json -cover'
 
 .PHONY: release

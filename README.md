@@ -81,6 +81,8 @@ For additional installation methods [read here](docs/installation.md).
 
 - [Why creating `Anchor`?](#why-creating-anchor)
 - [How does it work?](#how-does-it-work)
+  - [Live demo](#live-demo)
+  - [Playground](#playground)
 - [Create a marketplace repository](docs/create-anchorfiles.md)
 - [Configuration](docs/configuration.md)
 - [Available features](docs/available-features.md)
@@ -103,63 +105,58 @@ For additional installation methods [read here](docs/installation.md).
 
 <h3 id="how-does-it-work">🐳 How Does It Work?</h3>
 
-To quickly get started follow these steps: 
+<br>
 
-1. Create a structured repository (a.k.a *anchorfiles*) as the remote marketplace
+<h5 id="live-demo">Live demo</h5>
 
-   <details><summary>Show</summary>
-   <img style="vertical-align: top;" src="assets/images/anchor-repo-structure.png" height="700" >
-   </details>
+<details><summary>See <code>anchor</code> live in action</summary>
+<img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
+</details>
 
-1. Create dynamic CLI command(s) using ***command.yaml*** schemas on the remote repository 
+<br>
 
-   <details><summary>Show</summary>
-   <img style="vertical-align: top;" src="assets/images/anchor-yaml-commands-example.png" height="500" >
-   </details>
+<h5 id="try-it">Try it by yourself</h5>
 
-1. Define actions / workflows for every dynamic CLI command item using an ***instructions.yaml*** file
+Take `anchor` for a spin using the following steps, connect to a remote playground repository and check the different use-cases it might be used for:
 
-   <details><summary>Show</summary>
-   <img style="vertical-align: top;" src="assets/images/anchor-instructions-example.png" height="700" >
-   </details>
+1. Register to a remote playground marketplace:
 
-1. Use the remote marketplace in anchor ***config.yaml*** file
-
-   <details><summary>Show</summary>
-   <img style="vertical-align: top;" src="assets/images/anchor-config.png" width="500" >
-   </details>
-
-1. Run `anchor` and select the dynamically created CLI command(s) to use
-
-   <details><summary>Show</summary>
-   <img style="vertical-align: top;" src="assets/images/anchor-cli-commands-example.png" width="500" >
-   </details>
-
-1. Select a command item and an action / workflow to execute interactively
-
-   <details><summary>Show Command Item Selection</summary>
-   <img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
-   </details>
-
-   <details><summary>Show Command Item Action Selection</summary>
-   <img style="vertical-align: top;" src="assets/images/dynamic/anchor-install-app-docker-registry.png" width="500" >
-   </details>
-
-1. Alternatively, run a command item action / workflow non-interactively
-
-   <details><summary>Show Complete Run Command</summary>
-   <p>
-   
    ```bash
-   anchor app run docker-registry --action=install-docker-registry
+   anchor config set-context-entry playground \
+    --repository.remote.url=git@github.com:ZachiNachshon/anchorfiles-playground.git
+   ```
+
+1. Type `anchor` to print all available playground CLI commands
+1. Check which items are available under the `ops-team` command:
+
+   ```bash
+   anchor ops-team status
    ```
    
-   </p>
-   </details>
-   
+1. Select the `ops-team` command to interact with interactively:
+
+   ```bash
+   # Select a command item via an interactive prompter/search menu and try an action/workflow
+   anchor ops-team select
+   ```
+
+1. Run an action directly from the playground non-interactively
+
+   ```bash
+   anchor ops-team run greeter --action=hello-world
+   ```
+
+1. Run a workflow directly from the playground non-interactively
+
+   ```bash
+   anchor ops-team run greeter --workflow=good-manners-simulation
+   ```
+
+1. You are welcome to use other playground CLI commands and run different actions for checking different use cases
+
    | :bulb: Note |
    | :--------------------------------------- |
-   | This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>Detailed guide can be found on the [create a marketplace repository](docs/create-anchorfiles.md) section. |
+   | This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>To create your own remote marketplace, please [read here](docs/create-anchorfiles.md). |
 
 <br>
 

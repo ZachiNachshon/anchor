@@ -115,7 +115,7 @@ Registering a new marketplace is as simple as running the following `anchor` CLI
 
 ```bash
 anchor config set-context-entry ops-team-context \
-    --repository.remote.url=git@github.com:Organization/OpsMarketplace.git \
+    --repository.remote.url=git@github.com:Organization/OpsMarketplace.git
 ```
 
 <br>

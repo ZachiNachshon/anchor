@@ -54,7 +54,6 @@ EOF
 
 <br>
 
-
 <h2 id="pre-built-release">Build from Source</h2>
 
 Clone `anchor` repository into a directory of your choice:
@@ -62,6 +61,8 @@ Clone `anchor` repository into a directory of your choice:
 ```bash
 git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
 ```
+
+***Note:** Go `1.16` is required for building from source.*
 
 <br>
 
@@ -79,7 +80,7 @@ git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
    # Make sure '${HOME}/.local/bin' exists in PATH or sourced on every new session
    cp anchor ${HOME}/.local/bin
    
-   # Alternatively, copy directly to /usr/local/bin
+   # Another option is to copy directly to /usr/local/bin
    cp anchor /usr/local/bin
    ```
 
