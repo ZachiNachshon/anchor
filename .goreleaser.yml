@@ -23,7 +23,7 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
-    files:
+    files: # These files are being added to the binary compressed bundle
       - README.md
       - LICENSE
 

@@ -84,10 +84,10 @@ For additional installation methods [read here](docs/installation.md).
 - [Create a marketplace repository](docs/create-anchorfiles.md)
 - [Configuration](docs/configuration.md)
 - [Available features](docs/available-features.md)
+- [Other installation methods](docs/installation.md)
 
 **Maintainers / Contributors:**
 
-- [Other installation methods](docs/installation.md)
 - [Contribute guides](docs/contribute.md)
 
 <br>
@@ -101,7 +101,7 @@ For additional installation methods [read here](docs/installation.md).
 
 <br>
 
-<h3 id="how-does-it-work">🗺 How Does It Work?</h3>
+<h3 id="how-does-it-work">🐳 How Does It Work?</h3>
 
 To quickly get started follow these steps: 
 

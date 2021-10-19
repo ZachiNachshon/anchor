@@ -7,17 +7,50 @@
 
 <h2 id="pre-built-release">Pre-Built Release</h2>
 
-1. Download and install `anchor` binary
+Download and install `anchor` binary (copy & paste into a terminal):
 
-   ```bash
-   curl -sfL https://get.anchor/install.sh | sh -
-   ```
+```bash
+bash <<'EOF'
 
-1. Setup config with a dynamic remote marketplace
+# Change Version, OS and Architecture accordingly
+VERSION=0.1.0
 
-   ```bash
-   curl -sfL https://get.anchor/setup-config.sh | sh -
-   ```
+OS_ARCH=Darwin_x86_64
+# Options: 
+#   - Darwin_arm64
+#   - Linux_arm64
+#   - Linux_armv6
+#   - Linux_x86_64
+
+# Create a temporary folder
+repo_temp_path=$(mktemp -d ${TMPDIR:-/tmp}/anchor-repo.XXXXXX)
+cwd=$(pwd)
+cd ${repo_path}
+
+# Download & extract
+echo -e "\nDownloading anchor to temp directory...\n"
+curl -SL "https://github.com/ZachiNachshon/anchor/releases/download/v${VERSION}/anchor_${VERSION}_${OS_ARCH}.tar.gz" | tar -xz
+
+# Create a dest directory and move the binary
+echo -e "\nMoving binary to ~/.local/bin"
+mkdir -p ${HOME}/.local/bin; mv anchor ${HOME}/.local/bin
+
+# Add this line to your *rc file (zshrc, bashrc etc..) to make `anchor` available on new sessions
+echo "Exporting ~/.local/bin (make sure to have it available on PATH)"
+export PATH="${PATH}:${HOME}/.local/bin"
+
+cd ${cwd}
+
+# Cleanup
+if [[ ! -z ${repo_temp_path} && -d ${repo_temp_path} && ${repo_temp_path} == *"anchor-repo"* ]]; then
+	echo "Deleting temp directory"
+	rm -rf ${repo_temp_path}
+fi
+
+echo -e "\nDone (type 'anchor' for help)\n"
+
+EOF
+```
 
 <br>
 
