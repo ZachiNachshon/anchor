@@ -4,15 +4,15 @@ GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 default: help
 
 .PHONY: build
-build: fmtcheck ## Build project with format check
+build: fmtcheck ## Build binary with format check (destination: PWD)
 	go build -o ./anchor ./cmd/anchor/*.go
 
-.PHONY: build-with-binary
-build-with-binary: fmtcheck ## Build project with format check and install to GOPATH/bin
+.PHONY: build-to-gopath
+build-to-gopath: fmtcheck ## Build binary with format check (destination: GOPATH/bin)
 	go build -o $(GOPATH)/bin/anchor ./cmd/anchor/*.go
 
 .PHONY: build-ci
-build-ci: fmtcheck ## Build project with format check and install to GOBIN on CI
+build-ci: fmtcheck ## Build binary with format check (destination: GOBIN on CI)
 	go build ./...
 	go install ./cmd/anchor/*.go
 
@@ -25,7 +25,7 @@ fmtcheck: ## Check go files format validity
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 .PHONY: run-tests
-run-tests: ## Run tests suites locally
+run-tests: ## Run tests suite locally
 	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -notests
 	@cat coverage.out.temp | grep -v '_testkit\|_fakes' > coverage.out
 	@go tool cover -func coverage.out | grep total | awk '{print $3}'
@@ -33,7 +33,7 @@ run-tests: ## Run tests suites locally
 	@# go test -v $(TEST) -cover time config/*.go
 
 .PHONY: run-tests-ci
-run-tests-ci: ## Run tests suites on CI containerized environment
+run-tests-ci: ## Run tests suite on CI containerized environment
 	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -top
 	@cat coverage.out.temp | grep -v '_testkit\|_fakes' > coverage.out
 	@# -coverprofile=coverage.out was added for GitHub workflow integration with jandelgado/gcov2lcov-action
@@ -41,8 +41,8 @@ run-tests-ci: ## Run tests suites on CI containerized environment
 	@#   /tmp/gcov2lcov-linux-amd64 -infile coverage.out -outfile coverage.lcov
 	@#   2021/08/01 07:21:57 error opening input file: open coverage.out: no such file or directory
 
-.PHONY: run-tests-dockerized
-run-tests-dockerized: ## Run tests suites dockerized
+.PHONY: run-tests-containerized
+run-tests-containerized: ## Run tests suite locally containerized
 	docker run -it \
         -v $(PWD):/home/anchor \
         --entrypoint /bin/sh golang:1.14.15 \

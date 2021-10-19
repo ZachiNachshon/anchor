@@ -57,19 +57,23 @@ EOF
 
 <h2 id="pre-built-release">Build from Source</h2>
 
-1. Clone `anchor` repository
+Clone `anchor` repository
 
-   ```bash
-   git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
-   ```
-   
-1. Build a binary
+```bash
+git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
+```
+
+<br>
+
+<h4>Build to Custom Path</h4>
+
+1. Build a binary to current directory
 
    ```bash
    make build
    ```
-   
-1. Copy the binary to the bin folder in use
+
+1. Copy the binary to a bin folder in use
 
    ```bash
    # Make sure '${HOME}/.local/bin' exists in PATH or sourced on every new session
@@ -81,7 +85,17 @@ EOF
 
    | :bulb: Note |
    | :--------------------------------------- |
-   | Another option is to save the binary in a unified location and create a symlink within the bin folder. |
+   | Another option is to save the binary in a unified location and create a symlink to it from a bin folder. |
+
+<br>
+
+<h4>Build to <code>GOPATH</code></h4>
+
+1. Run the following to build and place the binary in `${GOPATH}/bin`
+
+   ```bash
+   make build-to-gopath
+   ```
 
 <br>
 
