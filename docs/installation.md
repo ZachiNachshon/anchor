@@ -57,7 +57,7 @@ EOF
 
 <h2 id="pre-built-release">Build from Source</h2>
 
-Clone `anchor` repository
+Clone `anchor` repository into a directory of your choice:
 
 ```bash
 git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
@@ -85,7 +85,7 @@ git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
 
    | :bulb: Note |
    | :--------------------------------------- |
-   | Another option is to save the binary in a unified location and create a symlink to it from a bin folder. |
+   | Alternatively, save the binary to a unified location and create a symlink to it from `/usr/local/bin`. |
 
 <br>
 
