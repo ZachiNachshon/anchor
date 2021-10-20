@@ -63,6 +63,10 @@ func Test_ConfigShould(t *testing.T) {
 			Name: "create config object: fail to validate",
 			Func: CreateConfigObjectFailToValidate,
 		},
+		{
+			Name: "create config object: skip schema validation on excluded command run",
+			Func: CreateConfigObjectSkipSchemaValidationOnExcludedCommandRun,
+		},
 		//{
 		//	Name: "config file path: fail to get user home dir",
 		//	Func: ConfigFilePathFailToGetUserHomeDir,
@@ -385,12 +389,12 @@ var CreateConfigObjectCreateSuccessfully = func(t *testing.T) {
 				}
 				return ""
 			}
-			mergeConfigCallCount := 0
+			appendConfigCallCount := 0
 			fakeAdapter.AppendConfigMock = func(anchorConfig interface{}) error {
 				cfg := anchorConfig.(*AnchorConfig)
 				cfg.Config = &Config{}
 				cfg.Config.Contexts = []*Context{}
-				mergeConfigCallCount++
+				appendConfigCallCount++
 				return nil
 			}
 			validateCfgCallCount := 0
@@ -401,12 +405,12 @@ var CreateConfigObjectCreateSuccessfully = func(t *testing.T) {
 			cfgManager.getDefaultRepoClonePathFunc = func(contextName string) (string, error) {
 				return "", nil
 			}
-			result, err := cfgManager.CreateConfigObject()
+			result, err := cfgManager.CreateConfigObject(true)
 			assert.Nil(t, err, "expected to succeed")
 			assert.NotNil(t, result, "expected non-empty config object")
 			assert.NotNil(t, "test-author", result.Author)
 			assert.NotNil(t, "test-license", result.License)
-			assert.Equal(t, 1, mergeConfigCallCount)
+			assert.Equal(t, 1, appendConfigCallCount)
 			assert.Equal(t, 1, validateCfgCallCount)
 		})
 	})
@@ -428,7 +432,7 @@ var CreateConfigObjectFailToMerge = func(t *testing.T) {
 				return fmt.Errorf("failed to merge")
 			}
 
-			result, err := cfgManager.CreateConfigObject()
+			result, err := cfgManager.CreateConfigObject(true)
 			assert.NotNil(t, err, "expected to fail")
 			assert.NotNil(t, "failed to merge", err.Error())
 			assert.Nil(t, result, "expected an empty config object")
@@ -447,9 +451,9 @@ var CreateConfigObjectFailToValidate = func(t *testing.T) {
 			fakeAdapter.GetConfigByKeyMock = func(key string) string {
 				return ""
 			}
-			mergeConfigCallCount := 0
+			appendConfigCallCount := 0
 			fakeAdapter.AppendConfigMock = func(output interface{}) error {
-				mergeConfigCallCount++
+				appendConfigCallCount++
 				return nil
 			}
 			validateCfgCallCount := 0
@@ -458,12 +462,46 @@ var CreateConfigObjectFailToValidate = func(t *testing.T) {
 				return fmt.Errorf("failed to validate")
 			}
 
-			result, err := cfgManager.CreateConfigObject()
+			result, err := cfgManager.CreateConfigObject(true)
 			assert.NotNil(t, err, "expected to fail")
 			assert.NotNil(t, "failed to validate", err.Error())
 			assert.Nil(t, result, "expected an empty config object")
-			assert.Equal(t, 1, mergeConfigCallCount)
+			assert.Equal(t, 1, appendConfigCallCount)
 			assert.Equal(t, 1, validateCfgCallCount)
+		})
+	})
+}
+
+var CreateConfigObjectSkipSchemaValidationOnExcludedCommandRun = func(t *testing.T) {
+	withContext(func(ctx common.Context) {
+		withLogging(ctx, t, false, func(logger logger.Logger) {
+			fakeAdapter := CreateFakeViperConfigAdapter()
+			appendConfigCallCount := 0
+			fakeAdapter.AppendConfigMock = func(anchorConfig interface{}) error {
+				cfg := anchorConfig.(*AnchorConfig)
+				cfg.Config = &Config{}
+				cfg.Config.Contexts = []*Context{}
+				appendConfigCallCount++
+				return nil
+			}
+			fakeAdapter.GetConfigByKeyMock = func(key string) string {
+				return ""
+			}
+
+			cfgManager := NewManager()
+			validateConfigCallCount := 0
+			cfgManager.validateConfigurationsFunc = func(anchorConfig *AnchorConfig) error {
+				validateConfigCallCount++
+				return nil
+			}
+
+			cfgManager.adapter = fakeAdapter
+			shouldValidateConfig := false
+			result, err := cfgManager.CreateConfigObject(shouldValidateConfig)
+			assert.Nil(t, err, "expected to succeed")
+			assert.NotNil(t, result, "expected an valid config object")
+			assert.Equal(t, 1, appendConfigCallCount)
+			assert.Equal(t, 0, validateConfigCallCount, "expected not to be called")
 		})
 	})
 }
@@ -844,7 +882,7 @@ func withConfig(ctx common.Context, content string, f func(config *AnchorConfig)
 	if err := cfgManager.SetupConfigInMemoryLoader(content); err != nil {
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
-		cfg, err := cfgManager.CreateConfigObject()
+		cfg, err := cfgManager.CreateConfigObject(true)
 		if err != nil {
 			logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 		}

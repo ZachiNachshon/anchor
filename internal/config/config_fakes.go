@@ -15,7 +15,7 @@ type fakeConfigManager struct {
 	OverrideConfigEntryMock             func(entryName string, value interface{}) error
 	ReadConfigMock                      func(key string) string
 	SwitchActiveConfigContextByNameMock func(cfg *AnchorConfig, cfgCtxName string) error
-	CreateConfigObjectMock              func() (*AnchorConfig, error)
+	CreateConfigObjectMock              func(shouldValidateConfig bool) (*AnchorConfig, error)
 	GetConfigFilePathMock               func() (string, error)
 	SetDefaultsPostCreationMock         func(anchorConfig *AnchorConfig) error
 }
@@ -48,8 +48,8 @@ func (cm *fakeConfigManager) SwitchActiveConfigContextByName(cfg *AnchorConfig, 
 	return cm.SwitchActiveConfigContextByNameMock(cfg, cfgCtxName)
 }
 
-func (cm *fakeConfigManager) CreateConfigObject() (*AnchorConfig, error) {
-	return cm.CreateConfigObjectMock()
+func (cm *fakeConfigManager) CreateConfigObject(shouldValidateConfig bool) (*AnchorConfig, error) {
+	return cm.CreateConfigObjectMock(shouldValidateConfig)
 }
 
 func (cm *fakeConfigManager) GetConfigFilePath() (string, error) {
