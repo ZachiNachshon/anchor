@@ -17,7 +17,7 @@ type fakeConfigManager struct {
 	SwitchActiveConfigContextByNameMock func(cfg *AnchorConfig, cfgCtxName string) error
 	CreateConfigObjectMock              func() (*AnchorConfig, error)
 	GetConfigFilePathMock               func() (string, error)
-	setDefaultsPostCreationMock         func(anchorConfig *AnchorConfig) error
+	SetDefaultsPostCreationMock         func(anchorConfig *AnchorConfig) error
 }
 
 func (cm *fakeConfigManager) SetupConfigFileLoader() error {
@@ -56,6 +56,6 @@ func (cm *fakeConfigManager) GetConfigFilePath() (string, error) {
 	return cm.GetConfigFilePathMock()
 }
 
-func (cm *fakeConfigManager) setDefaultsPostCreation(anchorConfig *AnchorConfig) error {
-	return cm.setDefaultsPostCreationMock(anchorConfig)
+func (cm *fakeConfigManager) SetDefaultsPostCreation(anchorConfig *AnchorConfig) error {
+	return cm.SetDefaultsPostCreationMock(anchorConfig)
 }

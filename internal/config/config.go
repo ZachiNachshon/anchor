@@ -37,7 +37,7 @@ type ConfigManager interface {
 	CreateConfigObject() (*AnchorConfig, error)
 
 	GetConfigFilePath() (string, error)
-	setDefaultsPostCreation(anchorConfig *AnchorConfig) error
+	SetDefaultsPostCreation(anchorConfig *AnchorConfig) error
 }
 
 type configManagerImpl struct {
@@ -137,7 +137,7 @@ func (cm *configManagerImpl) CreateConfigObject() (*AnchorConfig, error) {
 		return nil, err
 	}
 
-	err = cm.setDefaultsPostCreation(cfg)
+	err = cm.SetDefaultsPostCreation(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -148,16 +148,16 @@ func (cm *configManagerImpl) GetConfigFilePath() (string, error) {
 	return cm.getConfigFilePathFunc()
 }
 
-func (cm *configManagerImpl) setDefaultsPostCreation(anchorConfig *AnchorConfig) error {
+func (cm *configManagerImpl) SetDefaultsPostCreation(anchorConfig *AnchorConfig) error {
 	cfg := anchorConfig.Config
 	for _, ctx := range cfg.Contexts {
 		if ctx.Context != nil {
 			repo := ctx.Context.Repository
 			if repo.Remote == nil {
 				// Local must be set else validation would fail
-				return nil
+				continue
 			}
-			if repo.Remote.ClonePath == "" {
+			if len(repo.Remote.ClonePath) == 0 {
 				clonePath, err := cm.getDefaultRepoClonePathFunc(ctx.Name)
 				if err != nil {
 					logger.Error("failed to resolve default repo clone path")
@@ -166,7 +166,7 @@ func (cm *configManagerImpl) setDefaultsPostCreation(anchorConfig *AnchorConfig)
 				repo.Remote.ClonePath = clonePath
 			}
 
-			if repo.Remote.Branch == "" {
+			if len(repo.Remote.Branch) == 0 {
 				repo.Remote.Branch = DefaultRemoteBranch
 			}
 		}
@@ -234,6 +234,13 @@ func TryGetConfigContext(contexts []*Context, cfgCtxName string) *Context {
 		}
 	}
 	return nil
+}
+
+func AppendEmptyConfigContext(cfg *AnchorConfig, name string) *Context {
+	cfgCtx := emptyContext()
+	cfgCtx.Name = name
+	cfg.Config.Contexts = append(cfg.Config.Contexts, cfgCtx)
+	return cfgCtx
 }
 
 func validateConfigurations(anchorConfig *AnchorConfig) error {

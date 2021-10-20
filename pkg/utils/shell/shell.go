@@ -263,11 +263,13 @@ func (s *shellExecutor) ExecuteReturnOutput(script string) (string, error) {
 func (s *shellExecutor) ExecuteSilently(script string) error {
 	cmd := exec.Command(string(s.shellType), "-c", script)
 
-	// Execute the command
-	if err := cmd.Run(); err != nil {
-		return err
-	}
+	var _, stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
 
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("error: %s, stderr: %s", err.Error(), strings.TrimSpace(stderrBuf.String()))
+	}
 	return nil
 }
 
