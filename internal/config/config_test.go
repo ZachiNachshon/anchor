@@ -151,6 +151,10 @@ func Test_ConfigShould(t *testing.T) {
 			Name: "defaults: set empty entries with default values on all contexts",
 			Func: DefaultsSetEmptyEntriesWithDefaultValuesOnAllContexts,
 		},
+		{
+			Name: "append new empty config context successfully",
+			Func: AppendNewEmptyConfigContextSuccessfully,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -914,4 +918,17 @@ func GetTestConfigDirectoryPath() string {
 	configFilePathTest := fmt.Sprintf("%s/test/data/config", repoRootPath)
 	configFilePathTest = strings.TrimSuffix(configFilePathTest, "\n")
 	return configFilePathTest
+}
+
+var AppendNewEmptyConfigContextSuccessfully = func(t *testing.T) {
+	cfg := &AnchorConfig{
+		Config: &Config{
+			Contexts: []*Context{},
+		},
+	}
+	createdCtx := AppendEmptyConfigContext(cfg, "new-cfg-ctx")
+	assert.NotNil(t, createdCtx, "expected to succeed")
+	assert.Equal(t, "new-cfg-ctx", createdCtx.Name)
+	assert.Len(t, cfg.Config.Contexts, 1)
+	assert.Equal(t, createdCtx, cfg.Config.Contexts[0])
 }
