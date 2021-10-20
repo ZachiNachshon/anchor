@@ -115,6 +115,9 @@ This section contains a running `anchor` CLI live demo and instructions for inte
 
 <h4 id="playground">Playground</h4>
 
+<details><summary>Take <code>anchor</code> for a spin<summary>
+<p>
+
 Take `anchor` for a spin using the following steps, connect to a remote playground repository and check the different use-cases it might be used for:
 
 1. Register to a remote playground marketplace:
@@ -155,6 +158,9 @@ Take `anchor` for a spin using the following steps, connect to a remote playgrou
    | :bulb: Note |
    | :--------------------------------------- |
    | This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>To create your own remote marketplace, please [read here](docs/create-anchorfiles.md). |
+
+</p>
+</details>
 
 <br>
 
