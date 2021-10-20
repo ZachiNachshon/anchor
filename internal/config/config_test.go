@@ -148,8 +148,12 @@ func Test_ConfigShould(t *testing.T) {
 			Func: DefaultsFailOnCreationOfDefaultClonePathForConfigContext,
 		},
 		{
-			Name: "defaults: set empty entries with default values",
-			Func: DefaultsSetEmptyEntriesWithDefaultValues,
+			Name: "defaults: set empty entries with default values on all contexts",
+			Func: DefaultsSetEmptyEntriesWithDefaultValuesOnAllContexts,
+		},
+		{
+			Name: "append new empty config context successfully",
+			Func: AppendNewEmptyConfigContextSuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -725,7 +729,7 @@ config:
 			cfgManager.getDefaultRepoClonePathFunc = func(contextName string) (string, error) {
 				return "", nil
 			}
-			err := cfgManager.setDefaultsPostCreation(anchorCfg)
+			err := cfgManager.SetDefaultsPostCreation(anchorCfg)
 			assert.Nil(t, err)
 			context := TryGetConfigContext(anchorCfg.Config.Contexts, "test-cfg-ctx")
 			assert.Equal(t, context.Context.Repository.Remote.Branch, "test-branch")
@@ -749,7 +753,7 @@ config:
 			anchorCfg, _ := YamlToConfigObj(cfgYamlText)
 
 			cfgManager := NewManager()
-			err := cfgManager.setDefaultsPostCreation(anchorCfg)
+			err := cfgManager.SetDefaultsPostCreation(anchorCfg)
 			assert.Nil(t, err)
 		})
 	})
@@ -774,25 +778,35 @@ config:
 			cfgManager.getDefaultRepoClonePathFunc = func(contextName string) (string, error) {
 				return "", fmt.Errorf("failed to get default repo clone path")
 			}
-			err := cfgManager.setDefaultsPostCreation(anchorCfg)
+			err := cfgManager.SetDefaultsPostCreation(anchorCfg)
 			assert.NotNil(t, err)
 			assert.Equal(t, "failed to get default repo clone path", err.Error())
 		})
 	})
 }
 
-var DefaultsSetEmptyEntriesWithDefaultValues = func(t *testing.T) {
+var DefaultsSetEmptyEntriesWithDefaultValuesOnAllContexts = func(t *testing.T) {
 	withContext(func(ctx common.Context) {
 		withLogging(ctx, t, false, func(logger logger.Logger) {
 			cfgYamlText := `
 config:
-  currentContext: test-cfg-ctx
+  currentContext: test-cfg-ctx-1
   contexts:
-    - name: test-cfg-ctx
+    - name: test-cfg-ctx-1
       context:
         repository: 
           remote:
-            url: /remote/url
+            url: /remote/url/one
+    - name: test-cfg-ctx-2
+      context:
+        repository: 
+          remote:
+            url: /remote/url/two
+    - name: test-cfg-ctx-3
+      context:
+        repository: 
+          remote:
+            url: /remote/url/three
 `
 			anchorCfg, _ := YamlToConfigObj(cfgYamlText)
 
@@ -800,11 +814,19 @@ config:
 			cfgManager.getDefaultRepoClonePathFunc = func(contextName string) (string, error) {
 				return fmt.Sprintf("/default/clone/path/%s", contextName), nil
 			}
-			err := cfgManager.setDefaultsPostCreation(anchorCfg)
+			err := cfgManager.SetDefaultsPostCreation(anchorCfg)
 			assert.Nil(t, err)
-			context := TryGetConfigContext(anchorCfg.Config.Contexts, "test-cfg-ctx")
-			assert.Equal(t, context.Context.Repository.Remote.Branch, DefaultRemoteBranch)
-			assert.Equal(t, context.Context.Repository.Remote.ClonePath, "/default/clone/path/test-cfg-ctx")
+			context1 := TryGetConfigContext(anchorCfg.Config.Contexts, "test-cfg-ctx-1")
+			assert.Equal(t, context1.Context.Repository.Remote.Branch, DefaultRemoteBranch)
+			assert.Equal(t, context1.Context.Repository.Remote.ClonePath, "/default/clone/path/test-cfg-ctx-1")
+
+			context2 := TryGetConfigContext(anchorCfg.Config.Contexts, "test-cfg-ctx-2")
+			assert.Equal(t, context2.Context.Repository.Remote.Branch, DefaultRemoteBranch)
+			assert.Equal(t, context2.Context.Repository.Remote.ClonePath, "/default/clone/path/test-cfg-ctx-2")
+
+			context3 := TryGetConfigContext(anchorCfg.Config.Contexts, "test-cfg-ctx-3")
+			assert.Equal(t, context3.Context.Repository.Remote.Branch, DefaultRemoteBranch)
+			assert.Equal(t, context3.Context.Repository.Remote.ClonePath, "/default/clone/path/test-cfg-ctx-3")
 		})
 	})
 }
@@ -898,12 +920,15 @@ func GetTestConfigDirectoryPath() string {
 	return configFilePathTest
 }
 
-func harnessAnchorfilesTestRepo(ctx common.Context) {
-	path, _ := ioutils.GetWorkingDirectory()
-	repoRootPath := ioutils.GetRepositoryAbsoluteRootPath(path)
-	if repoRootPath == "" {
-		logger.Fatalf("failed to resolve the absolute path of the repository root.")
+var AppendNewEmptyConfigContextSuccessfully = func(t *testing.T) {
+	cfg := &AnchorConfig{
+		Config: &Config{
+			Contexts: []*Context{},
+		},
 	}
-	anchorfilesPathTest := fmt.Sprintf("%s/test/data/anchorfiles", repoRootPath)
-	ctx.(common.AnchorFilesPathSetter).SetAnchorFilesPath(anchorfilesPathTest)
+	createdCtx := AppendEmptyConfigContext(cfg, "new-cfg-ctx")
+	assert.NotNil(t, createdCtx, "expected to succeed")
+	assert.Equal(t, "new-cfg-ctx", createdCtx.Name)
+	assert.Len(t, cfg.Config.Contexts, 1)
+	assert.Equal(t, createdCtx, cfg.Config.Contexts[0])
 }

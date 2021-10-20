@@ -1,5 +1,16 @@
 package config
 
+func emptyContext() *Context {
+	return &Context{
+		Context: &ContextItem{
+			Repository: &Repository{
+				Remote: &Remote{},
+				Local:  &Local{},
+			},
+		},
+	}
+}
+
 type AnchorConfig struct {
 	Config  *Config `yaml:"config"`
 	Author  string  `yaml:"author"`

@@ -1,7 +1,6 @@
 package set_context_entry
 
 import (
-	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
@@ -33,18 +32,21 @@ func NewOrchestrator(cfgManager config.ConfigManager, cfgCtxName string, changes
 
 func run(o *setContextEntryOrchestrator, ctx common.Context) error {
 	cfg := config.FromContext(ctx)
-	if cfgCtx := config.TryGetConfigContext(cfg.Config.Contexts, o.cfgCtxName); cfgCtx == nil {
-		return fmt.Errorf("could not identify config context. name: %s", o.cfgCtxName)
+	cfgCtx := config.TryGetConfigContext(cfg.Config.Contexts, o.cfgCtxName)
+	if cfgCtx == nil {
+		cfgCtx = config.AppendEmptyConfigContext(cfg, o.cfgCtxName)
+		if err := o.cfgManager.SetDefaultsPostCreation(cfg); err != nil {
+			return err
+		}
+	}
+	if err := populateConfigContextChanges(cfgCtx, o.changes); err != nil {
+		return err
+	}
+	if err := o.cfgManager.OverrideConfig(cfg); err != nil {
+		return err
 	} else {
-		if err := populateConfigContextChanges(cfgCtx, o.changes); err != nil {
-			return err
-		}
-		if err := o.cfgManager.OverrideConfig(cfg); err != nil {
-			return err
-		} else {
-			logger.Infof("Updated config context entries successfully. context: %s", o.cfgCtxName)
-			return nil
-		}
+		logger.Infof("Updated config context entries successfully. context: %s", o.cfgCtxName)
+		return nil
 	}
 }
 
@@ -69,10 +71,10 @@ func populateConfigContextChanges(cfgCtx *config.Context, changes map[string]str
 			}
 		case remoteAutoUpdateFlagName:
 			{
-				if parseBool, err := strconv.ParseBool(element); err != nil {
+				if parsedBool, err := strconv.ParseBool(element); err != nil {
 					return err
 				} else {
-					cfgCtx.Context.Repository.Remote.AutoUpdate = parseBool
+					cfgCtx.Context.Repository.Remote.AutoUpdate = parsedBool
 				}
 			}
 		case localPathFlagName:
