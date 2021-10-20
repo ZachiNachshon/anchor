@@ -73,7 +73,7 @@ func Config(ctx common.Context, content string, f func(cfg *config.AnchorConfig)
 	if err := cfgManager.SetupConfigInMemoryLoader(content); err != nil {
 		logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 	} else {
-		cfg, err := cfgManager.CreateConfigObject()
+		cfg, err := cfgManager.CreateConfigObject(true)
 		if err != nil {
 			logger.Fatalf("Failed to create a fake config loader. error: %s", err)
 		}

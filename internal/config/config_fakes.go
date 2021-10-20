@@ -48,8 +48,8 @@ func (cm *fakeConfigManager) SwitchActiveConfigContextByName(cfg *AnchorConfig, 
 	return cm.SwitchActiveConfigContextByNameMock(cfg, cfgCtxName)
 }
 
-func (cm *fakeConfigManager) CreateConfigObject(shouldValidateConfig bool) (*AnchorConfig, error) {
-	return cm.CreateConfigObjectMock(shouldValidateConfig)
+func (cm *fakeConfigManager) CreateConfigObject(shouldValidateCfgSchema bool) (*AnchorConfig, error) {
+	return cm.CreateConfigObjectMock(shouldValidateCfgSchema)
 }
 
 func (cm *fakeConfigManager) GetConfigFilePath() (string, error) {
