@@ -34,7 +34,7 @@ type ConfigManager interface {
 	ReadConfig(key string) string
 
 	SwitchActiveConfigContextByName(cfg *AnchorConfig, cfgCtxName string) error
-	CreateConfigObject() (*AnchorConfig, error)
+	CreateConfigObject(shouldValidateCfgSchema bool) (*AnchorConfig, error)
 
 	GetConfigFilePath() (string, error)
 	SetDefaultsPostCreation(anchorConfig *AnchorConfig) error
@@ -121,7 +121,7 @@ func (cm *configManagerImpl) SwitchActiveConfigContextByName(cfg *AnchorConfig, 
 	}
 }
 
-func (cm *configManagerImpl) CreateConfigObject() (*AnchorConfig, error) {
+func (cm *configManagerImpl) CreateConfigObject(shouldValidateCfgSchema bool) (*AnchorConfig, error) {
 	cfg := &AnchorConfig{
 		Author:  cm.ReadConfig("author"),
 		License: cm.ReadConfig("license"),
@@ -132,9 +132,11 @@ func (cm *configManagerImpl) CreateConfigObject() (*AnchorConfig, error) {
 		return nil, fmt.Errorf("Failed to merge configuration from file. error: %s \n", err)
 	}
 
-	err = cm.validateConfigurationsFunc(cfg)
-	if err != nil {
-		return nil, err
+	if shouldValidateCfgSchema {
+		err = cm.validateConfigurationsFunc(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = cm.SetDefaultsPostCreation(cfg)

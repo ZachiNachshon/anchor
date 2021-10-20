@@ -145,7 +145,8 @@ var FailConfigurationCollaborator = func(t *testing.T) {
 		fakeConfigManager.SetupConfigFileLoaderMock = func() error {
 			return fmt.Errorf("fail to create config file loader")
 		}
-		err := collaborators.Configuration(ctx, fakeConfigManager)
+		shouldValidateCfg := true
+		err := collaborators.Configuration(ctx, fakeConfigManager, shouldValidateCfg)
 		assert.NotNil(t, err)
 		assert.Equal(t, "fail to create config file loader", err.Error())
 	})
@@ -243,7 +244,7 @@ var StartMainEntryPointSuccessfully = func(t *testing.T) {
 						Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
 							return nil
 						},
-						Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+						Configuration: func(ctx common.Context, configManager config.ConfigManager, shouldStartPreRunSeq bool) error {
 							return nil
 						},
 						Registry: func(ctx common.Context) error {
@@ -277,7 +278,7 @@ var RunCollaboratorsInASpecificOrder = func(t *testing.T) {
 				loggerCallCount++
 				return nil
 			},
-			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+			Configuration: func(ctx common.Context, configManager config.ConfigManager, shouldStartPreRunSeq bool) error {
 				callOrder = append(callOrder, "configuration")
 				configCallCount++
 				return nil
@@ -324,7 +325,7 @@ var FailToRunCollaboratorsInSequence = func(t *testing.T) {
 			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
 				return nil
 			},
-			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+			Configuration: func(ctx common.Context, configManager config.ConfigManager, shouldStartPreRunSeq bool) error {
 				return fmt.Errorf("failed to init configuration")
 			},
 		}
@@ -336,7 +337,7 @@ var FailToRunCollaboratorsInSequence = func(t *testing.T) {
 			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
 				return nil
 			},
-			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+			Configuration: func(ctx common.Context, configManager config.ConfigManager, shouldStartPreRunSeq bool) error {
 				return nil
 			},
 			Registry: func(ctx common.Context) error {
@@ -351,7 +352,7 @@ var FailToRunCollaboratorsInSequence = func(t *testing.T) {
 			Logger: func(ctx common.Context, loggerManager logger.LoggerManager) error {
 				return nil
 			},
-			Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+			Configuration: func(ctx common.Context, configManager config.ConfigManager, shouldStartPreRunSeq bool) error {
 				return nil
 			},
 			Registry: func(ctx common.Context) error {
@@ -498,11 +499,12 @@ var InitializeConfigurationSuccessfully = func(t *testing.T) {
 			configListenChangesCallCount++
 		}
 		createConfigCallCount := 0
-		fakeCfgMgr.CreateConfigObjectMock = func() (*config.AnchorConfig, error) {
+		fakeCfgMgr.CreateConfigObjectMock = func(shouldValidateConfig bool) (*config.AnchorConfig, error) {
 			createConfigCallCount++
 			return configInUse, nil
 		}
-		err := initConfiguration(ctx, fakeCfgMgr)
+		shouldValidateCfg := true
+		err := initConfiguration(ctx, fakeCfgMgr, shouldValidateCfg)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")
@@ -519,7 +521,8 @@ var FailToSetupConfigFileLoader = func(t *testing.T) {
 			configLoaderCallCount++
 			return fmt.Errorf("failed to load config")
 		}
-		err := initConfiguration(ctx, fakeCfgMgr)
+		shouldValidateCfg := true
+		err := initConfiguration(ctx, fakeCfgMgr, shouldValidateCfg)
 		assert.NotNil(t, err)
 		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
 		assert.Equal(t, "failed to load config", err.Error())
@@ -540,11 +543,12 @@ var FailToCreateConfigObject = func(t *testing.T) {
 			configListenChangesCallCount++
 		}
 		createConfigCallCount := 0
-		fakeCfgMgr.CreateConfigObjectMock = func() (*config.AnchorConfig, error) {
+		fakeCfgMgr.CreateConfigObjectMock = func(shouldValidateConfig bool) (*config.AnchorConfig, error) {
 			createConfigCallCount++
 			return nil, fmt.Errorf("failed to create config object")
 		}
-		err := initConfiguration(ctx, fakeCfgMgr)
+		shouldValidateCfg := true
+		err := initConfiguration(ctx, fakeCfgMgr, shouldValidateCfg)
 		assert.NotNil(t, err)
 		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")

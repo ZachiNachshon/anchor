@@ -23,7 +23,7 @@ var excludedCommandsFromPreRunSequence = []string{"config", "version", "completi
 
 type MainCollaborators struct {
 	Logger           func(ctx common.Context, loggerManager logger.LoggerManager) error
-	Configuration    func(ctx common.Context, configManager config.ConfigManager) error
+	Configuration    func(ctx common.Context, configManager config.ConfigManager, shouldValidateCfgSchema bool) error
 	Registry         func(ctx common.Context) error
 	StartCliCommands func(ctx common.Context, shouldStartPreRunSeq bool) error
 }
@@ -37,9 +37,9 @@ var collaborators = &MainCollaborators{
 		ctx.Registry().Set(logger.Identifier, loggerManager)
 		return initLogger(ctx, loggerManager)
 	},
-	Configuration: func(ctx common.Context, configManager config.ConfigManager) error {
+	Configuration: func(ctx common.Context, configManager config.ConfigManager, shouldValidateCfgSchema bool) error {
 		ctx.Registry().Set(config.Identifier, configManager)
-		return initConfiguration(ctx, configManager)
+		return initConfiguration(ctx, configManager, shouldValidateCfgSchema)
 	},
 	Registry: func(ctx common.Context) error {
 		return initRegistry(ctx)
@@ -81,7 +81,7 @@ func initLogger(ctx common.Context, logManager logger.LoggerManager) error {
 	return nil
 }
 
-func initConfiguration(ctx common.Context, cfgManager config.ConfigManager) error {
+func initConfiguration(ctx common.Context, cfgManager config.ConfigManager, shouldValidateCfgSchema bool) error {
 	err := cfgManager.SetupConfigFileLoader()
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func initConfiguration(ctx common.Context, cfgManager config.ConfigManager) erro
 
 	cfgManager.ListenOnConfigFileChanges(ctx)
 
-	cfg, err := cfgManager.CreateConfigObject()
+	cfg, err := cfgManager.CreateConfigObject(shouldValidateCfgSchema)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func runCollaboratorsInSequence(ctx common.Context, collaborators *MainCollabora
 		return err
 	}
 	configManager := config.NewManager()
-	err = collaborators.Configuration(ctx, configManager)
+	err = collaborators.Configuration(ctx, configManager, shouldStartPreRunSeq)
 	if err != nil {
 		return err
 	}
