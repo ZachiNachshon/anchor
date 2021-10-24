@@ -117,14 +117,21 @@ This section contains a running `anchor` CLI live running demo and an instructio
 
 Take `anchor` for a spin using the following steps, connect to a remote playground repository and check the different use-cases it might be used for:
 
-1. Register to a remote playground marketplace:
+1. Register to a remote playground marketplace and set it as the default config context:
 
    ```bash
    anchor config set-context-entry playground \
     --repository.remote.url=git@github.com:ZachiNachshon/anchorfiles-playground.git
    ```
 
-1. Type `anchor` to print all available playground CLI commands
+1. Type `anchor` and select `playground` from the config context menu to print all available playground CLI commands
+
+1. Set the `playground` config context as the default context:
+
+   ```bash
+   anchor config use-context playground
+   ```
+
 1. Check which items are available under the `dummy-ops` command:
 
    ```bash
