@@ -58,6 +58,14 @@ func Test_IOUtilsShould(t *testing.T) {
 			Name: "open file with modes if exists",
 			Func: OpenFileWithModesIfExists,
 		},
+		{
+			Name: "fail to create file on bad directory path",
+			Func: FailToCreateFileOnBadDirectoryPath,
+		},
+		{
+			Name: "fail to create directory on bad path",
+			Func: FailToCreateDirectoryOnBadPath,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -115,7 +123,7 @@ var ReturnWorkingDirectory = func(t *testing.T) {
 
 var CreateNewFileIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "/tempFile.txt"
+	tempConfigFile := tempDir + "newFile1.txt"
 	f, err := CreateOrOpenFile(tempConfigFile)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
@@ -123,7 +131,13 @@ var CreateNewFileIfNotExists = func(t *testing.T) {
 
 var OpenFileIfExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "/tempFile.txt"
+	tempConfigFile := tempDir + "newFile2.txt"
+
+	chmodError := os.Chmod(tempConfigFile, 0777)
+	assert.Nil(t, chmodError, "failed to change permissive temp folder mode")
+
+	_, e := os.Create(tempConfigFile)
+	assert.Nil(t, e, "test file failed to create")
 
 	err := os.WriteFile(tempConfigFile, []byte("some test text"), 0)
 	assert.Nil(t, err, "expected write updated config to a temp file successfully")
@@ -135,7 +149,7 @@ var OpenFileIfExists = func(t *testing.T) {
 
 var CreateNewFileWithFolderHierarchyIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "/new/folder/tempFile.txt"
+	tempConfigFile := tempDir + "new/folder/newFile3.txt"
 	f, err := createFile(tempConfigFile)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
@@ -143,7 +157,7 @@ var CreateNewFileWithFolderHierarchyIfNotExists = func(t *testing.T) {
 
 var CreateNewFileWithModesIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "/tempFile.txt"
+	tempConfigFile := tempDir + "newFile4.txt"
 	f, err := CreateOrOpenFileWithModes(tempConfigFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
@@ -151,7 +165,13 @@ var CreateNewFileWithModesIfNotExists = func(t *testing.T) {
 
 var OpenFileWithModesIfExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "/tempFile.txt"
+	tempConfigFile := tempDir + "newFile5.txt"
+
+	chmodError := os.Chmod(tempConfigFile, 0777)
+	assert.Nil(t, chmodError, "failed to change permissive temp folder mode")
+
+	_, e := os.Create(tempConfigFile)
+	assert.Nil(t, e, "test file failed to create")
 
 	err := os.WriteFile(tempConfigFile, []byte("some test text"), 0)
 	assert.Nil(t, err, "expected write updated config to a temp file successfully")
@@ -159,4 +179,15 @@ var OpenFileWithModesIfExists = func(t *testing.T) {
 	f, err := CreateOrOpenFileWithModes(tempConfigFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
+}
+
+var FailToCreateFileOnBadDirectoryPath = func(t *testing.T) {
+	f, err := createFile("")
+	assert.NotNil(t, err, "expected to fail")
+	assert.Nil(t, f, "expected to fail")
+}
+
+var FailToCreateDirectoryOnBadPath = func(t *testing.T) {
+	err := createDirectory("")
+	assert.NotNil(t, err, "expected to fail")
 }
