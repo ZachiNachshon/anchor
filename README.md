@@ -105,7 +105,7 @@ For additional installation methods [read here](docs/installation.md).
 
 <h3 id="how-does-it-work">🐳 How Does It Work?</h3>
 
-This section contains a running `anchor` CLI live demo and instructions for interacting with a remote playground marketplace.
+This section contains a running `anchor` CLI live running demo and an instructions section for interacting with a remote playground marketplace.
 
 <h4 id="live-demo">Live demo</h4>
 
@@ -125,29 +125,33 @@ Take `anchor` for a spin using the following steps, connect to a remote playgrou
    ```
 
 1. Type `anchor` to print all available playground CLI commands
-1. Check which items are available under the `ops-team` command:
+1. Check which items are available under the `dummy-ops` command:
 
    ```bash
-   anchor ops-team status
+   anchor dummy-ops status
    ```
    
-1. Select the `ops-team` command to interact with interactively:
+1. Select the `dummy-ops` command to interact with interactively:
 
    ```bash
    # Select a command item via an interactive prompter/search menu and try an action/workflow
-   anchor ops-team select
+   anchor dummy-ops select
    ```
 
 1. Run an action directly from the playground non-interactively:
 
    ```bash
-   anchor ops-team run greeter --action=hello-world
+   anchor dummy-ops run greeter --action=hello-world
    ```
 
-1. Run a workflow directly from the playground non-interactively:
+1. Run workflows directly from the playground non-interactively:
 
    ```bash
-   anchor ops-team run greeter --workflow=good-manners-simulation
+   # without output
+   anchor dummy-ops run greeter-silent --workflow=good-manners-simulation
+   
+   # with output
+   anchor dummy-ops run greeter --workflow=good-manners-simulation
    ```
 
 1. You are welcome to use other playground CLI commands and run different actions for checking different use cases
