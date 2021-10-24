@@ -15,7 +15,7 @@ var commandItemPromptTemplateDetails = fmt.Sprintf(`{{ if not (eq .Name "%s") }}
 {{ "Information:" | blue }}
 
 {{ "Name:" | faint }}	{{ .Name }}
-{{ "Description:" | faint }}	{{ .Description }}
+{{ "DirPath:" | faint }}	{{ .DirPath }}
 {{ else }}
 Exit Application
 {{ end }}`, CancelActionName)

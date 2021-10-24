@@ -26,8 +26,8 @@ type NewCommandFunc func(ctx common.Context, commandFolderName string, statusFun
 func NewCommand(ctx common.Context, commandFolderName string, statusFunc DynamicStatusFunc) *statusCmd {
 	var cobraCmd = &cobra.Command{
 		Use:   "status",
-		Short: "Check status validity of supported dynamic commands",
-		Long:  `Check status validity of supported dynamic commands`,
+		Short: "Check status validity of dynamic command items",
+		Long:  `Check status validity of dynamic command items`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o := NewOrchestrator(commandFolderName)
