@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/sirupsen/logrus"
 	"os"
 	"path"
@@ -46,7 +47,7 @@ func (lr *logrusAdapterImpl) AppendStdoutLogger(level string) (Logger, error) {
 }
 
 func (lr *logrusAdapterImpl) AppendFileBasedLogger(filePath string, level string) (Logger, error) {
-	if file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
+	if file, err := ioutils.CreateOrOpenFileWithModes(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND); err != nil {
 		return nil, fmt.Errorf("failed to open logger at path, cannot create file based logger. path: %s", filePath)
 	} else {
 		lr.fileLogger.Out = file

@@ -46,6 +46,18 @@ func Test_IOUtilsShould(t *testing.T) {
 			Name: "open file if exists",
 			Func: OpenFileIfExists,
 		},
+		{
+			Name: "create new file with folder hierarchy if not exists",
+			Func: CreateNewFileWithFolderHierarchyIfNotExists,
+		},
+		{
+			Name: "create new file with modes if not exists",
+			Func: CreateNewFileWithModesIfNotExists,
+		},
+		{
+			Name: "open file with modes if exists",
+			Func: OpenFileWithModesIfExists,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -117,6 +129,34 @@ var OpenFileIfExists = func(t *testing.T) {
 	assert.Nil(t, err, "expected write updated config to a temp file successfully")
 
 	f, err := CreateOrOpenFile(tempConfigFile)
+	assert.Nil(t, err, "expected to succeed")
+	assert.NotNil(t, f)
+}
+
+var CreateNewFileWithFolderHierarchyIfNotExists = func(t *testing.T) {
+	tempDir := os.TempDir()
+	tempConfigFile := tempDir + "new/folder/tempFile.txt"
+	f, err := createFile(tempConfigFile)
+	assert.Nil(t, err, "expected to succeed")
+	assert.NotNil(t, f)
+}
+
+var CreateNewFileWithModesIfNotExists = func(t *testing.T) {
+	tempDir := os.TempDir()
+	tempConfigFile := tempDir + "/tempFile.txt"
+	f, err := CreateOrOpenFileWithModes(tempConfigFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND)
+	assert.Nil(t, err, "expected to succeed")
+	assert.NotNil(t, f)
+}
+
+var OpenFileWithModesIfExists = func(t *testing.T) {
+	tempDir := os.TempDir()
+	tempConfigFile := tempDir + "/tempFile.txt"
+
+	err := os.WriteFile(tempConfigFile, []byte("some test text"), 0)
+	assert.Nil(t, err, "expected write updated config to a temp file successfully")
+
+	f, err := CreateOrOpenFileWithModes(tempConfigFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
 }
