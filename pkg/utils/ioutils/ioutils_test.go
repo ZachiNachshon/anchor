@@ -133,7 +133,7 @@ var OpenFileIfExists = func(t *testing.T) {
 	tempDir := os.TempDir()
 	tempConfigFile := tempDir + "/newFile2.txt"
 
-	chmodError := os.Chmod(tempConfigFile, 0666)
+	chmodError := os.Chmod(tempConfigFile, 0600)
 	assert.Nil(t, chmodError, "failed to change permissive temp folder mode")
 
 	_, e := os.Create(tempConfigFile)
@@ -167,7 +167,7 @@ var OpenFileWithModesIfExists = func(t *testing.T) {
 	tempDir := os.TempDir()
 	tempConfigFile := tempDir + "/newFile5.txt"
 
-	chmodError := os.Chmod(tempConfigFile, 0666)
+	chmodError := os.Chmod(tempConfigFile, 0600)
 	assert.Nil(t, chmodError, "failed to change permissive temp folder mode")
 
 	_, e := os.Create(tempConfigFile)
