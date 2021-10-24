@@ -135,7 +135,7 @@ var OpenFileIfExists = func(t *testing.T) {
 
 var CreateNewFileWithFolderHierarchyIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "new/folder/tempFile.txt"
+	tempConfigFile := tempDir + "/new/folder/tempFile.txt"
 	f, err := createFile(tempConfigFile)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
