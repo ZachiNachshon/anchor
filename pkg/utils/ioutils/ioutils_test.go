@@ -123,7 +123,7 @@ var ReturnWorkingDirectory = func(t *testing.T) {
 
 var CreateNewFileIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "newFile1.txt"
+	tempConfigFile := tempDir + "/newFile1.txt"
 	f, err := CreateOrOpenFile(tempConfigFile)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
@@ -131,7 +131,7 @@ var CreateNewFileIfNotExists = func(t *testing.T) {
 
 var OpenFileIfExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "newFile2.txt"
+	tempConfigFile := tempDir + "/newFile2.txt"
 
 	chmodError := os.Chmod(tempConfigFile, 0777)
 	assert.Nil(t, chmodError, "failed to change permissive temp folder mode")
@@ -149,7 +149,7 @@ var OpenFileIfExists = func(t *testing.T) {
 
 var CreateNewFileWithFolderHierarchyIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "new/folder/newFile3.txt"
+	tempConfigFile := tempDir + "/new/folder/newFile3.txt"
 	f, err := createFile(tempConfigFile)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
@@ -157,7 +157,7 @@ var CreateNewFileWithFolderHierarchyIfNotExists = func(t *testing.T) {
 
 var CreateNewFileWithModesIfNotExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "newFile4.txt"
+	tempConfigFile := tempDir + "/newFile4.txt"
 	f, err := CreateOrOpenFileWithModes(tempConfigFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND)
 	assert.Nil(t, err, "expected to succeed")
 	assert.NotNil(t, f)
@@ -165,7 +165,7 @@ var CreateNewFileWithModesIfNotExists = func(t *testing.T) {
 
 var OpenFileWithModesIfExists = func(t *testing.T) {
 	tempDir := os.TempDir()
-	tempConfigFile := tempDir + "newFile5.txt"
+	tempConfigFile := tempDir + "/newFile5.txt"
 
 	chmodError := os.Chmod(tempConfigFile, 0777)
 	assert.Nil(t, chmodError, "failed to change permissive temp folder mode")
