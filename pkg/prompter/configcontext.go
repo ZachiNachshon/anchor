@@ -65,5 +65,6 @@ func prepareConfigContextSelector(
 		Searcher:          searcher,
 		StartInSearchMode: false,
 		HideSelected:      true,
+		Stdout:            &bellSkipper{},
 	}
 }
