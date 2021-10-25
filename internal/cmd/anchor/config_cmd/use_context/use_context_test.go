@@ -40,7 +40,7 @@ var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 			fakeCfgMgr := config.CreateFakeConfigManager()
 			fakeO := NewOrchestrator(fakeCfgMgr, configContextName)
 			runCallCount := 0
-			fakeO.runFunc = func(o *useContextOrchestrator, ctx common.Context) error {
+			fakeO.runFunc = func(o *UseContextOrchestrator, ctx common.Context) error {
 				runCallCount++
 				return nil
 			}

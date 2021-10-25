@@ -2,6 +2,7 @@ package set_context_entry
 
 import (
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/config_cmd/use_context"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
@@ -41,6 +42,14 @@ func Test_SetContextEntryActionShould(t *testing.T) {
 			Name: "fail to populate config context changes on bad input type",
 			Func: FailToPopulateConfigContextChangesOnBadInputType,
 		},
+		{
+			Name: "set current config context after config entry assignment",
+			Func: SetCurrentConfigContextAfterConfigEntryAssignment,
+		},
+		{
+			Name: "fail to set current config context after config entry assignment",
+			Func: FailToSetCurrentConfigContextAfterConfigEntryAssignment,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -50,7 +59,7 @@ var CompleteRunnerMethodSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			configContextName := "test-cfg-context"
 			fakeCfgMgr := config.CreateFakeConfigManager()
-			fakeO := NewOrchestrator(fakeCfgMgr, configContextName, nil)
+			fakeO := NewOrchestrator(fakeCfgMgr, configContextName, false, nil)
 			runCallCount := 0
 			fakeO.runFunc = func(o *setContextEntryOrchestrator, ctx common.Context) error {
 				runCallCount++
@@ -84,7 +93,7 @@ var SetConfigContextEntries = func(t *testing.T) {
 					return nil
 				}
 
-				fakeO := NewOrchestrator(fakeCfgManager, configContextName, changes)
+				fakeO := NewOrchestrator(fakeCfgManager, configContextName, false, changes)
 				err := run(fakeO, ctx)
 				assert.Nil(t, err, "expected set context entry to succeed")
 				assert.Equal(t, 1, overrideCfgCallCount, "expected to be called exactly once")
@@ -106,7 +115,7 @@ var FailToOverrideConfigEntries = func(t *testing.T) {
 					return fmt.Errorf("failed to override config entries")
 				}
 
-				fakeO := NewOrchestrator(fakeCfgManager, configContextName, changes)
+				fakeO := NewOrchestrator(fakeCfgManager, configContextName, false, changes)
 				err := run(fakeO, ctx)
 				assert.NotNil(t, err, "expected set context entry to fail")
 				assert.Equal(t, "failed to override config entries", err.Error())
@@ -125,7 +134,7 @@ var FailToSetNewConfigContextDefaults = func(t *testing.T) {
 				fakeCfgManager.SetDefaultsPostCreationMock = func(anchorConfig *config.AnchorConfig) error {
 					return fmt.Errorf("failed to set defaults post config context creation")
 				}
-				fakeO := NewOrchestrator(fakeCfgManager, configContextName, nil)
+				fakeO := NewOrchestrator(fakeCfgManager, configContextName, false, nil)
 				fakeO.cfgManager = fakeCfgManager
 				err := run(fakeO, ctx)
 				assert.NotNil(t, err, "expected set context entry to fail")
@@ -182,7 +191,7 @@ var FailToPopulateConfigContextChangesOnBadInputType = func(t *testing.T) {
 					overrideCfgCallCount++
 					return nil
 				}
-				fakeO := NewOrchestrator(fakeCfgManager, configContextName, changes)
+				fakeO := NewOrchestrator(fakeCfgManager, configContextName, false, changes)
 				err := run(fakeO, ctx)
 				assert.NotNil(t, err, "expected set context entry to fail")
 				assert.Equal(t, 0, overrideCfgCallCount, "expected not to be called")
@@ -202,23 +211,83 @@ var AddNewConfigContextWithDefaults = func(t *testing.T) {
 				setDefaultsPostCreationCallCount := 0
 				fakeCfgManager.SetDefaultsPostCreationMock = func(anchorConfig *config.AnchorConfig) error {
 					setDefaultsPostCreationCallCount++
-					newCfgCtxAdded := config.TryGetConfigContext(anchorConfig.Config.Contexts, configContextName)
-					assert.NotNil(t, newCfgCtxAdded, "expected contexts to contains the new cfg context")
-					newCfgCtxAdded.Context.Repository.Remote.Branch = config.DefaultRemoteBranch
 					return nil
 				}
 				overrideCfgCallCount := 0
 				fakeCfgManager.OverrideConfigMock = func(cfgToUpdate *config.AnchorConfig) error {
 					overrideCfgCallCount++
-					newCfgCtxAdded := config.TryGetConfigContext(cfgToUpdate.Config.Contexts, configContextName)
-					assert.Equal(t, config.DefaultRemoteBranch, newCfgCtxAdded.Context.Repository.Remote.Branch)
 					return nil
 				}
-				fakeO := NewOrchestrator(fakeCfgManager, configContextName, changes)
+				fakeO := NewOrchestrator(fakeCfgManager, configContextName, false, changes)
 				err := run(fakeO, ctx)
 				assert.Nil(t, err, "expected set context entry to succeed")
-				assert.Equal(t, 1, setDefaultsPostCreationCallCount, "expected not to be called")
-				assert.Equal(t, 1, overrideCfgCallCount, "expected not to be called")
+				assert.Equal(t, 1, setDefaultsPostCreationCallCount, "expected to be called")
+				assert.Equal(t, 1, overrideCfgCallCount, "expected to be called")
+			})
+		})
+	})
+}
+
+var SetCurrentConfigContextAfterConfigEntryAssignment = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				changes := make(map[string]string)
+				changes[remoteUrlFlagName] = "git@github.com:test/flags.git"
+				configContextName := "new-cfg-context"
+				fakeCfgManager := config.CreateFakeConfigManager()
+				setDefaultsPostCreationCallCount := 0
+				fakeCfgManager.SetDefaultsPostCreationMock = func(anchorConfig *config.AnchorConfig) error {
+					setDefaultsPostCreationCallCount++
+					return nil
+				}
+				overrideCfgCallCount := 0
+				fakeCfgManager.OverrideConfigMock = func(cfgToUpdate *config.AnchorConfig) error {
+					overrideCfgCallCount++
+					return nil
+				}
+				setAsCurrentConfigContext := true
+				fakeO := NewOrchestrator(fakeCfgManager, configContextName, setAsCurrentConfigContext, changes)
+
+				setCurrCfgCtxCallCount := 0
+				fakeO.setCurrentConfigContextFunc = func(ctx common.Context, useCtxOrchestrator *use_context.UseContextOrchestrator) error {
+					setCurrCfgCtxCallCount++
+					return nil
+				}
+				err := run(fakeO, ctx)
+				assert.Nil(t, err, "expected set context entry to succeed")
+				assert.Equal(t, 1, setDefaultsPostCreationCallCount, "expected to be called")
+				assert.Equal(t, 1, overrideCfgCallCount, "expected to be called")
+				assert.Equal(t, 1, setCurrCfgCtxCallCount, "expected to be called")
+			})
+		})
+	})
+}
+
+var FailToSetCurrentConfigContextAfterConfigEntryAssignment = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				changes := make(map[string]string)
+				configContextName := "new-cfg-context"
+				fakeCfgManager := config.CreateFakeConfigManager()
+				fakeCfgManager.SetDefaultsPostCreationMock = func(anchorConfig *config.AnchorConfig) error {
+					return nil
+				}
+				fakeCfgManager.OverrideConfigMock = func(cfgToUpdate *config.AnchorConfig) error {
+					return nil
+				}
+				setAsCurrentConfigContext := true
+				fakeO := NewOrchestrator(fakeCfgManager, configContextName, setAsCurrentConfigContext, changes)
+
+				setCurrCfgCtxCallCount := 0
+				fakeO.setCurrentConfigContextFunc = func(ctx common.Context, useCtxOrchestrator *use_context.UseContextOrchestrator) error {
+					setCurrCfgCtxCallCount++
+					return fmt.Errorf("failed to set config context after setting config entry")
+				}
+				err := run(fakeO, ctx)
+				assert.NotNil(t, err, "expected set context entry to fail")
+				assert.Equal(t, 1, setCurrCfgCtxCallCount, "expected to be called")
 			})
 		})
 	})
