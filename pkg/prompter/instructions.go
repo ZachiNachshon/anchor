@@ -130,6 +130,7 @@ func prepareInstructionsActionsSelector(
 		Searcher:          searcher,
 		StartInSearchMode: true,
 		HideSelected:      true,
+		Stdout:            &bellSkipper{},
 	}
 }
 
@@ -194,5 +195,6 @@ func prepareInstructionsWorkflowsSelector(
 		Searcher:          searcher,
 		StartInSearchMode: true,
 		HideSelected:      true,
+		Stdout:            &bellSkipper{},
 	}
 }
