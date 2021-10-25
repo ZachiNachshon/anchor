@@ -1,6 +1,7 @@
 package set_context_entry
 
 import (
+	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/config_cmd/use_context"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/logger"
@@ -14,19 +15,26 @@ var ConfigSetContextEntry = func(ctx common.Context, o *setContextEntryOrchestra
 }
 
 type setContextEntryOrchestrator struct {
-	cfgCtxName string
-	cfgManager config.ConfigManager
-	changes    map[string]string
+	cfgCtxName         string
+	cfgManager         config.ConfigManager
+	setAsCurrCfgCtx    bool
+	changes            map[string]string
+	useCtxOrchestrator *use_context.UseContextOrchestrator
 
-	runFunc func(o *setContextEntryOrchestrator, ctx common.Context) error
+	runFunc                     func(o *setContextEntryOrchestrator, ctx common.Context) error
+	setCurrentConfigContextFunc func(ctx common.Context, useCtxOrchestrator *use_context.UseContextOrchestrator) error
 }
 
-func NewOrchestrator(cfgManager config.ConfigManager, cfgCtxName string, changes map[string]string) *setContextEntryOrchestrator {
+func NewOrchestrator(cfgManager config.ConfigManager, cfgCtxName string, setAsCurrCfgCtx bool, changes map[string]string) *setContextEntryOrchestrator {
 	return &setContextEntryOrchestrator{
-		cfgManager: cfgManager,
-		cfgCtxName: cfgCtxName,
-		changes:    changes,
-		runFunc:    run,
+		cfgManager:         cfgManager,
+		cfgCtxName:         cfgCtxName,
+		setAsCurrCfgCtx:    setAsCurrCfgCtx,
+		changes:            changes,
+		useCtxOrchestrator: use_context.NewOrchestrator(cfgManager, cfgCtxName),
+
+		runFunc:                     run,
+		setCurrentConfigContextFunc: setCurrentConfigContext,
 	}
 }
 
@@ -46,6 +54,11 @@ func run(o *setContextEntryOrchestrator, ctx common.Context) error {
 		return err
 	} else {
 		logger.Infof("Updated config context entries successfully. context: %s", o.cfgCtxName)
+		if o.setAsCurrCfgCtx {
+			if err = o.setCurrentConfigContextFunc(ctx, o.useCtxOrchestrator); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 }
@@ -84,4 +97,8 @@ func populateConfigContextChanges(cfgCtx *config.Context, changes map[string]str
 		}
 	}
 	return nil
+}
+
+func setCurrentConfigContext(ctx common.Context, useCtxOrchestrator *use_context.UseContextOrchestrator) error {
+	return use_context.ConfigUseContext(ctx, useCtxOrchestrator)
 }

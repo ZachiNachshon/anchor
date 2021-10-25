@@ -9,12 +9,13 @@ import (
 )
 
 const (
-	remoteUrlFlagName        = "repository.remote.url"
-	remoteBranchFlagName     = "repository.remote.branch"
-	remoteRevisionFlagName   = "repository.remote.revision"
-	remoteClonePathFlagName  = "repository.remote.clonePath"
-	remoteAutoUpdateFlagName = "repository.remote.autoUpdate"
-	localPathFlagName        = "repository.local.path"
+	remoteUrlFlagName                 = "repository.remote.url"
+	remoteBranchFlagName              = "repository.remote.branch"
+	remoteRevisionFlagName            = "repository.remote.revision"
+	remoteClonePathFlagName           = "repository.remote.clonePath"
+	remoteAutoUpdateFlagName          = "repository.remote.autoUpdate"
+	localPathFlagName                 = "repository.local.path"
+	setAsCurrentConfigContextFlagName = "set-current-context"
 )
 
 var remoteBranchFlagValue = ""
@@ -23,6 +24,7 @@ var remoteRevisionFlagValue = ""
 var remoteClonePathFlagValue = ""
 var remoteAutoUpdateFlagValue = ""
 var localPathFlagValue = ""
+var setAsCurrentConfigContextFlagValue = false
 
 type setContextValueCmd struct {
 	cmd.AnchorCommand
@@ -82,7 +84,7 @@ func NewCommand(
 			if len(localPathFlagValue) > 0 {
 				flags[localPathFlagName] = localPathFlagValue
 			}
-			return setContextEntryFunc(ctx, NewOrchestrator(cfgManager, cfgCtxName, flags))
+			return setContextEntryFunc(ctx, NewOrchestrator(cfgManager, cfgCtxName, setAsCurrentConfigContextFlagValue, flags))
 		},
 	}
 
@@ -137,6 +139,12 @@ func initFlags(c *setContextValueCmd) error {
 		localPathFlagName,
 		"",
 		fmt.Sprintf("--%s=/repo/local/path", localPathFlagName))
+
+	c.cobraCmd.Flags().BoolVar(
+		&setAsCurrentConfigContextFlagValue,
+		setAsCurrentConfigContextFlagName,
+		false,
+		fmt.Sprint("--", setAsCurrentConfigContextFlagName))
 
 	c.cobraCmd.Flags().SortFlags = false
 	return nil

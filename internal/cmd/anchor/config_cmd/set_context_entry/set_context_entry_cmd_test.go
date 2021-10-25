@@ -104,6 +104,8 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 					assert.Contains(t, o.changes, localPathFlagName)
 					assert.Equal(t, o.changes[localPathFlagName], localPath)
 
+					assert.True(t, o.setAsCurrCfgCtx)
+
 					callCount++
 					return nil
 				}
@@ -118,9 +120,11 @@ var StartSetContextEntryActionWithAllFlags = func(t *testing.T) {
 					fmt.Sprintf("--%s=%s", remoteClonePathFlagName, clonePath),
 					fmt.Sprintf("--%s=%s", remoteAutoUpdateFlagName, autoUpdate),
 					fmt.Sprintf("--%s=%s", localPathFlagName, localPath),
+					fmt.Sprintf("--%s", setAsCurrentConfigContextFlagName),
 				)
 				assert.Equal(t, 1, callCount, "expected action to be called exactly once. name: set-context-entry")
 				assert.Nil(t, err, "expected action to have no errors")
+				assert.Equal(t, 7, command.cobraCmd.Flags().NFlag())
 			})
 		})
 	})

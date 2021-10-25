@@ -49,7 +49,7 @@ var StartUseContextActionSuccessfully = func(t *testing.T) {
 				configContextName := "test-cfg-context"
 				fakeCfgManager := config.CreateFakeConfigManager()
 				callCount := 0
-				fun := func(ctx common.Context, o *useContextOrchestrator) error {
+				fun := func(ctx common.Context, o *UseContextOrchestrator) error {
 					callCount++
 					return nil
 				}
@@ -68,7 +68,7 @@ var FailDueToMissingConfigContextName = func(t *testing.T) {
 			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, o *useContextOrchestrator) error {
+				fun := func(ctx common.Context, o *UseContextOrchestrator) error {
 					callCount++
 					return nil
 				}
@@ -89,7 +89,7 @@ var FailUseContextAction = func(t *testing.T) {
 				configContextName := "test-cfg-context"
 				callCount := 0
 				fakeCfgManager := config.CreateFakeConfigManager()
-				fun := func(ctx common.Context, o *useContextOrchestrator) error {
+				fun := func(ctx common.Context, o *UseContextOrchestrator) error {
 					callCount++
 					return fmt.Errorf("an error occurred")
 				}
@@ -106,7 +106,7 @@ var FailUseContextAction = func(t *testing.T) {
 var ContainCobraCommand = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigUseContextFunc = func(ctx common.Context, o *useContextOrchestrator) error {
+		var fun ConfigUseContextFunc = func(ctx common.Context, o *UseContextOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)
@@ -118,7 +118,7 @@ var ContainCobraCommand = func(t *testing.T) {
 var ContainContext = func(t *testing.T) {
 	with.Context(func(ctx common.Context) {
 		fakeCfgManager := config.CreateFakeConfigManager()
-		var fun ConfigUseContextFunc = func(ctx common.Context, o *useContextOrchestrator) error {
+		var fun ConfigUseContextFunc = func(ctx common.Context, o *UseContextOrchestrator) error {
 			return nil
 		}
 		anchorCmd := NewCommand(ctx, fakeCfgManager, fun)

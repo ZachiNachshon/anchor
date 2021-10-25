@@ -7,28 +7,28 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/logger"
 )
 
-type ConfigUseContextFunc func(ctx common.Context, o *useContextOrchestrator) error
+type ConfigUseContextFunc func(ctx common.Context, o *UseContextOrchestrator) error
 
-var ConfigUseContext = func(ctx common.Context, o *useContextOrchestrator) error {
-	return o.runFunc(o, ctx)
+var ConfigUseContext = func(ctx common.Context, o *UseContextOrchestrator) error {
+	return o.RunFunc(o, ctx)
 }
 
-type useContextOrchestrator struct {
+type UseContextOrchestrator struct {
 	cfgCtxName string
 	cfgManager config.ConfigManager
 
-	runFunc func(o *useContextOrchestrator, ctx common.Context) error
+	RunFunc func(o *UseContextOrchestrator, ctx common.Context) error
 }
 
-func NewOrchestrator(cfgManager config.ConfigManager, cfgCtxName string) *useContextOrchestrator {
-	return &useContextOrchestrator{
+func NewOrchestrator(cfgManager config.ConfigManager, cfgCtxName string) *UseContextOrchestrator {
+	return &UseContextOrchestrator{
 		cfgManager: cfgManager,
 		cfgCtxName: cfgCtxName,
-		runFunc:    run,
+		RunFunc:    run,
 	}
 }
 
-func run(o *useContextOrchestrator, ctx common.Context) error {
+func run(o *UseContextOrchestrator, ctx common.Context) error {
 	cfg := config.FromContext(ctx)
 	if cfgCtx := config.TryGetConfigContext(cfg.Config.Contexts, o.cfgCtxName); cfgCtx == nil {
 		return fmt.Errorf("could not identify config context. name: %s", o.cfgCtxName)
