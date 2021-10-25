@@ -1,7 +1,6 @@
 package prompter
 
 import (
-	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
 	"github.com/ZachiNachshon/anchor/test/harness"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -31,7 +30,7 @@ var NotRingTheBellWhenBellCharacterWasSent = func(t *testing.T) {
 
 var PipeToStderrWhenBellCharacterWasNotSent = func(t *testing.T) {
 	tempFile := os.TempDir() + "bell_skipper.txt"
-	dummyStderrFile, _ := ioutils.CreateOrOpenFile(tempFile)
+	dummyStderrFile, _ := os.Create(tempFile)
 	defer dummyStderrFile.Close()
 	bs := newBellSkipper()
 	bs.stderr = dummyStderrFile
