@@ -1,6 +1,9 @@
 package prompter
 
-import "os"
+import (
+	"io"
+	"os"
+)
 
 // bellSkipper implements an io.WriteCloser that skips the terminal bell
 // character (ASCII code 7), and writes the rest to os.Stderr. It is used to
@@ -9,7 +12,16 @@ import "os"
 //
 // This is a workaround for the bell issue documented in
 // https://github.com/manifoldco/promptui/issues/49.
-type bellSkipper struct{}
+type bellSkipper struct {
+	io.WriteCloser
+	stderr *os.File
+}
+
+func newBellSkipper() *bellSkipper {
+	return &bellSkipper{
+		stderr: os.Stderr,
+	}
+}
 
 // Write implements an io.WriterCloser over os.Stderr, but it skips the terminal
 // bell character.
@@ -18,10 +30,10 @@ func (bs *bellSkipper) Write(b []byte) (int, error) {
 	if len(b) == 1 && b[0] == charBell {
 		return 0, nil
 	}
-	return os.Stderr.Write(b)
+	return bs.stderr.Write(b)
 }
 
 // Close implements an io.WriterCloser over os.Stderr.
 func (bs *bellSkipper) Close() error {
-	return os.Stderr.Close()
+	return bs.stderr.Close()
 }
