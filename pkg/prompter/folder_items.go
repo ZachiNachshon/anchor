@@ -60,6 +60,6 @@ func prepareFolderItemsSelector(
 		Searcher:          searcher,
 		StartInSearchMode: true,
 		HideSelected:      true,
-		Stdout:            &bellSkipper{},
+		Stdout:            newBellSkipper(),
 	}
 }

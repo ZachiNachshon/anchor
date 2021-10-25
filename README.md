@@ -121,16 +121,11 @@ Take `anchor` for a spin using the following steps, connect to a remote playgrou
 
    ```bash
    anchor config set-context-entry playground \
-    --repository.remote.url=git@github.com:ZachiNachshon/anchorfiles-playground.git
+    --repository.remote.url=git@github.com:ZachiNachshon/anchorfiles-playground.git \
+    --set-current-context
    ```
 
-1. Type `anchor` and select `playground` from the config context menu to print all available playground CLI commands
-
-1. Set the `playground` config context as the default context:
-
-   ```bash
-   anchor config use-context playground
-   ```
+1. Type `anchor` to print all available playground CLI commands
 
 1. Check which items are available under the `dummy-ops` command:
 
