@@ -494,10 +494,10 @@ var InitializeConfigurationSuccessfully = func(t *testing.T) {
 			configLoaderCallCount++
 			return nil
 		}
-		configListenChangesCallCount := 0
-		fakeCfgMgr.ListenOnConfigFileChangesMock = func(ctx common.Context) {
-			configListenChangesCallCount++
-		}
+		//configListenChangesCallCount := 0
+		//fakeCfgMgr.ListenOnConfigFileChangesMock = func(ctx common.Context) {
+		//	configListenChangesCallCount++
+		//}
 		createConfigCallCount := 0
 		fakeCfgMgr.CreateConfigObjectMock = func(shouldValidateConfig bool) (*config.AnchorConfig, error) {
 			createConfigCallCount++
@@ -507,7 +507,7 @@ var InitializeConfigurationSuccessfully = func(t *testing.T) {
 		err := initConfiguration(ctx, fakeCfgMgr, shouldValidateCfg)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")
+		//assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, createConfigCallCount, "expected func to be called exactly once")
 		assert.Equal(t, configInUse, ctx.Config().(*config.AnchorConfig))
 	})
@@ -538,10 +538,10 @@ var FailToCreateConfigObject = func(t *testing.T) {
 			configLoaderCallCount++
 			return nil
 		}
-		configListenChangesCallCount := 0
-		fakeCfgMgr.ListenOnConfigFileChangesMock = func(ctx common.Context) {
-			configListenChangesCallCount++
-		}
+		//configListenChangesCallCount := 0
+		//fakeCfgMgr.ListenOnConfigFileChangesMock = func(ctx common.Context) {
+		//	configListenChangesCallCount++
+		//}
 		createConfigCallCount := 0
 		fakeCfgMgr.CreateConfigObjectMock = func(shouldValidateConfig bool) (*config.AnchorConfig, error) {
 			createConfigCallCount++
@@ -551,7 +551,7 @@ var FailToCreateConfigObject = func(t *testing.T) {
 		err := initConfiguration(ctx, fakeCfgMgr, shouldValidateCfg)
 		assert.NotNil(t, err)
 		assert.Equal(t, 1, configLoaderCallCount, "expected func to be called exactly once")
-		assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")
+		//assert.Equal(t, 1, configListenChangesCallCount, "expected func to be called exactly once")
 		assert.Equal(t, 1, createConfigCallCount, "expected func to be called exactly once")
 		assert.Equal(t, "failed to create config object", err.Error())
 		assert.Nil(t, ctx.Config(), "expected context not to have config set")

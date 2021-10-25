@@ -36,13 +36,6 @@ func IsValidPath(path string) bool {
 	return true
 }
 
-//func CreateDirectory(path string) error {
-//	if _, err := os.Stat(path); os.IsNotExist(err) {
-//		return os.Mkdir(path, os.ModePerm)
-//	}
-//	return nil
-//}
-
 func GetUserHomeDirectory() (string, error) {
 	if dirname, err := os.UserHomeDir(); err != nil {
 		return "", err
@@ -57,11 +50,7 @@ func GetWorkingDirectory() (string, error) {
 
 func CreateOrOpenFile(path string) (*os.File, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if file, err := os.Create(path); err != nil {
-			return nil, err
-		} else {
-			return file, nil
-		}
+		return createFile(path)
 	} else {
 		if file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
 			return nil, err
@@ -69,4 +58,35 @@ func CreateOrOpenFile(path string) (*os.File, error) {
 			return file, err
 		}
 	}
+}
+
+func CreateOrOpenFileWithModes(path string, modeFlags int) (*os.File, error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return createFile(path)
+	} else {
+		if file, err := os.OpenFile(path, modeFlags, 0666); err != nil {
+			return nil, err
+		} else {
+			return file, err
+		}
+	}
+}
+
+func createFile(path string) (*os.File, error) {
+	dir, _ := filepath.Split(path)
+	if err := createDirectory(dir); err != nil {
+		return nil, err
+	}
+	if file, err := os.Create(path); err != nil {
+		return nil, err
+	} else {
+		return file, nil
+	}
+}
+
+func createDirectory(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.MkdirAll(path, os.ModePerm)
+	}
+	return nil
 }
