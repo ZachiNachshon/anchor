@@ -50,6 +50,10 @@ func Test_SetContextEntryActionShould(t *testing.T) {
 			Name: "fail to set current config context after config entry assignment",
 			Func: FailToSetCurrentConfigContextAfterConfigEntryAssignment,
 		},
+		{
+			Name: "set current config context calls use context action",
+			Func: SetCurrentConfigContextCallsUseContextAction,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -290,5 +294,21 @@ var FailToSetCurrentConfigContextAfterConfigEntryAssignment = func(t *testing.T)
 				assert.Equal(t, 1, setCurrCfgCtxCallCount, "expected to be called")
 			})
 		})
+	})
+}
+
+var SetCurrentConfigContextCallsUseContextAction = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		fakeCfgManager := config.CreateFakeConfigManager()
+		configContextName := "new-cfg-context"
+		useCtxOrch := use_context.NewOrchestrator(fakeCfgManager, configContextName)
+		runCallCount := 0
+		useCtxOrch.RunFunc = func(o *use_context.UseContextOrchestrator, ctx common.Context) error {
+			runCallCount++
+			return nil
+		}
+		err := setCurrentConfigContext(ctx, useCtxOrch)
+		assert.Nil(t, err, "expected use context call to succeed")
+		assert.Equal(t, 1, runCallCount, "expected to be called")
 	})
 }

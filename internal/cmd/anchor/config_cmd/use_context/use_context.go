@@ -10,21 +10,21 @@ import (
 type ConfigUseContextFunc func(ctx common.Context, o *UseContextOrchestrator) error
 
 var ConfigUseContext = func(ctx common.Context, o *UseContextOrchestrator) error {
-	return o.runFunc(o, ctx)
+	return o.RunFunc(o, ctx)
 }
 
 type UseContextOrchestrator struct {
 	cfgCtxName string
 	cfgManager config.ConfigManager
 
-	runFunc func(o *UseContextOrchestrator, ctx common.Context) error
+	RunFunc func(o *UseContextOrchestrator, ctx common.Context) error
 }
 
 func NewOrchestrator(cfgManager config.ConfigManager, cfgCtxName string) *UseContextOrchestrator {
 	return &UseContextOrchestrator{
 		cfgManager: cfgManager,
 		cfgCtxName: cfgCtxName,
-		runFunc:    run,
+		RunFunc:    run,
 	}
 }
 
