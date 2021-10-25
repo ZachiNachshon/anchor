@@ -87,7 +87,7 @@ func initConfiguration(ctx common.Context, cfgManager config.ConfigManager, shou
 		return err
 	}
 
-	cfgManager.ListenOnConfigFileChanges(ctx)
+	//cfgManager.ListenOnConfigFileChanges(ctx)
 
 	cfg, err := cfgManager.CreateConfigObject(shouldValidateCfgSchema)
 	if err != nil {

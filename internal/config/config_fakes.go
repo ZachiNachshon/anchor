@@ -1,16 +1,14 @@
 package config
 
-import "github.com/ZachiNachshon/anchor/internal/common"
-
 var CreateFakeConfigManager = func() *fakeConfigManager {
 	return &fakeConfigManager{}
 }
 
 type fakeConfigManager struct {
 	ConfigManager
-	SetupConfigFileLoaderMock           func() error
-	SetupConfigInMemoryLoaderMock       func(yaml string) error
-	ListenOnConfigFileChangesMock       func(ctx common.Context)
+	SetupConfigFileLoaderMock     func() error
+	SetupConfigInMemoryLoaderMock func(yaml string) error
+	//ListenOnConfigFileChangesMock       func(ctx common.Context)
 	OverrideConfigMock                  func(cfgToUpdate *AnchorConfig) error
 	OverrideConfigEntryMock             func(entryName string, value interface{}) error
 	ReadConfigMock                      func(key string) string
@@ -28,9 +26,9 @@ func (cm *fakeConfigManager) SetupConfigInMemoryLoader(yaml string) error {
 	return cm.SetupConfigInMemoryLoaderMock(yaml)
 }
 
-func (cm *fakeConfigManager) ListenOnConfigFileChanges(ctx common.Context) {
-	cm.ListenOnConfigFileChangesMock(ctx)
-}
+//func (cm *fakeConfigManager) ListenOnConfigFileChanges(ctx common.Context) {
+//	cm.ListenOnConfigFileChangesMock(ctx)
+//}
 
 func (cm *fakeConfigManager) OverrideConfig(cfgToUpdate *AnchorConfig) error {
 	return cm.OverrideConfigMock(cfgToUpdate)

@@ -6,7 +6,6 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/utils/converters"
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
-	"github.com/fsnotify/fsnotify"
 	"strings"
 )
 
@@ -85,16 +84,16 @@ func (cm *configManagerImpl) SetupConfigInMemoryLoader(yaml string) error {
 	return cm.adapter.LoadConfigFromText(yaml)
 }
 
-func (cm *configManagerImpl) ListenOnConfigFileChanges(ctx common.Context) {
-	cm.adapter.RegisterConfigChangesListener(func(e fsnotify.Event) {
-		if err := cm.adapter.AppendConfig(ctx.Config()); err != nil {
-			// TODO: is it really fatal?
-			logger.Fatalf("Failed to reload in-memory configuration file after change was identified. error: %s", err.Error())
-		} else {
-			logger.Debugf("Config file changed, in-memory config state updated. event: %s", e.Name)
-		}
-	})
-}
+//func (cm *configManagerImpl) ListenOnConfigFileChanges(ctx common.Context) {
+//	cm.adapter.RegisterConfigChangesListener(func(e fsnotify.Event) {
+//		if err := cm.adapter.AppendConfig(ctx.Config()); err != nil {
+//			// TODO: is it really fatal?
+//			logger.Fatalf("Failed to reload in-memory configuration file after change was identified. error: %s", err.Error())
+//		} else {
+//			logger.Debugf("Config file changed, in-memory config state updated. event: %s", e.Name)
+//		}
+//	})
+//}
 
 // OverrideConfig merge the configuration from disk with the in-memory configuration
 func (cm *configManagerImpl) OverrideConfig(cfgToUpdate *AnchorConfig) error {
