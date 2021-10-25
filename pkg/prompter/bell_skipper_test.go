@@ -29,7 +29,7 @@ var NotRingTheBellWhenBellCharacterWasSent = func(t *testing.T) {
 }
 
 var PipeToStderrWhenBellCharacterWasNotSent = func(t *testing.T) {
-	tempFile := os.TempDir() + "bell_skipper.txt"
+	tempFile := os.TempDir() + "/bell_skipper.txt"
 	dummyStderrFile, _ := os.Create(tempFile)
 	defer dummyStderrFile.Close()
 	bs := newBellSkipper()
