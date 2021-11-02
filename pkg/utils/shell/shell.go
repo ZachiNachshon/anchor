@@ -77,6 +77,7 @@ func (s *shellExecutor) ExecuteScriptFile(dir string, relativeScriptPath string,
 		Dir:    dir,
 		Stdout: os.Stdout,
 		Stderr: os.Stdout,
+		Stdin:  os.Stdin,
 	}
 
 	// Execute
@@ -110,6 +111,7 @@ func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
 	var stdoutBuf, stderrBuf bytes.Buffer
 	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf, file)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf, file)
+	cmd.Stdin = os.Stdin
 
 	err = cmd.Run()
 	if err != nil {
@@ -156,6 +158,7 @@ func (s *shellExecutor) Execute(script string) error {
 	cmd := exec.Command(string(s.shellType), "-c", script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
 
 	// Execute the command
 	if err := cmd.Run(); err != nil {
@@ -176,6 +179,7 @@ func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath st
 	var _, stderrBuf bytes.Buffer
 	cmd.Stdout = io.MultiWriter(os.Stdout, &stderrBuf, file)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf, file)
+	cmd.Stdin = os.Stdin
 
 	err = cmd.Run()
 	if err != nil {
@@ -251,6 +255,7 @@ func (s *shellExecutor) ExecuteReturnOutput(script string) (string, error) {
 	var output string
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
+	cmd.Stdin = os.Stdin
 
 	if out, err := cmd.Output(); err != nil {
 		return stderr.String(), err
