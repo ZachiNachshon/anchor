@@ -16,9 +16,9 @@
   <a href="https://github.com/ZachiNachshon/anchor/releases">
     <img src="https://img.shields.io/github/v/release/ZachiNachshon/anchor?include_prereleases&style=flat-square" alt="Go Releases"/>
   </a>
-  <a href="https://img.shields.io/github/downloads/ZachiNachshon/anchor/total">
+<!--   <a href="https://img.shields.io/github/downloads/ZachiNachshon/anchor/total">
     <img src="https://img.shields.io/github/downloads/ZachiNachshon/anchor/total" alt="Downloads"/>
-  </a>
+  </a> -->
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
   </a>
