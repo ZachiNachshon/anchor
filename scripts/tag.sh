@@ -13,7 +13,11 @@ _push_remote_tag() {
     if git tag ${tag}; then
       git push origin tag ${tag}
     else
-      log_error "Tag already exist locally, please remove (git tag -d ${tag})"
+      log_error """Tag already exists locally, please remove local/remote tags:
+
+  • Local tag: git tag -d ${tag}
+  • Remote tag: git push origin :refs/tags/${tag}
+"""
       tag=""
     fi
   else
