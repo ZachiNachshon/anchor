@@ -148,6 +148,8 @@ func runInstructionWorkflow(
 	logger.Debugf("Running workflow: %v...", workflow.Id)
 	for _, actionId := range workflow.ActionIds {
 		action := models.GetActionById(actions, actionId)
+		// TODO: continue skip if action is missing since stale action ids could be added to the workflow
+
 		if promptErr := o.RunInstructionActionFunc(o, action); promptErr != nil && !workflow.TolerateFailures {
 			logger.Errorf("failed to run workflow and failures are not tolerable. "+
 				"workflow: %s, action: %s", workflow.Id, action.Id)
