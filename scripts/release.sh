@@ -14,8 +14,17 @@ main() {
     log_fatal "Cannot release due to invalid tag"
   fi
 
-  log_info "Releasing binaries... (tag: ${tag})"
-  goreleaser release --rm-dist
+  new_line
+  printf "Release tag ${tag} (y/n): " yn
+  read yn
+  new_line
+
+  if [[ "${yn}" == "y" ]]; then
+    log_info "Releasing binaries... (tag: ${tag})"
+    goreleaser release --rm-dist
+  else
+    log_info "Nothing was released."
+  fi
 }
 
 main "$@"

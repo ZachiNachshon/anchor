@@ -28,3 +28,7 @@ log_fatal() {
   _log_base "${COLOR_RED}ERROR${COLOR_NONE}: " "$@"
   exit 1
 }
+
+new_line() {
+  echo -e "" >&2
+}
