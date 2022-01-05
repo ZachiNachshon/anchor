@@ -293,7 +293,7 @@ var ActionExecFailToExecScriptFile = func(t *testing.T) {
 			}
 
 			execCallCount := 0
-			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(relativeScriptPath string, outputFilePath string, args ...string) error {
 				execCallCount++
 				assert.Equal(t, "/path/to/script", relativeScriptPath)
 				return fmt.Errorf("fail to execute")
@@ -307,7 +307,7 @@ var ActionExecFailToExecScriptFile = func(t *testing.T) {
 			fakeO.prntr = fakePrinter
 
 			err := executeInstructionAction(fakeO, action1, "")
-			assert.NotNil(t, err, "expected  to fail")
+			assert.NotNil(t, err, "expected to fail")
 			assert.Equal(t, 1, spinCallCount, "expected to be called exactly once")
 			assert.Equal(t, 1, execCallCount, "expected to be called exactly once")
 			assert.Equal(t, 1, stopOnFailureCallCount, "expected to be called exactly once")
@@ -339,7 +339,7 @@ var ActionExecExecScriptFileSuccessfully = func(t *testing.T) {
 			}
 
 			execCallCount := 0
-			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+			fakeShell.ExecuteScriptFileSilentlyWithOutputToFileMock = func(relativeScriptPath string, outputFilePath string, args ...string) error {
 				execCallCount++
 				assert.Equal(t, "/path/to/script", relativeScriptPath)
 				return nil
@@ -508,7 +508,7 @@ var ActionExecVerboseFailToExecScriptFile = func(t *testing.T) {
 			}
 
 			execCallCount := 0
-			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(relativeScriptPath string, outputFilePath string, args ...string) error {
 				execCallCount++
 				assert.Equal(t, "/path/to/script", relativeScriptPath)
 				return fmt.Errorf("fail to execute")
@@ -554,7 +554,7 @@ var ActionExecVerboseExecScriptFileSuccessfully = func(t *testing.T) {
 			}
 
 			execCallCount := 0
-			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(workingDirectory string, relativeScriptPath string, outputFilePath string, args ...string) error {
+			fakeShell.ExecuteScriptFileWithOutputToFileMock = func(relativeScriptPath string, outputFilePath string, args ...string) error {
 				execCallCount++
 				assert.Equal(t, "/path/to/script", relativeScriptPath)
 				return nil
