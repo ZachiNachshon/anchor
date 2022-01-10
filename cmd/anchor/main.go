@@ -101,7 +101,7 @@ func initConfiguration(ctx common.Context, cfgManager config.ConfigManager, shou
 func initRegistry(ctx common.Context) error {
 	reg := ctx.Registry()
 
-	s := shell.New()
+	s := shell.New(ctx)
 	reg.Set(shell.Identifier, s)
 
 	e := extractor.New()

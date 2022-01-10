@@ -174,7 +174,6 @@ func executeInstructionAction(o *ActionRunnerOrchestrator, action *models.Action
 		filePath, args := extractArgsFromScriptFile(action.ScriptFile)
 		spnr.Spin()
 		if err := o.s.ExecuteScriptFileSilentlyWithOutputToFile(
-			action.AnchorfilesRepoPath,
 			filePath,
 			scriptOutputPath,
 			args...); err != nil {
@@ -202,7 +201,6 @@ func executeInstructionActionVerbose(o *ActionRunnerOrchestrator, action *models
 		filePath, args := extractArgsFromScriptFile(action.ScriptFile)
 		plainer.Start()
 		if err := o.s.ExecuteScriptFileWithOutputToFile(
-			action.AnchorfilesRepoPath,
 			filePath,
 			scriptOutputPath,
 			args...); err != nil {

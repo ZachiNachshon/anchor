@@ -3,6 +3,7 @@ package shell
 import (
 	"bytes"
 	"fmt"
+	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"strings"
 
@@ -21,15 +22,13 @@ const (
 )
 
 type Shell interface {
-	ExecuteScriptFile(dir string, relativeScriptPath string, args ...string) error
+	ExecuteScriptFile(relativeScriptPath string, args ...string) error
 	ExecuteScriptFileWithOutputToFile(
-		workingDirectory string,
 		relativeScriptPath string,
 		outputFilePath string,
 		args ...string) error
 
 	ExecuteScriptFileSilentlyWithOutputToFile(
-		workingDirectory string,
 		relativeScriptPath string,
 		outputFilePath string,
 		args ...string) error
@@ -58,23 +57,26 @@ const (
 
 type shellExecutor struct {
 	shellType ShellType
+	ctx       common.Context
 }
 
-func New() Shell {
+func New(ctx common.Context) Shell {
 	return &shellExecutor{
+		ctx:       ctx,
 		shellType: sh, // is bin/sh enough?
 	}
 }
 
-func (s *shellExecutor) ExecuteScriptFile(dir string, relativeScriptPath string, args ...string) error {
-	path := fmt.Sprintf("%s/%s", dir, relativeScriptPath)
+func (s *shellExecutor) ExecuteScriptFile(relativeScriptPath string, args ...string) error {
+	workingDirectory := s.ctx.AnchorFilesPath()
+	path := fmt.Sprintf("%s/%s", workingDirectory, relativeScriptPath)
 	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
 
 	cmd := &exec.Cmd{
 		Path:   path,
 		Args:   slice,
-		Dir:    dir,
+		Dir:    workingDirectory,
 		Stdout: os.Stdout,
 		Stderr: os.Stdout,
 		Stdin:  os.Stdin,
@@ -88,11 +90,11 @@ func (s *shellExecutor) ExecuteScriptFile(dir string, relativeScriptPath string,
 }
 
 func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
-	workingDirectory string,
 	relativeScriptPath string,
 	outputFilePath string,
 	args ...string) error {
 
+	workingDirectory := s.ctx.AnchorFilesPath()
 	path := fmt.Sprintf("%s/%s", workingDirectory, relativeScriptPath)
 	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
@@ -122,11 +124,11 @@ func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
 }
 
 func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
-	workingDirectory string,
 	relativeScriptPath string,
 	outputFilePath string,
 	args ...string) error {
 
+	workingDirectory := s.ctx.AnchorFilesPath()
 	path := fmt.Sprintf("%s/%s", workingDirectory, relativeScriptPath)
 	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
@@ -155,7 +157,9 @@ func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
 }
 
 func (s *shellExecutor) Execute(script string) error {
+	workingDirectory := s.ctx.AnchorFilesPath()
 	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Dir = workingDirectory
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -169,7 +173,9 @@ func (s *shellExecutor) Execute(script string) error {
 }
 
 func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath string) error {
+	workingDirectory := s.ctx.AnchorFilesPath()
 	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Dir = workingDirectory
 
 	file, err := ioutils.CreateOrOpenFile(outputFilePath)
 	if err != nil {
@@ -190,7 +196,9 @@ func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath st
 }
 
 func (s *shellExecutor) ExecuteSilentlyWithOutputToFile(script string, outputFilePath string) error {
+	workingDirectory := s.ctx.AnchorFilesPath()
 	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Dir = workingDirectory
 
 	file, err := ioutils.CreateOrOpenFile(outputFilePath)
 	if err != nil {
@@ -211,7 +219,9 @@ func (s *shellExecutor) ExecuteSilentlyWithOutputToFile(script string, outputFil
 
 // ExecuteTTY example was inspired by - https://github.com/creack/pty#shell
 func (s *shellExecutor) ExecuteTTY(script string) error {
+	workingDirectory := s.ctx.AnchorFilesPath()
 	c := exec.Command(string(s.shellType), "-c", script)
+	c.Dir = workingDirectory
 
 	// Start the command with a pty
 	ptmx, err := pty.Start(c)
@@ -250,7 +260,9 @@ func (s *shellExecutor) ExecuteTTY(script string) error {
 }
 
 func (s *shellExecutor) ExecuteReturnOutput(script string) (string, error) {
+	workingDirectory := s.ctx.AnchorFilesPath()
 	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Dir = workingDirectory
 
 	var output string
 	var stderr bytes.Buffer
@@ -266,7 +278,9 @@ func (s *shellExecutor) ExecuteReturnOutput(script string) (string, error) {
 }
 
 func (s *shellExecutor) ExecuteSilently(script string) error {
+	workingDirectory := s.ctx.AnchorFilesPath()
 	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Dir = workingDirectory
 
 	var _, stderrBuf bytes.Buffer
 	cmd.Stderr = &stderrBuf
@@ -279,7 +293,9 @@ func (s *shellExecutor) ExecuteSilently(script string) error {
 }
 
 func (s *shellExecutor) ExecuteInBackground(script string) error {
+	workingDirectory := s.ctx.AnchorFilesPath()
 	cmd := exec.Command(string(s.shellType), "-c", script)
+	cmd.Dir = workingDirectory
 	// Temporary prevent logs verbosity from background process
 	//cmd.Stdout = os.Stdout
 	err := cmd.Start()
