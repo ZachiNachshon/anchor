@@ -37,6 +37,9 @@ var instructionsActionPromptTemplateDetails = `{{ if not (eq .Id "` + BackAction
 {{- if not (eq .ScriptFile "") }}
   {{ "Script File:" | faint }}` + createCustomSpacesString(actionLengthiestOption-12+leftPadding) + `{{ .ScriptFile }} 
 {{- end }}
+{{- if not (eq .RunCommand "") }}
+  {{ "Run Command:" | faint }}` + createCustomSpacesString(actionLengthiestOption-12+leftPadding) + `{{ .RunCommand }}
+{{- end }}
 {{- if not (eq .Description "") }}
   {{ "Description:" | faint }}` + createCustomSpacesString(leftPadding) + `{{ .Description }}
 {{- end }}
@@ -56,6 +59,9 @@ var instructionsWorkflowPromptTemplateDetails = `{{ if not (eq .Id "` + BackActi
 {{- end }}
 {{- if true }}
   {{ "Tolerate Failures:" | faint }}` + createCustomSpacesString(leftPadding) + `{{ .TolerateFailures }}
+{{- end }}
+{{- if not (eq .RunCommand "") }}
+  {{ "Run Command:" | faint }}` + createCustomSpacesString(workflowLengthiestOption-12+leftPadding) + `{{ .RunCommand }}
 {{- end }}
 {{- if not (eq .Description "") }}
   {{ "Description:" | faint }}` + createCustomSpacesString(workflowLengthiestOption-12+leftPadding) + `{{ .Description }}

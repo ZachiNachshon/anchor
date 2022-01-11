@@ -127,6 +127,14 @@ func Test_RunnerShould(t *testing.T) {
 			Name: "enrich actions with working dir canonical path",
 			Func: EnrichActionsWithWorkingDirCanonicalPath,
 		},
+		{
+			Name: "enrich actions with run command",
+			Func: EnrichActionsWithRunCommand,
+		},
+		{
+			Name: "enrich workflows with run command",
+			Func: EnrichWorkflowsWithRunCommand,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -910,5 +918,27 @@ var EnrichActionsWithWorkingDirCanonicalPath = func(t *testing.T) {
 	for _, action := range instData.Instructions.Actions {
 		assert.NotEmpty(t, action.AnchorfilesRepoPath)
 		assert.Equal(t, anchorfilesRepoPath, action.AnchorfilesRepoPath)
+	}
+}
+
+var EnrichActionsWithRunCommand = func(t *testing.T) {
+	instData := stubs.GenerateInstructionsTestData()
+	enrichActionsWithRunCommands("test-cmd", "test-cmd-item", nil) // Shouldn't fail
+	enrichActionsWithRunCommands("test-cmd", "test-cmd-item", instData.Instructions.Actions)
+	for _, action := range instData.Instructions.Actions {
+		assert.NotEmpty(t, action.RunCommand)
+		assert.Contains(t, action.RunCommand, "--action=")
+		assert.Contains(t, action.RunCommand, action.Id)
+	}
+}
+
+var EnrichWorkflowsWithRunCommand = func(t *testing.T) {
+	instData := stubs.GenerateInstructionsTestData()
+	enrichWorkflowsWithRunCommands("test-cmd", "test-cmd-item", nil) // Shouldn't fail
+	enrichWorkflowsWithRunCommands("test-cmd", "test-cmd-item", instData.Instructions.Workflows)
+	for _, workflow := range instData.Instructions.Workflows {
+		assert.NotEmpty(t, workflow.RunCommand)
+		assert.Contains(t, workflow.RunCommand, "--workflow=")
+		assert.Contains(t, workflow.RunCommand, workflow.Id)
 	}
 }
