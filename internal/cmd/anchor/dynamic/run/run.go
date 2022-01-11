@@ -110,7 +110,7 @@ func extractCommandFolderItem(
 }
 
 // Usage:
-//   - anchor app run first-app --action=hello-world
+//   - anchor COMMAND_NAME run INSTRUCTION_NAME --action=ACTION_ID
 func runAction(o *runOrchestrator, ctx common.Context, cmdFolderItem *models.CommandFolderItemInfo, actionId string) error {
 	if instructionsRoot, promptError := o.runner.ExtractInstructionsFunc(o.runner, cmdFolderItem, ctx.AnchorFilesPath()); promptError != nil {
 		return promptError.GoError()
@@ -128,7 +128,7 @@ func runAction(o *runOrchestrator, ctx common.Context, cmdFolderItem *models.Com
 }
 
 // Usage:
-//   - anchor app run first-app --workflow=talk-to-the-world
+//   - anchor COMMAND_NAME run INSTRUCTION_NAME --workflow=WORKFLOW_ID
 func runWorkflow(o *runOrchestrator, ctx common.Context, cmdFolderItem *models.CommandFolderItemInfo, workflowId string) error {
 	if instructionsRoot, promptError := o.runner.ExtractInstructionsFunc(o.runner, cmdFolderItem, ctx.AnchorFilesPath()); promptError != nil {
 		return promptError.GoError()

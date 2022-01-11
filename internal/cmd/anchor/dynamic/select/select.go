@@ -174,19 +174,19 @@ func run(o *selectOrchestrator, ctx common.Context) *errors.PromptError {
 }
 
 func startCommandItemsSelectionFlow(o *selectOrchestrator, anchorfilesRepoPath string) *errors.PromptError {
-	if commandFolder, promptErr := o.promptCommandItemsSelectionFunc(o); promptErr != nil {
+	if commandFolderInfo, promptErr := o.promptCommandItemsSelectionFunc(o); promptErr != nil {
 		return promptErr
-	} else if commandFolder.Name == prompter.CancelActionName {
+	} else if commandFolderInfo.Name == prompter.CancelActionName {
 		return nil
 	} else {
-		instRoot, promptError := o.runner.ExtractInstructionsFunc(o.runner, commandFolder, anchorfilesRepoPath)
+		instRoot, promptError := o.runner.ExtractInstructionsFunc(o.runner, commandFolderInfo, anchorfilesRepoPath)
 		if promptError != nil {
 			o.prntr.PrintMissingInstructions()
 			_ = o.wrapAfterExecutionFunc(o)
 			return o.startCommandItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 		}
 
-		if instructionItem, promptErr := o.startInstructionActionSelectionFlowFunc(o, commandFolder, instRoot); promptErr != nil {
+		if instructionItem, promptErr := o.startInstructionActionSelectionFlowFunc(o, commandFolderInfo, instRoot); promptErr != nil {
 			if promptErr.Code() == errors.InstructionMissingError {
 				return o.startCommandItemsSelectionFlowFunc(o, anchorfilesRepoPath)
 			}

@@ -3,6 +3,12 @@ GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 
 default: help
 
+.PHONY: setup
+setup: fmtcheck ## Update dependencies, preparing this repo pre-build
+	go mod tidy
+	go mod verify
+	go mod vendor
+
 .PHONY: build
 build: fmtcheck ## Build binary with format check (destination: PWD)
 	go build -o ./anchor ./cmd/anchor/*.go

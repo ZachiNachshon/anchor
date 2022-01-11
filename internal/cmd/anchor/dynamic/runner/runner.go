@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/errors"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/models"
 	"github.com/ZachiNachshon/anchor/pkg/parser"
 	"github.com/ZachiNachshon/anchor/pkg/printer"
+	"github.com/ZachiNachshon/anchor/pkg/utils/colors"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"strings"
 )
@@ -104,10 +106,10 @@ func extractArgsFromScriptFile(scriptFile string) (string, []string) {
 
 func extractInstructions(
 	o *ActionRunnerOrchestrator,
-	app *models.CommandFolderItemInfo,
+	commandFolderItemInfo *models.CommandFolderItemInfo,
 	anchorfilesRepoPath string) (*models.InstructionsRoot, *errors.PromptError) {
 
-	path := app.InstructionsPath
+	path := commandFolderItemInfo.InstructionsPath
 	if instructionsRoot, err := o.e.ExtractInstructions(path, o.prsr); err != nil {
 		logger.Warningf("Failed to extract instructions from file. error: %s", err.Error())
 		return nil, errors.NewInstructionMissingError(err)
@@ -117,6 +119,8 @@ func extractInstructions(
 			instructionsRoot = models.EmptyInstructionsRoot()
 		} else {
 			enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath, instructionsRoot.Instructions.Actions)
+			enrichActionsWithRunCommands(o.commandFolderName, commandFolderItemInfo.Name, instructionsRoot.Instructions.Actions)
+			enrichWorkflowsWithRunCommands(o.commandFolderName, commandFolderItemInfo.Name, instructionsRoot.Instructions.Workflows)
 			fillInstructionGlobals(instructionsRoot)
 		}
 		return instructionsRoot, nil
@@ -222,6 +226,38 @@ func enrichActionsWithWorkingDirectoryCanonicalPath(anchorfilesRepoPath string, 
 		if action.ScriptFile != "" {
 			action.AnchorfilesRepoPath = anchorfilesRepoPath
 		}
+	}
+}
+
+func enrichActionsWithRunCommands(cmdFolderName string, cmdItemName string, actions []*models.Action) {
+	cliCmd := globals.CLIRootCommandName
+	if actions == nil {
+		return
+	}
+	for _, action := range actions {
+		// Add the direct run command within every action description panel for ease of use
+		// anchor CMD run INSTRUCTION --action=ACTION_ID
+		action.RunCommand = fmt.Sprintf("%s%s%s %s%s%s run %s%s%s --action=%s%s%s",
+			colors.Green, cliCmd, colors.Reset,
+			colors.Yellow, cmdFolderName, colors.Reset,
+			colors.Purple, cmdItemName, colors.Reset,
+			colors.Cyan, action.Id, colors.Reset)
+	}
+}
+
+func enrichWorkflowsWithRunCommands(cmdFolderName string, cmdItemName string, workflows []*models.Workflow) {
+	cliCmd := globals.CLIRootCommandName
+	if workflows == nil {
+		return
+	}
+	for _, workflow := range workflows {
+		// Add the direct run command within every workflow description panel for ease of use
+		// anchor CMD run INSTRUCTION --workflow=WORKFLOW_ID
+		workflow.RunCommand = fmt.Sprintf("%s%s%s %s%s%s run %s%s%s --workflow=%s%s%s",
+			colors.Green, cliCmd, colors.Reset,
+			colors.Yellow, cmdFolderName, colors.Reset,
+			colors.Purple, cmdItemName, colors.Reset,
+			colors.Cyan, workflow.Id, colors.Reset)
 	}
 }
 
