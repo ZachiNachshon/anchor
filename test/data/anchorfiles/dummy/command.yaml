@@ -1,0 +1,5 @@
+name: dummy
+description: "Invalid command folder"
+command:
+  use: dummy
+  short: "Dummy command on invalid folder"
