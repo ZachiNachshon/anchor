@@ -50,8 +50,8 @@ func (c *selectCmd) GetContext() common.Context {
 	return c.ctx
 }
 
-func AddCommand(parent cmd.AnchorCommand, commandFolderName string, createCmd NewCommandFunc) error {
-	newCmd := createCmd(parent.GetContext(), commandFolderName, DynamicSelect)
+func AddCommand(parent cmd.AnchorCommand, commandFolderName string, createCmdFunc NewCommandFunc) error {
+	newCmd := createCmdFunc(parent.GetContext(), commandFolderName, DynamicSelect)
 	parent.GetCobraCmd().AddCommand(newCmd.GetCobraCmd())
 	return nil
 }

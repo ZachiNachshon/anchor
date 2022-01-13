@@ -105,14 +105,13 @@ var ScanAndFindExpectedCommandFolders = func(t *testing.T) {
 					parser.New())
 				assert.Nil(t, err, "expect locator to scan successfully")
 				commandFolders := l.CommandFolders()
-				assert.Equal(t, 3, len(commandFolders), "expected 3 anchor folders but found %v", len(commandFolders))
+				assert.Equal(t, 2, len(commandFolders), "expected 2 anchor folders but found %v", len(commandFolders))
 
 				// Anchor Folders
 				commandFoldersAsMap := l.CommandFoldersAsMap()
-				assert.Equal(t, 3, len(commandFoldersAsMap), "expected map of 3 anchor folders")
+				assert.Equal(t, 2, len(commandFoldersAsMap), "expected map of 2 anchor folders")
 				assert.NotNil(t, l.CommandFolderByName("app"))
 				assert.Nil(t, l.CommandFolderByName("app-ignored"))
-				assert.NotNil(t, l.CommandFolderByName("controller"))
 				assert.NotNil(t, l.CommandFolderByName("k8s"))
 
 				// Anchor Folder: App

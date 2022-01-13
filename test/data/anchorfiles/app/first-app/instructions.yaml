@@ -1,9 +1,11 @@
 globals:
   context: application
+  displayName: "First Application"
 
 instructions:
   actions:
     - id: hello-world
+      displayName: "Print: Hello World"
       title: "Hello World"
       description: "Print 'Hello World' to stdout"
       script: |
@@ -16,15 +18,18 @@ instructions:
     #      scriptFile: app/first-app/sub-folder/hello_world.sh
 
     - id: goodbye-world
+      displayName: "Print: Goodbye World"
       title: "Goodbye World"
       scriptFile: app/first-app/sub-folder/goodbye_world.sh ${PWD} ${ANY_CUSTOM_ENV_VAR}
 
     - id: global-hello-world
+      displayName: "Print: Goodbye World Globally"
       title: "Global Hello World"
       scriptFile: k8s/scripts/global_hello_world.sh ${USER_NAME}
 
   workflows:
     - id: talk-to-the-world
+      displayName: "Print: Hello & Goodbye Greetings"
       title: "Print workflow greetings"
       description: "Talk to the world, starting from hello up to goodbye"
       tolerateFailures: true
@@ -33,7 +38,9 @@ instructions:
         - hello-world
         - global-hello-world
         - goodbye-world
+
     - id: talk-to-the-world-again
+      displayName: "Print: Fail Hello / Goodbye Greetings"
       title: "Print workflow greetings with failure"
       description: "Talk to the world again, now only with hello"
       tolerateFailures: false

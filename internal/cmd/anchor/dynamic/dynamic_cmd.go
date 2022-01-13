@@ -17,9 +17,9 @@ type dynamicCmd struct {
 	ctx         common.Context
 	commandName string
 
-	addRunSubCmdFunc    func(parent cmd.AnchorCommand, commandFolderName string, createCmd run.NewCommandFunc) error
-	addSelectSubCmdFunc func(parent cmd.AnchorCommand, commandFolderName string, createCmd _select.NewCommandFunc) error
-	addStatusSubCmdFunc func(parent cmd.AnchorCommand, commandFolderName string, createCmd status.NewCommandFunc) error
+	addRunSubCmdFunc    func(parent cmd.AnchorCommand, commandFolderName string, createCmdFunc run.NewCommandFunc) error
+	addSelectSubCmdFunc func(parent cmd.AnchorCommand, commandFolderName string, createCmdFunc _select.NewCommandFunc) error
+	addStatusSubCmdFunc func(parent cmd.AnchorCommand, commandFolderName string, createCmdFunc status.NewCommandFunc) error
 }
 
 type NewCommandsFunc func(ctx common.Context, commandFolders []*models.CommandFolderInfo) ([]*dynamicCmd, error)

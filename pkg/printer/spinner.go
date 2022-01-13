@@ -44,29 +44,29 @@ func (p *printerSpinnerImpl) Spin() {
 }
 
 func (p *printerSpinnerImpl) StopOnSuccess() {
+	p.spnr.Stop()
 	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
 	fmt.Printf(p.successMsg)
-	p.spnr.Stop()
 	fmt.Println()
 }
 
 func (p *printerSpinnerImpl) StopOnSuccessWithCustomMessage(message string) {
+	p.spnr.Stop()
 	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
 	fmt.Printf("%s %s", promptui.IconGood, message)
-	p.spnr.Stop()
 	fmt.Println()
 }
 
 func (p *printerSpinnerImpl) StopOnFailure(err error) {
+	p.spnr.Stop()
 	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
 	fmt.Printf(fmt.Sprintf(p.failureMsgFormat, err.Error()))
-	p.spnr.Stop()
 	fmt.Println()
 }
 
 func (p *printerSpinnerImpl) StopOnFailureWithCustomMessage(message string) {
+	p.spnr.Stop()
 	_, _ = fmt.Fprintf(os.Stdout, "\r \r")
 	fmt.Printf("%s %s", promptui.IconBad, message)
-	p.spnr.Stop()
 	fmt.Println()
 }

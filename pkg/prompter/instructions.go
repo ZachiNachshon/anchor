@@ -84,9 +84,13 @@ func calculateActionPadding(actions []*models.Action) (string, string) {
 func findLongestInstructionActionNameLength(actions []*models.Action) int {
 	maxNameLen := 0
 	for _, v := range actions {
-		actionNameLen := len(v.Id)
-		if actionNameLen > maxNameLen {
-			maxNameLen = actionNameLen
+		actionIdLen := len(v.Id)
+		if actionIdLen > maxNameLen {
+			maxNameLen = actionIdLen
+		}
+		actionDisplayNameLen := len(v.DisplayName)
+		if actionDisplayNameLen > maxNameLen {
+			maxNameLen = actionDisplayNameLen
 		}
 	}
 	return maxNameLen
@@ -94,15 +98,9 @@ func findLongestInstructionActionNameLength(actions []*models.Action) int {
 
 func prepareInstructionsActionTemplate(activeSpacePadding string, inactiveSpacePadding string) *promptui.SelectTemplates {
 	return &promptui.SelectTemplates{
-		Label: "{{ . }}",
-		Active: selectorEmoji + ` {{ printf ` + activeSpacePadding + ` .Id | cyan }}` +
-			`{{ if and (not ( eq .Id "` + BackActionName + `")) (not ( eq .Id "` + WorkflowsActionName + `")) }}` +
-			`({{ .Title | green }})` +
-			`{{ end }}`,
-		Inactive: ` {{ printf ` + inactiveSpacePadding + ` .Id | cyan }}` +
-			`{{ if and (not ( eq .Id "` + BackActionName + `")) (not ( eq .Id "` + WorkflowsActionName + `")) }}` +
-			`({{ .Title | faint }})` +
-			`{{ end }}`,
+		Label:    "{{ . }}",
+		Active:   actionActiveTemplate(activeSpacePadding),
+		Inactive: actionInActiveTemplate(inactiveSpacePadding),
 		Selected: selectorEmoji + " {{ .Id | red | cyan }}",
 		Details:  instructionsActionPromptTemplateDetails,
 	}
@@ -149,9 +147,13 @@ func calculateWorkflowPadding(workflows []*models.Workflow) (string, string) {
 func findLongestInstructionWorkflowNameLength(workflows []*models.Workflow) int {
 	maxNameLen := 0
 	for _, v := range workflows {
-		workflowNameLen := len(v.Id)
-		if workflowNameLen > maxNameLen {
-			maxNameLen = workflowNameLen
+		workflowIdLen := len(v.Id)
+		if workflowIdLen > maxNameLen {
+			maxNameLen = workflowIdLen
+		}
+		workflowDisplayNameLen := len(v.DisplayName)
+		if workflowDisplayNameLen > maxNameLen {
+			maxNameLen = workflowDisplayNameLen
 		}
 	}
 	return maxNameLen
@@ -159,15 +161,9 @@ func findLongestInstructionWorkflowNameLength(workflows []*models.Workflow) int 
 
 func prepareInstructionsWorkflowTemplate(activeSpacePadding string, inactiveSpacePadding string) *promptui.SelectTemplates {
 	return &promptui.SelectTemplates{
-		Label: "{{ . }}",
-		Active: selectorEmoji + ` {{ printf ` + activeSpacePadding + ` .Id | cyan }}` +
-			`{{ if and (not ( eq .Id "` + BackActionName + `")) }}` +
-			`({{ .Title | green }})` +
-			`{{ end }}`,
-		Inactive: ` {{ printf ` + inactiveSpacePadding + ` .Id | cyan }}` +
-			`{{ if and (not ( eq .Id "` + BackActionName + `")) }}` +
-			`({{ .Title | faint }})` +
-			`{{ end }}`,
+		Label:    "{{ . }}",
+		Active:   workflowActiveTemplate(activeSpacePadding),
+		Inactive: workflowInActiveTemplate(inactiveSpacePadding),
 		Selected: selectorEmoji + " {{ .Id | red | cyan }}",
 		Details:  instructionsWorkflowPromptTemplateDetails,
 	}
