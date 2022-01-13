@@ -74,11 +74,13 @@ Use the following format to declare a set of instructions for a command folder i
 instructions:
   actions:
     - id: do-something-special
+      displayName: "Print: Special Action"
       title: "Do something special"
       description: "Execute internal script with --hello flag"
       scriptfile: <command-folder>/scripts/do_something.sh --hello=${USER_NAME}
       
     - id: greet-user
+      displayName: "Greet: Greeting"
       title: "Greet user"
       description: "Print hello world to stdout"
       script: |
@@ -87,6 +89,7 @@ instructions:
 
   workflows:
     - id: do-it-big-time
+      displayName: "Big Time Flow"
       title: "Do something special and greet user"
       description: "Aggregate all actions in favor of instructions example"
       tolerateFailures: true

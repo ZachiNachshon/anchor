@@ -162,7 +162,9 @@ Action is part of the dynamic command item instructions. It is a single executab
 | **Name**                                                     | **Type** | **Default value** |
 | :----------------------------------------------------------- | :------- | :---------------- |
 | `id`                                                         | `string` |      |
-| Identifier, used as the interactive selector |          |                   |
+| Identifier, by default this is the text used as the interactive selector |          |                   |
+| `displayName`                                                         | `string` |      |
+| Alternative name to use for displaying the action on the interactive selector ***(Optional)*** |          |                   |
 | `title`                                                      | `string` |             |
 | Short title about what this action is all about, appended to the interactive selector |          |                   |
 | `description`                                                | `string` |                   |
@@ -215,7 +217,9 @@ Workflow is an actions-set, meaning, it allows execution of pre-defined actions 
 | **Name**                                                     | **Type** | **Default value** |
 | :----------------------------------------------------------- | :------- | :---------------- |
 | `id`                                                         | `string` |      |
-| Identifier, used as the interactive selector |          |                   |
+| Identifier, by default this is the text used as the interactive selector |          |                   |
+| `displayName`                                                         | `string` |      |
+| Alternative name to use for displaying the workflow on the interactive selector ***(Optional)*** |          |                   |
 | `title`                                                      | `string` |             |
 | Short title about what this workflow is all about, appended to the interactive selector |          |                   |
 | `description`                                                | `string` |                   |
