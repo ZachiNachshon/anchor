@@ -55,16 +55,20 @@ anchor config set-context-entry ops-team-context \
 
 | **Name**                                                     | **Type** | **Default value** |
 | :----------------------------------------------------------- | :------- | :---------------- |
-| `repository.remote.url`                                      | `string` | **mandatory**     |
+| `--repository.remote.url`                                      | `string` | **mandatory**     |
 | The URI of the remote Git repository                         |          |                   |
-| `repository.remote.branch`                                   | `string` | master            |
+| `--repository.remote.branch`                                   | `string` | `master`          |
 | Specify a branch to fetch HEAD references                    |          |                   |
-| `repository.remote.revision`                                 | `string` |                   |
+| `--repository.remote.revision`                                 | `string` |                   |
 | Specific commit to get checked out                           |          |                   |
-| `repository.remote.clonePath`                                | `string` |                   |
+| `--repository.remote.clonePath`                                | `string` |                   |
 | Local path to clone the repository into.<br/>Default location is used to clone into `$HOME/.config/anchor/repositories/<context-name>` |          |                   |
-| `repository.remote.autoUpdate`                               | `bool`   | False             |
+| `--repository.remote.autoUpdate`                               | `bool`   | `False`           |
 | Allow checking remote marketplace for available changes and auto update if there are any.<br>Performs a remote check on every `anchor` CLI action |          |                   |
+| `--repository.local.path`                               | `string`   |              |
+| Local path of an `anchor` structured project / repository / any folder|||
+| `--set-current-context`                               |  |  |
+| Set the newly registered config context as the active one|||
 
 <br>
 

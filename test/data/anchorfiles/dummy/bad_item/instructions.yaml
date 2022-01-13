@@ -1,0 +1,4 @@
+bad:
+  instruction:
+    structure: "invalid"
+    valid: false

@@ -19,18 +19,21 @@ const (
 
 	// Anchor Folder 1: Item 1: Action 1
 	CommandFolder1Item1Action1Id          = "app-1-action1"
+	CommandFolder1Item1Action1DisplayName = "app : 1 : action1"
 	CommandFolder1Item1Action1Title       = "app-1-action1 title"
 	CommandFolder1Item1Action1Description = "app-1-action1 description"
 	CommandFolder1Item1Action1ScriptFile  = "/anchorfiles/app/app-1/script-action1.sh"
 
 	// Anchor Folder 1: Item 1: Action 2
 	CommandFolder1Item1Action2Id          = "app-1-action2"
+	CommandFolder1Item1Action2DisplayName = "app : 1 : action2"
 	CommandFolder1Item1Action2Title       = "app-1-action2 title"
 	CommandFolder1Item1Action2Description = "app-1-action2 description"
 	CommandFolder1Item1Action2ScriptFile  = "/anchorfiles/app/app-1/script-action2.sh"
 
 	// Anchor Folder 1: Item 1: Workflow 1
 	CommandFolder1Item1Workflow1Id               = "app-1-workflow1"
+	CommandFolder1Item1Workflow1DisplayName      = "app : 1 : workflow1"
 	CommandFolder1Item1Workflow1Description      = "app-1-workflow1 description"
 	CommandFolder1Item1Workflow1TolerateFailures = false
 
@@ -42,6 +45,7 @@ const (
 
 	// Anchor Folder 1: Item 2: Action 1
 	CommandFolder1Item2Action1Id          = "app-2-action1"
+	CommandFolder1Item2Action1DisplayName = "app : 2 : action1"
 	CommandFolder1Item2Action1Title       = "app-2-action1 title"
 	CommandFolder1Item2Action1Description = "app-2-action1 description"
 	CommandFolder1Item2Action1ScriptFile  = "/anchorfiles/app/app-2/script-action1.sh"
@@ -59,18 +63,21 @@ const (
 
 	// Anchor Folder 2: Item 1: Action 1
 	CommandFolder2Item1Action1Id          = "k8s-1-action1"
+	CommandFolder2Item1Action1DisplayName = "k8s : 1 : action1"
 	CommandFolder2Item1Action1Title       = "k8s-1-action1 title"
 	CommandFolder2Item1Action1Description = "k8s-1-action1 description"
 	CommandFolder2Item1Action1Script      = "echo hello k8s-1-action1"
 
 	// Anchor Folder 2: Item 1: Action 2
 	CommandFolder2Item1Action2Id          = "k8s-1-action2"
+	CommandFolder2Item1Action2DisplayName = "k8s : 1 : action2"
 	CommandFolder2Item1Action2Title       = "k8s-1-action2 title"
 	CommandFolder2Item1Action2Description = "k8s-1-action2 description"
 	CommandFolder2Item1Action2Script      = "echo hello k8s-1-action2"
 
 	// Anchor Folder 2: Item 1: Workflow 1
 	CommandFolder2Item1Workflow1Id               = "k8s-1-workflow1"
+	CommandFolder2Item1Workflow1DisplayName      = "k8s : 1 : workflow1"
 	CommandFolder2Item1Workflow1Title            = "k8s-1-workflow1 title"
 	CommandFolder2Item1Workflow1Description      = "k8s-1-workflow1 description"
 	CommandFolder2Item1Workflow1TolerateFailures = false
@@ -145,6 +152,7 @@ var commandFolder1Item1 = func() *models.CommandFolderItemInfo {
 var commandFolder1Item1Action1 = func() *models.Action {
 	return &models.Action{
 		Id:          CommandFolder1Item1Action1Id,
+		DisplayName: CommandFolder1Item1Action1DisplayName,
 		Title:       CommandFolder1Item1Action1Title,
 		Description: CommandFolder1Item1Action1Description,
 		ScriptFile:  CommandFolder1Item1Action1ScriptFile,
@@ -154,6 +162,7 @@ var commandFolder1Item1Action1 = func() *models.Action {
 var commandFolder1Item1Action2 = func() *models.Action {
 	return &models.Action{
 		Id:          CommandFolder1Item1Action2Id,
+		DisplayName: CommandFolder1Item1Action2DisplayName,
 		Title:       CommandFolder1Item1Action2Title,
 		Description: CommandFolder1Item1Action2Description,
 		ScriptFile:  CommandFolder1Item1Action2ScriptFile,
@@ -163,6 +172,7 @@ var commandFolder1Item1Action2 = func() *models.Action {
 var commandFolder1Item1Workflow1 = func() *models.Workflow {
 	return &models.Workflow{
 		Id:               CommandFolder1Item1Workflow1Id,
+		DisplayName:      CommandFolder1Item1Workflow1DisplayName,
 		Description:      CommandFolder1Item1Workflow1Description,
 		TolerateFailures: CommandFolder1Item1Workflow1TolerateFailures,
 		ActionIds:        []string{CommandFolder1Item1Action1Id, CommandFolder1Item1Action2Id},
@@ -180,6 +190,7 @@ var commandFolder1Item2 = func() *models.CommandFolderItemInfo {
 var commandFolder1Item2Action1 = func() *models.Action {
 	return &models.Action{
 		Id:          CommandFolder1Item2Action1Id,
+		DisplayName: CommandFolder1Item2Action1DisplayName,
 		Title:       CommandFolder1Item2Action1Title,
 		Description: CommandFolder1Item2Action1Description,
 		ScriptFile:  CommandFolder1Item2Action1ScriptFile,
@@ -213,6 +224,7 @@ var commandFolder2Item1 = func() *models.CommandFolderItemInfo {
 var commandFolder2Item1Action1 = func() *models.Action {
 	return &models.Action{
 		Id:          CommandFolder2Item1Action1Id,
+		DisplayName: CommandFolder2Item1Action1DisplayName,
 		Title:       CommandFolder2Item1Action1Title,
 		Description: CommandFolder2Item1Action1Description,
 		Script:      CommandFolder2Item1Action1Script,
@@ -222,6 +234,7 @@ var commandFolder2Item1Action1 = func() *models.Action {
 var commandFolder2Item1Action2 = func() *models.Action {
 	return &models.Action{
 		Id:          CommandFolder2Item1Action2Id,
+		DisplayName: CommandFolder2Item1Action2DisplayName,
 		Title:       CommandFolder2Item1Action2Title,
 		Description: CommandFolder2Item1Action2Description,
 		Script:      CommandFolder2Item1Action2Script,
@@ -231,6 +244,7 @@ var commandFolder2Item1Action2 = func() *models.Action {
 var app2Workflow1 = func() *models.Workflow {
 	return &models.Workflow{
 		Id:               CommandFolder2Item1Workflow1Id,
+		DisplayName:      CommandFolder2Item1Workflow1DisplayName,
 		Title:            CommandFolder2Item1Workflow1Title,
 		Description:      CommandFolder2Item1Workflow1Description,
 		TolerateFailures: CommandFolder2Item1Workflow1TolerateFailures,

@@ -2,6 +2,7 @@ package models
 
 type Action struct {
 	Id                  string `yaml:"id"`
+	DisplayName         string `yaml:"displayName"`
 	Title               string `yaml:"title"`
 	Description         string `yaml:"description"`
 	Script              string `yaml:"script"`
@@ -14,6 +15,7 @@ type Action struct {
 
 type Workflow struct {
 	Id               string   `yaml:"id"`
+	DisplayName      string   `yaml:"displayName"`
 	Title            string   `yaml:"title"`
 	Description      string   `yaml:"description"`
 	TolerateFailures bool     `yaml:"tolerateFailures"`

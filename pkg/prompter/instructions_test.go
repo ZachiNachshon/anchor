@@ -150,6 +150,12 @@ var InstructionActionFindLongestActionName = func(t *testing.T) {
 	}
 	length := findLongestInstructionActionNameLength(actions)
 	assert.NotEmpty(t, 10, length)
+	actions = []*models.Action{
+		{Id: "1111", DisplayName: "aaaaaaaa"},
+		{Id: "2222", DisplayName: "bbbbbbbbbbbb"},
+	}
+	length = findLongestInstructionActionNameLength(actions)
+	assert.NotEmpty(t, 12, length)
 }
 
 var InstructionActionPrepareTemplate = func(t *testing.T) {
@@ -204,6 +210,12 @@ var InstructionWorkflowFindLongestActionName = func(t *testing.T) {
 	}
 	length := findLongestInstructionWorkflowNameLength(workflows)
 	assert.NotEmpty(t, 10, length)
+	workflows = []*models.Workflow{
+		{Id: "1111", DisplayName: "aaaaaaaa"},
+		{Id: "2222", DisplayName: "bbbbbbbbbbbb"},
+	}
+	length = findLongestInstructionWorkflowNameLength(workflows)
+	assert.NotEmpty(t, 12, length)
 }
 
 var InstructionWorkflowPrepareTemplate = func(t *testing.T) {

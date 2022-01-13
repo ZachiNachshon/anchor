@@ -1,5 +1,0 @@
-name: controller
-description: "Example controllers"
-command:
-  use: controller
-  short: "Kubernetes controllers commands"

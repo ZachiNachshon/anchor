@@ -112,7 +112,7 @@ var ScanAndFindExpectedCommandFolders = func(t *testing.T) {
 				assert.Equal(t, 3, len(commandFoldersAsMap), "expected map of 3 anchor folders")
 				assert.NotNil(t, l.CommandFolderByName("app"))
 				assert.Nil(t, l.CommandFolderByName("app-ignored"))
-				assert.NotNil(t, l.CommandFolderByName("controller"))
+				assert.NotNil(t, l.CommandFolderByName("dummy"))
 				assert.NotNil(t, l.CommandFolderByName("k8s"))
 
 				// Anchor Folder: App
