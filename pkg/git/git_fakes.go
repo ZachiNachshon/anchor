@@ -9,7 +9,7 @@ type fakeGitImpl struct {
 	CloneMock                    func(url string, branch string, clonePath string) error
 	InitMock                     func(path string) error
 	AddOriginMock                func(path string, url string) error
-	FetchShallowMock             func(path string, branch string) error
+	FetchShallowMock             func(path string, url string, branch string) error
 	ResetMock                    func(path string, revision string) error
 	CheckoutMock                 func(path string, branch string) error
 	CleanMock                    func(path string) error
@@ -30,8 +30,8 @@ func (g *fakeGitImpl) AddOrigin(path string, url string) error {
 	return g.AddOriginMock(path, url)
 }
 
-func (g *fakeGitImpl) FetchShallow(path string, branch string) error {
-	return g.FetchShallowMock(path, branch)
+func (g *fakeGitImpl) FetchShallow(path string, url string, branch string) error {
+	return g.FetchShallowMock(path, url, branch)
 }
 
 func (g *fakeGitImpl) Reset(path string, revision string) error {

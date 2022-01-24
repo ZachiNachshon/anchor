@@ -158,7 +158,8 @@ func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
 
 func (s *shellExecutor) Execute(script string) error {
 	workingDirectory := s.ctx.AnchorFilesPath()
-	cmd := exec.Command(string(s.shellType), "-c", script)
+	substituteEnvVarScript := expandScriptEnvVars(script)
+	cmd := exec.Command(string(s.shellType), "-c", substituteEnvVarScript)
 	cmd.Dir = workingDirectory
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -174,7 +175,8 @@ func (s *shellExecutor) Execute(script string) error {
 
 func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath string) error {
 	workingDirectory := s.ctx.AnchorFilesPath()
-	cmd := exec.Command(string(s.shellType), "-c", script)
+	substituteEnvVarScript := expandScriptEnvVars(script)
+	cmd := exec.Command(string(s.shellType), "-c", substituteEnvVarScript)
 	cmd.Dir = workingDirectory
 
 	file, err := ioutils.CreateOrOpenFile(outputFilePath)
@@ -197,7 +199,8 @@ func (s *shellExecutor) ExecuteWithOutputToFile(script string, outputFilePath st
 
 func (s *shellExecutor) ExecuteSilentlyWithOutputToFile(script string, outputFilePath string) error {
 	workingDirectory := s.ctx.AnchorFilesPath()
-	cmd := exec.Command(string(s.shellType), "-c", script)
+	substituteEnvVarScript := expandScriptEnvVars(script)
+	cmd := exec.Command(string(s.shellType), "-c", substituteEnvVarScript)
 	cmd.Dir = workingDirectory
 
 	file, err := ioutils.CreateOrOpenFile(outputFilePath)
@@ -220,7 +223,8 @@ func (s *shellExecutor) ExecuteSilentlyWithOutputToFile(script string, outputFil
 // ExecuteTTY example was inspired by - https://github.com/creack/pty#shell
 func (s *shellExecutor) ExecuteTTY(script string) error {
 	workingDirectory := s.ctx.AnchorFilesPath()
-	c := exec.Command(string(s.shellType), "-c", script)
+	substituteEnvVarScript := expandScriptEnvVars(script)
+	c := exec.Command(string(s.shellType), "-c", substituteEnvVarScript)
 	c.Dir = workingDirectory
 
 	// Start the command with a pty
@@ -261,7 +265,8 @@ func (s *shellExecutor) ExecuteTTY(script string) error {
 
 func (s *shellExecutor) ExecuteReturnOutput(script string) (string, error) {
 	workingDirectory := s.ctx.AnchorFilesPath()
-	cmd := exec.Command(string(s.shellType), "-c", script)
+	substituteEnvVarScript := expandScriptEnvVars(script)
+	cmd := exec.Command(string(s.shellType), "-c", substituteEnvVarScript)
 	cmd.Dir = workingDirectory
 
 	var output string
@@ -279,7 +284,8 @@ func (s *shellExecutor) ExecuteReturnOutput(script string) (string, error) {
 
 func (s *shellExecutor) ExecuteSilently(script string) error {
 	workingDirectory := s.ctx.AnchorFilesPath()
-	cmd := exec.Command(string(s.shellType), "-c", script)
+	substituteEnvVarScript := expandScriptEnvVars(script)
+	cmd := exec.Command(string(s.shellType), "-c", substituteEnvVarScript)
 	cmd.Dir = workingDirectory
 
 	var _, stderrBuf bytes.Buffer
@@ -294,7 +300,8 @@ func (s *shellExecutor) ExecuteSilently(script string) error {
 
 func (s *shellExecutor) ExecuteInBackground(script string) error {
 	workingDirectory := s.ctx.AnchorFilesPath()
-	cmd := exec.Command(string(s.shellType), "-c", script)
+	substituteEnvVarScript := expandScriptEnvVars(script)
+	cmd := exec.Command(string(s.shellType), "-c", substituteEnvVarScript)
 	cmd.Dir = workingDirectory
 	// Temporary prevent logs verbosity from background process
 	//cmd.Stdout = os.Stdout
@@ -324,4 +331,8 @@ func extractLastErrorLine(errStr string) string {
 		return split[1]
 	}
 	return errStr
+}
+
+func expandScriptEnvVars(script string) string {
+	return os.ExpandEnv(script)
 }

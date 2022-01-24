@@ -28,6 +28,10 @@ func Test_GitShould(t *testing.T) {
 			Func: FetchShallowSuccessfully,
 		},
 		{
+			Name: "fetch shallow using HTTPS successfully",
+			Func: FetchShallowUsingHttpsSuccessfully,
+		},
+		{
 			Name: "reset successfully",
 			Func: ResetSuccessfully,
 		},
@@ -112,6 +116,7 @@ var FetchShallowSuccessfully = func(t *testing.T) {
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			clonePath := "/some/path"
 			branch := "my-branch"
+			url := "/some/url"
 			fakeShell := shell.CreateFakeShell()
 			fakeShell.ExecuteSilentlyMock = func(script string) error {
 				expected := fmt.Sprintf(`git -C %s fetch --shallow-since="4 weeks ago" --force origin refs/heads/%s:refs/remotes/origin/%s`, clonePath, branch, branch)
@@ -119,7 +124,25 @@ var FetchShallowSuccessfully = func(t *testing.T) {
 				return nil
 			}
 			git := New(fakeShell)
-			_ = git.FetchShallow(clonePath, branch)
+			_ = git.FetchShallow(clonePath, url, branch)
+		})
+	})
+}
+
+var FetchShallowUsingHttpsSuccessfully = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			clonePath := "/some/path"
+			branch := "my-branch"
+			url := "https://\\${TOKEN}:@github.com/ORG/REPO.git"
+			fakeShell := shell.CreateFakeShell()
+			fakeShell.ExecuteSilentlyMock = func(script string) error {
+				expected := fmt.Sprintf(`git -C %s fetch --depth 1 --force origin refs/heads/%s:refs/remotes/origin/%s`, clonePath, branch, branch)
+				assert.Equal(t, expected, script)
+				return nil
+			}
+			git := New(fakeShell)
+			_ = git.FetchShallow(clonePath, url, branch)
 		})
 	})
 }

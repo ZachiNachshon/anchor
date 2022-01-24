@@ -12,7 +12,7 @@ type Git interface {
 	Clone(url string, branch string, clonePath string) error
 	Init(path string) error
 	AddOrigin(path string, url string) error
-	FetchShallow(path string, branch string) error
+	FetchShallow(path string, url string, branch string) error
 	Reset(path string, revision string) error
 	Checkout(path string, branch string) error
 	Clean(path string) error
@@ -43,7 +43,7 @@ func (g *gitImpl) Clone(url string, branch string, clonePath string) error {
 		return err
 	}
 
-	err = g.FetchShallow(clonePath, branch)
+	err = g.FetchShallow(clonePath, url, branch)
 	if err != nil {
 		return err
 	}
@@ -67,9 +67,14 @@ func (g *gitImpl) AddOrigin(path string, url string) error {
 	return g.shell.ExecuteSilently(script)
 }
 
-func (g *gitImpl) FetchShallow(path string, branch string) error {
-	logger.Debugf("Git fetching branch with shallow refs. branch: %s, since: 4 weeks ago", branch)
-	script := fmt.Sprintf(`git -C %s fetch --shallow-since="4 weeks ago" --force origin refs/heads/%s:refs/remotes/origin/%s`, path, branch, branch)
+func (g *gitImpl) FetchShallow(path string, url string, branch string) error {
+	limitationOption := `--shallow-since="4 weeks ago"`
+	if strings.Contains(url, "https") {
+		limitationOption = "--depth 1"
+	}
+	logger.Debugf("Git shallow fetching a branch. branch: %s, limitation: %s", branch, limitationOption)
+	script := fmt.Sprintf(`git -C %s fetch %s --force origin refs/heads/%s:refs/remotes/origin/%s`,
+		path, limitationOption, branch, branch)
 	return g.shell.ExecuteSilently(script)
 }
 
