@@ -312,7 +312,7 @@ var ResetToRevisionOnFirstTrySuccessfully = func(t *testing.T) {
 				remote.git = fakeGit
 				remote.prntr = fakePrinter
 
-				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				err := remote.resetToRevisionFunc(remote, remoteCfg.Url, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.Nil(t, err, "expected not to fail")
 				assert.Equal(t, 1, gitResetCallCount)
 				assert.Equal(t, 1, printSuccessCallCount)
@@ -335,7 +335,7 @@ var FailToFetchAfterFirstTryToResetFails = func(t *testing.T) {
 					return fmt.Errorf("fail to reset to revision 1st try")
 				}
 				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
 					gitFetchCallCount++
 					return fmt.Errorf("fail to fetch")
 				}
@@ -359,7 +359,7 @@ var FailToFetchAfterFirstTryToResetFails = func(t *testing.T) {
 				remote.git = fakeGit
 				remote.prntr = fakePrinter
 
-				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				err := remote.resetToRevisionFunc(remote, remoteCfg.Url, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to fetch", err.Error())
 				assert.Equal(t, 1, gitResetCallCount)
@@ -388,7 +388,7 @@ var ResetToRevisionOnSecondTrySuccessfully = func(t *testing.T) {
 					return nil
 				}
 				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
 					gitFetchCallCount++
 					return nil
 				}
@@ -412,7 +412,7 @@ var ResetToRevisionOnSecondTrySuccessfully = func(t *testing.T) {
 				remote.git = fakeGit
 				remote.prntr = fakePrinter
 
-				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				err := remote.resetToRevisionFunc(remote, remoteCfg.Url, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.Nil(t, err, "expected to succeed")
 				assert.Equal(t, 2, gitResetCallCount)
 				assert.Equal(t, 1, gitFetchCallCount)
@@ -440,7 +440,7 @@ var FailToResetToRevisionOnSecondTry = func(t *testing.T) {
 					return fmt.Errorf("fail to reset to revision 2nd try")
 				}
 				gitFetchCallCount := 0
-				fakeGit.FetchShallowMock = func(path string, branch string) error {
+				fakeGit.FetchShallowMock = func(path string, url string, branch string) error {
 					gitFetchCallCount++
 					return nil
 				}
@@ -464,7 +464,7 @@ var FailToResetToRevisionOnSecondTry = func(t *testing.T) {
 				remote.git = fakeGit
 				remote.prntr = fakePrinter
 
-				err := remote.resetToRevisionFunc(remote, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
+				err := remote.resetToRevisionFunc(remote, remoteCfg.Url, remoteCfg.ClonePath, remoteCfg.Branch, remoteCfg.Revision)
 				assert.NotNil(t, err, "expected to fail")
 				assert.Equal(t, "fail to reset to revision 2nd try", err.Error())
 				assert.Equal(t, 2, gitResetCallCount)
@@ -559,7 +559,7 @@ var AutoUpdateFailToResetToRevision = func(t *testing.T) {
 				}
 
 				resetToRevisionCallCount := 0
-				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, url string, clonePath string, branch string, revision string) error {
 					resetToRevisionCallCount++
 					return fmt.Errorf("fail to reset to revision")
 				}
@@ -622,7 +622,7 @@ var AutoUpdateDoNotFailWhenRevisionDiffPrintFails = func(t *testing.T) {
 				remote.prntr = fakePrinter
 
 				resetToRevisionCallCount := 0
-				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, url string, clonePath string, branch string, revision string) error {
 					resetToRevisionCallCount++
 					return nil
 				}
@@ -672,7 +672,7 @@ var AutoUpdateRunSuccessfulAlreadyUpToDateFlow = func(t *testing.T) {
 				}
 
 				resetToRevisionCallCount := 0
-				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, url string, clonePath string, branch string, revision string) error {
 					resetToRevisionCallCount++
 					return nil
 				}
@@ -890,7 +890,7 @@ var LoadFailToResetToRevision = func(t *testing.T) {
 					return nil
 				}
 				resetToRevisionCallCount := 0
-				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, url string, clonePath string, branch string, revision string) error {
 					resetToRevisionCallCount++
 					return fmt.Errorf("failed to reset to revision")
 				}
@@ -1083,7 +1083,7 @@ var LoadResetToRevisionAndWarnOnAutoUpdateEnabled = func(t *testing.T) {
 					return nil
 				}
 				resetToRevCallCount := 0
-				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+				remote.resetToRevisionFunc = func(rr *remoteRepositoryImpl, url string, clonePath string, branch string, revision string) error {
 					resetToRevCallCount++
 					return nil
 				}

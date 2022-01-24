@@ -25,7 +25,7 @@ type remoteRepositoryImpl struct {
 	prepareFunc                      func(rr *remoteRepositoryImpl, ctx common.Context) error
 	verifyRemoteRepositoryConfigFunc func(remoteCfg *config.Remote) error
 	cloneRepoIfMissingFunc           func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error
-	resetToRevisionFunc              func(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error
+	resetToRevisionFunc              func(rr *remoteRepositoryImpl, url string, clonePath string, branch string, revision string) error
 	autoUpdateRepositoryFunc         func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error
 	readRemoteHeadRevisionFunc       func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) (string, error)
 }
@@ -61,7 +61,7 @@ func (rr *remoteRepositoryImpl) Load(ctx common.Context) (string, error) {
 	}
 
 	if len(rr.remoteConfig.Revision) > 0 {
-		if err := rr.resetToRevisionFunc(rr, clonePath, branch, rr.remoteConfig.Revision); err != nil {
+		if err := rr.resetToRevisionFunc(rr, url, clonePath, branch, rr.remoteConfig.Revision); err != nil {
 			return "", err
 		}
 		if rr.remoteConfig.AutoUpdate {
@@ -137,12 +137,12 @@ func cloneRepoIfMissing(rr *remoteRepositoryImpl, url string, branch string, clo
 	return nil
 }
 
-func resetToRevision(rr *remoteRepositoryImpl, clonePath string, branch string, revision string) error {
+func resetToRevision(rr *remoteRepositoryImpl, url string, clonePath string, branch string, revision string) error {
 	if err := rr.git.Reset(clonePath, revision); err != nil {
 		spnr := rr.prntr.PrepareResetToRevisionSpinner(revision)
 		spnr.Spin()
 		// TODO: identify a "revision does not exists" error code before fetching again
-		if err = rr.git.FetchShallow(clonePath, branch); err != nil {
+		if err = rr.git.FetchShallow(clonePath, url, branch); err != nil {
 			spnr.StopOnFailureWithCustomMessage(fmt.Sprintf("Failed fetching repository (branch: %s)", branch))
 			return err
 		} else {
@@ -189,7 +189,7 @@ func autoUpdateRepository(rr *remoteRepositoryImpl, url string, branch string, c
 	}
 
 	logger.Infof("Trying to reset to revision. commit-hash: %s", headRevision)
-	if err = rr.resetToRevisionFunc(rr, clonePath, branch, headRevision); err != nil {
+	if err = rr.resetToRevisionFunc(rr, url, clonePath, branch, headRevision); err != nil {
 		return err
 	}
 
