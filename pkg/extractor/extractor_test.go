@@ -55,6 +55,10 @@ func Test_ExtractorShould(t *testing.T) {
 			Name: "instructions: extract instructions successfully",
 			Func: InstructionsExtractInstructionsSuccessfully,
 		},
+		{
+			Name: "instructions: extract mixed id and displayName instructions successfully",
+			Func: InstructionsExtractMixedIdAndDisplayNameInstructionsSuccessfully,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -147,4 +151,15 @@ var InstructionsExtractInstructionsSuccessfully = func(t *testing.T) {
 	assert.Equal(t, "hello-universe", actions[2].Id)
 	assert.Equal(t, "only-hello", workflows[0].Id)
 	assert.Equal(t, "talk-to-the-universe", workflows[1].Id)
+}
+
+var InstructionsExtractMixedIdAndDisplayNameInstructionsSuccessfully = func(t *testing.T) {
+	filePath := prepareInstructionTestFilePath("mixed-app")
+	ext := New()
+	instRoot, err := ext.ExtractInstructions(filePath, parser.New())
+	actions := instRoot.Instructions.Actions
+	workflows := instRoot.Instructions.Workflows
+	assert.Nil(t, err, "expected prompt item extraction to succeed")
+	assert.Equal(t, 4, len(actions), "expected 4 actions but found %v", len(actions))
+	assert.Equal(t, 4, len(workflows), "expected 4 workflows but found %v", len(workflows))
 }
