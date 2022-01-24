@@ -1,0 +1,50 @@
+instructions:
+  actions:
+    - id: aaaa
+      displayName: AAAA
+      title: "aaaaAAAAA"
+      script: 'echo "hello world"'
+
+    - id: bbbb
+      displayName: BBBB
+      title: "bbbbBBBB"
+      script: 'echo "hello world"'
+
+    - id: cccc
+      title: "cccc"
+      scriptFile: app/mixed-app/doesnt_exist.sh
+
+    - id: dddd
+      title: "dddd"
+      scriptFile: app/mixed-app/doesnt_exist.sh
+
+  workflows:
+    - id: wwww
+      displayName: WWWW
+      description: "wwwwWWWW"
+      tolerateFailures: false
+      actionIds:
+        - aaaa
+        - bbbb
+
+    - id: xxxx
+      displayName: XXXX
+      description: "xxxxXXXX"
+      tolerateFailures: false
+      actionIds:
+        - bbbb
+        - cccc
+
+    - id: yyyy
+      description: "yyyy"
+      tolerateFailures: false
+      actionIds:
+        - cccc
+        - dddd
+
+    - id: zzzz
+      description: "zzzz"
+      tolerateFailures: false
+      actionIds:
+        - aaaa
+        - dddd

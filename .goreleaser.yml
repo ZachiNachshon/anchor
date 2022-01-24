@@ -18,11 +18,14 @@ builds:
 archives:
   -
     replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
+      darwin: darwin
+      linux: linux
+      windows: windows
+      amd64: amd64
+      arm: arm
+      arm64: arm64
+#      386: i386
+#      amd64: x86_64
     files: # These files are being added to the binary compressed bundle
       - README.md
       - LICENSE

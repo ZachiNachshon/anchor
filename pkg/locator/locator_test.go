@@ -125,11 +125,13 @@ var ScanAndFindExpectedCommandFolders = func(t *testing.T) {
 				// Anchor Folder Items: App
 				appItems := l.CommandFolderItems("app")
 				assert.NotNil(t, appItems, "expected to have valid items for anchor folder: app")
-				assert.NotNil(t, 2, len(appItems), "expected 2 items for anchor folder: app")
+				assert.NotNil(t, 3, len(appItems), "expected 3 items for anchor folder: app")
 				firstAppName := "first-app"
 				assert.Equal(t, appItems[0].Name, firstAppName)
+				mixedAppName := "mixed-app"
+				assert.Equal(t, appItems[1].Name, mixedAppName)
 				secondAppName := "second-app"
-				assert.Equal(t, appItems[1].Name, secondAppName)
+				assert.Equal(t, appItems[2].Name, secondAppName)
 			})
 		})
 	})

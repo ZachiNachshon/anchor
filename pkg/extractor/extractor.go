@@ -63,6 +63,13 @@ func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Pa
 				actions := instRoot.Instructions.Actions
 				if actions != nil {
 					sort.Slice(actions, func(i, j int) bool {
+						if len(actions[i].DisplayName) > 0 && len(actions[j].DisplayName) > 0 {
+							return actions[i].DisplayName < actions[j].DisplayName
+						} else if len(actions[i].DisplayName) > 0 && len(actions[j].DisplayName) == 0 {
+							return actions[i].DisplayName < actions[j].Id
+						} else if len(actions[i].DisplayName) == 0 && len(actions[j].DisplayName) > 0 {
+							return actions[i].Id < actions[j].DisplayName
+						}
 						return actions[i].Id < actions[j].Id
 					})
 				}
@@ -70,6 +77,13 @@ func (e *extractorImpl) ExtractInstructions(instructionsPath string, p parser.Pa
 				workflows := instRoot.Instructions.Workflows
 				if workflows != nil {
 					sort.Slice(workflows, func(i, j int) bool {
+						if len(workflows[i].DisplayName) > 0 && len(workflows[j].DisplayName) > 0 {
+							return workflows[i].DisplayName < workflows[j].DisplayName
+						} else if len(workflows[i].DisplayName) > 0 && len(workflows[j].DisplayName) == 0 {
+							return workflows[i].DisplayName < workflows[j].Id
+						} else if len(workflows[i].DisplayName) == 0 && len(workflows[j].DisplayName) > 0 {
+							return workflows[i].Id < workflows[j].DisplayName
+						}
 						return workflows[i].Id < workflows[j].Id
 					})
 				}
