@@ -1,22 +1,29 @@
 instructions:
   actions:
-    - id: hello-universe
-      title: "Hello Universe"
-      description: "Print 'Hello World' to stdout"
-      scriptFile: app/second-app/sub-folder/hello_universe.sh
+    - id: global-hello-universe
+      title: "Global Hello Universe"
+      scriptFile: k8s/scripts/global_hello_universe.sh
 
     - id: goodbye-universe
       title: "Goodbye Universe"
       scriptFile: app/second-app/sub-folder/goodbye_universe.sh
 
-    - id: global-hello-universe
-      title: "Global Hello Universe"
-      scriptFile: k8s/scripts/global_hello_universe.sh
+    - id: hello-universe
+      title: "Hello Universe"
+      description: "Print 'Hello World' to stdout"
+      scriptFile: app/second-app/sub-folder/hello_universe.sh
 
   workflows:
+    - id: only-hello
+      description: "Hello only to the universe"
+      tolerateFailures: false
+      actionIds:
+        - hello-universe
+        - global-hello-universe
+
     - id: talk-to-the-universe
       description: "Talk to the universe, starting from hello up to goodbye"
       tolerateFailures: false
       actionIds:
         - hello-universe
-        - global-hello-universe
+        - goodbye-universe

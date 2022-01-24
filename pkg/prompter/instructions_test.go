@@ -176,9 +176,9 @@ var InstructionActionPrepareSearcher = func(t *testing.T) {
 	instructions := stubs.GenerateInstructionsTestData()
 	searcherFunc := prepareInstructionsActionSearcher(instructions.Instructions.Actions)
 	assert.NotNil(t, searcherFunc)
-	found := searcherFunc("app-1-a", 0)
+	found := searcherFunc("app : 1 : a", 0)
 	assert.True(t, found)
-	notFound := searcherFunc("123-app-1-a", 0)
+	notFound := searcherFunc("123 : app : 1 : a", 0)
 	assert.False(t, notFound)
 }
 
@@ -236,9 +236,9 @@ var InstructionWorkflowPrepareSearcher = func(t *testing.T) {
 	instructions := stubs.GenerateInstructionsTestData()
 	searcherFunc := prepareInstructionsWorkflowSearcher(instructions.Instructions.Workflows)
 	assert.NotNil(t, searcherFunc)
-	found := searcherFunc("app-1-w", 0)
+	found := searcherFunc("app : 1 : w", 0)
 	assert.True(t, found)
-	notFound := searcherFunc("123-app-1-w", 0)
+	notFound := searcherFunc("123 : app : 1 : w", 0)
 	assert.False(t, notFound)
 }
 

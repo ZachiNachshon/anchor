@@ -18,10 +18,11 @@ func prepareCommandFolderTestPath() string {
 	return fmt.Sprintf("%s/%s/%s", ioutils.GetRepositoryAbsoluteRootPath(path),
 		anchorfilesTestRelativePath, "app")
 }
-func prepareInstructionTestFilePath() string {
+
+func prepareInstructionTestFilePath(appName string) string {
 	path, _ := ioutils.GetWorkingDirectory()
-	return fmt.Sprintf("%s/%s/%s/%s", ioutils.GetRepositoryAbsoluteRootPath(path),
-		anchorfilesTestRelativePath, "app/first-app", globals.InstructionsFileName)
+	return fmt.Sprintf("%s/%s/app/%s/%s", ioutils.GetRepositoryAbsoluteRootPath(path),
+		anchorfilesTestRelativePath, appName, globals.InstructionsFileName)
 }
 
 func Test_ExtractorShould(t *testing.T) {
@@ -120,7 +121,7 @@ var InstructionsFailedToExtractOnInvalidPath = func(t *testing.T) {
 }
 
 var InstructionsFailedToParseExtractedInstructions = func(t *testing.T) {
-	filePath := prepareInstructionTestFilePath()
+	filePath := prepareInstructionTestFilePath("first-app")
 	ext := New()
 	fakeParser := parser.CreateFakeParser()
 	fakeParser.ParseInstructionsMock = func(text string) (*models.InstructionsRoot, error) {
@@ -133,7 +134,7 @@ var InstructionsFailedToParseExtractedInstructions = func(t *testing.T) {
 }
 
 var InstructionsExtractInstructionsSuccessfully = func(t *testing.T) {
-	filePath := prepareInstructionTestFilePath()
+	filePath := prepareInstructionTestFilePath("second-app")
 	ext := New()
 	instRoot, err := ext.ExtractInstructions(filePath, parser.New())
 	actions := instRoot.Instructions.Actions
@@ -141,8 +142,9 @@ var InstructionsExtractInstructionsSuccessfully = func(t *testing.T) {
 	assert.Nil(t, err, "expected prompt item extraction to succeed")
 	assert.Equal(t, 3, len(actions), "expected 3 actions but found %v", len(actions))
 	assert.Equal(t, 2, len(workflows), "expected 2 workflows but found %v", len(workflows))
-	assert.Equal(t, "global-hello-world", actions[0].Id)
-	assert.Equal(t, "goodbye-world", actions[1].Id)
-	assert.Equal(t, "hello-world", actions[2].Id)
-	assert.Equal(t, "talk-to-the-world", workflows[0].Id)
+	assert.Equal(t, "global-hello-universe", actions[0].Id)
+	assert.Equal(t, "goodbye-universe", actions[1].Id)
+	assert.Equal(t, "hello-universe", actions[2].Id)
+	assert.Equal(t, "only-hello", workflows[0].Id)
+	assert.Equal(t, "talk-to-the-universe", workflows[1].Id)
 }
