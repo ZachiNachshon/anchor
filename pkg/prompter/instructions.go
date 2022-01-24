@@ -109,7 +109,11 @@ func prepareInstructionsActionTemplate(activeSpacePadding string, inactiveSpaceP
 func prepareInstructionsActionSearcher(items []*models.Action) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := items[index]
-		name := strings.Replace(strings.ToLower(item.Id), " ", "", -1)
+		name := item.Id
+		if len(item.DisplayName) > 0 {
+			name = item.DisplayName
+		}
+		name = strings.Replace(strings.ToLower(name), " ", "", -1)
 		input = strings.Replace(strings.ToLower(input), " ", "", -1)
 		return strings.Contains(name, input)
 	}
@@ -172,7 +176,11 @@ func prepareInstructionsWorkflowTemplate(activeSpacePadding string, inactiveSpac
 func prepareInstructionsWorkflowSearcher(items []*models.Workflow) func(input string, index int) bool {
 	return func(input string, index int) bool {
 		item := items[index]
-		name := strings.Replace(strings.ToLower(item.Id), " ", "", -1)
+		name := item.Id
+		if len(item.DisplayName) > 0 {
+			name = item.DisplayName
+		}
+		name = strings.Replace(strings.ToLower(name), " ", "", -1)
 		input = strings.Replace(strings.ToLower(input), " ", "", -1)
 		return strings.Contains(name, input)
 	}
