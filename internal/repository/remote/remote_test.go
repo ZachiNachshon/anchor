@@ -113,6 +113,10 @@ func Test_RemoteShould(t *testing.T) {
 			Name: "load: reset to revision and warn on auto update enabled",
 			Func: LoadResetToRevisionAndWarnOnAutoUpdateEnabled,
 		},
+		{
+			Name: "load: auto update skipped when using no-auto-update flag",
+			Func: LoadWithAutoUpdateSkippedWhenUsingNoAutoUpdateFlag,
+		},
 	}
 	harness.RunTests(t, tests)
 }
@@ -1113,6 +1117,54 @@ var LoadResetToRevisionAndWarnOnAutoUpdateEnabled = func(t *testing.T) {
 				assert.Equal(t, 1, resetToRevCallCount)
 				assert.Equal(t, 1, printWarningCallCount)
 				assert.Equal(t, 1, gitCheckoutCallCount)
+			})
+		})
+	})
+}
+
+var LoadWithAutoUpdateSkippedWhenUsingNoAutoUpdateFlag = func(t *testing.T) {
+	with.Context(func(ctx common.Context) {
+		with.Logging(ctx, t, func(logger logger.Logger) {
+			with.Config(ctx, config.GetDefaultTestConfigText(), func(cfg *config.AnchorConfig) {
+				flags := common.NonCmdScopedFlags{
+					NoAutoUpdate: true,
+				}
+				ctx.(common.NonCmdScopedFlagsSetter).SetNonCmdScopedFlags(flags)
+
+				remoteCfg := cfg.Config.ActiveContext.Context.Repository.Remote
+				remoteCfg.AutoUpdate = true
+				remoteCfg.Revision = ""
+
+				remote := NewRemoteRepository(remoteCfg)
+				remote.prepareFunc = func(rr *remoteRepositoryImpl, ctx common.Context) error {
+					return nil
+				}
+				remote.verifyRemoteRepositoryConfigFunc = func(remoteCfg *config.Remote) error {
+					return nil
+				}
+				remote.cloneRepoIfMissingFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					return nil
+				}
+				autoUpdateRepositoryCallCount := 0
+				remote.autoUpdateRepositoryFunc = func(rr *remoteRepositoryImpl, url string, branch string, clonePath string) error {
+					autoUpdateRepositoryCallCount++
+					return nil
+				}
+
+				fakeGit := git.CreateFakeGit()
+				fakeGit.CheckoutMock = func(path string, branch string) error {
+					return nil
+				}
+				remote.git = fakeGit
+
+				fakePrinter := printer.CreateFakePrinter()
+				fakePrinter.PrintEmptyLinesMock = func(count int) {}
+				remote.prntr = fakePrinter
+
+				clonePath, err := remote.Load(ctx)
+				assert.Nil(t, err, "expected to succeed")
+				assert.Equal(t, clonePath, remoteCfg.ClonePath)
+				assert.Equal(t, 0, autoUpdateRepositoryCallCount, "expected not to auto update repository")
 			})
 		})
 	})

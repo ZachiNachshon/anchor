@@ -10,6 +10,7 @@ type Context interface {
 	Config() interface{}
 	Registry() *registry.InjectionsRegistry
 	Logger() interface{}
+	NonCmdScopedFlags() NonCmdScopedFlags
 	AnchorFilesPath() string
 }
 
@@ -25,12 +26,21 @@ type AnchorFilesPathSetter interface {
 	SetAnchorFilesPath(path string)
 }
 
+type NonCmdScopedFlagsSetter interface {
+	SetNonCmdScopedFlags(flags NonCmdScopedFlags)
+}
+
+type NonCmdScopedFlags struct {
+	NoAutoUpdate bool
+}
+
 type anchorContext struct {
 	goContext                context.Context
 	config                   interface{}
 	registry                 *registry.InjectionsRegistry
 	logger                   interface{}
 	anchorFilesRepoLocalPath string
+	nonCmdScopedFlags        NonCmdScopedFlags
 }
 
 func (a *anchorContext) GoContext() context.Context {
@@ -61,6 +71,14 @@ func (a *anchorContext) SetAnchorFilesPath(path string) {
 	a.anchorFilesRepoLocalPath = path
 }
 
+func (a *anchorContext) NonCmdScopedFlags() NonCmdScopedFlags {
+	return a.nonCmdScopedFlags
+}
+
+func (a *anchorContext) SetNonCmdScopedFlags(flags NonCmdScopedFlags) {
+	a.nonCmdScopedFlags = flags
+}
+
 func (a *anchorContext) Registry() *registry.InjectionsRegistry {
 	return a.registry
 }
@@ -76,5 +94,9 @@ func EmptyAnchorContext(reg *registry.InjectionsRegistry) Context {
 	return &anchorContext{
 		goContext: goCtx,
 		registry:  reg,
+		nonCmdScopedFlags: NonCmdScopedFlags{
+			// Default values
+			NoAutoUpdate: false,
+		},
 	}
 }

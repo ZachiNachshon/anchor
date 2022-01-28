@@ -1,6 +1,7 @@
 package anchor
 
 import (
+	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/cmd"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/completion"
 	"github.com/ZachiNachshon/anchor/internal/cmd/anchor/config_cmd"
@@ -43,6 +44,7 @@ type anchorCmd struct {
 var validArgs = []string{"completion", "config", "version"}
 
 var verboseFlagValue = false
+var noAutoUpdateFlagValue = false
 
 func NewCommand(ctx common.Context, loggerManager logger.LoggerManager) *anchorCmd {
 	var rootCmd = &cobra.Command{
@@ -82,6 +84,15 @@ func initFlags(c *anchorCmd) error {
 		"v",
 		verboseFlagValue,
 		"anchor <command> -v")
+
+	// This flag is being resolved before the root command executes. Reason is that the CLI flow is dynamic,
+	// the repository loading phase is being run before the cobra root command starts.
+	// This flag is defined in here to allow the user to see it when using --help
+	c.cobraCmd.PersistentFlags().BoolVar(
+		&noAutoUpdateFlagValue,
+		globals.NoAutoUpdateFlagName,
+		noAutoUpdateFlagValue,
+		fmt.Sprintf("anchor <command> --%s", globals.NoAutoUpdateFlagName))
 
 	c.cobraCmd.PersistentFlags().SortFlags = false
 	return nil
