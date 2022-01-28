@@ -120,8 +120,12 @@ func Test_RunnerShould(t *testing.T) {
 			Func: ExtractMultipleArgsFromActionScriptFileAttribute,
 		},
 		{
-			Name: "extract single command from action script file attribute",
-			Func: ExtractSingleCommandFromActionScriptFileAttribute,
+			Name: "extract multiple quoted args from action script file attribute",
+			Func: ExtractMultipleQuotedArgsFromActionScriptFileAttribute,
+		},
+		{
+			Name: "extract command only from action script file attribute",
+			Func: ExtractCommandOnlyFromActionScriptFileAttribute,
 		},
 		{
 			Name: "enrich actions with working dir canonical path",
@@ -898,7 +902,23 @@ var ExtractMultipleArgsFromActionScriptFileAttribute = func(t *testing.T) {
 	assert.Equal(t, "--custom=flag", args[1])
 }
 
-var ExtractSingleCommandFromActionScriptFileAttribute = func(t *testing.T) {
+var ExtractMultipleQuotedArgsFromActionScriptFileAttribute = func(t *testing.T) {
+	scriptFile := `/path/to/script ${PWD} "this is one argument" "second argument" --custom=flag`
+	cmd, args := extractArgsFromScriptFile(scriptFile)
+	assert.NotEmpty(t, cmd)
+	assert.Equal(t, "/path/to/script", cmd)
+	assert.Len(t, args, 4)
+	//fmt.Printf("ZACHI")
+	//for i, item := range args {
+	//	fmt.Printf("%v. %s ", i, item)
+	//}
+	assert.Equal(t, "${PWD}", args[0])
+	assert.Equal(t, "\"this is one argument\"", args[1])
+	assert.Equal(t, "\"second argument\"", args[2])
+	assert.Equal(t, "--custom=flag", args[3])
+}
+
+var ExtractCommandOnlyFromActionScriptFileAttribute = func(t *testing.T) {
 	scriptFile := "/path/to/script"
 	cmd, args := extractArgsFromScriptFile(scriptFile)
 	assert.NotEmpty(t, cmd)
