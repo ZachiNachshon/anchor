@@ -97,11 +97,44 @@ func prepare(o *ActionRunnerOrchestrator, ctx common.Context) error {
 }
 
 func extractArgsFromScriptFile(scriptFile string) (string, []string) {
-	split := strings.Split(scriptFile, " ")
-	if len(split) > 1 {
-		return split[0], split[1:]
+	split := strings.SplitN(scriptFile, " ", 2)
+	if len(split) == 1 {
+		return split[0], nil
 	}
-	return split[0], nil
+
+	cmd := split[0]
+	argsStr := split[1]
+	if !strings.ContainsAny(argsStr, "\"") {
+		splitSpace := strings.Split(argsStr, " ")
+		return cmd, splitSpace
+	} else {
+		var argsResult []string
+		for len(argsStr) > 0 {
+			argsStr = strings.Trim(argsStr, " ")
+			var splitInner []string
+			if strings.Index(argsStr, "\"") == 0 {
+				argsStr = strings.TrimPrefix(argsStr, "\"")
+				// Cut until the closing quote and continue with the rest of the args string
+				splitInner = strings.SplitN(argsStr, "\"", 2)
+				extractedArg := splitInner[0]
+				extractedArg = strings.TrimSuffix(extractedArg, "\"")
+				quotedArg := fmt.Sprintf("\"%s\"", extractedArg)
+				argsResult = append(argsResult, quotedArg)
+			} else {
+				// Cut the first argument and continue with the rest of the args string
+				splitInner = strings.SplitN(argsStr, " ", 2)
+				extractedArg := splitInner[0]
+				argsResult = append(argsResult, extractedArg)
+			}
+
+			if splitInner != nil && len(splitInner) > 1 {
+				argsStr = splitInner[1]
+			} else {
+				argsStr = ""
+			}
+		}
+		return cmd, argsResult
+	}
 }
 
 func extractInstructions(
