@@ -26,8 +26,8 @@ func Test_ContextShould(t *testing.T) {
 			Func: SetAnchorFilesPathSuccessfully,
 		},
 		{
-			Name: "set non command flags default values as expected",
-			Func: SetNonCommandFlagsDefaultValuesAsExpected,
+			Name: "set non command flags values successfully",
+			Func: SetNonCommandFlagsValuesSuccessfully,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -72,8 +72,13 @@ var SetAnchorFilesPathSuccessfully = func(t *testing.T) {
 	assert.Equal(t, path, ctx.AnchorFilesPath())
 }
 
-var SetNonCommandFlagsDefaultValuesAsExpected = func(t *testing.T) {
+var SetNonCommandFlagsValuesSuccessfully = func(t *testing.T) {
 	reg := registry.New()
 	ctx := EmptyAnchorContext(reg)
 	assert.False(t, ctx.NonCmdScopedFlags().NoAutoUpdate)
+	flags := NonCmdScopedFlags{
+		NoAutoUpdate: true,
+	}
+	ctx.(NonCmdScopedFlagsSetter).SetNonCmdScopedFlags(flags)
+	assert.True(t, ctx.NonCmdScopedFlags().NoAutoUpdate)
 }
