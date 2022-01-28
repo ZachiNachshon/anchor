@@ -5,6 +5,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/config"
 	"github.com/ZachiNachshon/anchor/internal/errors"
+	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/ZachiNachshon/anchor/pkg/extractor"
 	"github.com/ZachiNachshon/anchor/pkg/locator"
@@ -114,6 +115,10 @@ func Test_MainShould(t *testing.T) {
 		{
 			Name: "run pre run sequence: run for non excluded command",
 			Func: PreRunSequenceRunForNonExcludedCommand,
+		},
+		{
+			Name: "extract non command flags from program arguments",
+			Func: ExtractNonCommandFlagsFromProgramArguments,
 		},
 	}
 	harness.RunTests(t, tests)
@@ -606,4 +611,21 @@ var PreRunSequenceDoNotRunForExcludedCommand = func(t *testing.T) {
 var PreRunSequenceRunForNonExcludedCommand = func(t *testing.T) {
 	shouldStartPreRunSeq := isPreRunSequenceExcludedCommand([]string{"anchor", "some_command"})
 	assert.False(t, shouldStartPreRunSeq)
+}
+
+var ExtractNonCommandFlagsFromProgramArguments = func(t *testing.T) {
+	args := []string{"/cmd/path"}
+	flags := extractNonCmdScopedFlags(args)
+	assert.NotNil(t, flags)
+	assert.False(t, flags.NoAutoUpdate)
+
+	args = []string{"/cmd/path", "this", "is", "test", "auto-update"}
+	flags = extractNonCmdScopedFlags(args)
+	assert.NotNil(t, flags)
+	assert.False(t, flags.NoAutoUpdate)
+
+	args = []string{"/cmd/path", "hide", "the", globals.NoAutoUpdateFlagName, "flag"}
+	flags = extractNonCmdScopedFlags(args)
+	assert.NotNil(t, flags)
+	assert.True(t, flags.NoAutoUpdate)
 }

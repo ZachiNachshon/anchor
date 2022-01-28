@@ -16,10 +16,16 @@ import (
 	"github.com/ZachiNachshon/anchor/pkg/utils/input"
 	"github.com/ZachiNachshon/anchor/pkg/utils/shell"
 	"os"
+	"sort"
 	"strings"
 )
 
 var excludedCommandsFromPreRunSequence = []string{"config", "version", "completion"}
+
+// Keep nonCmdScopedFlags sorted in ascending order to keep using a binary search
+// These flag are being resolved before the cobra root command executes and are relevant to flows that aren't
+// command specific such as remote repository loading phase to get the actual dynamic CLI structure.
+var nonCmdScopedFlags = []string{globals.NoAutoUpdateFlagName}
 
 type MainCollaborators struct {
 	Logger           func(ctx common.Context, loggerManager logger.LoggerManager) error
@@ -167,9 +173,26 @@ func isPreRunSequenceExcludedCommand(args []string) bool {
 	return false
 }
 
+func extractNonCmdScopedFlags(args []string) common.NonCmdScopedFlags {
+	result := common.NonCmdScopedFlags{}
+	if args != nil && len(args) > 1 {
+		for _, arg := range args {
+			i := sort.SearchStrings(nonCmdScopedFlags, arg)
+			if i < len(nonCmdScopedFlags) { // means that the string index exists within the array
+				if arg == globals.NoAutoUpdateFlagName {
+					result.NoAutoUpdate = true
+				}
+			}
+		}
+	}
+	return result
+}
+
 func main() {
 	shouldStartPreRunSeq := !isPreRunSequenceExcludedCommand(os.Args)
 	ctx := common.EmptyAnchorContext(registry.Initialize())
+	flags := extractNonCmdScopedFlags(os.Args)
+	ctx.(common.NonCmdScopedFlagsSetter).SetNonCmdScopedFlags(flags)
 	err := runCollaboratorsInSequence(ctx, GetCollaborators(), shouldStartPreRunSeq)
 	if err != nil {
 		exitApplication(1, err.Error())
