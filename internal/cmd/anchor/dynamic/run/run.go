@@ -30,8 +30,6 @@ var DynamicRun = func(ctx common.Context, o *runOrchestrator, identifier string)
 }
 
 type runOrchestrator struct {
-	verboseFlag bool
-
 	commandFolderName     string
 	commandFolderItemName string
 
@@ -55,11 +53,11 @@ func NewOrchestrator(
 	return &runOrchestrator{
 		commandFolderName:     commandFolderName,
 		commandFolderItemName: commandItemName,
-		verboseFlag:           false,
 		runner:                runner,
 
 		activeRunFunc: func(o *runOrchestrator, ctx common.Context, cmdFolderItem *models.CommandFolderItemInfo, identifier string) error {
-			// no-op, shouldn't happen since action/workflow must be used as they are mutually exclusive mandatory flags
+			// no-op, shouldn't happen since either action or workflow execution flow should set te relevant runner function,
+			// they are mutually exclusive mandatory flags so only a single active runner function should be set to run,
 			// check tests for additional info
 			return nil
 		},

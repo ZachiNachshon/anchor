@@ -11,6 +11,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/ZachiNachshon/anchor/internal/logger"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 func RunCliRootCommand(ctx common.Context, shouldStartPreRunSeq bool) error {
@@ -90,9 +91,9 @@ func initFlags(c *anchorCmd) error {
 	// This flag is defined in here to allow the user to see it when using --help
 	c.cobraCmd.PersistentFlags().BoolVar(
 		&noAutoUpdateFlagValue,
-		globals.NoAutoUpdateFlagName,
+		strings.TrimPrefix(globals.NoAutoUpdateFlagName, "--"),
 		noAutoUpdateFlagValue,
-		fmt.Sprintf("anchor <command> --%s", globals.NoAutoUpdateFlagName))
+		fmt.Sprintf("anchor <command> %s", globals.NoAutoUpdateFlagName))
 
 	c.cobraCmd.PersistentFlags().SortFlags = false
 	return nil

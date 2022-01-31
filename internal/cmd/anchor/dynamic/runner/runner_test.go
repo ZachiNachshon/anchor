@@ -437,7 +437,7 @@ var ActionExecVerboseFailToExecScript = func(t *testing.T) {
 			action1.ScriptFile = ""
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
-			fakeO.verboseFlag = true
+			fakeO.VerboseFlag = true
 			fakeO.s = fakeShell
 			fakeO.prntr = fakePrinter
 
@@ -686,7 +686,7 @@ var RunInstructionActionFailToExecuteAction = func(t *testing.T) {
 			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
-			fakeO.verboseFlag = true
+			fakeO.VerboseFlag = true
 
 			execActionVerboseCallCount := 0
 			fakeO.executeInstructionActionVerboseFunc = func(o *ActionRunnerOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
@@ -711,7 +711,7 @@ var RunInstructionActionFailToExecuteVerboseAction = func(t *testing.T) {
 			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
-			fakeO.verboseFlag = false
+			fakeO.VerboseFlag = false
 
 			execActionCallCount := 0
 			fakeO.executeInstructionActionFunc = func(o *ActionRunnerOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
@@ -736,7 +736,7 @@ var RunInstructionActionRunActionWithVerboseFromFlag = func(t *testing.T) {
 			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
-			fakeO.verboseFlag = true
+			fakeO.VerboseFlag = true
 			execActionVerboseCallCount := 0
 			fakeO.executeInstructionActionVerboseFunc = func(o *ActionRunnerOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
 				execActionVerboseCallCount++
@@ -757,10 +757,11 @@ var RunInstructionActionRunActionWithForcedVerboseFromSchema = func(t *testing.T
 		with.Logging(ctx, t, func(logger logger.Logger) {
 			instRootTestData := stubs.GenerateInstructionsTestData()
 			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
+			// showOutput is the verbose way without using the --verbose flag
 			action1.ShowOutput = true
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
-			fakeO.verboseFlag = false
+			fakeO.VerboseFlag = false
 			execActionVerboseCallCount := 0
 			fakeO.executeInstructionActionVerboseFunc = func(o *ActionRunnerOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
 				execActionVerboseCallCount++
@@ -783,7 +784,7 @@ var RunInstructionActionRunActionInteractive = func(t *testing.T) {
 			action1 := models.GetInstructionActionById(instRootTestData.Instructions, stubs.CommandFolder1Item1Action1Id)
 
 			fakeO := NewOrchestrator(stubs.CommandFolder1Name)
-			fakeO.verboseFlag = false
+			fakeO.VerboseFlag = false
 			execActionCallCount := 0
 			fakeO.executeInstructionActionFunc = func(o *ActionRunnerOrchestrator, action *models.Action, scriptOutputPath string) *errors.PromptError {
 				execActionCallCount++
@@ -908,10 +909,6 @@ var ExtractMultipleQuotedArgsFromActionScriptFileAttribute = func(t *testing.T) 
 	assert.NotEmpty(t, cmd)
 	assert.Equal(t, "/path/to/script", cmd)
 	assert.Len(t, args, 4)
-	//fmt.Printf("ZACHI")
-	//for i, item := range args {
-	//	fmt.Printf("%v. %s ", i, item)
-	//}
 	assert.Equal(t, "${PWD}", args[0])
 	assert.Equal(t, "\"this is one argument\"", args[1])
 	assert.Equal(t, "\"second argument\"", args[2])

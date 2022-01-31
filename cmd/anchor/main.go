@@ -25,7 +25,7 @@ var excludedCommandsFromPreRunSequence = []string{"config", "version", "completi
 // Keep nonCmdScopedFlags sorted in ascending order to keep using a binary search
 // These flag are being resolved before the cobra root command executes and are relevant to flows that aren't
 // command specific such as remote repository loading phase to get the actual dynamic CLI structure.
-var nonCmdScopedFlags = []string{globals.NoAutoUpdateFlagName}
+var nonCmdScopedFlags = []string{globals.NoAnchorOutputFlagName, globals.NoAutoUpdateFlagName}
 
 type MainCollaborators struct {
 	Logger           func(ctx common.Context, loggerManager logger.LoggerManager) error
@@ -122,7 +122,7 @@ func initRegistry(ctx common.Context) error {
 	pr := prompter.New()
 	reg.Set(prompter.Identifier, pr)
 
-	prntr := printer.New()
+	prntr := printer.New(ctx.NonCmdScopedFlags().NoAnchorOutput)
 	reg.Set(printer.Identifier, prntr)
 
 	in := input.New()
@@ -179,8 +179,11 @@ func extractNonCmdScopedFlags(args []string) common.NonCmdScopedFlags {
 		for _, arg := range args {
 			i := sort.SearchStrings(nonCmdScopedFlags, arg)
 			if i < len(nonCmdScopedFlags) { // means that the string index exists within the array
-				if arg == globals.NoAutoUpdateFlagName {
+				switch arg {
+				case globals.NoAutoUpdateFlagName:
 					result.NoAutoUpdate = true
+				case globals.NoAnchorOutputFlagName:
+					result.NoAnchorOutput = true
 				}
 			}
 		}

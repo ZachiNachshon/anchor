@@ -18,12 +18,20 @@ type printerPlainerImpl struct {
 	failureMsgFormat string
 }
 
+type printerPlainerNoOpImpl struct {
+	PrinterPlainer
+}
+
 func NewPlainer(runMsg string, successMsg string, failureMsg string) PrinterPlainer {
 	return &printerPlainerImpl{
 		runMsg:           runMsg,
 		successMsg:       successMsg,
 		failureMsgFormat: failureMsg,
 	}
+}
+
+func NewNoOpPlainer() PrinterPlainer {
+	return &printerPlainerNoOpImpl{}
 }
 
 func (p *printerPlainerImpl) Start() {
@@ -38,4 +46,13 @@ func (p *printerPlainerImpl) StopOnSuccess() {
 func (p *printerPlainerImpl) StopOnFailure(err error) {
 	//_, _ = fmt.Fprintf(os.Stdout, "\r \r")
 	fmt.Printf(fmt.Sprintf(p.failureMsgFormat, err.Error()))
+}
+
+func (p *printerPlainerNoOpImpl) Start() {
+}
+
+func (p *printerPlainerNoOpImpl) StopOnSuccess() {
+}
+
+func (p *printerPlainerNoOpImpl) StopOnFailure(err error) {
 }
