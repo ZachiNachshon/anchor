@@ -8,6 +8,7 @@ import (
 	"github.com/ZachiNachshon/anchor/internal/globals"
 	"github.com/spf13/cobra"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -17,6 +18,7 @@ const (
 
 var actionNameFlagValue = ""
 var workflowNameFlagValue = ""
+var noAnchorOutputFlagValue = false
 
 type runCmd struct {
 	cmd.AnchorCommand
@@ -47,14 +49,14 @@ func NewCommand(ctx common.Context, commandFolderName string, runFunc DynamicRun
 			}
 
 			rnr := runner.NewOrchestrator(commandFolderName)
-			o := NewOrchestrator(rnr, commandFolderName, dynamicCommandName)
 
 			verboseFlag := cmd.Flag(globals.VerboseFlagName)
 			if verboseFlag != nil {
 				if isVerbose, err := strconv.ParseBool(verboseFlag.Value.String()); err == nil {
-					o.verboseFlag = isVerbose
+					rnr.VerboseFlag = isVerbose
 				}
 			}
+			o := NewOrchestrator(rnr, commandFolderName, dynamicCommandName)
 
 			var identifier = ""
 			if len(actionNameFlagValue) > 0 {
@@ -96,6 +98,15 @@ func initFlags(c *runCmd) error {
 		workflowNameFlagName,
 		"",
 		fmt.Sprintf("--%s=do-it-bigtime", workflowNameFlagName))
+
+	// This flag is being resolved before the root command executes. Reason is that the CLI flow is dynamic,
+	// and there are certain actions pre cobra command run which result in an anchor stdout output.
+	// This flag is defined in here to allow the user to see it when using --help
+	c.cobraCmd.PersistentFlags().BoolVar(
+		&noAnchorOutputFlagValue,
+		strings.TrimPrefix(globals.NoAnchorOutputFlagName, "--"),
+		noAnchorOutputFlagValue,
+		"print only action/workflow output (when 'ShowOutput' enabled)")
 
 	c.cobraCmd.Flags().SortFlags = false
 	return nil

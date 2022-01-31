@@ -624,8 +624,15 @@ var ExtractNonCommandFlagsFromProgramArguments = func(t *testing.T) {
 	assert.NotNil(t, flags)
 	assert.False(t, flags.NoAutoUpdate)
 
-	args = []string{"/cmd/path", "hide", "the", globals.NoAutoUpdateFlagName, "flag"}
+	args = []string{"/cmd/path", "skip", "auto", globals.NoAutoUpdateFlagName, "update"}
 	flags = extractNonCmdScopedFlags(args)
 	assert.NotNil(t, flags)
 	assert.True(t, flags.NoAutoUpdate)
+	assert.False(t, flags.NoAnchorOutput)
+
+	args = []string{"/cmd/path", "hide", "anchor", globals.NoAnchorOutputFlagName, "output"}
+	flags = extractNonCmdScopedFlags(args)
+	assert.NotNil(t, flags)
+	assert.True(t, flags.NoAnchorOutput)
+	assert.False(t, flags.NoAutoUpdate)
 }

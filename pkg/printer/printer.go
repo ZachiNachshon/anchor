@@ -39,13 +39,19 @@ type ConfigViewTemplateItem struct {
 
 type printerImpl struct {
 	Printer
+	noAnchorOutput bool
 }
 
-func New() Printer {
-	return &printerImpl{}
+func New(noAnchorOutput bool) Printer {
+	return &printerImpl{
+		noAnchorOutput: noAnchorOutput,
+	}
 }
 
 func (p *printerImpl) PrintEmptyLines(count int) {
+	if p.noAnchorOutput {
+		return
+	}
 	for i := 0; i < count; i++ {
 		fmt.Println()
 	}
@@ -101,6 +107,9 @@ func (p *printerImpl) PrintMissingInstructions() {
 }
 
 func (p *printerImpl) PrintSuccess(message string) {
+	if p.noAnchorOutput {
+		return
+	}
 	fmt.Printf("%s %s", promptui.IconGood, message)
 	fmt.Println()
 }
@@ -116,6 +125,9 @@ func (p *printerImpl) PrintError(message string) {
 }
 
 func (p *printerImpl) PrepareRunActionPlainer(actionId string) PrinterPlainer {
+	if p.noAnchorOutput {
+		return NewNoOpPlainer()
+	}
 	return NewPlainer(
 		getPlainerRunActionMessage(actionId),
 		getPlainerSuccessActionMessage(actionId),
@@ -123,6 +135,9 @@ func (p *printerImpl) PrepareRunActionPlainer(actionId string) PrinterPlainer {
 }
 
 func (p *printerImpl) PrepareRunActionSpinner(actionId string, scriptOutputPath string) PrinterSpinner {
+	if p.noAnchorOutput {
+		return NewNoOpSpinner()
+	}
 	return NewSpinner(
 		getSpinnerRunActionMessage(actionId),
 		getSpinnerSuccessActionMessage(actionId),
@@ -130,6 +145,9 @@ func (p *printerImpl) PrepareRunActionSpinner(actionId string, scriptOutputPath 
 }
 
 func (p *printerImpl) PrepareReadRemoteHeadCommitHashSpinner(url string, branch string) PrinterSpinner {
+	if p.noAnchorOutput {
+		return NewNoOpSpinner()
+	}
 	return NewSpinner(
 		getSpinnerReadRemoteHeadCommitHashMessage(url, branch),
 		getSpinnerReadRemoteHeadCommitHashSuccessMessage(),
@@ -137,6 +155,9 @@ func (p *printerImpl) PrepareReadRemoteHeadCommitHashSpinner(url string, branch 
 }
 
 func (p *printerImpl) PrepareCloneRepositorySpinner(url string, branch string) PrinterSpinner {
+	if p.noAnchorOutput {
+		return NewNoOpSpinner()
+	}
 	return NewSpinner(
 		getCloneRepositoryMessage(url, branch),
 		getCloneRepositorySuccessMessage(),
@@ -144,6 +165,9 @@ func (p *printerImpl) PrepareCloneRepositorySpinner(url string, branch string) P
 }
 
 func (p *printerImpl) PrepareResetToRevisionSpinner(revision string) PrinterSpinner {
+	if p.noAnchorOutput {
+		return NewNoOpSpinner()
+	}
 	return NewSpinner(
 		getResetToRevisionMessage(revision),
 		getResetToRevisionSuccessMessage(revision),

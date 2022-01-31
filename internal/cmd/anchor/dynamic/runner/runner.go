@@ -17,7 +17,7 @@ import (
 
 type ActionRunnerOrchestrator struct {
 	commandFolderName string
-	verboseFlag       bool
+	VerboseFlag       bool
 
 	e     extractor.Extractor
 	prsr  parser.Parser
@@ -55,7 +55,7 @@ type ActionRunnerOrchestrator struct {
 func NewOrchestrator(commandFolderName string) *ActionRunnerOrchestrator {
 	return &ActionRunnerOrchestrator{
 		commandFolderName: commandFolderName,
-		verboseFlag:       false,
+		VerboseFlag:       false,
 
 		// --- Internal ---
 		PrepareFunc: prepare,
@@ -170,7 +170,7 @@ func runInstructionAction(o *ActionRunnerOrchestrator, action *models.Action) *e
 		return errors.NewSchemaError(fmt.Errorf("missing script or scriptFile, nothing to run - skipping"))
 	}
 
-	if o.verboseFlag || action.ShowOutput {
+	if o.VerboseFlag || action.ShowOutput {
 		return o.executeInstructionActionVerboseFunc(o, action, scriptOutputPath)
 	} else {
 		return o.executeInstructionActionFunc(o, action, scriptOutputPath)

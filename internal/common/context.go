@@ -31,7 +31,8 @@ type NonCmdScopedFlagsSetter interface {
 }
 
 type NonCmdScopedFlags struct {
-	NoAutoUpdate bool
+	NoAutoUpdate   bool
+	NoAnchorOutput bool
 }
 
 type anchorContext struct {
@@ -96,7 +97,8 @@ func EmptyAnchorContext(reg *registry.InjectionsRegistry) Context {
 		registry:  reg,
 		nonCmdScopedFlags: NonCmdScopedFlags{
 			// Default values
-			NoAutoUpdate: false,
+			NoAutoUpdate:   false,
+			NoAnchorOutput: false,
 		},
 	}
 }
