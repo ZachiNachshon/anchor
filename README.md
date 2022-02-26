@@ -172,7 +172,7 @@ Anchor is an open source project that is currently self maintained in addition t
 
 <br>
 
-<h2 id="licence">Licence</h2>
+<h2 id="license">License</h2>
 
 MIT
 
