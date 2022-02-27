@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ZachiNachshon/anchor/internal/common"
 	"github.com/ZachiNachshon/anchor/internal/logger"
+	"path/filepath"
 	"strings"
 
 	"github.com/ZachiNachshon/anchor/pkg/utils/ioutils"
@@ -73,9 +74,11 @@ func (s *shellExecutor) ExecuteScriptFile(relativeScriptPath string, args ...str
 	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
 
+	envs := getEnvVarsForScriptFileExec(path, workingDirectory)
 	cmd := &exec.Cmd{
 		Path:   path,
 		Args:   slice,
+		Env:    envs,
 		Dir:    workingDirectory,
 		Stdout: os.Stdout,
 		Stderr: os.Stdout,
@@ -99,9 +102,11 @@ func (s *shellExecutor) ExecuteScriptFileWithOutputToFile(
 	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
 
+	envs := getEnvVarsForScriptFileExec(path, workingDirectory)
 	cmd := &exec.Cmd{
 		Path: path,
 		Args: slice,
+		Env:  envs,
 		Dir:  workingDirectory,
 	}
 
@@ -133,9 +138,11 @@ func (s *shellExecutor) ExecuteScriptFileSilentlyWithOutputToFile(
 	// Args must be appended with the command as Args[0]
 	slice := append([]string{path}, args...)
 
+	envs := getEnvVarsForScriptFileExec(path, workingDirectory)
 	cmd := &exec.Cmd{
 		Path: path,
 		Args: slice,
+		Env:  envs,
 		Dir:  workingDirectory,
 	}
 
@@ -335,4 +342,21 @@ func extractLastErrorLine(errStr string) string {
 
 func expandScriptEnvVars(script string) string {
 	return os.ExpandEnv(script)
+}
+
+// Append required env vars for scripted languages in order to
+// "lock" the working directory as the execution path
+func getEnvVarsForScriptFileExec(scriptFile string, workingDirectory string) []string {
+	envs := os.Environ()
+	if isPythonScript(scriptFile) {
+		// To allow Python to resolve imports properly, we're setting the
+		// PYTHONPATH env var with the exec path which is the working dir
+		pythonPath := fmt.Sprintf("PYTHONPATH=%s", workingDirectory)
+		envs = append(envs, pythonPath)
+	}
+	return envs
+}
+
+func isPythonScript(scriptFile string) bool {
+	return filepath.Ext(scriptFile) == ".py"
 }
