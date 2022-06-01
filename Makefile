@@ -40,7 +40,7 @@ run-tests: ## Run tests suite locally
 
 .PHONY: run-tests-ci
 run-tests-ci: ## Run tests suite on CI containerized environment
-	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -smallscreen
+	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all
 	@cat coverage.out.temp | grep -v '_testkit\|_fakes' > coverage.out
 	@# -coverprofile=coverage.out was added for GitHub workflow integration with jandelgado/gcov2lcov-action
 	@# Error:
