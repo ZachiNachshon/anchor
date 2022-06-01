@@ -32,7 +32,7 @@ fmtcheck: ## Check go files format validity
 
 .PHONY: run-tests
 run-tests: ## Run tests suite locally
-	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -notests
+	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -notests -smallscreen
 	@cat coverage.out.temp | grep -v '_testkit\|_fakes' > coverage.out
 	@go tool cover -func coverage.out | grep total | awk '{print $3}'
 	@# go test -v $(TEST) -json -cover | tparse -all -notests
@@ -40,7 +40,7 @@ run-tests: ## Run tests suite locally
 
 .PHONY: run-tests-ci
 run-tests-ci: ## Run tests suite on CI containerized environment
-	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -top
+	@go test -v $(TEST) -json -cover -covermode=count -coverprofile=coverage.out.temp | tparse -all -smallscreen
 	@cat coverage.out.temp | grep -v '_testkit\|_fakes' > coverage.out
 	@# -coverprofile=coverage.out was added for GitHub workflow integration with jandelgado/gcov2lcov-action
 	@# Error:
