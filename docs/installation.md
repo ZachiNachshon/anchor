@@ -62,7 +62,7 @@ Clone `anchor` repository into a directory of your choice:
 git clone git@github.com:ZachiNachshon/anchor.git; cd anchor
 ```
 
-***Note:** Go `1.16` is required for building from source.*
+***Note:** Go `1.18` is required for building from source.*
 
 <br>
 
