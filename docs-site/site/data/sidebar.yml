@@ -1,0 +1,37 @@
+# This file holds all sidebar menu's entries.
+# The logic for the sidebar generation is in "site/layouts/partials/docs-sidebar.html".
+
+- title: Getting Started
+  icon: book-half
+  icon_color: indigo
+  pages:
+    - title: Introduction
+    - title: Overview
+    - title: Download
+    - title: Playground
+    - title: Contribute
+
+- title: Configuration
+  icon: gear
+  icon_color: blue
+  pages:
+    - title: Context
+    - title: Auto-Completion
+    
+- title: Repository
+  icon: git
+  icon_color: pink
+  pages:
+    - title: Structure
+    - title: Menu Command
+    - title: Instructions
+    - title: Action
+    - title: Action Set (Workflow)
+
+- title: About
+  icon: globe2
+  icon_color: indigo
+  pages:
+    - title: Support
+    - title: License
+

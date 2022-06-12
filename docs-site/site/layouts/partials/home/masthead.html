@@ -1,0 +1,37 @@
+<div class="bd-masthead mb-3" id="content">
+  <div class="container-xxl bd-gutter">
+    <div class="col-md-8 mx-auto text-center">
+      <a class="d-flex flex-column flex-lg-row justify-content-center align-items-center mb-1 text-dark lh-sm text-decoration-none" href="/docs/{{ .Site.Params.docs_version }}/getting-started/introduction/">
+        <strong class="d-sm-inline-block p-2 me-2 mb-1 mb-lg-0 rounded-3 masthead-notice">Alpha version</strong>
+        <span class="text-muted">breaking changes might occur</span>
+      </a>
+      <img src="/docs/{{ .Site.Params.docs_version }}/assets/brand/anchor.svg" width="400" alt="Anchor" class="d-block mx-auto mb-1">
+      <!-- <img src="/docs/{{ .Site.Params.docs_version }}/assets/brand/anchor.svg" width="200" height="165" alt="Bootstrap" class="d-block mx-auto mb-3"> -->
+      <h1 class="mb-3 fw-semibold">Create Dynamic CLI's as your GitOps Marketplace</h1>
+      <p class="lead mb-4">
+        Connect to any git repository with a simple opinionated structure and expose executable commands as dynamic command-line-interface utility to use from any environment, CI and local.
+      </p>
+      <div class="d-flex flex-column flex-lg-row align-items-md-stretch justify-content-md-center gap-3 mb-4">
+        <div class="d-inline-block v-align-middle fs-5">
+          <!-- {{ highlight (printf ("brew install ZachiNachshon/tap/anchor@%s") .Site.Params.current_version) "sh" "" }} -->
+          {{ highlight (printf ("brew install ZachiNachshon/tap/anchor")) "sh" "" }}
+        </div>
+        <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/introduction/" class="btn btn-lg bd-btn-lg btn-bd-primary d-flex align-items-center justify-content-center fw-semibold" onclick="ga('send', 'event', 'Jumbotron actions', 'Get started', 'Get started');">
+          <svg class="bi me-2" aria-hidden="true"><use xlink:href="#book-half"></use></svg>
+          Read the docs
+        </a>
+      </div>
+      <p class="text-muted mb-0">
+        Currently <strong>v{{ .Site.Params.current_version }}</strong>
+        <span class="px-1">&middot;</span>
+        <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/download/" class="link-secondary">Download</a>
+        <span class="px-1">&middot;</span>
+        <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/introduction/" class="link-secondary text-nowrap">Docs</a>
+        <span class="px-1">&middot;</span>
+        <a href="{{ .Site.Params.download.dist }}" class="link-secondary text-nowrap">All Releases</a>
+      </p>
+      <!-- {{ partial "ads" . }} -->
+    </div>
+  </div>
+  <div class="d-flex flex-column flex-lg-row align-items-md-stretch justify-content-md-center gap-3 mb-4"></div>
+</div>

@@ -1,0 +1,48 @@
+<footer class="bd-footer py-4 py-md-5 mt-5 bg-light">
+  <div class="container py-4 py-md-5 px-4 px-md-3">
+    <div class="row">
+      <div class="col-lg-3 mb-3">
+        <a class="d-inline-flex align-items-center mb-2 link-dark text-decoration-none" href="/" aria-label="Bootstrap">
+          {{ partial "icons/anchor-white-footer.svg" (dict "class" "d-block me-2" "width" "64" "height" "64") }}
+          <!-- <span class="fs-5">Anchor</span> -->
+        </a>
+        <ul class="list-unstyled small text-muted">
+          <li class="mb-2">Designed and built by <a href="{{ .Site.Params.github_org }}" target="_blank" >Zachi Nachshon</a>, Code licensed <a href="{{ .Site.Params.repo }}/blob/master/LICENSE" target="_blank" rel="license noopener">MIT</a>.</li>
+          <li class="mb-2">Site and docs were influenced from <a href="https://getbootstrap.com/" target="_blank">getbootstrap.com</a>, see license <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="license noopener">CC BY 3.0</a>.</li>
+          <li class="mb-2">Currently v{{ .Site.Params.current_version }}.</li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 offset-lg-1 mb-3">
+        <h5>Links</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="/">Home</a></li>
+          <li class="mb-2"><a href="/docs/{{ .Site.Params.docs_version }}/">Docs</a></li>
+          <li class="mb-2"><a href="{{ .Site.Params.blog }}">Blog</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 mb-3">
+        <h5>Guides</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="/docs/{{ .Site.Params.docs_version }}/getting-started/">Getting Started</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 mb-3">
+        <h5>Projects</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="{{ .Site.Params.github_org }}/anchor" target="_blank">Anchor</a></li>
+          <li class="mb-2"><a href="{{ .Site.Params.github_org }}/git-deps-syncer" target="_blank">Git Deps Syncer</a></li>
+          <li class="mb-2"><a href="{{ .Site.Params.github_org }}/dotfiles" target="_blank">Dotfiles</a></li>
+        </ul>
+      </div>
+      <div class="col-6 col-lg-2 mb-3">
+        <h5>Community</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="{{ .Site.Params.github_org }}/anchor/issues" target="_blank">Issues</a></li>
+          <!-- <li class="mb-2"><a href="https://github.com/sponsors/ZachiNachshon">Sponsorship</a></li> -->
+          <li class="mb-2"><a href="https://www.paypal.com/paypalme/ZachiNachshon" target="_blank">Sponsorship</a></li>
+          <!-- <li class="mb-2"><a href="{{ .Site.Params.slack }}">Slack</a></li> -->
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
