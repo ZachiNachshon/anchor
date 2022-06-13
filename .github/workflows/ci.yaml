@@ -4,11 +4,10 @@ on:
   push:
     branches:
       - master
-      - pivot
+
   pull_request:
     branches:
       - master
-      - pivot
 
 jobs:
   build:
