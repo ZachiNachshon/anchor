@@ -1,4 +1,4 @@
-<h3 align="center" id="anchor-logo"><img src="assets/anchor-logo.png" height="300"></h3>
+<h3 align="center" id="anchor-logo"><img src="docs-site/site/static/docs/latest/assets/brand/anchor.svg" height="300"></h3>
 
 <p align="center">
   <a href="https://img.shields.io/github/go-mod/go-version/ZachiNachshon/anchor/master">
@@ -36,15 +36,20 @@
 </p>
 <br>
 
-**Anchor** is a lightweight CLI tool that grants the **dynamic marketplace** experience for local / CI environment by connecting to single/multiple remote repositories, each represents a different marketplace of domain, each with its own executable actions.
+**Anchor** allows you to create dynamic CLI's as your **GitOps marketplace**. It connects to any git repository with a simple opinionated structure and expose executable commands as **dynamic command-line-interface utility** to use from any environment, CI and local.
 
-Every marketplace repository allows Anchor to **centralize and organize** a set of domain items into their own categories, every domain containing a list of executable single **action** and/or grouped actions (**workflows**) per item in a coherent, visible and easy-to-use approach. 
+**Anchor** can help in reducing the amount of CLI utilities created in a variety of languages in an organization, it does so by connecting to an existing/new git repositories and exposing what is required such as shell scripts, Python scripts, binary usage with options/arguments or any other executable.
 
-**Anchor** connects to remote git repositories containing an opinionated structure that allows it to understand what is available, exposing pre-defined **categories** as a dynamicly created CLI commands with their underlying domain items as **actions / workflows (actions-sets)** using an **interactive** selector enriched with **documentation** or in a **non-interactive** mode via direct CLI command.
+The dynamicly created command can be thought of *"the domain"* such as `team-infra` and one of its actions can be `ElasticSearch: Install Master`, having this action **well documented** by making it clear what the responsibilities are, what are the control arguments and what is the expected outcome.
+
+**Anchor** has two modes for running an actions / actions-sets (workflows):
+
+- **Interactive** menu selector enriched with documentation
+- **Non-interactive** mode i.e. direct CLI command
 
 | :heavy_exclamation_mark: WARNING |
 | :--------------------------------------- |
-| Anchor is still in **alpha stage**, breaking changes might occur, use it with caution ! |
+| Anchor is still in **alpha stage**, breaking changes might occur. |
 
 <br>
 
@@ -80,87 +85,84 @@ For additional installation methods [read here](docs/installation.md).
 <h2 id="overview">⚓️ Overview</h2>
 
 - [Why creating `Anchor`?](#why-creating-anchor)
-- [How does it work?](#how-does-it-work)
-  - [Live demo](#live-demo)
-  - [Playground](#playground)
-- [Create a marketplace repository](docs/create-anchorfiles.md)
-- [Configuration](docs/configuration.md)
-- [Available features](docs/available-features.md)
-- [Other installation methods](docs/installation.md)
+- [Documentation](#documentation)
+- [Playground](#playground)
 
 **Maintainers / Contributors:**
 
-- [Contribute guides](docs/contribute.md)
+- [Contribute guides](https://ZachiNachshon.github.io/anchor/docs/latest/getting-started/contribute/)
 
 <br>
 
 <h3 id="why-creating-anchor">⛵ Why Creating <code>Anchor</code>?</h3>
 
-1. I believe that local environment management should be a *smooth sailing* - documented process with minimum context switches for *running scripts / installing applications / orchestrate installations / do whatever you require* on it
+1. Allow a better experience on repositories containing lots of scripts managed by multiple teams, make them approachable and safe to use by having a documented and controlled process with minimum context switches for *running scripts / installing applications / orchestrate installations / do whatever you require*
+
 1. Allowing to compose different actions from multiple channels (shell scripts, CLI utilities etc..) into a coherent well documented workflow with rollback procedure
-1. Having an action / workflow execution plan explained in plain english and managed via a central versioned controlled remote repository that can be shared with others to use
-1. Using an agnostic client that doesn't change, rather, changes are reflected based on remote marketplace state
+
+1. Having an action / workflow execution plan explained in plain english and managed via a central versioned controlled remote repository in a GitOps way that can be shared with others to use easily
+
+1. Remove the fear of running an arbitrary undocumeted script that relies on ENV vars to control its execution
+
+1. Using an agnostic client that doesn’t change, rather, changes are reflected based on the remote git repository(ies) it relies on
+
+1. Reduce the amount of CLI utilities created in a variety of languages in an organization
 
 <br>
 
-<h3 id="how-does-it-work">🐳 How Does It Work?</h3>
+<h3 id="documentation">📖 Documentation</h3>
 
-This section contains a running `anchor` CLI live running demo and an instructions section for interacting with a remote playground marketplace.
+Please refer to the [documenation](https://ZachiNachshon.github.io/anchor/docs/latest/getting-started/introduction/) for detailed explenation on how to configure and use `anchor`.
 
-<h4 id="live-demo">Live demo</h4>
 
-<details><summary>See <code>anchor</code> live in action</summary>
-<img style="vertical-align: top;" src="assets/images/anchor-select-app.png" width="500" >
-</details>
+<br>
 
-<h4 id="playground">Playground</h4>
+<h3 id="playground">🐳 Playground</h3>
+
+Follow these steps to connect to a remote git playground repository and check the dynamic CLI live experience. **All actions are no-op**, you can safely run them as they only print to stdout.
 
 Take `anchor` for a spin using the following steps, connect to a remote playground repository and check the different use-cases it might be used for:
 
-1. Register to a remote playground marketplace and set it as the default config context:
+1. Register to a remote git playground respository and set it as the default config context:
 
    ```bash
    anchor config set-context-entry playground \
-    --repository.remote.url=git@github.com:ZachiNachshon/anchorfiles-playground.git \
-    --set-current-context
+      --repository.remote.url=https://github.com/ZachiNachshon/anchor-playground.git \
+      --repository.remote.autoUpdate=false \
+      --set-current-context
    ```
 
-1. Type `anchor` to print all available playground CLI commands
+1. Type `anchor` to fetch the repository and print all available commands
 
-1. Check which items are available under the `dummy-ops` command:
+1. Check which items are available under the `team-infra` command:
 
    ```bash
-   anchor dummy-ops status
+   anchor team-infra status
    ```
    
-1. Select the `dummy-ops` command to interact with interactively:
+1. Select the `team-infra` command to start an interactive action selection, try running an action/workflow:
 
    ```bash
-   # Select a command item via an interactive prompter/search menu and try an action/workflow
-   anchor dummy-ops select
+   anchor team-infra select
    ```
-
-1. Run an action directly from the playground non-interactively:
-
-   ```bash
-   anchor dummy-ops run greeter --action=hello-world
-   ```
-
-1. Run workflows directly from the playground non-interactively:
-
-   ```bash
-   # without output
-   anchor dummy-ops run greeter-silent --workflow=good-manners-simulation
    
-   # with output
-   anchor dummy-ops run greeter --workflow=good-manners-simulation
+1. Use the `run` command to run an action non-interactively:
+
+   ```bash
+   anchor team-infra run backoffice --action=install-jenkins-master
    ```
 
-1. You are welcome to use other playground CLI commands and run different actions for checking different use cases
+1. Run an action-set (workflow) non-interactively:
+
+   ```bash
+   anchor team-infra run backoffice --workflow=provision-jenkins-server-agents
+   ```
+   
+1. Use other playground commands and run different actions to check different use cases
 
    | :bulb: Note |
    | :--------------------------------------- |
-   | This is a quick overview just to get a grasp of how simple it is to use *anchor*.<br>To create your own remote marketplace, please [read here](docs/create-anchorfiles.md). |
+   | This is a quick overview just to get a grasp of how simple it is to use `anchor`.<br/>To add `anchor` support to an existing or new git repository, please [read the documentation](). |
 
 <br>
 
