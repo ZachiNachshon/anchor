@@ -1,0 +1,8 @@
+<link href="/docs/{{ .Site.Params.docs_version }}/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+{{- $targetDocsCssPath := path.Join "/docs" .Site.Params.docs_version "assets/css/docs.css" -}}
+{{- $sassOptions := dict "targetPath" $targetDocsCssPath "outputStyle" "expanded" "precision" 6 -}}
+{{- $postcssOptions := dict "use" "autoprefixer" "noMap" true -}}
+{{- $style := resources.Get "scss/docs.scss" | toCSS $sassOptions | postCSS $postcssOptions }}
+<link href="{{ $style.Permalink | relURL }}" rel="stylesheet">
+

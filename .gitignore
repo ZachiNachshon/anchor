@@ -16,3 +16,11 @@ dist
 vendor
 
 dist/
+
+# Docs Site
+docs-site/.hugo_build.lock
+docs-site/_site
+docs-site/resources
+docs-site/node_modules/
+docs-site/js/coverage/
+docs-site/site/.jekyll-cache

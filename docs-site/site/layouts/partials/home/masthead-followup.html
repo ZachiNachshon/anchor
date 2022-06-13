@@ -1,0 +1,192 @@
+<div class="container-xxl bd-gutter masthead-followup">
+  <div class="col-lg-7 mx-auto pb-3 mb-3 mb-md-5 text-md-center">
+    <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bd-theme-rgb);">
+      <svg class="bi fs-1"><use xlink:href="#git"></use></svg>
+    </div>
+    <!-- <h2 class="display-5 mb-3 fw-semibold lh-sm">Use on existing &amp; new git&nbsp;repositories</h2> -->
+    <h2 class="display-5 mb-3 fw-semibold lh-sm">Anchor your Ops environment into a version controlled repository</h2>
+    <p class="lead fw-normal">
+      Create a CLI utility out-of-the-box from your git repositories <code>scripts</code> / <code>commands</code> / <code>other</code> by adding only a basic YAML config file.
+    </p>
+    <p class="d-flex justify-content-md-start justify-content-md-center lead fw-normal">
+      <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/download/" class="icon-link fw-semibold justify-content-center ps-md-4">
+        Read installation docs
+        <svg class="bi"><use xlink:href="#arrow-right-short"></use></svg>
+      </a>
+    </p>
+  </div>
+
+  <section class="row g-3 g-md-5 mb-5 pb-5 justify-content-center">
+    <div class="col-lg-6 py-lg-4 pe-lg-5">
+      <svg class="bi mb-2 fs-2 text-muted"><use xlink:href="#box-seam"></use></svg>
+      <h3 class="fw-semibold">Install using several options</h3>
+      <p class="pe-lg-5">
+        Install <code>anchor</code> via Homebrew, pre-built release or from sources. Package managed installs contains only the bare minimum without documentation / site / dev-scripts etc...
+      </p>
+      <!-- {{ highlight (printf ("npm install bootstrap@%s") .Site.Params.current_version) "sh" "" }} -->
+      <p>
+        For additional information <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/download/">check the download section</a>.
+      </p>
+    </div>
+    <div class="col-lg-6 py-lg-4 ps-lg-5 border-lg-start">
+      <svg class="bi mb-2 fs-2 text-muted"><use xlink:href="#github"></use></svg>
+      <h3 class="fw-semibold">Register a remote git repository</h3>
+      <p class="lead fw-normal">
+        Adding a new git repository to <code>anchor</code> context is as simple as running the following command:
+        {{ highlight (printf (`anchor config set-context-entry ops-group \
+    --repository.remote.url=git@github.com:Organization/OpsRepository.git \
+    --repository.remote.autoUpdate=true \
+    --set-current-context`)) "sh" "" }}
+      </p>
+      <p>
+        For all config context options <a href="/docs/{{ .Site.Params.docs_version }}/configuration/context/#set-context-entry">check the configuration section</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="col-lg-7 mb-5">
+    <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bs-primary-rgb);">
+      <svg class="bi fs-1"><use xlink:href="#braces"></use></svg>
+    </div>
+    <h2 class="display-5 mb-3 fw-semibold lh-sm">Define command and instructions</h2>
+    <p class="lead fw-normal">
+      Anchor relies on the location of <code>command.yaml</code> &amp; <code>instructions.yaml</code> file(s) on the git repository, those files dictate the command and actions hierarchy.
+    </p>
+    <p class="d-flex justify-content-start lead fw-normal">
+      <a href="/docs/{{ .Site.Params.docs_version }}/repository/structure/" class="icon-link fw-semibold">
+        Learn more about the git repository structure
+        <svg class="bi"><use xlink:href="#arrow-right-short"></use></svg>
+      </a>
+    </p>
+  </section>
+
+  <section class="row g-md-5 mb-5 pb-md-5">
+    <div class="col-lg-6">
+      <h3>Introduce <code>YAML</code> files to the repository</h3>
+      <p>Every <code>command.yaml</code> represent a CLI menu command, the <code>instruction.yaml</code> file and its content describes the available actions.</p>
+      {{ highlight (printf `├── ...
+├── <cli-command-1>                   
+│   └── <cli-actions-1>               
+│       ├── instructions.yaml
+│       ├── <additional-files-and-folders>
+│       └── ...       
+│   ├── command.yaml
+│   ├── <additional-files-and-folders>
+│   └── ...                
+├── team-build
+│   └── bazel
+│       ├── instructions.yaml              
+│       └── ...       
+│   └── buildkite
+│       ├── instructions.yaml              
+│       └── ...       
+│   └── command.yaml
+├── team-infra
+│   └── backoffice
+│       ├── instructions.yaml              
+│       └── ...       
+│   └── production
+│       ├── instructions.yaml              
+│       └── ...       
+│   └── command.yaml
+└── ...
+`) "text" "" }}
+      <p>Learn more about the <a href="/docs/{{ .Site.Params.docs_version }}/repository/menu-command/">menu command structure</a>.</p>
+    </div>
+    <div class="col-lg-6">
+      <h3>Instantly reflect remote git repository changes</h3>
+      <p>When <code>auto-update</code> config context is used, every interaction with <code>anchor</code> aligns its state to be up to date with the remote git repository.</p>
+      <img src="/docs/{{ .Site.Params.docs_version }}/assets/img/anchor-menu.svg" width="700" height="600" alt="Anchor" class="d-block mx-auto mb-1">
+    </div>
+  </section>
+
+  <section class="row g-md-5 pb-md-5 mb-5 align-items-center">
+    <div class="col-lg-8 mb-5">
+      <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bd-theme-rgb);">
+        <svg class="bi fs-1"><use xlink:href="#plugin"></use></svg>
+      </div>
+      <h2 class="display-5 mb-3 fw-semibold lh-sm">Choose how to interact with <code>anchor</code></h2>
+      <p class="lead fw-normal">
+        Use <code>anchor</code> from any environment with an interactive shell menu or use a direct command to run any of its underlying actions.
+      </p>
+      <p class="d-flex align-items-start flex-column lead fw-normal mb-0">
+        <a href="/docs/{{ .Site.Params.docs_version }}/repository/structure/" class="icon-link fw-semibold mb-3">
+          Learn how to define a new action
+          <svg class="bi"><use xlink:href="#arrow-right-short"></use></svg>
+        </a>
+      </p>
+    </div>
+    <div class="row gx-md-5">
+      <div class="col-lg-6 mb-3">
+        <h3 class="fw-semibold">Interactive shell</h3>
+        <p>To continue with previous example, interact via <code>anchor team-build select</code> and use the arrows to select which action to run.</p>
+        <img class="img-fluid mt-1 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/anchor-build-bazel-example.svg"
+                                          alt="Anchor Build Bazel" width="700" height="600" loading="lazy">
+      </div>
+      <div class="col-lg-6 mb-3">
+        <h3 class="fw-semibold">Direct command</h3>
+        <p>Alternatively, if <code>anchor</code> is being used within a managed environment and there is a need to run its actions non-interactively, use the <code>run</code> command as follows:</p>
+        {{ highlight (printf `anchor team-build run bazel --action=build-bazel-repository`) "sh" "" }}
+      </div>
+    </div>
+  </section>
+
+  <section class="row g-3 g-md-5 pb-md-5 mb-5 align-items-center">
+    <div class="col-lg-6">
+      <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bd-theme-rgb);">
+        <svg class="bi fs-1"><use xlink:href="#book"></use></svg>
+        <!-- {{ partial "icons/circle-square.svg" (dict "width" "32" "height" "32") }} -->
+      </div>
+      <h2 class="display-5 mb-3 fw-semibold lh-sm">Document every action</h2>
+      <p class="lead fw-normal">
+        Add detailed description to any <code>anchor</code> action, a wrapper for shell script, Python script, binary call with its options/argument or any other executable. Make&nbsp;it&nbsp;clear what is the action responsibility, what are the control arguments and what is the expected outcome.
+      </p>
+    </div>
+    <div class="col-lg-6">
+      <img class="img-fluid mt-3 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/anchor-prod-example.svg"
+                                          alt="Anchor Production Example" width="700" height="600" loading="lazy">
+    </div>
+  </section>
+
+  <section class="row g-3 g-md-5 pb-md-5 mb-5 align-items-center">
+    <div class="col-lg-6">
+      <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bd-theme-rgb);">
+        <svg class="bi fs-1"><use xlink:href="#boxes"></use></svg>
+        <!-- {{ partial "icons/droplet-fill.svg" (dict "width" "32" "height" "32") }} -->
+      </div>
+      <h2 class="display-5 mb-3 fw-semibold lh-sm">Run multiple actions simultaneously</h2>
+      <p class="lead fw-normal">
+        Create a workflow plan comprised from multiple pre-defined actions to run in a serialized and ordered manner.
+      </p>
+    </div>
+    <div class="col-lg-6">
+        <img class="img-fluid mt-3 mx-auto" src="/docs/{{ .Site.Params.docs_version }}/assets/img/anchor-jenkins-workflow-example.svg"
+                                            alt="Anchor Jenkins Workflow" width="700" height="600" loading="lazy">
+    </div>
+  </section>
+
+  <section class="row g-3 g-md-5 pb-md-1 mb-5 align-items-center">
+    <div class="col-lg-6">
+      <div class="masthead-followup-icon d-inline-block mb-3" style="--bg-rgb: var(--bd-theme-rgb);">
+        <svg class="bi fs-1"><use xlink:href="#controller"></use></svg>
+      </div>
+      <h2 class="display-5 mb-3 fw-semibold lh-sm">Try the playground</h2>
+      <p class="lead fw-normal">
+        Take <code>anchor</code> for a spin by using it on a remote git playground repository using a single command.
+      </p>
+    </div>
+    <div class="col-lg-6">
+      {{ highlight (printf `anchor config set-context-entry playground \
+    --repository.remote.url=https://github.com/ZachiNachshon/anchor-playground.git \
+    --repository.remote.autoUpdate=true \
+    --set-current-context
+`) "sh" "" }}
+    </div>
+    <p class="d-flex align-items-start flex-column lead fw-normal mb-0">
+      <a href="/docs/{{ .Site.Params.docs_version }}/getting-started/playground/" class="icon-link fw-semibold mb-3">
+        See playground walkthrough
+        <svg class="bi"><use xlink:href="#arrow-right-short"></use></svg>
+      </a>
+    </p>
+  </section>
+</div>

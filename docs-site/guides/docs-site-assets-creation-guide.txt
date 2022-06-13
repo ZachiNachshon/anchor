@@ -1,0 +1,72 @@
+Assets preferences:
+
+
+Code/Terminal Snippets (https://carbon.now.sh/)
+-----------------------------------------------
+Theme: material
+Font: Plain Text / bold
+Highlight color: #3B7ADB
+
+Colors:
+Anchor theme - #3B7ADB
+Command name - #8FC747
+Title active - #8FC747
+Title inactive - #81878A
+Selection - #2CD2FC
+Information attributes - #81878A
+Anchor binary - #8FC747
+Anchor run cmd - #F8EB5E
+Anchor sub-command - #AC69A4
+Anchor sub-cmd action/workflow - #2CD2FC
+
+
+Favicon (https://favicon.io/)
+-----------------------------
+Background: Rounded
+Font Family: Aladin
+Font Variant: Regular 400 Normal
+Font Size: 110
+
+Anchor:
+Font Color - #FFFFFF
+Background Color - #2C56DB
+
+
+Logo (https://maketext.io/)
+---------------------------
+Font: Pacifico
+Font Size: 200
+Background: rgba(0%,0%,0%,0)
+
+White (anchor):
+Fill - #ffffff
+Extrusion - #2c56db
+Shadow - #2c56db
+Offset - 4
+
+Themed (anchor):
+Fill - #2c56db
+Extrusion - #ffffff
+Shadow - #2c56db
+Offset - 4
+
+
+Social Image:
+-------------
+Take a screenshot from the main docs page (masthead)
+Refine edges using
+ - https://onlinepngtools.com/refine-png-edges
+Export as PNG and save as xxx-social.png
+
+
+Social Logo (https://maketext.io/):
+-----------------------------------
+Font: Aladin
+Font Size: 200
+Background: rgba(0%,0%,0%,0)
+
+Colors: Themed colors
+Font: Aladin
+
+Type the initial letter of the product i.e "A" for anchor
+Export as PNG and save as xxx-social-logo.png
