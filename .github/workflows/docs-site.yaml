@@ -12,6 +12,9 @@ on:
   push:
     branches:
       - master  # Set a branch to deploy
+    paths:
+      - '.github/workflows/docs-site.yaml'
+      - 'docs-site/**'
 
   pull_request:
     branches:
@@ -24,6 +27,9 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: docs-site
     steps:
       - uses: actions/checkout@v2
         with:
@@ -35,7 +41,31 @@ jobs:
         with:
           node-version: "${{ env.NODE }}"
           cache: npm
-          cache-dependency-path: ./docs-site/package-lock.json
+          cache-dependency-path: ./package-lock.json
+#          cache-dependency-path: ./docs-site/package-lock.json
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: '0.86.0'
+          extended: true
+
+      - name: Install postcss-cli
+        run: npm install postcss-cli
+#        working-directory: ./docs-site
+
+      - name: Build docs
+        run: hugo --cleanDestinationDir
+#        working-directory: ./docs-site
+#        run: npm run docs-build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-site/_site
+
 
 #      - name: Cache dependencies
 #        uses: actions/cache@v2
@@ -51,30 +81,6 @@ jobs:
 #      - name: Install dependencies
 #        working-directory: ./docs-site
 #        run: npm ci --ignore-scripts
-
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
-        with:
-          hugo-version: '0.86.0'
-          extended: true
-
-      - name: Install postcss-cli
-        working-directory: ./docs-site
-        run: npm install postcss-cli
-
-      - name: Build docs
-        working-directory: ./docs-site
-#        run: npm run docs-build
-        run: hugo --cleanDestinationDir
-#        run: hugo --minify
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/master'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs-site/_site
-
 
 #
 #on:
