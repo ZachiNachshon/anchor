@@ -88,7 +88,7 @@ For additional installation methods [read here](docs/installation.md).
 
 **Maintainers / Contributors:**
 
-- [Contribute guides](https://ZachiNachshon.github.io/anchor/docs/latest/getting-started/contribute/)
+- [Contribute guides](https://zachinachshon.com/anchor/docs/latest/getting-started/contribute/)
 
 <br>
 
@@ -110,7 +110,7 @@ For additional installation methods [read here](docs/installation.md).
 
 <h3 id="documentation">📖 Documentation</h3>
 
-Please refer to the [documenation](https://ZachiNachshon.github.io/anchor/docs/latest/getting-started/introduction/) for detailed explenation on how to configure and use `anchor`.
+Please refer to the [documentation](https://zachinachshon.com/anchor/docs/latest/getting-started/introduction/) for detailed explanation on how to configure and use `anchor`.
 
 
 <br>
@@ -121,7 +121,7 @@ Follow these steps to connect to a remote git playground repository and check th
 
 Take `anchor` for a spin using the following steps, connect to a remote playground repository and check the different use-cases it might be used for:
 
-1. Register to a remote git playground respository and set it as the default config context:
+1. Register to a remote git playground repository and set it as the default config context:
 
    ```bash
    anchor config set-context-entry playground \

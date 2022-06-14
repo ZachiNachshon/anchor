@@ -27,9 +27,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-20.04
-#    defaults:
-#      run:
-#        working-directory: ./docs-site
     steps:
       - uses: actions/checkout@v2
         with:
@@ -42,8 +39,6 @@ jobs:
           node-version: "${{ env.NODE }}"
           cache: npm
           cache-dependency-path: ./docs-site/package-lock.json
-#          cache-dependency-path: ./package-lock.json
-#          cache-dependency-path: ./package-lock.json
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
@@ -54,17 +49,14 @@ jobs:
       - name: Install postcss-cli
         working-directory: ./docs-site
         run: npm install postcss-cli
-#        working-directory: ./docs-site
 
       - name: Build docs
         working-directory: ./docs-site
         run: hugo --cleanDestinationDir
-#        working-directory: ./docs-site
-#        run: npm run docs-build
 
-      - name: List files
-        working-directory: ./docs-site
-        run: ls -lah
+#      - name: List files
+#        working-directory: ./docs-site
+#        run: ls -lah
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -72,96 +64,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs-site/_site
-
-
-#      - name: Cache dependencies
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.npm
-#          key: npm-${{ hashFiles('package-lock.json') }}
-#          restore-keys: npm-
-
-#      - name: Install npm dependencies
-#        working-directory: ./docs-site
-#        run: npm ci
-
-#      - name: Install dependencies
-#        working-directory: ./docs-site
-#        run: npm ci --ignore-scripts
-
-#
-#on:
-#  push:
-##    branches-ignore:
-##      - "dependabot/**"
-#    branches:
-#      - master
-#
-#  pull_request:
-#    branches:
-#      - master
-#
-#  workflow_dispatch:
-#
-#env:
-#  FORCE_COLOR: 2
-#  NODE: 16
-#
-#jobs:
-#  docs:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Clone repository
-#        uses: actions/checkout@v3
-#        with:
-#          submodules: true  # Fetch Hugo themes (true OR recursive)
-#          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
-#
-#      - name: Set up Node.js
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: "${{ env.NODE }}"
-#          cache: npm
-#
-##      - run: java -version
-#
-#      - name: Install npm dependencies
-#        run: |
-#          cd docs-site
-#          npm ci
-#
-#      - name: Setup Hugo
-#        uses: peaceiris/actions-hugo@v2
-#        with:
-#          hugo-version: '0.86.0'
-##          hugo-version: 'latest'
-#          # extended: true
-#
-##      - name: Build
-##        run: hugo --minify
-#
-#      - name: Build docs
-#        run: |
-#          cd docs-site
-#          npm run docs-build
-#
-#      - name: Deploy
-#        uses: peaceiris/actions-gh-pages@v3
-#        if: ${{ github.ref == 'refs/heads/master' }}
-#        with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
-#          publish_dir: ./public  # default: public
-#
-##      - name: Validate HTML
-##        run: |
-##          cd app
-##          npm run docs-vnu
-#
-##      - name: Run linkinator
-##        uses: JustinBeckwith/linkinator-action@v1
-##        with:
-##          paths: docs-site/_site
-##          recurse: true
-##          verbosity: error
-##          skip: "^(?!http://localhost)"

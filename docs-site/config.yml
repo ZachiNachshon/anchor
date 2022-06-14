@@ -1,6 +1,6 @@
 languageCode:           "en"
 title:                  "Anchor"
-baseURL:                "https://ZachiNachshon.github.io"
+baseURL:                "https://zachinachshon.com/"
 
 security:
   enableInlineShortcodes: true
