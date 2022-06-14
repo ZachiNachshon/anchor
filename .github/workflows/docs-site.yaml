@@ -37,9 +37,20 @@ jobs:
           cache: npm
           cache-dependency-path: ./docs-site/package-lock.json
 
+#      - name: Cache dependencies
+#        uses: actions/cache@v2
+#        with:
+#          path: ~/.npm
+#          key: npm-${{ hashFiles('package-lock.json') }}
+#          restore-keys: npm-
+
 #      - name: Install npm dependencies
 #        working-directory: ./docs-site
 #        run: npm ci
+
+#      - name: Install dependencies
+#        working-directory: ./docs-site
+#        run: npm ci --ignore-scripts
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
