@@ -65,7 +65,7 @@ jobs:
       - name: Build docs
         working-directory: ./docs-site
 #        run: npm run docs-build
-        run: hugo --cleanDestinationDir --minify
+        run: hugo --cleanDestinationDir
 #        run: hugo --minify
 
       - name: Deploy
