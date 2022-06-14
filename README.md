@@ -76,7 +76,7 @@ brew tap ZachiNachshon/tap
 brew install anchor
 ```
 
-For additional installation methods [read here](docs/installation.md).
+For additional installation methods [read here](https://zachinachshon.com/anchor/docs/latest/getting-started/download/).
 
 <br>
 
@@ -160,7 +160,7 @@ Take `anchor` for a spin using the following steps, connect to a remote playgrou
 
    | :bulb: Note |
    | :--------------------------------------- |
-   | This is a quick overview just to get a grasp of how simple it is to use `anchor`.<br/>To add `anchor` support to an existing or new git repository, please [read the documentation](). |
+   | This is a quick overview just to get a grasp of how simple it is to use `anchor`.<br/>To add `anchor` support to an existing or new git repository, please [read the documentation](https://zachinachshon.com/anchor/docs/latest/getting-started/). |
 
 <br>
 
