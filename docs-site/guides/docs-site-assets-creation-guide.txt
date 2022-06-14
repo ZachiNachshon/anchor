@@ -1,5 +1,9 @@
 Assets preferences:
 
+Bootstrap Icons:
+----------------
+Get the SVG HTML from - https://icons.getbootstrap.com/icons/controller/
+Add to - docs-site/site/layouts/partials/icons.html
 
 Code/Terminal Snippets (https://carbon.now.sh/)
 -----------------------------------------------
