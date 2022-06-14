@@ -35,11 +35,11 @@ jobs:
         with:
           node-version: "${{ env.NODE }}"
           cache: npm
+          cache-dependency-path: ./docs-site/package-lock.json
 
       - name: Install npm dependencies
-        run: |
-          cd docs-site
-          npm ci
+        working-directory: ./docs-site
+        run: npm ci
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
@@ -48,9 +48,8 @@ jobs:
           # extended: true
 
       - name: Build docs
-        run: |
-          cd docs-site
-          npm run docs-build
+        working-directory: ./docs-site
+        run: npm run docs-build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
