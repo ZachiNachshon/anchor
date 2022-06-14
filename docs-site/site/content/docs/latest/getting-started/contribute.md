@@ -4,6 +4,7 @@ title: Contribute
 description: Contribute to the development of `anchor` using the documentation, build scripts and tests.
 group: getting-started
 toc: true
+aliases: "/docs/latest/getting-started/contribute/"
 ---
 
 ## Tooling setup

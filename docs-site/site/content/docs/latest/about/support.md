@@ -3,6 +3,9 @@ layout: docs
 title: About
 description: Learn about the project and how to get involved.
 group: about
+aliases:
+- "/about/"
+- "/docs/latest/about/"
 ---
 
 ## About the Project
