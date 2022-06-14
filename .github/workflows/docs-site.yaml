@@ -30,12 +30,12 @@ jobs:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
 
-#      - name: Set up Node.js
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: "${{ env.NODE }}"
-#          cache: npm
-#          cache-dependency-path: ./docs-site/package-lock.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "${{ env.NODE }}"
+          cache: npm
+          cache-dependency-path: ./docs-site/package-lock.json
 
 #      - name: Install npm dependencies
 #        working-directory: ./docs-site
@@ -46,6 +46,10 @@ jobs:
         with:
           hugo-version: '0.86.0'
           extended: true
+
+      - name: Install postcss-cli
+        working-directory: ./docs-site
+        run: npm install postcss-cli
 
       - name: Build docs
         working-directory: ./docs-site
