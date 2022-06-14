@@ -12,10 +12,8 @@
 *.out
 coverage*
 
-dist
-vendor
-
-dist/
+/dist
+/vendor
 
 # Docs Site
 docs-site/.hugo_build.lock
