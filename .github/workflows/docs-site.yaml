@@ -27,9 +27,9 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: ./docs-site
+#    defaults:
+#      run:
+#        working-directory: ./docs-site
     steps:
       - uses: actions/checkout@v2
         with:
@@ -41,9 +41,9 @@ jobs:
         with:
           node-version: "${{ env.NODE }}"
           cache: npm
-          cache-dependency-path: ./package-lock.json
+          cache-dependency-path: ./docs-site/package-lock.json
 #          cache-dependency-path: ./package-lock.json
-#          cache-dependency-path: ./docs-site/package-lock.json
+#          cache-dependency-path: ./package-lock.json
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
@@ -52,13 +52,19 @@ jobs:
           extended: true
 
       - name: Install postcss-cli
+        working-directory: ./docs-site
         run: npm install postcss-cli
 #        working-directory: ./docs-site
 
       - name: Build docs
+        working-directory: ./docs-site
         run: hugo --cleanDestinationDir
 #        working-directory: ./docs-site
 #        run: npm run docs-build
+
+      - name: List files
+        working-directory: ./docs-site
+        run: ls -lah
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
