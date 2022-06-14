@@ -30,16 +30,16 @@ jobs:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "${{ env.NODE }}"
-          cache: npm
-          cache-dependency-path: ./docs-site/package-lock.json
+#      - name: Set up Node.js
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: "${{ env.NODE }}"
+#          cache: npm
+#          cache-dependency-path: ./docs-site/package-lock.json
 
-      - name: Install npm dependencies
-        working-directory: ./docs-site
-        run: npm ci
+#      - name: Install npm dependencies
+#        working-directory: ./docs-site
+#        run: npm ci
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
@@ -49,7 +49,8 @@ jobs:
 
       - name: Build docs
         working-directory: ./docs-site
-        run: npm run docs-build
+#        run: npm run docs-build
+        run: hugo --cleanDestinationDir
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
