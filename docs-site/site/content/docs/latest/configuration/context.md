@@ -3,7 +3,7 @@ layout: docs
 title: Configuration
 description: Set a remote git repository as the dynamic context for <code>anchor</code>.
 group: content
-aliases: "/docs/latest/content/"
+aliases: "/anchor/docs/latest/content/"
 toc: true
 ---
 
