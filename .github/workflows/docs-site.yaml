@@ -41,7 +41,7 @@ jobs:
         with:
           node-version: "${{ env.NODE }}"
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ./package-lock.json
 #          cache-dependency-path: ./package-lock.json
 #          cache-dependency-path: ./docs-site/package-lock.json
 
