@@ -4,7 +4,6 @@ title: Structure
 description: Learn how to connect an existing or new git repository to `anchor`, reflecting the repository content via command-line-interface utility.
 group: repository
 toc: false
-aliases: "/anchor/docs/latest/repository/"
 sections:
   - title: Menu Command
     description: Create a dynamic CLI menu command

@@ -1,6 +1,7 @@
 languageCode:           "en"
 title:                  "Anchor"
-baseURL:                "https://zachinachshon.com/anchor"
+baseURL:                "https://zachinachshon.com/anchor/"
+canonifyURLs: true
 
 security:
   enableInlineShortcodes: true

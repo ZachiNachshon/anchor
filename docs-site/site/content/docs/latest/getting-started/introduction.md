@@ -2,10 +2,6 @@
 layout: docs
 title: Get started with <code>anchor</code>
 description: Connect to any git repository with a simple opinionated structure and expose executable commands as dynamic command-line-interface utility.
-aliases:
-  - "/anchor/docs/latest/getting-started/"
-  - "/anchor/docs/getting-started/"
-  - "/getting-started/"
 toc: true
 ---
 
