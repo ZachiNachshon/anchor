@@ -40,8 +40,6 @@
 
 **Anchor** can help in reducing the amount of CLI utilities created in a variety of languages in an organization, it does so by connecting to an existing/new git repositories and exposing what is required such as shell scripts, Python scripts, binary usage with options/arguments or any other executable.
 
-The dynamicly created command can be thought of *"the domain"* such as `team-infra` and one of its actions can be `ElasticSearch: Install Master`, having this action **well documented** by making it clear what the responsibilities are, what are the control arguments and what is the expected outcome.
-
 **Anchor** has two modes for running an actions / actions-sets (workflows):
 
 - **Interactive** menu selector enriched with documentation
