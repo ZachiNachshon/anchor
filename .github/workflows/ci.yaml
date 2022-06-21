@@ -30,7 +30,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build
-        run: make build-to-gobin-ci
+        run: |
+          ls -lah
+          ls -lah ./external
+          make build-to-gobin-ci
 
       - name: Run tests
         run: make test-github-ci
