@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "repos": [
+      {
+        "name": "shell-scripts-lib",
+        "url": "https://github.com/ZachiNachshon/shell-scripts-lib.git",
+        "branch": "master",
+        "revision": "d4cee5eaed8fda2bbdc379ded5509ea23b924ca6",
+        "includes": ["golang*/"],
+        "excludes": ["*_tests*"]
+      }
+    ]
+  },
+  "devDependencies": {
+    "repos": [
+      {
+        "name": "shell-scripts-lib",
+        "localPath": "/path/to/unknown"
+      }
+    ]
+  }
+}
