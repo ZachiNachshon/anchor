@@ -33,6 +33,7 @@ jobs:
         run: |
           ls -lah
           ls -lah ./external
+          ls -lah /home/runner/work/anchor/anchor/external/shell-scripts-lib/golang
           make build-to-gobin-ci
 
       - name: Run tests
