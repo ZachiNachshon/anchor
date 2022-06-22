@@ -64,7 +64,7 @@ release_version() {
   """
   fi
 
-  #    goreleaser release --rm-dist --config=${config_file_path}
+  goreleaser release --rm-dist --config=${config_file_path}
 }
 
 parse_program_arguments() {
@@ -149,6 +149,7 @@ main() {
     release_version ${github_token} ${tag}
   else
     log_info "Nothing was released."
+  fi
 }
 
 main "$@"

@@ -91,9 +91,15 @@ build_os_arch() {
 }
 
 build() {
-  local os_arch=$(identify_os_arch)
-  local dist_os_arch_path="${dist_path}/${os_arch}"
-  local binary_file_path=$(prepare_binary_path "${binary_name}" "${dist_os_arch_path}")
+  local dist_path_resolved="${dist_path}"
+
+  # GOPATH folders cannot have sub-folders with /GOPATH/bin/OS_Arch/binary_name
+  if [[ "${dist_path}" != *${GOPATH}* ]]; then 
+    local os_arch=$(identify_os_arch "x86_64:amd64")
+    dist_path_resolved="${dist_path}/${os_arch}"
+  fi
+
+  local binary_file_path=$(prepare_binary_path "${binary_name}" "${dist_path_resolved}")
 
   if is_debug; then
     echo """
