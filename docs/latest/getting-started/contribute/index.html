@@ -375,19 +375,23 @@ Docs site is using npm scripts to build the documentation and compile source fil
 </thead>
 <tbody>
 <tr>
-<td><code>setup</code></td>
+<td><code>align-deps</code></td>
 <td>Update dependencies, preparing this repo pre-build</td>
 </tr>
 <tr>
 <td><code>build</code></td>
-<td>Build binary with format check (destination: <code>PWD</code>)</td>
+<td>Build binary with format check (destination: <code>PWD/dist</code>)</td>
 </tr>
 <tr>
 <td><code>build-to-gopath</code></td>
 <td>Build binary with format check (destination: <code>GOPATH/bin</code>)</td>
 </tr>
 <tr>
-<td><code>build-ci</code></td>
+<td><code>build-os-arch</code></td>
+<td>Build binaries for specific OS/Arch (destination: <code>PWD/dist</code>)</td>
+</tr>
+<tr>
+<td><code>build-to-gobin-ci</code></td>
 <td>Build binary with format check (destination: <code>GOBIN</code> on CI)</td>
 </tr>
 <tr>
@@ -399,19 +403,19 @@ Docs site is using npm scripts to build the documentation and compile source fil
 <td>Check go files format validity</td>
 </tr>
 <tr>
-<td><code>run-tests</code></td>
+<td><code>test</code></td>
 <td>Run tests suite locally</td>
 </tr>
 <tr>
-<td><code>run-tests-ci</code></td>
-<td>Run tests suite on CI containerized environment</td>
+<td><code>test-github-ci</code></td>
+<td>Run tests suite on a CI containerized environment</td>
 </tr>
 <tr>
-<td><code>run-tests-containerized</code></td>
+<td><code>test-containerized</code></td>
 <td>Run tests suite locally containerized</td>
 </tr>
 <tr>
-<td><code>release</code></td>
+<td><code>release-version</code></td>
 <td>Create release artifacts in GitHub with version from <code>resources/version.txt</code></td>
 </tr>
 </tbody>
@@ -423,8 +427,8 @@ Docs site is using npm scripts to build the documentation and compile source fil
 <p><strong>How to run a test suite?</strong></p>
 <ol>
 <li>Clone the <code>anchor</code> repository</li>
-<li>Run <code>make run-tests</code> to use the locally installed <code>go</code> runtime</li>
-<li>Alternatively, run <code>make run-tests-containerized</code> to use the same <code>go</code> runtime which is supported by this repository</li>
+<li>Run <code>make tests</code> to use the locally installed <code>go</code> runtime</li>
+<li>Alternatively, run <code>make test-containerized</code> to use the same <code>go</code> runtime which is supported by this repository</li>
 </ol>
 <div class="bd-callout bd-callout-info">
 <code>tparse</code> should be installed for performing <code>go test</code> output analysis (<a href="https://github.com/mfridman/tparse">instructions in here</a>)
@@ -461,7 +465,7 @@ Docs site is using npm scripts to build the documentation and compile source fil
 </ul>
 <p>Learn more about using Hugo by reading its <a href="https://gohugo.io/documentation/">documentation</a>.</p>
 <h2 id="troubleshooting">Troubleshooting <a class="anchor-link" href="#troubleshooting" aria-label="Link to this section: Troubleshooting"></a></h2>
-<p>In case you encounter problems with missing dependencies, run <code>make setup</code>.</p>
+<p>In case you encounter problems with missing dependencies, run <code>make align-deps</code>.</p>
 
       </div>
     </main>
