@@ -38,16 +38,17 @@ The `makefile` within this repository contains numerous tasks used for project d
 {{< bs-table >}}
 | Task | Description |
 | --- | --- |
-| `setup` | Update dependencies, preparing this repo pre-build |
-| `build` | Build binary with format check (destination: `PWD`) |
+| `align-deps` | Update dependencies, preparing this repo pre-build |
+| `build` | Build binary with format check (destination: `PWD/dist`) |
 | `build-to-gopath` | Build binary with format check (destination: `GOPATH/bin`) |
-| `build-ci` | Build binary with format check (destination: `GOBIN` on CI) |
+| `build-os-arch` | Build binaries for specific OS/Arch (destination: `PWD/dist`) |
+| `build-to-gobin-ci` | Build binary with format check (destination: `GOBIN` on CI) |
 | `fmt` | Format go files |
 | `fmtcheck` | Check go files format validity |
-| `run-tests` | Run tests suite locally |
-| `run-tests-ci` | Run tests suite on CI containerized environment |
-| `run-tests-containerized` | Run tests suite locally containerized |
-| `release` | Create release artifacts in GitHub with version from `resources/version.txt` |
+| `test` | Run tests suite locally |
+| `test-github-ci` | Run tests suite on a CI containerized environment |
+| `test-containerized` | Run tests suite locally containerized |
+| `release-version` | Create release artifacts in GitHub with version from `resources/version.txt` |
 {{< /bs-table >}}
 
 ## Testing Locally
@@ -59,8 +60,8 @@ Running tests locally allows you to have short validation cycles instead of wait
 **How to run a test suite?**
 
 1. Clone the `anchor` repository
-2. Run `make run-tests` to use the locally installed `go` runtime
-3. Alternatively, run `make run-tests-containerized` to use the same `go` runtime which is supported by this repository
+2. Run `make tests` to use the locally installed `go` runtime
+3. Alternatively, run `make test-containerized` to use the same `go` runtime which is supported by this repository
 
 {{< callout info >}}
 `tparse` should be installed for performing `go test` output analysis ([instructions in here](https://github.com/mfridman/tparse))
@@ -90,4 +91,4 @@ Learn more about using Hugo by reading its [documentation](https://gohugo.io/doc
 
 ## Troubleshooting
 
-In case you encounter problems with missing dependencies, run `make setup`.
+In case you encounter problems with missing dependencies, run `make align-deps`.

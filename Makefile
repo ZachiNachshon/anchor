@@ -1,5 +1,5 @@
 BINARY_NAME=anchor
-GO_VERSION=1.8
+GO_VERSION=1.18
 TESTS_PATH?=./...
 
 default: help
