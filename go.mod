@@ -3,7 +3,7 @@ module github.com/ZachiNachshon/anchor
 go 1.18
 
 require (
-	github.com/briandowns/spinner v1.18.1
+	github.com/briandowns/spinner v1.19.0
 	github.com/creack/pty v1.1.18
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/manifoldco/promptui v0.9.0
