@@ -72,6 +72,16 @@ release-version: fmtcheck ## Create release artifacts in GitHub with version fro
 		'config_file_path: ./.goreleaser.yml' \
 		'version_file_path: ./resources/version.txt'"
 
+# http://localhost:9001/git-deps-syncer/
+.PHONY: serve_docs_site
+serve_docs_site: ## Run a local site
+	@cd docs-site && npm run docs-serve
+
+# http://192.168.x.xx:9001/
+.PHONY: serve_docs_site_lan
+serve_docs_site_lan: ## Run a local site (open for LAN)
+	@cd docs-site && npm run docs-serve-lan
+
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
