@@ -12,14 +12,52 @@ aliases:
 
 `anchor` is an open source project that is currently self maintained in addition to my day job, you are welcome to show your appreciation by sending me cups of coffee using the the following link as it is a known fact that it is the fuel that drives software engineering ☕
 
-<br>
+<style>
+.sponsor_buttons {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2rem 0;
+  /* padding-top: 10%; */
+  gap: 10px;
+  width: 100%; 
+  max-width: 80rem; }
+  /* margin-top: 6rem; */
+  @media only screen and (max-width: 56.25em) {
+    .sponsor_buttons {
+      flex-direction: column;
+      margin-top: 5rem; } }
 
-<a href="https://www.buymeacoffee.com/ZachiNachshon" target="_blank"><img src="/docs/latest/assets/img/bmc-orig.svg" height="57" width="200" alt="Buy Me A Coffee"></a>
+.sponsor_button {
+  background: var(--sephia);
+  height: 50px;
+  width: 120px;
+  border-radius: 10px;
+}
+</style>
 
-<!-- <img class="img-fluid mt-3 mx-auto" srcset="/docs/latest/assets/img/bmc-orig.svg,
-                                                    /docs/latest/assets/img/bmc-orig.svg@1x.png 2x"
-                                            src="/docs/latest/assets/img/bmc-orig.svg"
-                                            alt="Buy me a coffee icon" width="700" height="425" loading="lazy"> -->
+<div class="sponsor_buttons">
+    <a href="https://github.com/sponsors/ZachiNachshon" target="_blank" alt="GitHub Sponsor">
+        <img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23e2216a" height="50">
+    </a>
+    <br>
+    <a href="https://paypal.me/ZachiNachshon/" target="_blank">
+        <img src="/docs/latest/assets/img/paypal-blue.svg" height="50" width="255">
+    </a>
+    <br>
+    <a href="https://www.buymeacoffee.com/ZachiNachshon" target="_blank">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&amp;emoji=&amp;slug=ZachiNachshon&amp;button_colour=e2216a&amp;font_colour=ffffff&amp;font_family=Cookie&amp;outline_colour=ffffff&amp;coffee_colour=FFDD00" alt="Buy me a Coffee Button">
+    </a>
+</div>
+
+<div class="sponsor_buttons">
+    <ul class="list-unstyled small text-muted">
+        <li class="mb-2">PayPal logo by <a href="https://github.com/andreostrovsky/donate-with-paypal" target="_blank">donate-with-paypal</a></li>
+    </ul>
+</div>
 
 ## Get Involved
 
