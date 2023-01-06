@@ -58,6 +58,7 @@ params:
   docs_version:         "latest"
   go_version:           "1.18"
   github_org:           "https://github.com/ZachiNachshon"
+  domain_base:          "https://zachinachshon.com"
   repo:                 "https://github.com/ZachiNachshon/anchor"
   twitter:              "zachinachshon"
   slack:                "https://SLACK_URL"
