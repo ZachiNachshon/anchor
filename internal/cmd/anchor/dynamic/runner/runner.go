@@ -237,7 +237,6 @@ func executeInstructionActionVerbose(o *ActionRunnerOrchestrator, action *models
 	} else if len(action.ScriptFile) > 0 {
 		filePath, args := extractArgsFromScriptFile(action.ScriptFile)
 		plainer.Start()
-		//if err := o.s.ExecuteScriptFileWithOutputToFile(
 		if err := o.s.ExecuteScriptFileWithOutputToFile(
 			filePath,
 			scriptOutputPath,
