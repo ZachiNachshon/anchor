@@ -2,10 +2,10 @@
   "dependencies": {
     "repos": [
       {
-        "name": "shell-scripts-lib",
-        "url": "https://github.com/ZachiNachshon/shell-scripts-lib.git",
+        "name": "shell_scripts_lib",
+        "url": "git@github.com:ZachiNachshon/shell-scripts-lib.git",
         "branch": "master",
-        "revision": "92a5d260b9f56bfccf537b92b3e47a6bc46e45c3",
+        "revision": "e1d5d5d60af7d32986ad4577eb75092e34b730a3",
         "includes": ["golang*/"],
         "excludes": ["*_tests*"]
       }
@@ -14,8 +14,8 @@
   "devDependencies": {
     "repos": [
       {
-        "name": "shell-scripts-lib",
-        "localPath": "/path/to/unknown"
+        "name": "shell_scripts_lib",
+        "localPath": "/Users/zachin/codebase/github/shell-scripts-lib"
       }
     ]
   }

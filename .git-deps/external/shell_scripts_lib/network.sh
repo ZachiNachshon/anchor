@@ -125,7 +125,7 @@ print_instructions_network_scan() {
     • MAC Address
     • Device Name
   ================================================================================================${COLOR_NONE}
-""" >&2
+""" >&1
 }
 
 print_instructions_connect_via_ssh() {
@@ -145,5 +145,5 @@ print_instructions_connect_via_ssh() {
     • Raspberry Pi node user     (default: ${default_user})
     • Raspberry Pi node password (default: ${default_pass})${COLOR_YELLOW}
   ================================================================================================${COLOR_NONE}
-""" >&2
+""" >&1
 }

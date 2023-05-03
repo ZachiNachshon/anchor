@@ -31,7 +31,7 @@ check_tool() {
   local name=$1
   local exists=$(command -v "${name}")
   if [[ "${exists}" != *${name}* && "${exists}" != 0 ]]; then
-    log_fatal "missing CLI tool. name: ${name}"
+    log_fatal "missing utility. name: ${name}"
   fi
 }
 

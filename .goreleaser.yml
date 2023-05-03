@@ -51,24 +51,24 @@ release:
     owner: ZachiNachshon
     name: anchor
 
-brews:
-  - name: "{{ .ProjectName }}"
-    tap:
-      owner: ZachiNachshon
-      name: homebrew-tap
+# brews:
+#   - name: "{{ .ProjectName }}"
+#     tap:
+#       owner: ZachiNachshon
+#       name: homebrew-tap
 
-    folder: Formula
-    url_template: "https://github.com/ZachiNachshon/{{ .ProjectName }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+#     folder: Formula
+#     url_template: "https://github.com/ZachiNachshon/{{ .ProjectName }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
 
-    homepage: "https://ZachiNachshon.github.io/{{ .ProjectName }}/"
-    description: Dynamic versioned controlled remote marketplace for local / CI environments
-    license: MIT
+#     homepage: "https://ZachiNachshon.github.io/{{ .ProjectName }}/"
+#     description: Dynamic versioned controlled remote marketplace for local / CI environments
+#     license: MIT
 
-    test: |
-      system "#{bin}/{{ .ProjectName }} --version"
-    dependencies:
-      - name: go
-        type: optional
-      - name: git
-    install: |
-      bin.install "{{ .ProjectName }}"
+#     test: |
+#       system "#{bin}/{{ .ProjectName }} --version"
+#     dependencies:
+#       - name: go
+#         type: optional
+#       - name: git
+#     install: |
+#       bin.install "{{ .ProjectName }}"
