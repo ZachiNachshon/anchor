@@ -48,7 +48,7 @@ jobs:
         run: make install
 
       - name: Run tests
-        run: make test-ci
+        run: make test-with-coverage
 
       - name: Coverage
         uses: jandelgado/gcov2lcov-action@v1.0.6
