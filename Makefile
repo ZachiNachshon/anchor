@@ -50,6 +50,10 @@ build: fmtcheck ## Build a binary for system OS/Arch
 build-main-package: fmtcheck ## Build main package for system OS/Arch
 	@${GO_RELEASER} build --main-package "./cmd/anchor" 
 
+.PHONY: install
+install: fmtcheck ## Build and Install a Go binary locally
+	@${GO_RELEASER} install 
+
 .PHONY: delete
 delete: fmtcheck ## Delete a locally installed Go binary
 	@${GO_RELEASER} delete --origin gobin-local
