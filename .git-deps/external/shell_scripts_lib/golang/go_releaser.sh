@@ -122,7 +122,8 @@ publish_binaries_to_github_using_goreleaser() {
       log_fatal "GitHub release tag was found, cannot release to an exising one. tag: ${tag}"
     else
       log_info "No GitHub release tag was found. tag: ${tag}"
-      cmd_run "GORELEASER_CURRENT_TAG=${tag} goreleaser release --clean --config=${goreleaser_config_path}"
+      # cmd_run "GORELEASER_CURRENT_TAG=${tag} goreleaser release --clean --config=${goreleaser_config_path}"
+      cmd_run "goreleaser release --clean --config=${goreleaser_config_path}"
     fi
   else
     log_warning "Nothing was uploaded."
