@@ -38,17 +38,21 @@ The `makefile` within this repository contains numerous tasks used for project d
 {{< bs-table >}}
 | Task | Description |
 | --- | --- |
-| `align-deps` | Update dependencies, preparing this repo pre-build |
-| `build` | Build binary with format check (destination: `PWD/dist`) |
-| `build-to-gopath` | Build binary with format check (destination: `GOPATH/bin`) |
-| `build-os-arch` | Build binaries for specific OS/Arch (destination: `PWD/dist`) |
-| `build-to-gobin-ci` | Build binary with format check (destination: `GOBIN` on CI) |
-| `fmt` | Format go files |
-| `fmtcheck` | Check go files format validity |
-| `test` | Run tests suite locally |
-| `test-github-ci` | Run tests suite on a CI containerized environment |
-| `test-containerized` | Run tests suite locally containerized |
-| `release-version` | Create release artifacts in GitHub with version from `resources/version.txt` |
+| `update-externals` | Update external source dependents |
+| `deps` | Tidy, verify and vendor go dependencies |
+| `fmtcheck` | Validate Go code format and imports |
+| `fmt` | Format Go code using gofmt style and sort imports |
+| `test` | Run tests suite on host machine |
+| `test-containerized` | Run tests suite within a Docker container |
+| `test-with-coverage` | Run tests suite on host machine with coverage report |
+| `docs-site` | Run a local documentation site |
+| `docs-site-lan` | Run a local documentation site (LAN available) |
+| `build` | Build a binary for system OS/Arch |
+| `build-main-package` | Build main package for system OS/Arch |
+| `install` | Build and Install a Go binary locally |
+| `delete` | Delete a locally installed Go binary |
+| `github-release-create` | Build and publish Go binary(ies) as GitHub release |
+| `github-release-delete` | Prompt for a GitHub release tag to delete |
 {{< /bs-table >}}
 
 ## Testing Locally

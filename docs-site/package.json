@@ -1,9 +1,9 @@
 {
   "name": "anchor",
   "description": "Create Dynamic CLI's as your GitOps Marketplace.",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "config": {
-    "version_short": "0.11.0"
+    "version_short": "0.12.0"
   },
   "keywords": [
     "cli",
