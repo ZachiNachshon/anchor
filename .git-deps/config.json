@@ -5,7 +5,7 @@
         "name": "shell_scripts_lib",
         "url": "git@github.com:ZachiNachshon/shell-scripts-lib.git",
         "branch": "master",
-        "revision": "362117fa5e369657a7ce3333ecc6719cdb3b8ace",
+        "revision": "d84be7223404c28e528b246ff7607c18849eba28",
         "includes": ["golang*/"],
         "excludes": ["*_tests*"]
       }

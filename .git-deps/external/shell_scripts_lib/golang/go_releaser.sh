@@ -121,12 +121,12 @@ publish_binaries_to_github_using_goreleaser() {
   local goreleaser_config_path=$(get_publish_goreleaser_config_path)
   new_line
   if github_prompt_for_approval_before_release "${tag}"; then
-    if github_is_release_tag_exist "${tag}"; then
-      log_fatal "GitHub release tag already exist, cannot override. tag: ${tag}"
+    if github_is_release_tag_exist "${tag}" && ! github_is_draft_release_tag "${tag}"; then
+      log_fatal "GitHub release tag already exist and it is not a draft, cannot override. tag: ${tag}"
     else
       github_create_release_tag "${tag}"
       log_info "Publishing Go binaries to GitHub using goreleaser. config: ${goreleaser_config_path}"
-      cmd_run "GORELEASER_CURRENT_TAG=${tag} goreleaser release --clean --config=${goreleaser_config_path}"
+      cmd_run "GORELEASER_CURRENT_TAG=${tag} goreleaser release --clean --config=${goreleaser_config_path} --skip-validate"
     fi
   else
     log_warning "Nothing was uploaded."

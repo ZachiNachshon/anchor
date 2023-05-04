@@ -27,6 +27,12 @@ github_is_release_tag_exist() {
   cmd_run "gh release view ${tag} >/dev/null 2>&1"
 }
 
+github_is_draft_release_tag() {
+  local tag=$1
+  log_info "Checking if release tag is of type draft. tag: ${tag}"
+  cmd_run "gh release view ${tag} --json isDraft | grep true"
+}
+
 github_create_release_tag() {
   local tag=$1
   log_info "Creating a new GitHub release. tag: ${tag}"
