@@ -10,7 +10,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.14.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/term v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
 )
