@@ -22,7 +22,7 @@ fmt: ## Format Go code using gofmt style and sort imports
 
 .PHONY: test
 test: ## Run tests suite on host machine
-	@${GO_DEV} test --dense-mode
+	@${GO_DEV} test
 
 .PHONY: test-containerized
 test-containerized: ## Run tests suite within a Docker container
