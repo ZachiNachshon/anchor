@@ -137,7 +137,7 @@ prompt_user_input() {
         exit 0
       fi
     fi
-    echo "${input}"
+    echo "${input}" | tr -d '\\n'
   else
     echo "no-prompt-user-input"
   fi

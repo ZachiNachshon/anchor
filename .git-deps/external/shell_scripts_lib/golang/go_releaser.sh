@@ -100,6 +100,10 @@ is_delete() {
   [[ -n "${CLI_ARGUMENT_DELETE}" ]]
 }
 
+is_delete_exist() {
+  [[ -n "${CLI_FLAG_DELETE_TAG}" && -n "${CLI_VALUE_DELETE_TAG}" ]]
+}
+
 get_delete_tag() {
   echo "${CLI_VALUE_DELETE_TAG}"
 }
@@ -115,15 +119,14 @@ is_github_delete_origin() {
 publish_binaries_to_github_using_goreleaser() {
   local tag=$(get_release_tag)
   local goreleaser_config_path=$(get_publish_goreleaser_config_path)
-  log_info "Publishing Go binaries to GitHub using goreleasr. config: ${goreleaser_config_path}"
   new_line
   if github_prompt_for_approval_before_release "${tag}"; then
     if github_is_release_tag_exist "${tag}"; then
-      log_fatal "GitHub release tag was found, cannot release to an exising one. tag: ${tag}"
+      log_fatal "GitHub release tag already exist, cannot override. tag: ${tag}"
     else
-      log_info "No GitHub release tag was found. tag: ${tag}"
-      # cmd_run "GORELEASER_CURRENT_TAG=${tag} goreleaser release --clean --config=${goreleaser_config_path}"
-      cmd_run "goreleaser release --clean --config=${goreleaser_config_path}"
+      github_create_release_tag "${tag}"
+      log_info "Publishing Go binaries to GitHub using goreleaser. config: ${goreleaser_config_path}"
+      cmd_run "GORELEASER_CURRENT_TAG=${tag} goreleaser release --clean --config=${goreleaser_config_path}"
     fi
   else
     log_warning "Nothing was uploaded."
@@ -235,17 +238,24 @@ delete_binary_from_gobin() {
 }
 
 delete_release_from_github() {
-  local tag=$(get_delete_tag)
-  if github_is_release_tag_exist "${tag}"; then
-      log_info "GitHub release tag was found. tag: ${tag}"
-      if github_prompt_for_approval_before_delete "${tag}"; then
-        github_delete_release_tag "${tag}"
+  local tag="no-tag"
+  if is_delete_exist; then
+    tag=$(get_delete_tag)
+  else
+    tag=$(prompt_user_input "Insert tag to delete")
+  fi
+  if [[ -n "${tag}" ]]; then
+    if github_is_release_tag_exist "${tag}"; then
+        log_info "GitHub release tag was found. tag: ${tag}"
+        if github_prompt_for_approval_before_delete "${tag}"; then
+          github_delete_release_tag "${tag}"
+        else
+          log_info "No GitHub release tag was deleted."
+        fi
       else
-        log_info "No GitHub release tag was deleted."
+        log_warning "No GitHub release tag was found. tag: ${tag}"
       fi
-    else
-      log_warning "No GitHub release tag was found. tag: ${tag}"
-    fi
+  fi
 }
 
 delete_binary_or_release() {
@@ -438,13 +448,14 @@ check_publish_release() {
   fi
 }
 
-check_delete_missing_tag() {
-  if is_delete; then
-    if is_github_delete_origin && [[ -z "${CLI_VALUE_DELETE_TAG}" ]]; then
-      log_fatal "Delete command from GitHub requires a delete tag. flag: --delete-tag"
-    fi
-  fi
-}
+# Currently redundant since a user will get prompted is a delete tag is missing
+# check_delete_missing_tag() {
+#   if is_delete; then
+#     if is_github_delete_origin && [[ -z "${CLI_VALUE_DELETE_TAG}" ]]; then
+#       log_fatal "Delete command from GitHub requires a delete tag. flag: --delete-tag"
+#     fi
+#   fi
+# }
 
 check_unsupported_actions() {
   if is_build_archive; then
@@ -461,7 +472,7 @@ verify_program_arguments() {
   fi
   check_publish_release
   check_publish_release_type
-  check_delete_missing_tag
+  # check_delete_missing_tag
   check_unsupported_actions
   evaluate_dry_run_mode
 }

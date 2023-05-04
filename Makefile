@@ -62,12 +62,16 @@ delete: fmtcheck ## Delete a locally installed Go binary
 # delete-remote: fmtcheck ## Delete a remote GitHub release
 # 	@${GO_RELEASER} delete --origin github --delete-tag ???
 
-.PHONY: release-to-github
-release-to-github: fmtcheck ## Build and publish Go binary(ies) as GitHub release
+.PHONY: github-release-create
+github-release-create: fmtcheck ## Build and publish Go binary(ies) as GitHub release
 	@${GO_RELEASER} publish \
 		--main-package "./cmd/anchor" \
 		--release-type github \
 		--release-tag $(shell cat ./resources/version.txt)
+
+.PHONY: github-release-delete
+github-release-delete: fmtcheck ## Prompt for a GitHub release tag to delete
+	@${GO_RELEASER} delete --origin github
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
