@@ -63,7 +63,7 @@ delete: fmtcheck ## Delete a locally installed Go binary
 # 	@${GO_RELEASER} delete --origin github --delete-tag ???
 
 .PHONY: github-release-create
-github-release-create: fmtcheck ## Build and publish Go binary(ies) as GitHub release
+github-release-create: fmtcheck test ## Build and publish Go binary(ies) as GitHub release
 	@${GO_RELEASER} publish \
 		--main-package "./cmd/anchor" \
 		--release-type github \
