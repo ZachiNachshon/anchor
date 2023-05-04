@@ -55,7 +55,7 @@ install: fmtcheck ## Build and Install a Go binary locally
 	@${GO_RELEASER} install 
 
 .PHONY: delete
-delete: fmtcheck ## Delete a locally installed Go binary
+delete: ## Delete a locally installed Go binary
 	@${GO_RELEASER} delete --origin gobin-local
 
 # .PHONY: delete-remote
@@ -70,7 +70,7 @@ github-release-create: fmtcheck test ## Build and publish Go binary(ies) as GitH
 		--release-tag $(shell cat ./resources/version.txt)
 
 .PHONY: github-release-delete
-github-release-delete: fmtcheck ## Prompt for a GitHub release tag to delete
+github-release-delete: ## Prompt for a GitHub release tag to delete
 	@${GO_RELEASER} delete --origin github
 
 help:
