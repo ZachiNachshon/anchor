@@ -9,13 +9,16 @@ on:
     branches:
       - master
 
+env:
+  TPARSE_VERSION: "v0.10.0"
+
 jobs:
   build:
     name: Build / Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [ '1.18' ]
+        go: [ '1.20' ]
 
     steps:
       - name: Set up Go env
@@ -23,17 +26,32 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
-      - name: Set up tparse formatter
-        run: go install github.com/mfridman/tparse@v0.10.0
+      - name: Try Load Cache - tparse
+        id: cached-go-package-tparse
+        uses: actions/cache@v3
+        with:
+          path: $GOBIN/tparse
+          key: tparse-${{ env.TPARSE_VERSION }}
+
+      - name: Maybe Install - tparse
+        if: steps.cached-go-package-tparse.outputs.cache-hit != 'true'
+        run: |
+          go install github.com/mfridman/tparse@${{ env.TPARSE_VERSION }}
+      
+      - name: Where TPARSE
+        run: which tparse
 
       - name: Checkout repo code
         uses: actions/checkout@v2
 
       - name: Build
-        run: make build-to-gobin-ci
+        run: make build
+
+      - name: Install to GOBIN
+        run: make install
 
       - name: Run tests
-        run: make test-github-ci
+        run: make test-with-coverage
 
       - name: Coverage
         uses: jandelgado/gcov2lcov-action@v1.0.6

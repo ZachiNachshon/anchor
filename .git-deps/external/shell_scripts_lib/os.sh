@@ -20,17 +20,17 @@ read_os_type() {
 }
 
 #######################################
-# Return OS_Arch tuple as plain string
+# Return architecture as plain string
 # Allow overriding arch with custom name
 # Globals:
 #   None
 # Arguments:
 #    string - (optional) custom mapping for arch e.g "x86_64:amd64"
 # Usage:
-#   identify_os_arch
-#   identify_os_arch "x86_64:amd64" "armv:arm"
+#   read_arch
+#   read_arch "x86_64:amd64" "armv:arm"
 #######################################
-identify_os_arch() {
+read_arch() {
   local amd64="amd64"
   local arm="arm"
   local arm64="arm64"
@@ -58,27 +58,43 @@ identify_os_arch() {
     esac
   done
 
-  local os=$(uname | tr '[:upper:]' '[:lower:]')
   local arch=$(uname -m | tr '[:upper:]' '[:lower:]')
-  local result="${os}_${arch}"
+  local result="${arch}"
 
   # Replace arch with custom mapping, if supplied
   if [[ "${override_arch}" == "true" ]]; then
     case "${arch}" in
       x86_64*)
-        result="${os}_${amd64}"
+        result="${amd64}"
         ;;
       386*)
-        result="${os}_${i386}"
+        result="${i386}"
         ;;
       armv*)
-        result="${os}_${arm}"
+        result="${arm}"
         ;;
       arm64*)
-        result="${os}_${arm64}"
+        result="${arm64}"
         ;;
     esac
   fi
 
   echo "${result}"
+}
+
+#######################################
+# Return OS_Arch tuple as plain string
+# Allow overriding arch with custom name
+# Globals:
+#   None
+# Arguments:
+#    string - (optional) custom mapping for arch e.g "x86_64:amd64"
+# Usage:
+#   identify_os_arch
+#   identify_os_arch "x86_64:amd64" "armv:arm"
+#######################################
+identify_os_arch() {
+  local arch=$(read_arch "$@")
+  local os=$(uname | tr '[:upper:]' '[:lower:]')
+  echo "${os}_${arch}"
 }

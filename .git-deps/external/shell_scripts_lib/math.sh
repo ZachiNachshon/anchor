@@ -6,6 +6,12 @@ increment() {
   echo "${value}"
 }
 
+subtract() {
+  local first=$1
+  local second=$2
+  echo $((${first} - ${second}))
+}
+
 divide() {
   local value=$1
   local divide_by=$2
