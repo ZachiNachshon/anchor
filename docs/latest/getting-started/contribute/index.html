@@ -375,48 +375,64 @@ Docs site is using npm scripts to build the documentation and compile source fil
 </thead>
 <tbody>
 <tr>
-<td><code>align-deps</code></td>
-<td>Update dependencies, preparing this repo pre-build</td>
+<td><code>update-externals</code></td>
+<td>Update external source dependents</td>
 </tr>
 <tr>
-<td><code>build</code></td>
-<td>Build binary with format check (destination: <code>PWD/dist</code>)</td>
-</tr>
-<tr>
-<td><code>build-to-gopath</code></td>
-<td>Build binary with format check (destination: <code>GOPATH/bin</code>)</td>
-</tr>
-<tr>
-<td><code>build-os-arch</code></td>
-<td>Build binaries for specific OS/Arch (destination: <code>PWD/dist</code>)</td>
-</tr>
-<tr>
-<td><code>build-to-gobin-ci</code></td>
-<td>Build binary with format check (destination: <code>GOBIN</code> on CI)</td>
-</tr>
-<tr>
-<td><code>fmt</code></td>
-<td>Format go files</td>
+<td><code>deps</code></td>
+<td>Tidy, verify and vendor go dependencies</td>
 </tr>
 <tr>
 <td><code>fmtcheck</code></td>
-<td>Check go files format validity</td>
+<td>Validate Go code format and imports</td>
+</tr>
+<tr>
+<td><code>fmt</code></td>
+<td>Format Go code using gofmt style and sort imports</td>
 </tr>
 <tr>
 <td><code>test</code></td>
-<td>Run tests suite locally</td>
-</tr>
-<tr>
-<td><code>test-github-ci</code></td>
-<td>Run tests suite on a CI containerized environment</td>
+<td>Run tests suite on host machine</td>
 </tr>
 <tr>
 <td><code>test-containerized</code></td>
-<td>Run tests suite locally containerized</td>
+<td>Run tests suite within a Docker container</td>
 </tr>
 <tr>
-<td><code>release-version</code></td>
-<td>Create release artifacts in GitHub with version from <code>resources/version.txt</code></td>
+<td><code>test-with-coverage</code></td>
+<td>Run tests suite on host machine with coverage report</td>
+</tr>
+<tr>
+<td><code>docs-site</code></td>
+<td>Run a local documentation site</td>
+</tr>
+<tr>
+<td><code>docs-site-lan</code></td>
+<td>Run a local documentation site (LAN available)</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>Build a binary for system OS/Arch</td>
+</tr>
+<tr>
+<td><code>build-main-package</code></td>
+<td>Build main package for system OS/Arch</td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td>Build and Install a Go binary locally</td>
+</tr>
+<tr>
+<td><code>delete</code></td>
+<td>Delete a locally installed Go binary</td>
+</tr>
+<tr>
+<td><code>github-release-create</code></td>
+<td>Build and publish Go binary(ies) as GitHub release</td>
+</tr>
+<tr>
+<td><code>github-release-delete</code></td>
+<td>Prompt for a GitHub release tag to delete</td>
 </tr>
 </tbody>
 </table></div>
@@ -488,7 +504,7 @@ Docs site is using npm scripts to build the documentation and compile source fil
         <ul class="list-unstyled small text-muted">
           <li class="mb-2">Designed and built by <a href="https://github.com/ZachiNachshon" target="_blank" >Zachi Nachshon</a>, Code licensed <a href="https://github.com/ZachiNachshon/anchor/blob/master/LICENSE" target="_blank" rel="license noopener">MIT</a>.</li>
           <li class="mb-2">Site and docs were influenced from <a href="https://getbootstrap.com/" target="_blank">getbootstrap.com</a>, see license <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="license noopener">CC BY 3.0</a>.</li>
-          <li class="mb-2">Currently v0.11.0.</li>
+          <li class="mb-2">Currently v0.12.0.</li>
         </ul>
       </div>
       <div class="col-6 col-lg-2 offset-lg-1 mb-3">
