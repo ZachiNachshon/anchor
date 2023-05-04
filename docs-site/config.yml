@@ -54,7 +54,7 @@ params:
   social_logo_path:     /docs/latest/assets/brand/anchor-social-logo.png
   google_analytics:     "G-NGD31XC4K2"
 
-  current_version:      "0.10.0"
+  current_version:      "0.11.0"
   docs_version:         "latest"
   go_version:           "1.18"
   github_org:           "https://github.com/ZachiNachshon"
@@ -65,7 +65,7 @@ params:
   blog:                 "https://zachi-nachshon.medium.com/"
 
   download:
-    source:             "https://github.com/ZachiNachshon/anchor/archive/v0.10.0.zip"
+    source:             "https://github.com/ZachiNachshon/anchor/archive/v0.11.0.zip"
     dist:               "https://github.com/ZachiNachshon/anchor/releases"
 
   anchors:
