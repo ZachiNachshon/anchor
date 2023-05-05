@@ -9,7 +9,7 @@ aliases: "/docs/latest/getting-started/contribute/"
 
 ## Tooling setup
 
-- [Go lang](https://go.dev/dl/) `v1.18` is required for compilation and tests
+- [Go lang](https://go.dev/dl/) `v1.20` is required for compilation and tests
 - [Node.js](https://nodejs.org/en/download/) is optional for managing the documentation site
 
 {{< callout info >}}

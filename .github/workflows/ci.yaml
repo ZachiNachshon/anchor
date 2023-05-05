@@ -30,7 +30,7 @@ jobs:
         id: cached-go-package-tparse
         uses: actions/cache@v3
         with:
-          path: $GOBIN/tparse
+          path: ${{ env.GOBIN }}/tparse
           key: tparse-${{ env.TPARSE_VERSION }}
 
       - name: Maybe Install - tparse
@@ -38,9 +38,6 @@ jobs:
         run: |
           go install github.com/mfridman/tparse@${{ env.TPARSE_VERSION }}
       
-      - name: Where TPARSE
-        run: which tparse
-
       - name: Checkout repo code
         uses: actions/checkout@v2
 
