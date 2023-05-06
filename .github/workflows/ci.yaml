@@ -30,7 +30,8 @@ jobs:
         id: cached-go-package-tparse
         uses: actions/cache@v3
         with:
-          path: ${{ env.GOPATH }}/bin/tparse
+          # path: ${{ env.GOBIN }}/tparse
+          path: /home/runner/go/bin/tparse
           key: tparse-${{ env.TPARSE_VERSION }}
 
       - name: Maybe Install - tparse
@@ -41,25 +42,22 @@ jobs:
       - name: Checkout repo code
         uses: actions/checkout@v2
 
-      - name: WHICH TPARSE
-        run: which tparse
+      - name: Build
+        run: make build
 
-      # - name: Build
-      #   run: make build
+      - name: Install
+        run: make install
 
-      # - name: Install
-      #   run: make install
+      - name: Run tests
+        run: make test-with-coverage
 
-      # - name: Run tests
-      #   run: make test-with-coverage
+      - name: Coverage
+        uses: jandelgado/gcov2lcov-action@v1.0.6
 
-      # - name: Coverage
-      #   uses: jandelgado/gcov2lcov-action@v1.0.6
-
-      # - name: Coverage Reporter
-      #   uses: coverallsapp/github-action@v1.1.2
-      #   with:
-      #     github-token: ${{ secrets.github_token }}
-      #     path-to-lcov: coverage.lcov
+      - name: Coverage Reporter
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: coverage.lcov
 
 
