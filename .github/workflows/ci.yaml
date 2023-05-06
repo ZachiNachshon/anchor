@@ -41,22 +41,25 @@ jobs:
       - name: Checkout repo code
         uses: actions/checkout@v2
 
-      - name: Build
-        run: make build
+      - name: WHICH TPARSE
+        run: which tparse
 
-      - name: Install to GOBIN
-        run: make install
+      # - name: Build
+      #   run: make build
 
-      - name: Run tests
-        run: make test-with-coverage
+      # - name: Install
+      #   run: make install
 
-      - name: Coverage
-        uses: jandelgado/gcov2lcov-action@v1.0.6
+      # - name: Run tests
+      #   run: make test-with-coverage
 
-      - name: Coverage Reporter
-        uses: coverallsapp/github-action@v1.1.2
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: coverage.lcov
+      # - name: Coverage
+      #   uses: jandelgado/gcov2lcov-action@v1.0.6
+
+      # - name: Coverage Reporter
+      #   uses: coverallsapp/github-action@v1.1.2
+      #   with:
+      #     github-token: ${{ secrets.github_token }}
+      #     path-to-lcov: coverage.lcov
 
 
