@@ -30,7 +30,7 @@ jobs:
         id: cached-go-package-tparse
         uses: actions/cache@v3
         with:
-          path: ${{ env.GOBIN }}/tparse
+          path: ${{ env.GOPATH }}/bin/tparse
           key: tparse-${{ env.TPARSE_VERSION }}
 
       - name: Maybe Install - tparse
