@@ -9,7 +9,7 @@ update-externals: ## Update external source dependents
 	@git-deps-syncer sync-all -y
 
 .PHONY: deps
-deps: fmtcheck ## Tidy, verify and vendor go dependencies
+deps: ## Tidy, verify and vendor go dependencies
 	@${GO_DEV} deps
 
 .PHONY: fmtcheck
